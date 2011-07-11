@@ -1,0 +1,40 @@
+-------------------------------------------------------------------------------
+-- acam_test.vec
+-------------------------------------------------------------------------------
+-- Select the GN4124 Primary BFM
+model 0
+
+-- Initialize the BFM to its default state
+init
+
+-------------------------------------------------------------------------------
+-- Initialize the Primary GN412x BFM model
+-------------------------------------------------------------------------------
+-- These address ranges will generate traffic from the BFM to the FPGA
+-- bar BAR ADDR SIZE VC TC S
+bar     0 0000000000000000 00100000 0 7 0
+
+-- This allocates a RAM block inside the BFM for the FPGA to access
+-- bfm_bar BAR ADDR SIZE
+bfm_bar 0 0000000040000000 20000000
+bfm_bar 1 0000000020000000 20000000
+
+-- Drive reset to the FPGA
+reset %d320
+-- Wait until the FPGA is un-reset and ready for traffic on the local bus
+wait   %d50000
+
+-- Drive reset to the FPGA
+reset %d320
+-- Wait until the FPGA is un-reset and ready for traffic on the local bus
+wait   %d20000
+
+-------------------------------------------------------------------------------
+-- Access the tdc core register space
+-------------------------------------------------------------------------------
+-- the following writes will go out in a single packet
+
+wr 0000000000000000 F 0000AFA1
+wait   %d1
+
+wr 0000000000080004 F 1000AFA2
