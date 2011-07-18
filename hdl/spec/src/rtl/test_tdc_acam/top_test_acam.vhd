@@ -57,6 +57,7 @@ entity top_tdc is
         p_rd_d_rdy_i: in  std_logic_vector(1 downto 0);   -- PCIe-to-Local Read Response Data Ready
         tx_error_i  : in  std_logic;                      -- Transmit Error
         irq_p_o     : out std_logic;                      -- Interrupt request pulse to GN4124 GPIO
+        spare_o     : out std_logic;
         
         -- interface signals with PLL circuit on TDC mezzanine
         acam_refclk_i           : in std_logic;
@@ -348,24 +349,21 @@ signal clock_period             : std_logic_vector(g_width-1 downto 0);
 
 signal gnum_reset               : std_logic;
 signal pll_cs                   : std_logic;
-signal spec_clk                 : std_logic;
 
-signal tdc_led_status           : std_logic:='0';
+signal spec_led_green           : std_logic;
+signal spec_led_red             : std_logic;
+signal tdc_led_status           : std_logic;
 signal tdc_led_trig1            : std_logic:='0';
 signal tdc_led_trig2            : std_logic:='0';
 signal tdc_led_trig3            : std_logic:='0';
 signal tdc_led_trig4            : std_logic:='0';
 signal tdc_led_trig5            : std_logic:='0';
-signal spec_led_green           : std_logic:='0';
-signal spec_led_red             : std_logic:='0';
 
 signal acam_errflag_p           : std_logic;
 signal acam_intflag_p           : std_logic;
-signal acam_refclk              : std_logic;
 signal acam_start01             : std_logic_vector(16 downto 0);
 signal acam_timestamp           : std_logic_vector(28 downto 0);
 signal acam_timestamp_valid     : std_logic;
-signal clk                      : std_logic;
 signal full_timestamp           : std_logic_vector(3*g_width-1 downto 0);
 signal full_timestamp_valid     : std_logic;
 signal general_reset            : std_logic;
@@ -403,6 +401,10 @@ signal dma_cyc                  : std_logic;
 signal dma_dat_o                : std_logic_vector(31 downto 0);
 signal dma_ack                  : std_logic;
 signal dma_stall                : std_logic;
+
+signal acam_refclk              : std_logic;
+signal clk                      : std_logic;
+signal spec_clk                 : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -565,7 +567,7 @@ begin
         dma_stall_i             => dma_stall
     );
 
-    clocks_and_resets_management_block: clk_rst_managr
+    clks_rsts_mgment: clk_rst_managr
     port map(
         acam_refclk_i       => acam_refclk_i,
         pll_ld_i            => pll_ld_i,
@@ -603,7 +605,9 @@ begin
     
     spec_led: process
     begin
-        if spec_led_count_done ='1' then
+        if gnum_reset ='1' then
+            spec_led_red        <= '0';
+        elsif spec_led_count_done ='1' then
             spec_led_red        <= not(spec_led_red);
         end if;
         wait until spec_clk ='1';
@@ -640,12 +644,18 @@ begin
     -- outputs
     pll_cs_o                <= pll_cs;
 
+    mute_inputs_o           <= '0';
     tdc_led_status_o        <= tdc_led_status;
     tdc_led_trig1_o         <= tdc_led_trig1;
     tdc_led_trig2_o         <= tdc_led_trig2;
     tdc_led_trig3_o         <= tdc_led_trig3;
     tdc_led_trig4_o         <= tdc_led_trig4;
     tdc_led_trig5_o         <= tdc_led_trig5;
+    term_en_1_o             <= '1';
+    term_en_2_o             <= '1';
+    term_en_3_o             <= '1';
+    term_en_4_o             <= '1';
+    term_en_5_o             <= '1';
     spec_led_green_o        <= spec_led_green;
     spec_led_red_o          <= spec_led_red;
     
@@ -657,6 +667,7 @@ begin
 
     start_dis_o             <= '0';
     stop_dis_o              <= '0';
+    -- when button 1 is pressed --> start every second. Otherwise start with button 0
     start_from_fpga_o       <= one_hz_p when spec_aux1_i ='0' else not(spec_aux0_i);
     spec_aux2_o             <= spec_aux0_i;
     spec_aux3_o             <= spec_aux1_i;

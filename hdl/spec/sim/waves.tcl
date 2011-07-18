@@ -6,18 +6,20 @@ probe -create -shm -waveform :dut:acam_refclk
 probe -create -shm -waveform :dut:gnum_reset
 probe -create -shm -waveform :dut:general_reset
 
-#probe -create -shm -waveform :dut:clocks_and_resets_management_block:half_clk
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:cs
-#probe -create -shm -waveform :dut:clocks_and_resets_management_block:bit_index
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:byte_index
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:bit_being_sent
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:byte_being_sent
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:pll_init_st
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:gral_incr
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:inv_reset
-probe -create -shm -waveform :dut:clocks_and_resets_management_block:general_power_on_reset:current_value
+probe -create -shm -waveform :dut:clks_rsts_mgment:pll_sclk
+probe -create -shm -waveform :dut:clks_rsts_mgment:pll_sdi_o
+probe -create -shm -waveform :dut:clks_rsts_mgment:cs
+probe -create -shm -waveform :dut:clks_rsts_mgment:bit_index
+probe -create -shm -waveform :dut:clks_rsts_mgment:byte_index
+probe -create -shm -waveform :dut:clks_rsts_mgment:bit_being_sent
+probe -create -shm -waveform :dut:clks_rsts_mgment:byte_being_sent
+probe -create -shm -waveform :dut:clks_rsts_mgment:word_being_sent
+probe -create -shm -waveform :dut:clks_rsts_mgment:pll_init_st
+probe -create -shm -waveform :dut:clks_rsts_mgment:gral_incr
+probe -create -shm -waveform :dut:clks_rsts_mgment:inv_reset
+probe -create -shm -waveform :dut:clks_rsts_mgment:general_power_on_reset:current_value
 
-#probe -create -shm -waveform :dut:clocks_and_resets_management_block:nxt_pll_init_st
+probe -create -shm -waveform :dut:clks_rsts_mgment:nxt_pll_init_st
 
 probe -create -shm -waveform :spec_led_green
 probe -create -shm -waveform :spec_led_red
@@ -170,4 +172,4 @@ probe -create -shm -waveform :acam:timing_block:start_retrig_nb
 
 set intovf_severity_level warning
 
-run 1 ms
+run 2 ms

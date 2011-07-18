@@ -22,7 +22,7 @@ bfm_bar 1 0000000020000000 20000000
 -- Drive reset to the FPGA
 reset %d320
 -- Wait until the FPGA is un-reset and ready for traffic on the local bus
-wait   %d50000
+wait   %d90000
 
 -- Drive reset to the FPGA
 reset %d320

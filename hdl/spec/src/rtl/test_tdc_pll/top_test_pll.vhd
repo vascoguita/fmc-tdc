@@ -57,6 +57,7 @@ entity top_tdc is
         p_rd_d_rdy_i: in  std_logic_vector(1 downto 0);   -- PCIe-to-Local Read Response Data Ready
         tx_error_i  : in  std_logic;                      -- Transmit Error
         irq_p_o     : out std_logic;                      -- Interrupt request pulse to GN4124 GPIO
+        spare_o     : out std_logic;
         
         -- interface signals with PLL circuit on TDC mezzanine
         acam_refclk_i           : in std_logic;
@@ -180,15 +181,17 @@ signal clock_period             : std_logic_vector(g_width-1 downto 0):=x"000030
 
 signal gnum_reset               : std_logic;
 signal pll_cs                   : std_logic;
+signal pll_sclk                 : std_logic;
+signal pll_sdi                  : std_logic;
 
-signal tdc_led_status           : std_logic:='0';
+signal spec_led_green           : std_logic;
+signal spec_led_red             : std_logic;
+signal tdc_led_status           : std_logic;
 signal tdc_led_trig1            : std_logic:='0';
 signal tdc_led_trig2            : std_logic:='0';
 signal tdc_led_trig3            : std_logic:='0';
 signal tdc_led_trig4            : std_logic:='0';
 signal tdc_led_trig5            : std_logic:='0';
-signal spec_led_green           : std_logic:='0';
-signal spec_led_red             : std_logic:='0';
 
 signal acam_errflag_p           : std_logic;
 signal acam_intflag_p           : std_logic;
@@ -244,7 +247,7 @@ signal spec_clk                 : std_logic;
 ----------------------------------------------------------------------------------------------------
 begin
     
-    clocks_and_resets_management_block: clk_rst_managr
+    clks_rsts_mgment: clk_rst_managr
     port map(
         acam_refclk_i       => acam_refclk_i,
         pll_ld_i            => pll_ld_i,
@@ -260,8 +263,8 @@ begin
         general_reset_o     => general_reset,
         pll_cs_o            => pll_cs,
         pll_dac_sync_o      => pll_dac_sync_o,
-        pll_sdi_o           => pll_sdi_o,
-        pll_sclk_o          => pll_sclk_o,
+        pll_sdi_o           => pll_sdi,
+        pll_sclk_o          => pll_sclk,
         spec_clk_o          => spec_clk,
         tdc_clk_o           => clk
     );
@@ -296,7 +299,9 @@ begin
     
     tdc_led: process
     begin
-        if tdc_led_count_done ='1' then
+        if general_reset ='1' then
+            tdc_led_status      <= '0';
+        elsif tdc_led_count_done ='1' then
             tdc_led_status      <= not(tdc_led_status);
         end if;
         wait until clk='1';
@@ -304,7 +309,9 @@ begin
 
     spec_led: process
     begin
-        if spec_led_count_done ='1' then
+        if gnum_reset ='1' then
+            spec_led_red        <= '0';
+        elsif spec_led_count_done ='1' then
             spec_led_red        <= not(spec_led_red);
         end if;
         wait until spec_clk ='1';
@@ -313,14 +320,46 @@ begin
     spec_led_green          <= pll_ld_i;
 
     -- inputs
-    gnum_reset               <= not(rst_n_a_i);
+    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);
 
     -- outputs
     pll_cs_o                <= pll_cs;
+    pll_sclk_o              <= pll_sclk;
+    pll_sdi_o               <= pll_sdi;
+
+    mute_inputs_o           <= '0';
+    term_en_1_o             <= '1';
+    term_en_2_o             <= '1';
+    term_en_3_o             <= '1';
+    term_en_4_o             <= '1';
+    term_en_5_o             <= '1';
 
     tdc_led_status_o        <= tdc_led_status;
     spec_led_green_o        <= spec_led_green;
     spec_led_red_o          <= spec_led_red;
+
+--    tdc_led_trig1_o         <= not(spec_aux0_i);
+--    tdc_led_trig2_o         <= not(spec_aux0_i);
+    tdc_led_trig3_o         <= not(spec_aux0_i);
+    tdc_led_trig4_o         <= not(spec_aux0_i);
+    tdc_led_trig5_o         <= not(spec_aux0_i);
+    
+    button_with_spec_clk: process
+    begin
+        tdc_led_trig1_o             <= spec_aux0_i;
+        wait until spec_clk ='1';
+    end process;
+
+    button_with_tdc_clk: process
+    begin
+        tdc_led_trig2_o             <= spec_aux0_i;
+        wait until clk ='1';
+    end process;
+    
+    spec_aux2_o                 <= pll_sclk;
+    spec_aux3_o                 <= pll_sdi;
+    spec_aux4_o                 <= pll_cs;
+    spec_aux5_o                 <= gnum_reset;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

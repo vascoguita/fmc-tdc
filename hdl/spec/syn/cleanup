@@ -1,10 +1,12 @@
 rm -r backup
 rm -r coreip
 rm identify.log
-rm rpt_tdc_top.areasrr rpt_tdc_top_areasrr.htm
+rm rpt_top_tdc.areasrr rpt_top_tdc_areasrr.htm
 rm run_ise.tcl
 rm run_options.txt scratchproject.prs
 rm synplicity.ucf
+rm fifo_32x512.ngc
+rm fifo_64x512.ngc
 rm syn_tdc.edf
 rm syn_tdc.fse
 rm syn_tdc.htm
@@ -32,8 +34,8 @@ rm syn_tdc.ngo
 rm syn_tdc.pcf
 rm syn_tdc_summary.xml
 rm syn_tdc_usage.xml
-rm tdc_top_map.xrpt
-rm tdc_top_par.xrpt
+rm top_tdc_map.xrpt
+rm top_tdc_par.xrpt
 rm -r xlnx_auto_0_xdb
 rm -r _xmsgs
 

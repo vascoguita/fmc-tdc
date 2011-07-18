@@ -57,6 +57,7 @@ architecture behavioral of tb_tdc is
         p_rd_d_rdy_i: in  std_logic_vector(1 downto 0);   -- PCIe-to-Local Read Response Data Ready
         tx_error_i  : in  std_logic;                      -- Transmit Error
         irq_p_o     : out std_logic;                      -- Interrupt request pulse to GN4124 GPIO
+        spare_o     : out std_logic;
 
        -- interface signals with PLL circuit
         acam_refclk_i           : in std_logic;
@@ -336,6 +337,7 @@ signal spec_led_red         : std_logic;
   -- GN4124 interface
 signal rst_n                : std_logic;
 signal irq_p                : std_logic;
+signal spare                : std_logic;
 
   signal RSTINn             : std_logic;
   signal RSTOUT18n          : std_logic;
@@ -405,6 +407,7 @@ begin
         p_rd_d_rdy_i            => p_rd_d_rdy,
         tx_error_i              => tx_error,
         irq_p_o                 => irq_p,
+        spare_o                 => spare,
         
         -- interface with PLL circuit
         acam_refclk_i           => acam_refclk_i,
@@ -631,8 +634,9 @@ begin
 
     rst_n               <= RSTOUT18n;
     GPIO(0)             <= irq_p;
+    GPIO(1)             <= spare;
     
     spec_aux0_i         <= '1';
-    spec_aux1_i         <= '0';
+    spec_aux1_i         <= '1';
 
 end behavioral;

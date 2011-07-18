@@ -1,0 +1,46 @@
+Release 13.1 ngdbuild O.40d (lin64)
+Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
+
+Command Line:
+/afs/cern.ch/project/parc/elec/xilinx131/ISE_DS/ISE/bin/lin64/unwrapped/ngdbuild
+-uc synplicity.ucf syn_tdc.edf
+
+Executing edif2ngd "syn_tdc.edf" "syn_tdc.ngo"
+Release 13.1 - edif2ngd O.40d (lin64)
+Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
+INFO:NgdBuild - Release 13.1 edif2ngd O.40d (lin64)
+INFO:NgdBuild - Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
+Applying constraints in "syn_tdc.ncf" to module "top_tdc"...
+Checking Constraint Associations...
+Writing module to "syn_tdc.ngo"...
+Reading NGO file
+"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_pll/syn_tdc.n
+go" ...
+Gathering constraint information from source properties...
+Done.
+
+Annotating constraints to design from ucf file "synplicity.ucf" ...
+Resolving constraint associations...
+Checking Constraint Associations...
+Done...
+
+Checking expanded design ...
+
+Partition Implementation Status
+-------------------------------
+
+  No Partitions were found in this design.
+
+-------------------------------
+
+NGDBUILD Design Results Summary:
+  Number of errors:     0
+  Number of warnings:   0
+
+Total memory usage is 311956 kilobytes
+
+Writing NGD file "syn_tdc.ngd" ...
+Total REAL time to NGDBUILD completion:  9 sec
+Total CPU time to NGDBUILD completion:   3 sec
+
+Writing NGDBUILD log file "syn_tdc.bld"...
