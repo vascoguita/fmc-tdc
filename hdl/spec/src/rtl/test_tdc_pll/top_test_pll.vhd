@@ -356,9 +356,9 @@ begin
         wait until clk ='1';
     end process;
     
-    spec_aux2_o                 <= pll_sclk;
-    spec_aux3_o                 <= pll_sdi;
-    spec_aux4_o                 <= pll_cs;
+    spec_aux2_o                 <= pll_sdi;
+    spec_aux3_o                 <= pll_cs;
+    spec_aux4_o                 <= general_reset;
     spec_aux5_o                 <= gnum_reset;
 
 end rtl;

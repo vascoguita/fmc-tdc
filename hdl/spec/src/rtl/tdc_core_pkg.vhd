@@ -71,11 +71,12 @@ package tdc_core_pkg is
     );
     end component;
 constant data_width             : integer:=32;
-constant tdc_led_period_sim     : std_logic_vector(data_width-1 downto 0):=x"0000F424";
-constant tdc_led_period_syn     : std_logic_vector(data_width-1 downto 0):=x"03B9ACA0";
-constant spec_led_period_sim    : std_logic_vector(data_width-1 downto 0):=x"00004E20";
-constant spec_led_period_syn    : std_logic_vector(data_width-1 downto 0):=x"01312D00";
-constant visible_blink_length   : std_logic_vector(data_width-1 downto 0):=x"00BEBC20";
+constant tdc_led_period_sim     : std_logic_vector(data_width-1 downto 0):=x"0000F424";     -- 500 us at 125 MHz
+constant tdc_led_period_syn     : std_logic_vector(data_width-1 downto 0):=x"03B9ACA0";     -- 500 ms at 125 MHz
+constant spec_led_period_sim    : std_logic_vector(data_width-1 downto 0):=x"00004E20";     -- 1 ms at 20 MHz
+constant spec_led_period_syn    : std_logic_vector(data_width-1 downto 0):=x"01312D00";     -- 1 s at 20 MHz
+constant blink_length_syn       : std_logic_vector(data_width-1 downto 0):=x"00BEBC20";     -- 100 ms at 125 MHz
+constant blink_length_sim       : std_logic_vector(data_width-1 downto 0):=x"000004E2";     -- 10 us at 125 MHz
 
 end tdc_core_pkg;
 

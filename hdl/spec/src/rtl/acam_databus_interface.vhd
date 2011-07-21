@@ -184,7 +184,7 @@ begin
 
     adr                         <= adr_i;
     cyc                         <= cyc_i;
-    data_bus_io                 <= dat_i(27 downto 0);
+    data_bus_io                 <= dat_i(27 downto 0) when we='1' else (others =>'Z');
     stb                         <= stb_i;
     we                          <= we_i;
     

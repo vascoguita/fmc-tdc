@@ -225,6 +225,10 @@ architecture rtl of top_tdc is
     end component;
 
     component clk_rst_managr
+    generic(
+        nb_of_reg               : integer:=68;
+        values_for_simulation   : boolean:=FALSE
+    );
     port(
         acam_refclk_i           : in std_logic;
         pll_ld_i                : in std_logic;
@@ -335,11 +339,10 @@ architecture rtl of top_tdc is
 --used to generate the one_hz_p pulse
 constant sim_clock_period       : std_logic_vector(g_width-1 downto 0):=x"0001E848"; -- 1 ms at 125 MHz (tdc board clock)
 constant syn_clock_period       : std_logic_vector(g_width-1 downto 0):=x"07735940"; -- 1 s at 125 MHz (tdc board clock)
--- used for regular blinking of the red led
-constant spec_led_period_sim    : std_logic_vector(g_width-1 downto 0):=x"00004E20"; -- 1 ms at 20 MHz (spec board clock)
-constant spec_led_period_syn    : std_logic_vector(g_width-1 downto 0):=x"01312D00"; -- 1 s at 20 MHz (spec board clock)
 
 signal spec_led_period          : std_logic_vector(g_width-1 downto 0);
+signal tdc_led_period           : std_logic_vector(g_width-1 downto 0);
+signal visible_blink_length     : std_logic_vector(g_width-1 downto 0);
 signal tdc_led_count_done       : std_logic;
 signal spec_led_count_done      : std_logic;
 
@@ -568,6 +571,10 @@ begin
     );
 
     clks_rsts_mgment: clk_rst_managr
+    generic map(
+        nb_of_reg               => 68,
+        values_for_simulation   => values_for_simulation
+    )
     port map(
         acam_refclk_i       => acam_refclk_i,
         pll_ld_i            => pll_ld_i,
@@ -581,7 +588,7 @@ begin
         
         acam_refclk_o       => acam_refclk,
         general_reset_o     => general_reset,
-        pll_cs_o            => pll_cs,
+        pll_cs_o            => pll_cs_o,
         pll_dac_sync_o      => pll_dac_sync_o,
         pll_sdi_o           => pll_sdi_o,
         pll_sclk_o          => pll_sclk_o,
@@ -589,32 +596,6 @@ begin
         tdc_clk_o           => clk
     );
     
-    spec_led_counter: free_counter
-    port map(
-        clk                 => spec_clk,
-        enable              => '1',
-        reset               => gnum_reset,
-        start_value         => spec_led_period,
-        
-        count_done          => spec_led_count_done,
-        current_value       => open
-    );
-    
-    spec_led_period         <= spec_led_period_sim when values_for_simulation
-                                else spec_led_period_syn;
-    
-    spec_led: process
-    begin
-        if gnum_reset ='1' then
-            spec_led_red        <= '0';
-        elsif spec_led_count_done ='1' then
-            spec_led_red        <= not(spec_led_red);
-        end if;
-        wait until spec_clk ='1';
-    end process;
-    
-    spec_led_green          <= pll_ld_i;
-
     tdc_led_counter: countdown_counter
     port map(
         clk                 => clk,
@@ -626,10 +607,58 @@ begin
         current_value       => open
     );
 
-    tdc_led_status      <= not(tdc_led_count_done);
+    blink: process
+    begin
+        if one_hz_p ='1' then
+            tdc_led_status      <= '1';
+        elsif tdc_led_count_done = '1' then
+            tdc_led_status      <= '0';
+        end if;
+        wait until clk ='1';
+    end process;
+    
+    two_seconds: process
+    begin
+        if one_hz_p ='1' then
+            tdc_led_trig5   <= not(tdc_led_trig5);
+        end if;
+        wait until clk ='1';
+    end process;
         
+    spec_led_counter: free_counter
+    port map(
+        clk                 => spec_clk,
+        enable              => '1',
+        reset               => gnum_reset,
+        start_value         => spec_led_period,
+        
+        count_done          => spec_led_count_done,
+        current_value       => open
+    );
+    
+    spec_led: process
+    begin
+        if gnum_reset ='1' then
+            spec_led_red        <= '0';
+        elsif spec_led_count_done ='1' then
+            spec_led_red        <= not(spec_led_red);
+        end if;
+        wait until spec_clk ='1';
+    end process;
+    
+    spec_led_period         <= spec_led_period_sim when values_for_simulation
+                                else spec_led_period_syn;
+    
+    tdc_led_period          <= tdc_led_period_sim when values_for_simulation
+                                else tdc_led_period_syn;
+    
+    visible_blink_length    <= blink_length_sim when values_for_simulation
+                                else blink_length_syn;
+    
+    spec_led_green          <= pll_ld_i;
+
     -- inputs
-    gnum_reset              <= not(rst_n_a_i);
+    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);
 
     -- internal signals
     acm_adr(19)             <= '0';
@@ -640,25 +669,41 @@ begin
     acm_dat_w               <= csr_dat_w;
     csr_ack(0)              <= acm_ack;
     csr_dat_r               <= acm_dat_r;
+--    csr_dat_r               <= x"0B0AB0BA";
     
     -- outputs
-    pll_cs_o                <= pll_cs;
-
-    mute_inputs_o           <= '0';
-    tdc_led_status_o        <= tdc_led_status;
-    tdc_led_trig1_o         <= tdc_led_trig1;
-    tdc_led_trig2_o         <= tdc_led_trig2;
-    tdc_led_trig3_o         <= tdc_led_trig3;
-    tdc_led_trig4_o         <= tdc_led_trig4;
-    tdc_led_trig5_o         <= tdc_led_trig5;
+    mute_inputs_o           <= '1';
     term_en_1_o             <= '1';
     term_en_2_o             <= '1';
     term_en_3_o             <= '1';
     term_en_4_o             <= '1';
     term_en_5_o             <= '1';
+
+    spec_aux5_o             <= spec_aux0_i;
+    spec_aux4_o             <= spec_aux1_i;
+
+    button_with_spec_clk: process
+    begin
+        spec_aux3_o             <= spec_aux0_i;
+        wait until spec_clk ='1';
+    end process;
+
+    button_with_tdc_clk: process
+    begin
+        spec_aux2_o             <= spec_aux0_i;
+        wait until clk ='1';
+    end process;
+
     spec_led_green_o        <= spec_led_green;
     spec_led_red_o          <= spec_led_red;
+    tdc_led_status_o        <= tdc_led_status;
     
+    tdc_led_trig1_o         <= tdc_led_trig1;
+    tdc_led_trig2_o         <= tdc_led_trig2;
+    tdc_led_trig3_o         <= tdc_led_trig3;
+    tdc_led_trig4_o         <= tdc_led_trig4;
+    tdc_led_trig5_o         <= tdc_led_trig5;
+
     -- this is the config for acam test...
     clock_period            <= sim_clock_period when values_for_simulation
                                 else syn_clock_period;
@@ -668,9 +713,8 @@ begin
     start_dis_o             <= '0';
     stop_dis_o              <= '0';
     -- when button 1 is pressed --> start every second. Otherwise start with button 0
-    start_from_fpga_o       <= one_hz_p when spec_aux1_i ='0' else not(spec_aux0_i);
-    spec_aux2_o             <= spec_aux0_i;
-    spec_aux3_o             <= spec_aux1_i;
+    start_from_fpga_o       <= one_hz_p;-- when spec_aux1_i ='0' else not(spec_aux0_i);
+
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

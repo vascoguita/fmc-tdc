@@ -531,6 +531,8 @@ begin
     generic map
     (
       STRING_MAX     => STRING_MAX,
+--      T_LCLK         => 5 ns,
+--      T_LCLK         => 10 ns,
       T_LCLK         => 6.25 ns,
       T_P2L_CLK_DLY  => 2 ns,
       INSTANCE_LABEL => "U0(Primary GN412x): ",

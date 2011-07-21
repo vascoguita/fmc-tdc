@@ -340,6 +340,17 @@ begin
       PLLD         => 1,
       PLLX         => 2,
       S            => 2,
+
+--      CLKIN_PERIOD => 10.000,
+--      PLLD         => 2,
+--      PLLX         => 8,
+--      S            => 4,
+
+--      CLKIN_PERIOD => 6.25,
+--      PLLD         => 1,
+--      PLLX         => 2,
+--      S            => 2,
+
       BS           => false)
     port map (
       clkin_p         => p2l_clk_p_i,

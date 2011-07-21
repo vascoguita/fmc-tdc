@@ -31,7 +31,8 @@ use UNISIM.vcomponents.all;
 ----------------------------------------------------------------------------------------------------
 entity clk_rst_managr is
     generic(
-        nb_of_reg               : integer:=68
+        nb_of_reg               : integer:=68;
+        values_for_simulation   : boolean:=FALSE
     );
     port(
         acam_refclk_i           : in std_logic;
@@ -164,31 +165,36 @@ constant reg_230        : t_byte:=x"00";
 constant reg_231        : t_byte:=x"00";
 constant reg_232        : t_byte:=x"01";
 
-signal pll_init_st      : t_pll_init_st;
-signal nxt_pll_init_st  : t_pll_init_st;
+constant sim_reset      : std_logic_vector(31 downto 0):=x"00000400";
+constant syn_reset      : std_logic_vector(31 downto 0):=x"00004E20";
 
-signal config_reg       : t_stream;
-signal address          : t_instr;
 
-signal acam_refclk_buf  : std_logic;
-signal spec_clk_buf     : std_logic;
-signal tdc_clk_buf      : std_logic;
+signal pll_init_st              : t_pll_init_st;
+signal nxt_pll_init_st          : t_pll_init_st;
 
-signal acam_refclk      : std_logic;
-signal pll_sclk         : std_logic;
-signal spec_clk         : std_logic;
-signal tdc_clk          : std_logic;
+signal config_reg               : t_stream;
+signal address                  : t_instr;
 
-signal bit_being_sent   : std_logic;
-signal word_being_sent  : t_wd;
-signal bit_index        : integer range 15 downto 0;
-signal byte_index       : integer range nb_of_reg-1 downto 0;
+signal acam_refclk_buf          : std_logic;
+signal spec_clk_buf             : std_logic;
+signal tdc_clk_buf              : std_logic;
+        
+signal acam_refclk              : std_logic;
+signal pll_sclk                 : std_logic;
+signal spec_clk                 : std_logic;
+signal tdc_clk                  : std_logic;
 
-signal silly_altern     : std_logic;
-signal gnum_reset       : std_logic;
-signal gral_incr        : std_logic;
-signal inv_reset        : std_logic;
-signal cs               : std_logic;
+signal bit_being_sent           : std_logic;
+signal word_being_sent          : t_wd;
+signal bit_index                : integer range 15 downto 0;
+signal byte_index               : integer range nb_of_reg-1 downto 0;
+
+signal silly_altern             : std_logic;
+signal gnum_reset               : std_logic;
+signal gral_incr                : std_logic;
+signal gral_reset_duration      : std_logic_vector(31 downto 0);
+signal inv_reset                : std_logic;
+signal cs                       : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -243,13 +249,16 @@ begin
     general_poreset: incr_counter
     port map(
         clk                 => spec_clk,
-        end_value           => x"0000007D",     -- 125 clk ticks
+        end_value           => gral_reset_duration,
         incr                => gral_incr,
         reset               => gnum_reset,
         
         count_done          => inv_reset,
         current_value       => open
     );
+    
+    gral_reset_duration          <= sim_reset when values_for_simulation
+                                    else syn_reset;
     
     silly: process
     begin
