@@ -34,9 +34,9 @@ probe -create -shm -waveform :dut:spec_led_count_done
 #probe -create -shm -waveform :LCLKn        
 
 probe -create -shm -waveform :P2L_CLKp
-probe -create -shm -waveform :P2L_CLKn 
+#probe -create -shm -waveform :P2L_CLKn 
 probe -create -shm -waveform :P2L_DATA           
-probe -create -shm -waveform :P2L_DATA_32        
+#probe -create -shm -waveform :P2L_DATA_32        
 probe -create -shm -waveform :P2L_DFRAME         
 probe -create -shm -waveform :P2L_VALID          
 probe -create -shm -waveform :P2L_RDY            
@@ -44,17 +44,18 @@ probe -create -shm -waveform :P_WR_REQ
 probe -create -shm -waveform :P_WR_RDY           
 probe -create -shm -waveform :RX_ERROR           
 probe -create -shm -waveform :VC_RDY             
-#probe -create -shm -waveform :L2P_CLKp, L2P_CLKn 
-#probe -create -shm -waveform :L2P_DATA           
+probe -create -shm -waveform :L2P_CLKp
+#probe -create -shm -waveform :L2P_CLKn 
+probe -create -shm -waveform :L2P_DATA           
 #probe -create -shm -waveform :L2P_DATA_32        
-#probe -create -shm -waveform :L2P_DFRAME         
-#probe -create -shm -waveform :L2P_VALID          
-#probe -create -shm -waveform :L2P_EDB            
-#probe -create -shm -waveform :L2P_RDY            
-#probe -create -shm -waveform :L_WR_RDY           
-#probe -create -shm -waveform :P_RD_D_RDY         
-#probe -create -shm -waveform :TX_ERROR           
-probe -create -shm -waveform :GPIO               
+probe -create -shm -waveform :L2P_DFRAME         
+probe -create -shm -waveform :L2P_VALID          
+probe -create -shm -waveform :L2P_EDB            
+probe -create -shm -waveform :L2P_RDY            
+probe -create -shm -waveform :L_WR_RDY           
+probe -create -shm -waveform :P_RD_D_RDY         
+probe -create -shm -waveform :TX_ERROR           
+#probe -create -shm -waveform :GPIO               
 
 #probe -create -shm -waveform :dut:acm_adr
 #probe -create -shm -waveform :dut:acm_cyc

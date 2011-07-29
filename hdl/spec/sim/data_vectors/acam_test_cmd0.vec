@@ -22,19 +22,46 @@ bfm_bar 1 0000000020000000 20000000
 -- Drive reset to the FPGA
 reset %d320
 -- Wait until the FPGA is un-reset and ready for traffic on the local bus
-wait   %d90000
+wait   %d50000
 
 -- Drive reset to the FPGA
 reset %d320
 -- Wait until the FPGA is un-reset and ready for traffic on the local bus
-wait   %d20000
+wait   %d60000
 
 -------------------------------------------------------------------------------
 -- Access the tdc core register space
 -------------------------------------------------------------------------------
 -- the following writes will go out in a single packet
 
-wr 0000000000000000 F 0000AFA1
-wait   %d1
+wr 0000000040000808 F 0001F04C
+wait   %d50
+wr 0000000040000800 F 00021040
+wait   %d50
+wr 0000000040000800 F 00025000
+wait   %d50
 
-wr 0000000000080004 F 1000AFA2
+rd 0000000000000000 F 0000A0A1
+wait   %d20
+rd 0000000000000004 F 0000A0A2
+wait   %d20
+rd 0000000000000008 F 0000A0A3
+wait   %d20
+rd 000000000000000C F 0000A0A4
+wait   %d20
+rd 0000000000000010 F 0000A0A5
+wait   %d60
+
+wr 0000000000080000 F 0000FC81
+wait   %d50
+wr 000000000008002C F 00FF0000
+wait   %d50
+rd 0000000000080000 F 0000FC81
+wait   %d50
+rd 000000000008002C F 00FF0000
+wait   %d50
+
+wr 0000000000080030 F 04000000
+wait   %d50
+rd 0000000000080030 F 04000000
+wait   %d50
