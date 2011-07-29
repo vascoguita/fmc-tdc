@@ -1,7 +1,7 @@
 Release 13.1 - par O.40d (lin64)
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 
-Fri Jul 15 19:32:02 2011
+Mon Jul 18 09:44:59 2011
 
 
 INFO: The IO information is provided in three file formats as part of the Place and Route (PAR) process.  These formats are:
@@ -191,7 +191,7 @@ Pinout by Pin Number:
 |F15       |                 |IOBS     |IO_L36N_GCLK14_0             |UNUSED   |              |0             |          |         |           |         |         |          |           |                |
 |F16       |                 |IOBS     |IO_L37N_GCLK12_0             |UNUSED   |              |0             |          |         |           |         |         |          |           |                |
 |F17       |                 |IOBS     |IO_L51N_0                    |UNUSED   |              |0             |          |         |           |         |         |          |           |                |
-|F18       |spec_aux4_o      |IOB      |IO_L1P_A25_1                 |OUTPUT   |LVCMOS18      |1             |12        |         |           |         |         |LOCATED   |NO         |NONE            |
+|F18       |spec_aux4_o      |IOB      |IO_L1P_A25_1                 |OUTPUT   |LVCMOS18      |1             |12        |         |           |         |         |LOCATED   |YES        |NONE            |
 |F19       |                 |IOBS     |IO_L1N_A24_VREF_1            |UNUSED   |              |1             |          |         |           |         |         |          |           |                |
 |F20       |spec_aux3_o      |IOB      |IO_L29N_A22_M1A14_1          |OUTPUT   |LVCMOS18      |1             |12        |         |           |         |         |LOCATED   |NO         |NONE            |
 |F21       |p2l_data_i(14)   |IOB      |IO_L31P_A19_M1CKE_1          |INPUT    |LVCMOS25*     |1             |          |         |           |NONE     |         |LOCATED   |NO         |NONE            |
@@ -214,7 +214,7 @@ Pinout by Pin Number:
 |G16       |                 |IOBM     |IO_L51P_0                    |UNUSED   |              |0             |          |         |           |         |         |          |           |                |
 |G17       |                 |         |TDO                          |         |              |              |          |         |           |         |         |          |           |                |
 |G18       |                 |         |GND                          |         |              |              |          |         |           |         |         |          |           |                |
-|G19       |spec_aux2_o      |IOB      |IO_L29P_A23_M1A13_1          |OUTPUT   |LVCMOS18      |1             |12        |         |           |         |         |LOCATED   |YES        |NONE            |
+|G19       |spec_aux2_o      |IOB      |IO_L29P_A23_M1A13_1          |OUTPUT   |LVCMOS18      |1             |12        |         |           |         |         |LOCATED   |NO         |NONE            |
 |G20       |p2l_data_i(6)    |IOB      |IO_L35P_A11_M1A7_1           |INPUT    |LVCMOS25*     |1             |          |         |           |NONE     |         |LOCATED   |NO         |NONE            |
 |G21       |                 |         |VCCO_1                       |         |              |1             |          |         |           |         |1.80     |          |           |                |
 |G22       |p2l_data_i(5)    |IOB      |IO_L35N_A10_M1A2_1           |INPUT    |LVCMOS25*     |1             |          |         |           |NONE     |         |LOCATED   |NO         |NONE            |

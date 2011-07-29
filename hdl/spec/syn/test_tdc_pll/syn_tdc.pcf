@@ -1,5 +1,5 @@
 //! **************************************************************************
-// Written by: Map O.40d on Fri Jul 15 19:31:38 2011
+// Written by: Map O.40d on Mon Jul 18 09:44:36 2011
 //! **************************************************************************
 
 SCHEMATIC START;
@@ -153,6 +153,7 @@ TIMEGRP spec_clk_i = BEL "clks_rsts_mgment.spec_clk_gbuf" BEL
         BEL "clks_rsts_mgment.bit_index[2]" BEL
         "clks_rsts_mgment.bit_index[3]" BEL "clks_rsts_mgment.pll_sclk" PIN
         "spec_led_red_counter.value[31:0]_pins<92>" BEL
+        "clks_rsts_mgment.general_poreset.count_done_rep0_i" BEL
         "clks_rsts_mgment.general_poreset.value[0]" BEL
         "clks_rsts_mgment.general_poreset.value[1]" BEL
         "clks_rsts_mgment.general_poreset.value[2]" BEL
@@ -185,8 +186,7 @@ TIMEGRP spec_clk_i = BEL "clks_rsts_mgment.spec_clk_gbuf" BEL
         "clks_rsts_mgment.general_poreset.value[29]" BEL
         "clks_rsts_mgment.general_poreset.value[30]" BEL
         "clks_rsts_mgment.general_poreset.value[31]" BEL "spec_led_red_oreg"
-        BEL "clks_rsts_mgment.pll_sclk_oreg" BEL
-        "clks_rsts_mgment.pll_sclk_oreg_0" PIN
+        BEL "clks_rsts_mgment.pll_sclk_oreg" PIN
         "clks_rsts_mgment.un7_word_being_sent_0_0_pins<26>" BEL
         "tdc_led_trig1_o" BEL "spec_led_red" BEL
         "spec_led_red_counter.count_done" BEL
@@ -203,6 +203,7 @@ TIMEGRP spec_clk = BEL "clks_rsts_mgment.general_poreset.count_done" BEL
         BEL "clks_rsts_mgment.bit_index[2]" BEL
         "clks_rsts_mgment.bit_index[3]" BEL "clks_rsts_mgment.pll_sclk" PIN
         "spec_led_red_counter.value[31:0]_pins<92>" BEL
+        "clks_rsts_mgment.general_poreset.count_done_rep0_i" BEL
         "clks_rsts_mgment.general_poreset.value[0]" BEL
         "clks_rsts_mgment.general_poreset.value[1]" BEL
         "clks_rsts_mgment.general_poreset.value[2]" BEL
@@ -235,8 +236,7 @@ TIMEGRP spec_clk = BEL "clks_rsts_mgment.general_poreset.count_done" BEL
         "clks_rsts_mgment.general_poreset.value[29]" BEL
         "clks_rsts_mgment.general_poreset.value[30]" BEL
         "clks_rsts_mgment.general_poreset.value[31]" BEL "spec_led_red_oreg"
-        BEL "clks_rsts_mgment.pll_sclk_oreg" BEL
-        "clks_rsts_mgment.pll_sclk_oreg_0" PIN
+        BEL "clks_rsts_mgment.pll_sclk_oreg" PIN
         "clks_rsts_mgment.un7_word_being_sent_0_0_pins<26>" BEL
         "tdc_led_trig1_o" BEL "spec_led_red" BEL
         "spec_led_red_counter.count_done" BEL

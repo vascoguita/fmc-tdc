@@ -5,10 +5,10 @@
 
 #Implementation: test_tdc_pll
 
-#Fri Jul 15 19:30:52 2011
+#Mon Jul 18 09:43:56 2011
 
 $ Start of Compile
-#Fri Jul 15 19:30:52 2011
+#Mon Jul 18 09:43:56 2011
 
 Synopsys VHDL Compiler, version comp500rc, Build 027R, built Feb 19 2010
 Copyright (C) 1994-2010, Synopsys Inc.  All Rights Reserved
@@ -131,7 +131,7 @@ State machine has 5 reachable states with original encodings of:
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":89:8:89:12|Input lf2_i is unused
 @END
 Process took 0h:00m:01s realtime, 0h:00m:01s cputime
-# Fri Jul 15 19:30:53 2011
+# Mon Jul 18 09:43:57 2011
 
 ###########################################################]
 Synopsys Xilinx Technology Mapper, Version map510rc, Build 068R, Built Feb 22 2010 15:14:03
@@ -147,10 +147,8 @@ Adding property syn_netlist_hierarchy, value 0 to view:work.top_tdc(rtl)
 @N: MF257 |Gated clock conversion enabled 
 Adding property syn_pad_type, value "LVCMOS_25", to instance spec_led_green_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance pll_cs_o
-Adding property syn_pad_type, value "LVCMOS18", to instance spec_aux4_o
-Adding property syn_pad_type, value "LVCMOS_25", to instance pll_sdi_o
 Adding property syn_pad_type, value "LVCMOS18", to instance spec_aux3_o
-Adding property syn_pad_type, value "LVCMOS_25", to instance pll_sclk_o
+Adding property syn_pad_type, value "LVCMOS_25", to instance pll_sdi_o
 Adding property syn_pad_type, value "LVCMOS18", to instance spec_aux2_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig1_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig2_o
@@ -363,34 +361,34 @@ Finished gated-clock and generated-clock conversion (Time elapsed 0h:00m:00s; Me
 @N: FX430 |Found 2 global buffers instantiated by user 
 Finished generic timing optimizations - Pass 1 (Time elapsed 0h:00m:00s; Memory used current: 124MB peak: 125MB)
 
-@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_00 = 00000000000000000000000000000000000000000000000001E009E102300231
-@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_04 = 101600171C18001900120C13241400150C030004F01004110632600000014002
-@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_05 = 04A600A700A804A900A204A300A400A5001E381F04A000A1001A001B081C001D
-@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_06 = 0190019101920193294069410D42094328F228F328F428F500AA00AB28F028F1
-@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_07 = 45A081A101A201A3019C019D899E019F01988999019A459B0194019501960197
-@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INITP_00 = 0000008220550000000000000000C40000000000000000000000000000000000
+@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_00 = 000000000000000000000000000000000000000000000000FD1FF51EFECFFECE
+@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_04 = ECE9FCE8E0E7FCE6FCEDF0ECD8EBFCEAF0FCFCFB0CEFF8EEFACD9CFFFCFEBCFD
+@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_05 = F859FC58FC57F856FC5DF85CFC5BFC5AFCE1C4E0F85FFC5EFCE5FCE4F4E3FCE2
+@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_06 = FD6FFD6EFD6DFD6CD5BF95BEF1BDF5BCD40DD40CD40BD40AFC55FC54D40FD40E
+@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_07 = B95F7D5EFD5DFD5CFD63FD627561FD60FD677566FD65B964FD6BFD6AFD69FD68
+@N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":381:41:381:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INITP_00 = FFFFFF7DDFAAFFFFFFFFFFFFFFFF3BFF000000000000000000000000000000FF
 @N: FX211 |Packed ROM clks_rsts_mgment.un7_word_being_sent_0[17:0] (7 input, 18 output) to Block SelectRAM 
 @A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":35:7:35:11|Boundary register spec_led_red_counter.value[31:0] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
 Starting Early Timing Optimization (Time elapsed 0h:00m:00s; Memory used current: 126MB peak: 127MB)
 
-Finished Early Timing Optimization (Time elapsed 0h:00m:00s; Memory used current: 126MB peak: 127MB)
+Finished Early Timing Optimization (Time elapsed 0h:00m:01s; Memory used current: 126MB peak: 127MB)
 
 Finished generic timing optimizations - Pass 2 (Time elapsed 0h:00m:01s; Memory used current: 126MB peak: 127MB)
 
-Finished preparing to map (Time elapsed 0h:00m:01s; Memory used current: 126MB peak: 127MB)
+Finished preparing to map (Time elapsed 0h:00m:01s; Memory used current: 127MB peak: 127MB)
 
-Finished technology mapping (Time elapsed 0h:00m:01s; Memory used current: 126MB peak: 127MB)
+Finished technology mapping (Time elapsed 0h:00m:01s; Memory used current: 127MB peak: 127MB)
 
 Pass		 CPU time		Worst Slack		Luts / Registers
 ------------------------------------------------------------
 Pass		 CPU time		Worst Slack		Luts / Registers
 ------------------------------------------------------------
-   1		0h:00m:01s		    -3.67ns		 188 /        92
-   2		0h:00m:01s		    -3.67ns		 188 /        92
+   1		0h:00m:01s		    -3.68ns		 200 /        92
+   2		0h:00m:01s		    -3.68ns		 200 /        92
 ------------------------------------------------------------
 
 Timing driven replication report
-@N: FX271 :|Instance "N_132_i" with 44 loads has been replicated 1 time(s) to improve timing 
+@N: FX271 :|Instance "N_188_i" with 44 loads has been replicated 1 time(s) to improve timing 
 Added 0 Registers via timing driven replication
 Added 1 LUTs via timing driven replication
 
@@ -408,17 +406,14 @@ No replication required.
 
 Pass		 CPU time		Worst Slack		Luts / Registers
 ------------------------------------------------------------
-   1		0h:00m:01s		    -3.14ns		 182 /        92
+   1		0h:00m:01s		    -3.15ns		 201 /        92
 Timing driven replication report
 No replication required.
 
-   2		0h:00m:01s		    -3.14ns		 182 /        92
-   3		0h:00m:01s		    -3.14ns		 182 /        92
-   4		0h:00m:01s		    -3.14ns		 183 /        92
-   5		0h:00m:01s		    -3.14ns		 183 /        92
-   6		0h:00m:01s		    -3.14ns		 183 /        92
-   7		0h:00m:01s		    -3.14ns		 183 /        92
-   8		0h:00m:01s		    -3.14ns		 183 /        92
+   2		0h:00m:01s		    -3.15ns		 201 /        92
+   3		0h:00m:01s		    -3.15ns		 202 /        92
+   4		0h:00m:01s		    -3.15ns		 202 /        92
+   5		0h:00m:01s		    -3.15ns		 202 /        92
 ------------------------------------------------------------
 
 Timing driven replication report
@@ -429,19 +424,19 @@ No replication required.
 
 Pass		 CPU time		Worst Slack		Luts / Registers
 ------------------------------------------------------------
-   1		0h:00m:01s		    -3.14ns		 184 /        92
+   1		0h:00m:01s		    -3.15ns		 202 /        92
 Timing driven replication report
 No replication required.
 
-   2		0h:00m:01s		    -3.14ns		 184 /        92
-   3		0h:00m:01s		    -3.14ns		 184 /        92
-   4		0h:00m:01s		    -3.14ns		 184 /        92
+   2		0h:00m:01s		    -3.15ns		 202 /        92
+   3		0h:00m:01s		    -3.15ns		 202 /        92
+   4		0h:00m:01s		    -3.15ns		 202 /        92
 ------------------------------------------------------------
 
 Net buffering Report for view:work.top_tdc(rtl):
 No nets needed buffering.
 
-Finished technology timing optimizations and critical path resynthesis (Time elapsed 0h:00m:02s; Memory used current: 127MB peak: 128MB)
+Finished technology timing optimizations and critical path resynthesis (Time elapsed 0h:00m:02s; Memory used current: 127MB peak: 127MB)
 
 @N: FX623 |Packing into LUT62
 Finished restoring hierarchy (Time elapsed 0h:00m:02s; Memory used current: 127MB peak: 128MB)
@@ -451,7 +446,7 @@ Finished Writing Netlist Databases (Time elapsed 0h:00m:02s; Memory used current
 
 Writing EDIF Netlist and constraint files
 D-2010.03
-Finished Writing EDIF Netlist and constraint files (Time elapsed 0h:00m:02s; Memory used current: 127MB peak: 129MB)
+Finished Writing EDIF Netlist and constraint files (Time elapsed 0h:00m:03s; Memory used current: 127MB peak: 129MB)
 
 Starting Writing Gated Clock Conversion Report (Time elapsed 0h:00m:03s; Memory used current: 126MB peak: 129MB)
 
@@ -481,7 +476,7 @@ Port spec_led_red_o - has output constraint of 2.00ns w.r.t. clock spec_clk20:r
 
 
 ##### START OF TIMING REPORT #####[
-# Timing Report written on Fri Jul 15 19:30:57 2011
+# Timing Report written on Mon Jul 18 09:44:01 2011
 #
 
 
@@ -498,14 +493,14 @@ Performance Summary
 *******************
 
 
-Worst slack in design: -2.997
+Worst slack in design: -3.015
 
                        Requested     Estimated     Requested     Estimated                Clock        Clock              
 Starting Clock         Frequency     Frequency     Period        Period        Slack      Type         Group              
 --------------------------------------------------------------------------------------------------------------------------
 spec_clk20             20.0 MHz      104.2 MHz     50.000        9.592         40.408     declared     default_clkgroup__2
-tdc_clk125             125.0 MHz     90.9 MHz      8.000         10.997        -2.997     declared     default_clkgroup__1
-top_tdc|spec_clk_i     200.0 MHz     167.5 MHz     5.000         5.971         -0.971     inferred     Inferred_clkgroup_0
+tdc_clk125             125.0 MHz     90.8 MHz      8.000         11.015        -3.015     declared     default_clkgroup__1
+top_tdc|spec_clk_i     200.0 MHz     161.3 MHz     5.000         6.201         -1.201     inferred     Inferred_clkgroup_0
 ==========================================================================================================================
 
 
@@ -519,14 +514,14 @@ Clocks                                  |    rise  to  rise    |    fall  to  fa
 -------------------------------------------------------------------------------------------------------------------------------
 Starting            Ending              |  constraint  slack   |  constraint  slack  |  constraint  slack  |  constraint  slack
 -------------------------------------------------------------------------------------------------------------------------------
-tdc_clk125          tdc_clk125          |  8.000       -2.997  |  No paths    -      |  No paths    -      |  No paths    -    
+tdc_clk125          tdc_clk125          |  8.000       -3.015  |  No paths    -      |  No paths    -      |  No paths    -    
 tdc_clk125          spec_clk20          |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
 tdc_clk125          top_tdc|spec_clk_i  |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
 spec_clk20          tdc_clk125          |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
 spec_clk20          spec_clk20          |  50.000      40.408  |  No paths    -      |  No paths    -      |  No paths    -    
 top_tdc|spec_clk_i  tdc_clk125          |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
 top_tdc|spec_clk_i  spec_clk20          |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
-top_tdc|spec_clk_i  top_tdc|spec_clk_i  |  5.000       -0.971  |  No paths    -      |  No paths    -      |  No paths    -    
+top_tdc|spec_clk_i  top_tdc|spec_clk_i  |  5.000       -1.201  |  No paths    -      |  No paths    -      |  No paths    -    
 ===============================================================================================================================
  Note: 'No paths' indicates there are no paths in the design for that pair of clock edges.
        'Diff grp' indicates that paths exist but the starting clock and ending clock are in different clock groups.
@@ -610,9 +605,9 @@ pll_ld_i            spec_clk20 (rising)     2.000          2.000       42.408   
 pll_refmon_i        spec_clk20 (rising)     2.000          NA          NA           NA    
 pll_sdo_i           spec_clk20 (rising)     2.000          NA          NA           NA    
 pll_status_i        spec_clk20 (rising)     2.000          NA          NA           NA    
-rst_n_a_i           tdc_clk125 (rising)     2.000          2.000       -0.997       -2.997
+rst_n_a_i           tdc_clk125 (rising)     2.000          2.000       -1.015       -3.015
 spec_aux0_i         tdc_clk125 (rising)     2.000          2.000       -0.581       -2.581
-spec_aux1_i         tdc_clk125 (rising)     2.000          2.000       -0.997       -2.997
+spec_aux1_i         tdc_clk125 (rising)     2.000          2.000       -1.015       -3.015
 spec_clk_i          NA                      NA             NA          NA           NA    
 tdc_clk_n_i         tdc_clk125 (rising)     2.000          NA          NA           NA    
 tdc_clk_p_i         tdc_clk125 (rising)     2.000          NA          NA           NA    
@@ -628,13 +623,13 @@ Port                 Starting                        User                       
 Name                 Reference                       Constraint                   Time        Time         Slack 
                      Clock                                                                                       
 -----------------------------------------------------------------------------------------------------------------
-pll_cs_o             top_tdc|spec_clk_i (rising)     2.000(spec_clk20 rising)     10.827      NA           NA    
+pll_cs_o             top_tdc|spec_clk_i (rising)     2.000(spec_clk20 rising)     10.836      NA           NA    
 pll_sclk_o           top_tdc|spec_clk_i (rising)     2.000(spec_clk20 rising)     5.344       NA           NA    
-pll_sdi_o            top_tdc|spec_clk_i (rising)     2.000(spec_clk20 rising)     16.613      NA           NA    
-spec_aux2_o          top_tdc|spec_clk_i (rising)     2.000(tdc_clk125 rising)     5.344       NA           NA    
-spec_aux3_o          top_tdc|spec_clk_i (rising)     2.000(tdc_clk125 rising)     16.613      NA           NA    
-spec_aux4_o          top_tdc|spec_clk_i (rising)     2.000(tdc_clk125 rising)     10.827      NA           NA    
-spec_aux5_o          tdc_clk125 (rising)             2.000(tdc_clk125 rising)     8.997       6.000        -2.997
+pll_sdi_o            top_tdc|spec_clk_i (rising)     2.000(spec_clk20 rising)     17.785      NA           NA    
+spec_aux2_o          top_tdc|spec_clk_i (rising)     2.000(tdc_clk125 rising)     17.785      NA           NA    
+spec_aux3_o          top_tdc|spec_clk_i (rising)     2.000(tdc_clk125 rising)     10.836      NA           NA    
+spec_aux4_o          top_tdc|spec_clk_i (rising)     2.000(tdc_clk125 rising)     5.344       NA           NA    
+spec_aux5_o          tdc_clk125 (rising)             2.000(tdc_clk125 rising)     9.015       6.000        -3.015
 spec_led_green_o     spec_clk20 (rising)             2.000(spec_clk20 rising)     7.592       48.000       40.408
 spec_led_red_o       spec_clk20 (rising)             2.000(spec_clk20 rising)     2.500       48.000       45.500
 tdc_led_status_o     tdc_clk125 (rising)             2.000(tdc_clk125 rising)     2.500       6.000        3.500 
@@ -920,16 +915,16 @@ Starting Points with Worst Slack
 Instance                      Reference      Type     Pin             Net                         Time        Slack 
                               Clock                                                                                 
 --------------------------------------------------------------------------------------------------------------------
-rst_n_a_i                     tdc_clk125     Port     rst_n_a_i       rst_n_a_i                   2.000       -2.997
-spec_aux1_i                   tdc_clk125     Port     spec_aux1_i     spec_aux1_i                 2.000       -2.997
+rst_n_a_i                     tdc_clk125     Port     rst_n_a_i       rst_n_a_i                   2.000       -3.015
+spec_aux1_i                   tdc_clk125     Port     spec_aux1_i     spec_aux1_i                 2.000       -3.015
 spec_aux0_i                   tdc_clk125     Port     spec_aux0_i     spec_aux0_i                 2.000       -2.581
-tdc_led_counter.value[17]     tdc_clk125     FDR      Q               un1_tdc_led_counter[17]     2.296       1.477 
-tdc_led_counter.value[18]     tdc_clk125     FDR      Q               un1_tdc_led_counter[18]     2.296       1.477 
-tdc_led_counter.value[19]     tdc_clk125     FDS      Q               un1_tdc_led_counter[19]     2.296       1.477 
-tdc_led_counter.value[27]     tdc_clk125     FDR      Q               un1_tdc_led_counter[27]     2.296       1.477 
-tdc_led_counter.value[23]     tdc_clk125     FDS      Q               un1_tdc_led_counter[23]     2.296       1.507 
-tdc_led_counter.value[25]     tdc_clk125     FDS      Q               un1_tdc_led_counter[25]     2.296       1.507 
-tdc_led_counter.value[26]     tdc_clk125     FDR      Q               un1_tdc_led_counter[26]     2.296       1.507 
+tdc_led_counter.value[16]     tdc_clk125     FDS      Q               un1_tdc_led_counter[16]     2.296       1.266 
+tdc_led_counter.value[17]     tdc_clk125     FDR      Q               un1_tdc_led_counter[17]     2.296       1.266 
+tdc_led_counter.value[18]     tdc_clk125     FDR      Q               un1_tdc_led_counter[18]     2.296       1.266 
+tdc_led_counter.value[19]     tdc_clk125     FDS      Q               un1_tdc_led_counter[19]     2.296       1.266 
+tdc_led_counter.value[20]     tdc_clk125     FDS      Q               un1_tdc_led_counter[20]     2.296       1.266 
+tdc_led_counter.value[21]     tdc_clk125     FDS      Q               un1_tdc_led_counter[21]     2.296       1.266 
+tdc_led_counter.value[22]     tdc_clk125     FDR      Q               un1_tdc_led_counter[22]     2.296       1.266 
 ====================================================================================================================
 
 
@@ -940,16 +935,16 @@ Ending Points with Worst Slack
 Instance                     Reference      Type     Pin                 Net                 Time         Slack 
                              Clock                                                                              
 ----------------------------------------------------------------------------------------------------------------
-spec_aux5_o                  tdc_clk125     Port     spec_aux5_o         spec_aux5_o         6.000        -2.997
+spec_aux5_o                  tdc_clk125     Port     spec_aux5_o         spec_aux5_o         6.000        -3.015
 tdc_led_trig3_o              tdc_clk125     Port     tdc_led_trig3_o     tdc_led_trig3_o     6.000        -2.581
 tdc_led_trig4_o              tdc_clk125     Port     tdc_led_trig4_o     tdc_led_trig4_o     6.000        -2.581
 tdc_led_trig5_o              tdc_clk125     Port     tdc_led_trig5_o     tdc_led_trig5_o     6.000        -2.581
-tdc_led_counter.value[0]     tdc_clk125     FDS      S                   N_51_i              9.000        1.477 
-tdc_led_counter.value[1]     tdc_clk125     FDS      S                   N_51_i              9.000        1.477 
-tdc_led_counter.value[2]     tdc_clk125     FDS      S                   N_51_i              9.000        1.477 
-tdc_led_counter.value[3]     tdc_clk125     FDS      S                   N_51_i              9.000        1.477 
-tdc_led_counter.value[4]     tdc_clk125     FDS      S                   N_51_i              9.000        1.477 
-tdc_led_counter.value[5]     tdc_clk125     FDR      R                   N_51_i              9.000        1.477 
+tdc_led_counter.value[0]     tdc_clk125     FDS      S                   N_39_i              9.000        1.266 
+tdc_led_counter.value[1]     tdc_clk125     FDS      S                   N_39_i              9.000        1.266 
+tdc_led_counter.value[2]     tdc_clk125     FDS      S                   N_39_i              9.000        1.266 
+tdc_led_counter.value[3]     tdc_clk125     FDS      S                   N_39_i              9.000        1.266 
+tdc_led_counter.value[4]     tdc_clk125     FDS      S                   N_39_i              9.000        1.266 
+tdc_led_counter.value[5]     tdc_clk125     FDR      R                   N_39_i              9.000        1.266 
 ================================================================================================================
 
 
@@ -963,9 +958,9 @@ Path information for path number 1:
     - User constraint on ending point:       2.000
     = Required time:                         6.000
 
-    - Propagation time:                      6.997
+    - Propagation time:                      7.015
     - User constraint on starting point:     2.000
-    = Slack (critical) :                     -2.997
+    = Slack (critical) :                     -3.015
 
     Number of logic level(s):                3
     Starting point:                          rst_n_a_i / rst_n_a_i
@@ -980,16 +975,16 @@ rst_n_a_i                Port     rst_n_a_i       In      0.000     2.000       
 rst_n_a_i                Net      -               -       0.000     -           1         
 rst_n_a_i_ibuf           IBUF     I               In      -         2.000       -         
 rst_n_a_i_ibuf           IBUF     O               Out     1.290     3.290       -         
-rst_n_a_i_c              Net      -               -       1.160     -           14        
-spec_aux5_o_obuf_RNO     LUT2     I0              In      -         4.450       -         
-spec_aux5_o_obuf_RNO     LUT2     O               Out     0.244     4.694       -         
-N_132_i                  Net      -               -       0.862     -           1         
-spec_aux5_o_obuf         OBUF     I               In      -         5.557       -         
-spec_aux5_o_obuf         OBUF     O               Out     3.440     8.997       -         
+rst_n_a_i_c              Net      -               -       1.179     -           16        
+spec_aux5_o_obuf_RNO     LUT2     I0              In      -         4.469       -         
+spec_aux5_o_obuf_RNO     LUT2     O               Out     0.244     4.713       -         
+N_188_i                  Net      -               -       0.862     -           1         
+spec_aux5_o_obuf         OBUF     I               In      -         5.575       -         
+spec_aux5_o_obuf         OBUF     O               Out     3.440     9.015       -         
 spec_aux5_o              Net      -               -       0.000     -           1         
-spec_aux5_o              Port     spec_aux5_o     Out     -         8.997       -         
+spec_aux5_o              Port     spec_aux5_o     Out     -         9.015       -         
 ==========================================================================================
-Total path delay (propagation time + setup) of 6.997 is 4.974(71.1%) logic and 2.023(28.9%) route.
+Total path delay (propagation time + setup) of 7.015 is 4.974(70.9%) logic and 2.041(29.1%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -998,9 +993,9 @@ Path information for path number 2:
     - User constraint on ending point:       2.000
     = Required time:                         6.000
 
-    - Propagation time:                      6.997
+    - Propagation time:                      7.015
     - User constraint on starting point:     2.000
-    = Slack (critical) :                     -2.997
+    = Slack (critical) :                     -3.015
 
     Number of logic level(s):                3
     Starting point:                          spec_aux1_i / spec_aux1_i
@@ -1015,16 +1010,16 @@ spec_aux1_i              Port     spec_aux1_i     In      0.000     2.000       
 spec_aux1_i              Net      -               -       0.000     -           1         
 spec_aux1_i_ibuf         IBUF     I               In      -         2.000       -         
 spec_aux1_i_ibuf         IBUF     O               Out     1.290     3.290       -         
-spec_aux1_i_c            Net      -               -       1.160     -           14        
-spec_aux5_o_obuf_RNO     LUT2     I1              In      -         4.450       -         
-spec_aux5_o_obuf_RNO     LUT2     O               Out     0.244     4.694       -         
-N_132_i                  Net      -               -       0.862     -           1         
-spec_aux5_o_obuf         OBUF     I               In      -         5.557       -         
-spec_aux5_o_obuf         OBUF     O               Out     3.440     8.997       -         
+spec_aux1_i_c            Net      -               -       1.179     -           16        
+spec_aux5_o_obuf_RNO     LUT2     I1              In      -         4.469       -         
+spec_aux5_o_obuf_RNO     LUT2     O               Out     0.244     4.713       -         
+N_188_i                  Net      -               -       0.862     -           1         
+spec_aux5_o_obuf         OBUF     I               In      -         5.575       -         
+spec_aux5_o_obuf         OBUF     O               Out     3.440     9.015       -         
 spec_aux5_o              Net      -               -       0.000     -           1         
-spec_aux5_o              Port     spec_aux5_o     Out     -         8.997       -         
+spec_aux5_o              Port     spec_aux5_o     Out     -         9.015       -         
 ==========================================================================================
-Total path delay (propagation time + setup) of 6.997 is 4.974(71.1%) logic and 2.023(28.9%) route.
+Total path delay (propagation time + setup) of 7.015 is 4.974(70.9%) logic and 2.041(29.1%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1148,16 +1143,16 @@ Starting Points with Worst Slack
 Instance                                       Reference              Type     Pin     Net                                                Time        Slack 
                                                Clock                                                                                                        
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[23]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[23]     5.140       -0.971
-clks_rsts_mgment.general_poreset.value[25]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[25]     5.140       -0.971
-clks_rsts_mgment.general_poreset.value[26]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[26]     5.140       -0.971
-clks_rsts_mgment.general_poreset.value[22]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[22]     5.140       -0.879
-clks_rsts_mgment.general_poreset.value[24]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[24]     5.140       -0.879
-clks_rsts_mgment.general_poreset.value[7]      top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[7]      5.140       -0.871
-clks_rsts_mgment.general_poreset.value[8]      top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[8]      5.140       -0.871
-clks_rsts_mgment.general_poreset.value[13]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[13]     5.140       -0.831
-clks_rsts_mgment.general_poreset.value[14]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[14]     5.140       -0.831
-clks_rsts_mgment.general_poreset.value[1]      top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[1]      5.140       -0.791
+clks_rsts_mgment.general_poreset.value[10]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[10]     5.140       -1.201
+clks_rsts_mgment.general_poreset.value[11]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[11]     5.140       -1.201
+clks_rsts_mgment.general_poreset.value[1]      top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[1]      5.140       -1.116
+clks_rsts_mgment.general_poreset.value[2]      top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[2]      5.140       -1.116
+clks_rsts_mgment.general_poreset.value[12]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[12]     5.140       -1.116
+clks_rsts_mgment.general_poreset.value[13]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[13]     5.140       -1.116
+clks_rsts_mgment.general_poreset.value[20]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[20]     5.140       -0.933
+clks_rsts_mgment.general_poreset.value[21]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[21]     5.140       -0.933
+clks_rsts_mgment.general_poreset.value[22]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[22]     5.140       -0.930
+clks_rsts_mgment.general_poreset.value[23]     top_tdc|spec_clk_i     FDRE     Q       clks_rsts_mgment.general_poreset.value_qxu[23]     5.140       -0.930
 ============================================================================================================================================================
 
 
@@ -1168,16 +1163,16 @@ Ending Points with Worst Slack
 Instance                                      Reference              Type     Pin     Net        Time         Slack 
                                               Clock                                                                 
 --------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[0]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[1]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[2]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[3]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[4]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[5]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[6]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[7]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[8]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
-clks_rsts_mgment.general_poreset.value[9]     top_tdc|spec_clk_i     FDRE     CE      N_10_i     9.257        -0.971
+clks_rsts_mgment.general_poreset.value[0]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[1]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[2]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[3]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[4]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[5]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[6]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[7]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[8]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
+clks_rsts_mgment.general_poreset.value[9]     top_tdc|spec_clk_i     FDRE     CE      N_18_i     9.257        -1.201
 ====================================================================================================================
 
 
@@ -1192,33 +1187,33 @@ Path information for path number 1:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      5.673
+    - Propagation time:                      5.903
     - Clock delay at starting point:         4.555
-    = Slack (non-critical) :                 -0.971
+    = Slack (non-critical) :                 -1.201
 
     Number of logic level(s):                3
-    Starting point:                          clks_rsts_mgment.general_poreset.value[23] / Q
+    Starting point:                          clks_rsts_mgment.general_poreset.value[10] / Q
     Ending point:                            clks_rsts_mgment.general_poreset.value[0] / CE
     The start point is clocked by            top_tdc|spec_clk_i [rising] on pin C
     The end   point is clocked by            top_tdc|spec_clk_i [rising] on pin C
 
-Instance / Net                                                    Pin      Pin               Arrival     No. of    
-Name                                                   Type       Name     Dir     Delay     Time        Fan Out(s)
--------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[23]             FDRE       Q        Out     0.585     5.140       -         
-clks_rsts_mgment.general_poreset.value_qxu[23]         Net        -        -       0.935     -           2         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       I0       In      -         6.075       -         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       O        Out     0.427     6.502       -         
-m11_0_a2_2                                             Net        -        -       0.910     -           2         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     I5       In      -         7.412       -         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     LO       Out     0.195     7.608       -         
-N_2251                                                 Net        -        -       1.050     -           1         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       I5       In      -         8.658       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       O        Out     0.287     8.945       -         
-N_10_i                                                 Net        -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[0]              FDRE       CE       In      -         10.228      -         
-===================================================================================================================
-Total path delay (propagation time + setup) of 5.971 is 1.793(30.0%) logic and 4.178(70.0%) route.
+Instance / Net                                                     Pin      Pin               Arrival     No. of    
+Name                                                    Type       Name     Dir     Delay     Time        Fan Out(s)
+--------------------------------------------------------------------------------------------------------------------
+clks_rsts_mgment.general_poreset.value[10]              FDRE       Q        Out     0.585     5.140       -         
+clks_rsts_mgment.general_poreset.value_qxu[10]          Net        -        -       0.985     -           4         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     I0       In      -         6.125       -         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     LO       Out     0.244     6.369       -         
+m15_0_1                                                 Net        -        -       1.050     -           1         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       I5       In      -         7.418       -         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       O        Out     0.342     7.761       -         
+m15_2                                                   Net        -        -       1.292     -           33        
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       I5       In      -         9.053       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       O        Out     0.122     9.175       -         
+N_18_i                                                  Net        -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[0]               FDRE       CE       In      -         10.458      -         
+====================================================================================================================
+Total path delay (propagation time + setup) of 6.201 is 1.591(25.7%) logic and 4.610(74.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1237,7 +1232,7 @@ clks_rsts_mgment.spec_clk_buf                  Net                    -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
 spec_clk_i_0                                   Net                    -              -       1.711     -           0         
-clks_rsts_mgment.general_poreset.value[23]     FDRE                   C              In      -         4.555       -         
+clks_rsts_mgment.general_poreset.value[10]     FDRE                   C              In      -         4.555       -         
 =============================================================================================================================
 
 
@@ -1266,33 +1261,33 @@ Path information for path number 2:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      5.673
+    - Propagation time:                      5.903
     - Clock delay at starting point:         4.555
-    = Slack (non-critical) :                 -0.971
+    = Slack (non-critical) :                 -1.201
 
     Number of logic level(s):                3
-    Starting point:                          clks_rsts_mgment.general_poreset.value[25] / Q
+    Starting point:                          clks_rsts_mgment.general_poreset.value[11] / Q
     Ending point:                            clks_rsts_mgment.general_poreset.value[0] / CE
     The start point is clocked by            top_tdc|spec_clk_i [rising] on pin C
     The end   point is clocked by            top_tdc|spec_clk_i [rising] on pin C
 
-Instance / Net                                                    Pin      Pin               Arrival     No. of    
-Name                                                   Type       Name     Dir     Delay     Time        Fan Out(s)
--------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[25]             FDRE       Q        Out     0.585     5.140       -         
-clks_rsts_mgment.general_poreset.value_qxu[25]         Net        -        -       0.935     -           2         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       I1       In      -         6.075       -         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       O        Out     0.427     6.502       -         
-m11_0_a2_2                                             Net        -        -       0.910     -           2         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     I5       In      -         7.412       -         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     LO       Out     0.195     7.608       -         
-N_2251                                                 Net        -        -       1.050     -           1         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       I5       In      -         8.658       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       O        Out     0.287     8.945       -         
-N_10_i                                                 Net        -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[0]              FDRE       CE       In      -         10.228      -         
-===================================================================================================================
-Total path delay (propagation time + setup) of 5.971 is 1.793(30.0%) logic and 4.178(70.0%) route.
+Instance / Net                                                     Pin      Pin               Arrival     No. of    
+Name                                                    Type       Name     Dir     Delay     Time        Fan Out(s)
+--------------------------------------------------------------------------------------------------------------------
+clks_rsts_mgment.general_poreset.value[11]              FDRE       Q        Out     0.585     5.140       -         
+clks_rsts_mgment.general_poreset.value_qxu[11]          Net        -        -       0.985     -           4         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     I1       In      -         6.125       -         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     LO       Out     0.244     6.369       -         
+m15_0_1                                                 Net        -        -       1.050     -           1         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       I5       In      -         7.418       -         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       O        Out     0.342     7.761       -         
+m15_2                                                   Net        -        -       1.292     -           33        
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       I5       In      -         9.053       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       O        Out     0.122     9.175       -         
+N_18_i                                                  Net        -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[0]               FDRE       CE       In      -         10.458      -         
+====================================================================================================================
+Total path delay (propagation time + setup) of 6.201 is 1.591(25.7%) logic and 4.610(74.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1311,7 +1306,7 @@ clks_rsts_mgment.spec_clk_buf                  Net                    -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
 spec_clk_i_0                                   Net                    -              -       1.711     -           0         
-clks_rsts_mgment.general_poreset.value[25]     FDRE                   C              In      -         4.555       -         
+clks_rsts_mgment.general_poreset.value[11]     FDRE                   C              In      -         4.555       -         
 =============================================================================================================================
 
 
@@ -1340,107 +1335,33 @@ Path information for path number 3:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      5.673
+    - Propagation time:                      5.903
     - Clock delay at starting point:         4.555
-    = Slack (non-critical) :                 -0.971
+    = Slack (non-critical) :                 -1.201
 
     Number of logic level(s):                3
-    Starting point:                          clks_rsts_mgment.general_poreset.value[26] / Q
-    Ending point:                            clks_rsts_mgment.general_poreset.value[0] / CE
-    The start point is clocked by            top_tdc|spec_clk_i [rising] on pin C
-    The end   point is clocked by            top_tdc|spec_clk_i [rising] on pin C
-
-Instance / Net                                                    Pin      Pin               Arrival     No. of    
-Name                                                   Type       Name     Dir     Delay     Time        Fan Out(s)
--------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[26]             FDRE       Q        Out     0.585     5.140       -         
-clks_rsts_mgment.general_poreset.value_qxu[26]         Net        -        -       0.935     -           2         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       I2       In      -         6.075       -         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       O        Out     0.427     6.502       -         
-m11_0_a2_2                                             Net        -        -       0.910     -           2         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     I5       In      -         7.412       -         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     LO       Out     0.195     7.608       -         
-N_2251                                                 Net        -        -       1.050     -           1         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       I5       In      -         8.658       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       O        Out     0.287     8.945       -         
-N_10_i                                                 Net        -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[0]              FDRE       CE       In      -         10.228      -         
-===================================================================================================================
-Total path delay (propagation time + setup) of 5.971 is 1.793(30.0%) logic and 4.178(70.0%) route.
-Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
-
-
-Start clock path:
-
-Instance / Net                                                        Pin            Pin               Arrival     No. of    
-Name                                           Type                   Name           Dir     Delay     Time        Fan Out(s)
------------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                  top_tdc|spec_clk_i                                                            
-------------                                                                                                                 
-spec_clk_i                                     Port                   spec_clk_i     In      -         0.000       -         
-spec_clk_i                                     Net                    -              -       0.000     -           1         
-clks_rsts_mgment.spec_clk_ibuf                 IBUFG                  I              In      -         0.000       -         
-clks_rsts_mgment.spec_clk_ibuf                 IBUFG                  O              Out     1.290     1.290       -         
-clks_rsts_mgment.spec_clk_buf                  Net                    -              -       1.304     -           1         
-clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
-clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
-spec_clk_i_0                                   Net                    -              -       1.711     -           0         
-clks_rsts_mgment.general_poreset.value[26]     FDRE                   C              In      -         4.555       -         
-=============================================================================================================================
-
-
-End clock path:
-
-Instance / Net                                                       Pin            Pin               Arrival     No. of    
-Name                                          Type                   Name           Dir     Delay     Time        Fan Out(s)
-----------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                 top_tdc|spec_clk_i                                                            
-------------                                                                                                                
-spec_clk_i                                    Port                   spec_clk_i     In      -         0.000       -         
-spec_clk_i                                    Net                    -              -       0.000     -           1         
-clks_rsts_mgment.spec_clk_ibuf                IBUFG                  I              In      -         0.000       -         
-clks_rsts_mgment.spec_clk_ibuf                IBUFG                  O              Out     1.290     1.290       -         
-clks_rsts_mgment.spec_clk_buf                 Net                    -              -       1.304     -           1         
-clks_rsts_mgment.spec_clk_gbuf                BUFG                   I              In      -         2.594       -         
-clks_rsts_mgment.spec_clk_gbuf                BUFG                   O              Out     0.250     2.844       -         
-spec_clk_i_0                                  Net                    -              -       1.711     -           0         
-clks_rsts_mgment.general_poreset.value[0]     FDRE                   C              In      -         4.555       -         
-============================================================================================================================
-
-
-Path information for path number 4: 
-      Requested Period:                      5.000
-    - Setup time:                            0.298
-    + Clock delay at ending point:           4.555
-    = Required time:                         9.257
-
-    - Propagation time:                      5.673
-    - Clock delay at starting point:         4.555
-    = Slack (non-critical) :                 -0.971
-
-    Number of logic level(s):                3
-    Starting point:                          clks_rsts_mgment.general_poreset.value[23] / Q
+    Starting point:                          clks_rsts_mgment.general_poreset.value[10] / Q
     Ending point:                            clks_rsts_mgment.general_poreset.value[31] / CE
     The start point is clocked by            top_tdc|spec_clk_i [rising] on pin C
     The end   point is clocked by            top_tdc|spec_clk_i [rising] on pin C
 
-Instance / Net                                                    Pin      Pin               Arrival     No. of    
-Name                                                   Type       Name     Dir     Delay     Time        Fan Out(s)
--------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[23]             FDRE       Q        Out     0.585     5.140       -         
-clks_rsts_mgment.general_poreset.value_qxu[23]         Net        -        -       0.935     -           2         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       I0       In      -         6.075       -         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       O        Out     0.427     6.502       -         
-m11_0_a2_2                                             Net        -        -       0.910     -           2         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     I5       In      -         7.412       -         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     LO       Out     0.195     7.608       -         
-N_2251                                                 Net        -        -       1.050     -           1         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       I5       In      -         8.658       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       O        Out     0.287     8.945       -         
-N_10_i                                                 Net        -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[31]             FDRE       CE       In      -         10.228      -         
-===================================================================================================================
-Total path delay (propagation time + setup) of 5.971 is 1.793(30.0%) logic and 4.178(70.0%) route.
+Instance / Net                                                     Pin      Pin               Arrival     No. of    
+Name                                                    Type       Name     Dir     Delay     Time        Fan Out(s)
+--------------------------------------------------------------------------------------------------------------------
+clks_rsts_mgment.general_poreset.value[10]              FDRE       Q        Out     0.585     5.140       -         
+clks_rsts_mgment.general_poreset.value_qxu[10]          Net        -        -       0.985     -           4         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     I0       In      -         6.125       -         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     LO       Out     0.244     6.369       -         
+m15_0_1                                                 Net        -        -       1.050     -           1         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       I5       In      -         7.418       -         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       O        Out     0.342     7.761       -         
+m15_2                                                   Net        -        -       1.292     -           33        
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       I5       In      -         9.053       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       O        Out     0.122     9.175       -         
+N_18_i                                                  Net        -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[31]              FDRE       CE       In      -         10.458      -         
+====================================================================================================================
+Total path delay (propagation time + setup) of 6.201 is 1.591(25.7%) logic and 4.610(74.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1459,7 +1380,7 @@ clks_rsts_mgment.spec_clk_buf                  Net                    -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
 spec_clk_i_0                                   Net                    -              -       1.711     -           0         
-clks_rsts_mgment.general_poreset.value[23]     FDRE                   C              In      -         4.555       -         
+clks_rsts_mgment.general_poreset.value[10]     FDRE                   C              In      -         4.555       -         
 =============================================================================================================================
 
 
@@ -1482,39 +1403,39 @@ clks_rsts_mgment.general_poreset.value[31]     FDRE                   C         
 =============================================================================================================================
 
 
-Path information for path number 5: 
+Path information for path number 4: 
       Requested Period:                      5.000
     - Setup time:                            0.298
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      5.673
+    - Propagation time:                      5.903
     - Clock delay at starting point:         4.555
-    = Slack (non-critical) :                 -0.971
+    = Slack (non-critical) :                 -1.201
 
     Number of logic level(s):                3
-    Starting point:                          clks_rsts_mgment.general_poreset.value[23] / Q
+    Starting point:                          clks_rsts_mgment.general_poreset.value[10] / Q
     Ending point:                            clks_rsts_mgment.general_poreset.value[30] / CE
     The start point is clocked by            top_tdc|spec_clk_i [rising] on pin C
     The end   point is clocked by            top_tdc|spec_clk_i [rising] on pin C
 
-Instance / Net                                                    Pin      Pin               Arrival     No. of    
-Name                                                   Type       Name     Dir     Delay     Time        Fan Out(s)
--------------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[23]             FDRE       Q        Out     0.585     5.140       -         
-clks_rsts_mgment.general_poreset.value_qxu[23]         Net        -        -       0.935     -           2         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       I0       In      -         6.075       -         
-clks_rsts_mgment.general_poreset.value_RNIBN28[23]     LUT3       O        Out     0.427     6.502       -         
-m11_0_a2_2                                             Net        -        -       0.910     -           2         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     I5       In      -         7.412       -         
-clks_rsts_mgment.general_poreset.value_RNIUV8Q[20]     LUT6_L     LO       Out     0.195     7.608       -         
-N_2251                                                 Net        -        -       1.050     -           1         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       I5       In      -         8.658       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3                    LUT6       O        Out     0.287     8.945       -         
-N_10_i                                                 Net        -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[30]             FDRE       CE       In      -         10.228      -         
-===================================================================================================================
-Total path delay (propagation time + setup) of 5.971 is 1.793(30.0%) logic and 4.178(70.0%) route.
+Instance / Net                                                     Pin      Pin               Arrival     No. of    
+Name                                                    Type       Name     Dir     Delay     Time        Fan Out(s)
+--------------------------------------------------------------------------------------------------------------------
+clks_rsts_mgment.general_poreset.value[10]              FDRE       Q        Out     0.585     5.140       -         
+clks_rsts_mgment.general_poreset.value_qxu[10]          Net        -        -       0.985     -           4         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     I0       In      -         6.125       -         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     LO       Out     0.244     6.369       -         
+m15_0_1                                                 Net        -        -       1.050     -           1         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       I5       In      -         7.418       -         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       O        Out     0.342     7.761       -         
+m15_2                                                   Net        -        -       1.292     -           33        
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       I5       In      -         9.053       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       O        Out     0.122     9.175       -         
+N_18_i                                                  Net        -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[30]              FDRE       CE       In      -         10.458      -         
+====================================================================================================================
+Total path delay (propagation time + setup) of 6.201 is 1.591(25.7%) logic and 4.610(74.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1533,7 +1454,7 @@ clks_rsts_mgment.spec_clk_buf                  Net                    -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
 spec_clk_i_0                                   Net                    -              -       1.711     -           0         
-clks_rsts_mgment.general_poreset.value[23]     FDRE                   C              In      -         4.555       -         
+clks_rsts_mgment.general_poreset.value[10]     FDRE                   C              In      -         4.555       -         
 =============================================================================================================================
 
 
@@ -1553,6 +1474,80 @@ clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I         
 clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
 spec_clk_i_0                                   Net                    -              -       1.711     -           0         
 clks_rsts_mgment.general_poreset.value[30]     FDRE                   C              In      -         4.555       -         
+=============================================================================================================================
+
+
+Path information for path number 5: 
+      Requested Period:                      5.000
+    - Setup time:                            0.298
+    + Clock delay at ending point:           4.555
+    = Required time:                         9.257
+
+    - Propagation time:                      5.903
+    - Clock delay at starting point:         4.555
+    = Slack (non-critical) :                 -1.201
+
+    Number of logic level(s):                3
+    Starting point:                          clks_rsts_mgment.general_poreset.value[10] / Q
+    Ending point:                            clks_rsts_mgment.general_poreset.value[29] / CE
+    The start point is clocked by            top_tdc|spec_clk_i [rising] on pin C
+    The end   point is clocked by            top_tdc|spec_clk_i [rising] on pin C
+
+Instance / Net                                                     Pin      Pin               Arrival     No. of    
+Name                                                    Type       Name     Dir     Delay     Time        Fan Out(s)
+--------------------------------------------------------------------------------------------------------------------
+clks_rsts_mgment.general_poreset.value[10]              FDRE       Q        Out     0.585     5.140       -         
+clks_rsts_mgment.general_poreset.value_qxu[10]          Net        -        -       0.985     -           4         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     I0       In      -         6.125       -         
+clks_rsts_mgment.general_poreset.value_RNITDB5[10]      LUT2_L     LO       Out     0.244     6.369       -         
+m15_0_1                                                 Net        -        -       1.050     -           1         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       I5       In      -         7.418       -         
+clks_rsts_mgment.general_poreset.value_RNI1JF01[15]     LUT6       O        Out     0.342     7.761       -         
+m15_2                                                   Net        -        -       1.292     -           33        
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       I5       In      -         9.053       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2                     LUT6       O        Out     0.122     9.175       -         
+N_18_i                                                  Net        -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[29]              FDRE       CE       In      -         10.458      -         
+====================================================================================================================
+Total path delay (propagation time + setup) of 6.201 is 1.591(25.7%) logic and 4.610(74.3%) route.
+Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
+
+
+Start clock path:
+
+Instance / Net                                                        Pin            Pin               Arrival     No. of    
+Name                                           Type                   Name           Dir     Delay     Time        Fan Out(s)
+-----------------------------------------------------------------------------------------------------------------------------
+Start Clock :                                  top_tdc|spec_clk_i                                                            
+------------                                                                                                                 
+spec_clk_i                                     Port                   spec_clk_i     In      -         0.000       -         
+spec_clk_i                                     Net                    -              -       0.000     -           1         
+clks_rsts_mgment.spec_clk_ibuf                 IBUFG                  I              In      -         0.000       -         
+clks_rsts_mgment.spec_clk_ibuf                 IBUFG                  O              Out     1.290     1.290       -         
+clks_rsts_mgment.spec_clk_buf                  Net                    -              -       1.304     -           1         
+clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
+clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
+spec_clk_i_0                                   Net                    -              -       1.711     -           0         
+clks_rsts_mgment.general_poreset.value[10]     FDRE                   C              In      -         4.555       -         
+=============================================================================================================================
+
+
+End clock path:
+
+Instance / Net                                                        Pin            Pin               Arrival     No. of    
+Name                                           Type                   Name           Dir     Delay     Time        Fan Out(s)
+-----------------------------------------------------------------------------------------------------------------------------
+Start Clock :                                  top_tdc|spec_clk_i                                                            
+------------                                                                                                                 
+spec_clk_i                                     Port                   spec_clk_i     In      -         0.000       -         
+spec_clk_i                                     Net                    -              -       0.000     -           1         
+clks_rsts_mgment.spec_clk_ibuf                 IBUFG                  I              In      -         0.000       -         
+clks_rsts_mgment.spec_clk_ibuf                 IBUFG                  O              Out     1.290     1.290       -         
+clks_rsts_mgment.spec_clk_buf                  Net                    -              -       1.304     -           1         
+clks_rsts_mgment.spec_clk_gbuf                 BUFG                   I              In      -         2.594       -         
+clks_rsts_mgment.spec_clk_gbuf                 BUFG                   O              Out     0.250     2.844       -         
+spec_clk_i_0                                   Net                    -              -       1.711     -           0         
+clks_rsts_mgment.general_poreset.value[29]     FDRE                   C              In      -         4.555       -         
 =============================================================================================================================
 
 
@@ -1571,7 +1566,7 @@ Starting Points with Worst Slack
 Instance                       Reference     Type     Pin     Net                            Time        Slack
                                Clock                                                                          
 --------------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.gral_incr     System        FDC      Q       clks_rsts_mgment.gral_incr     0.585       1.045
+clks_rsts_mgment.gral_incr     System        FDC      Q       clks_rsts_mgment.gral_incr     0.585       1.026
 ==============================================================================================================
 
 
@@ -1582,16 +1577,16 @@ Ending Points with Worst Slack
 Instance                                      Reference     Type     Pin     Net        Time         Slack
                                               Clock                                                       
 ----------------------------------------------------------------------------------------------------------
-clks_rsts_mgment.general_poreset.value[0]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[1]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[2]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[3]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[4]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[5]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[6]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[7]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[8]     System        FDRE     CE      N_10_i     4.702        1.045
-clks_rsts_mgment.general_poreset.value[9]     System        FDRE     CE      N_10_i     4.702        1.045
+clks_rsts_mgment.general_poreset.value[0]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[1]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[2]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[3]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[4]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[5]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[6]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[7]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[8]     System        FDRE     CE      N_18_i     4.702        1.026
+clks_rsts_mgment.general_poreset.value[9]     System        FDRE     CE      N_18_i     4.702        1.026
 ==========================================================================================================
 
 
@@ -1606,9 +1601,9 @@ Path information for path number 1:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      3.657
+    - Propagation time:                      3.676
     - Estimated clock delay at start point:  4.555
-    = Slack (non-critical) :                 1.045
+    = Slack (non-critical) :                 1.026
 
     Number of logic level(s):                1
     Starting point:                          clks_rsts_mgment.gral_incr / Q
@@ -1620,13 +1615,13 @@ Instance / Net                                         Pin      Pin             
 Name                                          Type     Name     Dir     Delay     Time        Fan Out(s)
 --------------------------------------------------------------------------------------------------------
 clks_rsts_mgment.gral_incr                    FDC      Q        Out     0.585     0.585       -         
-clks_rsts_mgment.gral_incr                    Net      -        -       0.935     -           2         
-clks_rsts_mgment.gral_incr_RNIIVJI3           LUT6     I0       In      -         1.520       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3           LUT6     O        Out     0.854     2.374       -         
-N_10_i                                        Net      -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[0]     FDRE     CE       In      -         3.657       -         
+clks_rsts_mgment.gral_incr                    Net      -        -       0.955     -           3         
+clks_rsts_mgment.gral_incr_RNIJDSQ2           LUT6     I0       In      -         1.540       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2           LUT6     O        Out     0.854     2.394       -         
+N_18_i                                        Net      -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[0]     FDRE     CE       In      -         3.676       -         
 ========================================================================================================
-Total path delay (propagation time + setup) of 3.955 is 1.737(43.9%) logic and 2.218(56.1%) route.
+Total path delay (propagation time + setup) of 3.974 is 1.737(43.7%) logic and 2.237(56.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1665,9 +1660,9 @@ Path information for path number 2:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      3.657
+    - Propagation time:                      3.676
     - Estimated clock delay at start point:  4.555
-    = Slack (non-critical) :                 1.045
+    = Slack (non-critical) :                 1.026
 
     Number of logic level(s):                1
     Starting point:                          clks_rsts_mgment.gral_incr / Q
@@ -1679,13 +1674,13 @@ Instance / Net                                          Pin      Pin            
 Name                                           Type     Name     Dir     Delay     Time        Fan Out(s)
 ---------------------------------------------------------------------------------------------------------
 clks_rsts_mgment.gral_incr                     FDC      Q        Out     0.585     0.585       -         
-clks_rsts_mgment.gral_incr                     Net      -        -       0.935     -           2         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     I0       In      -         1.520       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     O        Out     0.854     2.374       -         
-N_10_i                                         Net      -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[31]     FDRE     CE       In      -         3.657       -         
+clks_rsts_mgment.gral_incr                     Net      -        -       0.955     -           3         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     I0       In      -         1.540       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     O        Out     0.854     2.394       -         
+N_18_i                                         Net      -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[31]     FDRE     CE       In      -         3.676       -         
 =========================================================================================================
-Total path delay (propagation time + setup) of 3.955 is 1.737(43.9%) logic and 2.218(56.1%) route.
+Total path delay (propagation time + setup) of 3.974 is 1.737(43.7%) logic and 2.237(56.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1724,9 +1719,9 @@ Path information for path number 3:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      3.657
+    - Propagation time:                      3.676
     - Estimated clock delay at start point:  4.555
-    = Slack (non-critical) :                 1.045
+    = Slack (non-critical) :                 1.026
 
     Number of logic level(s):                1
     Starting point:                          clks_rsts_mgment.gral_incr / Q
@@ -1738,13 +1733,13 @@ Instance / Net                                          Pin      Pin            
 Name                                           Type     Name     Dir     Delay     Time        Fan Out(s)
 ---------------------------------------------------------------------------------------------------------
 clks_rsts_mgment.gral_incr                     FDC      Q        Out     0.585     0.585       -         
-clks_rsts_mgment.gral_incr                     Net      -        -       0.935     -           2         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     I0       In      -         1.520       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     O        Out     0.854     2.374       -         
-N_10_i                                         Net      -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[30]     FDRE     CE       In      -         3.657       -         
+clks_rsts_mgment.gral_incr                     Net      -        -       0.955     -           3         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     I0       In      -         1.540       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     O        Out     0.854     2.394       -         
+N_18_i                                         Net      -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[30]     FDRE     CE       In      -         3.676       -         
 =========================================================================================================
-Total path delay (propagation time + setup) of 3.955 is 1.737(43.9%) logic and 2.218(56.1%) route.
+Total path delay (propagation time + setup) of 3.974 is 1.737(43.7%) logic and 2.237(56.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1783,9 +1778,9 @@ Path information for path number 4:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      3.657
+    - Propagation time:                      3.676
     - Estimated clock delay at start point:  4.555
-    = Slack (non-critical) :                 1.045
+    = Slack (non-critical) :                 1.026
 
     Number of logic level(s):                1
     Starting point:                          clks_rsts_mgment.gral_incr / Q
@@ -1797,13 +1792,13 @@ Instance / Net                                          Pin      Pin            
 Name                                           Type     Name     Dir     Delay     Time        Fan Out(s)
 ---------------------------------------------------------------------------------------------------------
 clks_rsts_mgment.gral_incr                     FDC      Q        Out     0.585     0.585       -         
-clks_rsts_mgment.gral_incr                     Net      -        -       0.935     -           2         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     I0       In      -         1.520       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     O        Out     0.854     2.374       -         
-N_10_i                                         Net      -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[29]     FDRE     CE       In      -         3.657       -         
+clks_rsts_mgment.gral_incr                     Net      -        -       0.955     -           3         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     I0       In      -         1.540       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     O        Out     0.854     2.394       -         
+N_18_i                                         Net      -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[29]     FDRE     CE       In      -         3.676       -         
 =========================================================================================================
-Total path delay (propagation time + setup) of 3.955 is 1.737(43.9%) logic and 2.218(56.1%) route.
+Total path delay (propagation time + setup) of 3.974 is 1.737(43.7%) logic and 2.237(56.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1842,9 +1837,9 @@ Path information for path number 5:
     + Clock delay at ending point:           4.555
     = Required time:                         9.257
 
-    - Propagation time:                      3.657
+    - Propagation time:                      3.676
     - Estimated clock delay at start point:  4.555
-    = Slack (non-critical) :                 1.045
+    = Slack (non-critical) :                 1.026
 
     Number of logic level(s):                1
     Starting point:                          clks_rsts_mgment.gral_incr / Q
@@ -1856,13 +1851,13 @@ Instance / Net                                          Pin      Pin            
 Name                                           Type     Name     Dir     Delay     Time        Fan Out(s)
 ---------------------------------------------------------------------------------------------------------
 clks_rsts_mgment.gral_incr                     FDC      Q        Out     0.585     0.585       -         
-clks_rsts_mgment.gral_incr                     Net      -        -       0.935     -           2         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     I0       In      -         1.520       -         
-clks_rsts_mgment.gral_incr_RNIIVJI3            LUT6     O        Out     0.854     2.374       -         
-N_10_i                                         Net      -        -       1.283     -           32        
-clks_rsts_mgment.general_poreset.value[28]     FDRE     CE       In      -         3.657       -         
+clks_rsts_mgment.gral_incr                     Net      -        -       0.955     -           3         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     I0       In      -         1.540       -         
+clks_rsts_mgment.gral_incr_RNIJDSQ2            LUT6     O        Out     0.854     2.394       -         
+N_18_i                                         Net      -        -       1.283     -           32        
+clks_rsts_mgment.general_poreset.value[28]     FDRE     CE       In      -         3.676       -         
 =========================================================================================================
-Total path delay (propagation time + setup) of 3.955 is 1.737(43.9%) logic and 2.218(56.1%) route.
+Total path delay (propagation time + setup) of 3.974 is 1.737(43.7%) logic and 2.237(56.3%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
@@ -1906,20 +1901,20 @@ Cell usage:
 DSP48A1         1 use
 FD              13 uses
 FDC             1 use
-FDR             23 uses
+FDR             22 uses
 FDRE            34 uses
-FDS             21 uses
+FDS             22 uses
 GND             1 use
 MUXCY_L         70 uses
 RAMB8BWER       1 use
 VCC             1 use
 XORCY           71 uses
 LUT1            63 uses
-LUT2            18 uses
-LUT3            16 uses
-LUT4            8 uses
-LUT5            37 uses
-LUT6            35 uses
+LUT2            29 uses
+LUT3            17 uses
+LUT4            10 uses
+LUT5            6 uses
+LUT6            70 uses
 LUT6_2            1 use
 
 I/O ports: 135
@@ -1945,14 +1940,14 @@ Global Clock Buffers: 2 of 16 (12%)
 
  Number of unique control sets:              9
  C(spec_clk_i_0), CLR(GND), PRE(GND), CE(VCC)		: 11
- C(clk_i), CLR(pll_sclk_i), PRE(GND), CE(VCC)		: 1
+ C(clk_i), CLR(pll_sclk_o_c_i), PRE(GND), CE(VCC)		: 1
  C(clk), R(clks_rsts_mgment.inv_reset_i), S(GND), CE(VCC)		: 2
- C(spec_clk), R(N_132_i_iso), S(GND), CE(VCC)		: 2
- C(clk), R(GND), S(N_51_i), CE(VCC)		: 17
- C(clk), R(N_51_i), S(GND), CE(VCC)		: 15
- C(spec_clk_i_0), R(N_132_i_iso), S(GND), CE(N_10_i)		: 32
- C(spec_clk_i_0), R(N_132_i_iso), S(GND), CE(VCC)		: 2
- C(spec_clk_i_0), R(GND), S(N_132_i_iso), CE(VCC)		: 4
+ C(spec_clk), R(N_188_i_iso), S(GND), CE(VCC)		: 2
+ C(clk), R(GND), S(N_39_i), CE(VCC)		: 17
+ C(clk), R(N_39_i), S(GND), CE(VCC)		: 15
+ C(spec_clk_i_0), R(N_188_i_iso), S(GND), CE(N_18_i)		: 32
+ C(spec_clk_i_0), R(N_188_i_iso), S(GND), CE(VCC)		: 2
+ C(spec_clk_i_0), R(GND), S(N_188_i_iso), CE(VCC)		: 4
 
 Total load per clock:
    top_tdc|spec_clk_i: 53
@@ -1960,10 +1955,10 @@ Total load per clock:
    tdc_clk125: 36
 
 Mapping Summary:
-Total  LUTs: 178 (0%)
+Total  LUTs: 196 (0%)
 
 Mapper successful!
 Process took 0h:00m:03s realtime, 0h:00m:03s cputime
-# Fri Jul 15 19:30:57 2011
+# Mon Jul 18 09:44:01 2011
 
 ###########################################################]

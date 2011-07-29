@@ -36,15 +36,15 @@ Asterisk (*) preceding a constraint indicates it was not met.
   P "spec_aux0_i" TO TIMEGRP "clk" 6        | HOLD        |     6.080ns|            |       0|           0
     ns                                      |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-* TS_spec_clk_i = PERIOD TIMEGRP "spec_clk_ | SETUP       |    -2.369ns|     7.369ns|       8|       11437
-  i" 5 ns HIGH 50%                          | HOLD        |     0.437ns|            |       0|           0
+* TS_spec_clk_i = PERIOD TIMEGRP "spec_clk_ | SETUP       |    -2.332ns|     7.332ns|      17|       13975
+  i" 5 ns HIGH 50%                          | HOLD        |     0.429ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
   TS_tdc_led_status_o_clk = MAXDELAY FROM T | MAXDELAY    |     2.191ns|     3.809ns|       0|           0
   IMEGRP "clk" TO TIMEGRP         "tdc_led_ |             |            |            |        |            
   status_o" 6 ns                            |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  TS_clk = PERIOD TIMEGRP "clk" 8 ns HIGH 5 | SETUP       |     3.272ns|     4.728ns|       0|           0
-  0%                                        | HOLD        |     0.497ns|            |       0|           0
+  TS_clk = PERIOD TIMEGRP "clk" 8 ns HIGH 5 | SETUP       |     3.102ns|     4.898ns|       0|           0
+  0%                                        | HOLD        |     0.463ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
   TS_spec_led_green_o_spec_clk = MAXDELAY F | MAXDELAY    |    44.140ns|     3.860ns|       0|           0
   ROM TIMEGRP "spec_clk" TO TIMEGRP         |             |            |            |        |            
@@ -53,14 +53,14 @@ Asterisk (*) preceding a constraint indicates it was not met.
   TS_spec_clk = PERIOD TIMEGRP "spec_clk" 5 | MINPERIOD   |    46.430ns|     3.570ns|       0|           0
   0 ns HIGH 50%                             |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  Unconstrained OFFSET IN BEFORE analysis f | SETUP       |         N/A|    20.944ns|     N/A|           0
+  Unconstrained OFFSET IN BEFORE analysis f | SETUP       |         N/A|    13.053ns|     N/A|           0
   or clock "spec_clk"                       |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  Unconstrained OFFSET OUT AFTER analysis f | MAXDELAY    |         N/A|    17.070ns|     N/A|           0
+  Unconstrained OFFSET OUT AFTER analysis f | MAXDELAY    |         N/A|    19.174ns|     N/A|           0
   or clock "spec_clk"                       |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
   Unconstrained path analysis               | MAXDELAY    |         N/A|    17.050ns|     N/A|           0
-                                            | HOLD        |     1.402ns|            |       0|           0
+                                            | HOLD        |     2.135ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
 
 
@@ -80,9 +80,9 @@ Setup/Hold to clock spec_clk_i
             |Max Setup to|  Process   |Max Hold to |  Process   |                  | Clock  |
 Source      | clk (edge) |   Corner   | clk (edge) |   Corner   |Internal Clock(s) | Phase  |
 ------------+------------+------------+------------+------------+------------------+--------+
-rst_n_a_i   |   20.944(R)|      SLOW  |   -0.113(R)|      SLOW  |spec_clk          |   0.000|
+rst_n_a_i   |   13.053(R)|      SLOW  |   -1.570(R)|      SLOW  |spec_clk          |   0.000|
 spec_aux0_i |    8.165(R)|      SLOW  |   -4.426(R)|      FAST  |spec_clk          |   0.000|
-spec_aux1_i |   18.568(R)|      SLOW  |   -2.071(R)|      FAST  |spec_clk          |   0.000|
+spec_aux1_i |    9.761(R)|      SLOW  |   -1.373(R)|      SLOW  |spec_clk          |   0.000|
 ------------+------------+------------+------------+------------+------------------+--------+
 
 Setup/Hold to clock tdc_clk_n_i
@@ -106,12 +106,12 @@ Clock spec_clk_i to Pad
                |Max (slowest) clk|  Process   |Min (fastest) clk|  Process   |                  | Clock  |
 Destination    |  (edge) to PAD  |   Corner   |  (edge) to PAD  |   Corner   |Internal Clock(s) | Phase  |
 ---------------+-----------------+------------+-----------------+------------+------------------+--------+
-pll_cs_o       |        14.728(R)|      SLOW  |         6.361(R)|      FAST  |spec_clk          |   0.000|
+pll_cs_o       |        14.889(R)|      SLOW  |         6.586(R)|      FAST  |spec_clk          |   0.000|
 pll_sclk_o     |         8.380(R)|      SLOW  |         3.127(R)|      FAST  |spec_clk          |   0.000|
-pll_sdi_o      |        17.070(R)|      SLOW  |         6.277(R)|      FAST  |spec_clk          |   0.000|
-spec_aux2_o    |         8.249(R)|      SLOW  |         2.997(R)|      FAST  |spec_clk          |   0.000|
-spec_aux3_o    |        15.826(R)|      SLOW  |         5.584(R)|      FAST  |spec_clk          |   0.000|
-spec_aux4_o    |        14.681(R)|      SLOW  |         6.332(R)|      FAST  |spec_clk          |   0.000|
+pll_sdi_o      |        19.174(R)|      SLOW  |         6.499(R)|      FAST  |spec_clk          |   0.000|
+spec_aux2_o    |        18.339(R)|      SLOW  |         6.040(R)|      FAST  |spec_clk          |   0.000|
+spec_aux3_o    |        15.031(R)|      SLOW  |         6.706(R)|      FAST  |spec_clk          |   0.000|
+spec_aux4_o    |         8.266(R)|      SLOW  |         3.014(R)|      FAST  |spec_clk          |   0.000|
 spec_led_red_o |         8.412(R)|      SLOW  |         3.209(R)|      FAST  |spec_clk          |   0.000|
 tdc_led_trig1_o|         8.381(R)|      SLOW  |         3.128(R)|      FAST  |spec_clk          |   0.000|
 ---------------+-----------------+------------+-----------------+------------+------------------+--------+
@@ -139,9 +139,9 @@ Clock to Setup on destination clock spec_clk_i
                | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
 Source Clock   |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
 ---------------+---------+---------+---------+---------+
-spec_clk_i     |    7.369|         |         |         |
-tdc_clk_n_i    |    4.475|         |         |         |
-tdc_clk_p_i    |    4.475|         |         |         |
+spec_clk_i     |    7.332|         |         |         |
+tdc_clk_n_i    |    5.950|         |         |         |
+tdc_clk_p_i    |    5.950|         |         |         |
 ---------------+---------+---------+---------+---------+
 
 Clock to Setup on destination clock tdc_clk_n_i
@@ -149,9 +149,9 @@ Clock to Setup on destination clock tdc_clk_n_i
                | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
 Source Clock   |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
 ---------------+---------+---------+---------+---------+
-spec_clk_i     |    7.224|         |         |         |
-tdc_clk_n_i    |    4.728|         |         |         |
-tdc_clk_p_i    |    4.728|         |         |         |
+spec_clk_i     |   11.383|         |         |         |
+tdc_clk_n_i    |    4.898|         |         |         |
+tdc_clk_p_i    |    4.898|         |         |         |
 ---------------+---------+---------+---------+---------+
 
 Clock to Setup on destination clock tdc_clk_p_i
@@ -159,9 +159,9 @@ Clock to Setup on destination clock tdc_clk_p_i
                | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
 Source Clock   |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
 ---------------+---------+---------+---------+---------+
-spec_clk_i     |    7.224|         |         |         |
-tdc_clk_n_i    |    4.728|         |         |         |
-tdc_clk_p_i    |    4.728|         |         |         |
+spec_clk_i     |   11.383|         |         |         |
+tdc_clk_n_i    |    4.898|         |         |         |
+tdc_clk_p_i    |    4.898|         |         |         |
 ---------------+---------+---------+---------+---------+
 
 Pad to Pad
@@ -169,30 +169,30 @@ Pad to Pad
 Source Pad     |Destination Pad |  Delay  |
 ---------------+----------------+---------+
 pll_ld_i       |spec_led_green_o|   12.366|
-rst_n_a_i      |spec_aux5_o     |   11.006|
+rst_n_a_i      |spec_aux5_o     |   14.919|
 spec_aux0_i    |tdc_led_trig3_o |   15.691|
 spec_aux0_i    |tdc_led_trig4_o |   15.691|
 spec_aux0_i    |tdc_led_trig5_o |   17.050|
-spec_aux1_i    |spec_aux5_o     |    8.917|
+spec_aux1_i    |spec_aux5_o     |    8.387|
 ---------------+----------------+---------+
 
 
 Timing summary:
 ---------------
 
-Timing errors: 9  Score: 17366  (Setup/Max: 17366, Hold: 0)
+Timing errors: 18  Score: 19904  (Setup/Max: 19904, Hold: 0)
 
-Constraints cover 5229 paths, 0 nets, and 709 connections
+Constraints cover 5298 paths, 0 nets, and 836 connections
 
 Design statistics:
    Minimum period:  11.929ns   (Maximum frequency:  83.829MHz)
    Maximum combinational path delay:  17.050ns
    Maximum path delay from/to any node:  11.929ns
-   Minimum input required time before clock:  20.944ns
-   Maximum output delay after clock:  17.070ns
+   Minimum input required time before clock:  13.053ns
+   Maximum output delay after clock:  19.174ns
 
 
-Analysis completed Fri Jul 15 19:32:08 2011 
+Analysis completed Mon Jul 18 09:45:06 2011 
 --------------------------------------------------------------------------------
 
 Trace Settings:

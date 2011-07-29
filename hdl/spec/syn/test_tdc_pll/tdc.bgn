@@ -4,7 +4,7 @@ Loading device for application Rf_Device from file '6slx45t.nph' in environment
 /afs/cern.ch/project/parc/elec/xilinx131/ISE_DS/ISE/.
    "top_tdc" is an NCD, version 3.2, device xc6slx45t, package fgg484, speed -2
 
-Fri Jul 15 19:32:12 2011
+Mon Jul 18 09:45:10 2011
 
 /afs/cern.ch/project/parc/elec/xilinx131/ISE_DS/ISE/bin/lin64/unwrapped/bitgen par_tdc.ncd tdc 
 

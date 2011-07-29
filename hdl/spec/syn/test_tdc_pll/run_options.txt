@@ -1,7 +1,7 @@
 #-- Synopsys, Inc.
 #-- Version D-2010.03
 #-- Project file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_pll/run_options.txt
-#-- Written on Fri Jul 15 19:30:52 2011
+#-- Written on Mon Jul 18 09:43:56 2011
 
 
 #project files
