@@ -6,17 +6,40 @@
 # Clocks
 #
 
-define_clock            {n:clk}                 -name {tdc_clk125}  -freq 125
-define_clock            {n:spec_clk}            -name {spec_clk20}  -freq 20
-define_attribute        {n:spec_clk}            syn_keep            {true}
+define_clock            {p:tdc_clk_p_i}                                         -name {tdc_clk125}  -freq 125
+define_clock            {p:spec_clk_i}                                          -name {spec_clk20}  -freq 20
 
-#define_attribute   {n:spec_clk_i}                     -syn_noclock_buf {1}
+define_clock            {n:gnum_interface_block.cmp_clk_in.rx_pllout_x1}        -name {gnum_clk200} -freq 200
 
 # -clockgroup default_clkgroup_0
 # Inputs/Outputs
 #
 define_input_delay      -default            2.00 -ref tdc_clk125:r
 define_output_delay     -default            2.00 -ref tdc_clk125:r
+
+define_input_delay      {p:p2l_clk_p_i }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:p2l_clk_n_i }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:p2l_data_i  }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:p2l_dframe_i}        2.00 -ref gnum_clk200:r
+define_input_delay      {p:p2l_valid_i }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:p_wr_req_i  }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:vc_rdy_i    }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:p2l_rdy_o   }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:p_wr_rdy_o  }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:rx_error_o  }        2.00 -ref gnum_clk200:r
+
+define_output_delay     {p:l2p_clk_p_o }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:l2p_clk_n_o }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:l2p_data_o  }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:l2p_dframe_o}        2.00 -ref gnum_clk200:r
+define_output_delay     {p:l2p_valid_o }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:l2p_edb_o   }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:irq_p_o     }        2.00 -ref gnum_clk200:r
+define_output_delay     {p:spare_o     }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:l2p_rdy_i   }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:l_wr_rdy_i  }        2.00 -ref gnum_clk200:r
+define_input_delay      {p:p_rd_d_rdy_i}        2.00 -ref gnum_clk200:r
+define_input_delay      {p:tx_error_i  }        2.00 -ref gnum_clk200:r
 
 define_output_delay     {p:spec_led_green_o}    2.00 -ref spec_clk20:r
 define_output_delay     {p:spec_led_red_o}      2.00 -ref spec_clk20:r
@@ -27,6 +50,30 @@ define_input_delay      {p:pll_ld_i}            2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_refmon_i}        2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_sdo_i}           2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_status_i}        2.00 -ref spec_clk20:r
+
+define_false_path       -to     {p:cs_n_o}
+define_false_path       -to     {p:wr_n_o}
+define_false_path       -to     {p:rd_n_o}
+
+define_false_path       -from   {p:spec_aux0_i}
+define_false_path       -from   {p:spec_aux1_i}
+define_false_path       -to     {p:spec_aux2_o}
+define_false_path       -to     {p:spec_aux3_o}
+define_false_path       -to     {p:spec_aux4_o}
+define_false_path       -to     {p:spec_aux5_o}
+
+define_false_path       -to     {p:spec_led_green_o}
+define_false_path       -to     {p:spec_led_red_o}
+define_false_path       -to     {p:tdc_led_status_o}
+define_false_path       -to     {p:tdc_led_trig1_o}
+define_false_path       -to     {p:tdc_led_trig2_o}
+define_false_path       -to     {p:tdc_led_trig3_o}
+define_false_path       -to     {p:tdc_led_trig4_o}
+define_false_path       -to     {p:tdc_led_trig5_o}
+
+define_false_path       -to     {p:start_from_fpga_o}
+
+#define_path_delay   -from   {p:adress_o}    -to {p:wr_n_o} -max 2
 
 # Attributes
 # Global attribute definitions for improving implementation targetting Xilinx
@@ -109,6 +156,7 @@ define_attribute    {p:err_flag_i}          {syn_loc}   {V11}
 define_attribute    {p:int_flag_i}          {syn_loc}   {W11}
 define_attribute    {p:start_dis_o}         {syn_loc}   {T15}
 define_attribute    {p:stop_dis_o}          {syn_loc}   {U15}
+define_attribute    {p:start_from_fpga_o}   {syn_loc}   {W17}
 define_attribute    {p:data_bus_io[27]}     {syn_loc}   {AB4}
 define_attribute    {p:data_bus_io[26]}     {syn_loc}   {AA4}
 define_attribute    {p:data_bus_io[25]}     {syn_loc}   {AB9}
@@ -186,10 +234,10 @@ define_io_standard  {p_wr_req_i[1:0]}   syn_pad_type  {SSTL_18_Class_I}
 define_io_standard  {p_wr_rdy_o[1:0]}   syn_pad_type  {SSTL_18_Class_I}
 define_io_standard  {rx_error_o}        syn_pad_type  {SSTL_18_Class_I}
 define_io_standard  {vc_rdy_i[1:0]}     syn_pad_type  {SSTL_18_Class_I}
-define_io_standard  {l2p_clk_p_o}       syn_pad_type  {SSTL_18_Class_II}
-define_io_standard  {l2p_clk_n_o}       syn_pad_type  {SSTL_18_Class_II}
-#define_io_standard  {l2p_clk_p_o}       syn_pad_type  {DIFF_SSTL_18_Class_II}
-#define_io_standard  {l2p_clk_n_o}       syn_pad_type  {DIFF_SSTL_18_Class_II}
+#define_io_standard  {l2p_clk_p_o}       syn_pad_type  {SSTL_18_Class_II}
+#define_io_standard  {l2p_clk_n_o}       syn_pad_type  {SSTL_18_Class_II}
+define_io_standard  {l2p_clk_p_o}       syn_pad_type  {DIFF_SSTL_18_Class_II}
+define_io_standard  {l2p_clk_n_o}       syn_pad_type  {DIFF_SSTL_18_Class_II}
 define_io_standard  {l2p_data_o[15:0]}  syn_pad_type  {SSTL_18_Class_I}
 define_io_standard  {l2p_dframe_o}      syn_pad_type  {SSTL_18_Class_I}
 define_io_standard  {l2p_valid_o}       syn_pad_type  {SSTL_18_Class_I}

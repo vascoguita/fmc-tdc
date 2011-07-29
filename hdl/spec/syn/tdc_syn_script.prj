@@ -38,8 +38,8 @@ add_file -vhdl -lib work "../src/rtl/acam_timecontrol_interface.vhd"
 add_file -vhdl -lib work "../src/rtl/acam_databus_interface.vhd"
 
 #add_file -vhdl -lib work "../src/rtl/top_tdc.vhd"
-add_file -vhdl -lib work "../src/rtl/test_tdc_pll/top_test_pll.vhd"
-#add_file -vhdl -lib work "../src/rtl/test_tdc_acam/top_test_acam.vhd"
+#add_file -vhdl -lib work "../src/rtl/test_tdc_pll/top_test_pll.vhd"
+add_file -vhdl -lib work "../src/rtl/test_tdc_acam/top_test_acam.vhd"
 
 add_file -constraint -lib work "./tdc_syn_constraints.sdc"
 
@@ -102,7 +102,7 @@ set_option -write_vif 0
 set_option -write_apr_constraint 1
 
 #set result format/file last
-project -result_file "./test_tdc_pll/syn_tdc.edf"
-#project -result_file "./test_tdc_acam/syn_tdc.edf"
+#project -result_file "./test_tdc_pll/syn_tdc.edf"
+project -result_file "./test_tdc_acam/syn_tdc.edf"
 #project -run -fg synthesis
 #project -run -fg timing
