@@ -174,11 +174,7 @@ begin
     end case;
     end process;
     
-    ef1                         <= ef1_i;
-    ef2                         <= ef2_i;
-    lf1                         <= lf1_i;
-    lf2                         <= lf2_i;
-    
+    -- inputs from other blocks    
     clk                         <= clk_i;
     reset                       <= reset_i;
 
@@ -188,13 +184,22 @@ begin
     stb                         <= stb_i;
     we                          <= we_i;
     
+    -- outputs to other blocks
+    ack_o                       <= ack;
+    dat_o                       <= ef1 & ef2 & lf1 & lf2 & data_bus_io;
+
+    -- inputs from the ACAM
+    ef1                         <= ef1_i;
+    ef2                         <= ef2_i;
+    lf1                         <= lf1_i;
+    lf2                         <= lf2_i;
+
+    -- outputs to the ACAM
     address_o                   <= adr(3 downto 0);
     cs_n_o                      <= not(cs);
     oe_n_o                      <= '1';
     rd_n_o                      <= not(rd);
     wr_n_o                      <= not(wr);
-    ack_o                       <= ack;
-    dat_o                       <= ef1 & ef2 & lf1 & lf2 & data_bus_io;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

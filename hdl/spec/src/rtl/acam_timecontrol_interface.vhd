@@ -34,11 +34,12 @@ entity acam_timecontrol_interface is
         int_flag_i          : in std_logic;
 
         start_dis_o         : out std_logic;
+        start_from_fpga_o   : out std_logic;
         stop_dis_o          : out std_logic;
 
         -- signals internal to the chip: interface with other modules
         clk_i               : in std_logic;
-        one_hz_p_i          : in std_logic;
+        start_trig_i        : in std_logic;
         reset_i             : in std_logic;
         
         acam_errflag_p_o    : out std_logic;
@@ -68,12 +69,13 @@ architecture rtl of acam_timecontrol_interface is
 
 signal clk              : std_logic;
 signal counter_reset    : std_logic;
-signal one_hz_p         : std_logic;
+signal start_trig       : std_logic;
 signal reset            : std_logic;
 signal s_int_flag       : unsigned(2 downto 0);
 signal s_err_flag       : unsigned(2 downto 0);
 
 signal start_dis        : std_logic;
+signal start_from_fpga  : std_logic;
 signal start_window     : std_logic;
 signal window_inverted  : std_logic;
 
@@ -137,14 +139,18 @@ begin
     );
     
     start_window            <= not(window_inverted);
-    counter_reset           <= reset or one_hz_p;
+    counter_reset           <= reset or start_trig;
+    start_from_fpga         <= start_trig;
     
+    -- inputs
     clk                     <= clk_i;
-    one_hz_p                <= one_hz_p_i;
+    start_trig              <= start_trig_i;
     reset                   <= reset_i;
     
+    -- outputs
     start_dis_o             <= start_dis;    
     stop_dis_o              <= '0';
+    start_from_fpga_o       <= start_from_fpga;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

@@ -57,6 +57,7 @@ entity top_tdc is
         p_rd_d_rdy_i: in  std_logic_vector(1 downto 0);   -- PCIe-to-Local Read Response Data Ready
         tx_error_i  : in  std_logic;                      -- Transmit Error
         irq_p_o     : out std_logic;                      -- Interrupt request pulse to GN4124 GPIO
+        spare_o     : out std_logic;
         
         -- interface signals with PLL circuit on TDC mezzanine
         acam_refclk_i           : in std_logic;
@@ -140,55 +141,59 @@ architecture rtl of top_tdc is
     );
     end component;
 
---    component start_nb_offset_gen is
---    generic(
---        g_width                 : integer :=32
---    );
---    port(
---        acam_intflag_p_i        : in std_logic;
---        clk_i                   : in std_logic;
---        one_hz_p_i              : in std_logic;
---        reset_i                 : in std_logic;
---
---        start_nb_offset_o       : out std_logic_vector(g_width-1 downto 0)
---    );
---    end component;
---
---    component data_formatting
---    generic(
---        g_width                 : integer :=32
---    );
---    port(
---        acam_start01_i          : in std_logic_vector(16 downto 0);
---        acam_timestamp_i        : in std_logic_vector(28 downto 0);
---        acam_timestamp_valid_i  : in std_logic;
---        clk_i                   : in std_logic;
---        reset_i                 : in std_logic;
---        start_nb_offset_i       : in std_logic_vector(g_width-1 downto 0);
---        utc_current_time_i      : in std_logic_vector(g_width-1 downto 0);
---
---        full_timestamp_o        : out std_logic_vector(3*g_width-1 downto 0);
---        full_timestamp_valid_o  : out std_logic
---    );
---    end component;
+    component start_retrigger_control is
+    generic(
+        g_width             : integer :=32
+    );
+    port(
+        acam_intflag_p_i    : in std_logic;
+        clk_i               : in std_logic;
+        one_hz_p_i          : in std_logic;
+        reset_i             : in std_logic;
+        
+        start_nb_offset_o   : out std_logic_vector(g_width-1 downto 0);
+        start_trig_o        : out std_logic
+    );
+    end component;
 
-    component acam_timecontrol_interface
+    component data_formatting
     generic(
         g_width                 : integer :=32
     );
     port(
-        err_flag_i              : in std_logic;
-        int_flag_i              : in std_logic;
-
-        start_dis_o             : out std_logic;
-        stop_dis_o              : out std_logic;
-
+        acam_start01_i          : in std_logic_vector(16 downto 0);
+        acam_timestamp_i        : in std_logic_vector(28 downto 0);
+        acam_timestamp_valid_i  : in std_logic;
         clk_i                   : in std_logic;
-        one_hz_p_i              : in std_logic;
         reset_i                 : in std_logic;
+        start_nb_offset_i       : in std_logic_vector(g_width-1 downto 0);
+        utc_current_time_i      : in std_logic_vector(g_width-1 downto 0);
+
+        full_timestamp_o        : out std_logic_vector(3*g_width-1 downto 0);
+        full_timestamp_valid_o  : out std_logic
+    );
+    end component;
+
+    component acam_timecontrol_interface
+    generic(
+        g_width             : integer :=32
+    );
+    port(
+        -- signals external to the chip: interface with acam
+        err_flag_i          : in std_logic;
+        int_flag_i          : in std_logic;
+
+        start_dis_o         : out std_logic;
+        start_from_fpga_o   : out std_logic;
+        stop_dis_o          : out std_logic;
+
+        -- signals internal to the chip: interface with other modules
+        clk_i               : in std_logic;
+        start_trig_i        : in std_logic;
+        reset_i             : in std_logic;
         
-        acam_errflag_p_o        : out std_logic;
-        acam_intflag_p_o        : out std_logic
+        acam_errflag_p_o    : out std_logic;
+        acam_intflag_p_o    : out std_logic
     );
     end component;
 
@@ -224,6 +229,10 @@ architecture rtl of top_tdc is
     end component;
 
     component clk_rst_managr
+    generic(
+        nb_of_reg               : integer:=68;
+        values_for_simulation   : boolean:=FALSE
+    );
     port(
         acam_refclk_i           : in std_logic;
         pll_ld_i                : in std_logic;
@@ -331,14 +340,15 @@ architecture rtl of top_tdc is
       );
     end component;
 
-constant sim_clock_period       : std_logic_vector(g_width-1 downto 0):=x"0001E848"; -- 1 ms
-constant syn_clock_period       : std_logic_vector(g_width-1 downto 0):=x"07735940"; -- 1 s
+--used to generate the one_hz_p pulse
+constant sim_clock_period       : std_logic_vector(g_width-1 downto 0):=x"0001E848"; -- 1 ms at 125 MHz (tdc board clock)
+constant syn_clock_period       : std_logic_vector(g_width-1 downto 0):=x"07735940"; -- 1 s at 125 MHz (tdc board clock)
 
-
-signal tdc_led_period           : std_logic_vector(g_width-1 downto 0);
+signal spec_led_count_done      : std_logic;
 signal spec_led_period          : std_logic_vector(g_width-1 downto 0);
 signal tdc_led_count_done       : std_logic;
-signal spec_led_count_done      : std_logic;
+signal tdc_led_period           : std_logic_vector(g_width-1 downto 0);
+signal visible_blink_length     : std_logic_vector(g_width-1 downto 0);
 
 -- will be registers of the core
 signal pulse_delay              : std_logic_vector(g_width-1 downto 0);
@@ -346,29 +356,27 @@ signal clock_period             : std_logic_vector(g_width-1 downto 0);
 
 signal gnum_reset               : std_logic;
 signal pll_cs                   : std_logic;
-signal spec_clk                 : std_logic;
 
-signal tdc_led_status           : std_logic:='0';
+signal spec_led_green           : std_logic;
+signal spec_led_red             : std_logic;
+signal tdc_led_status           : std_logic;
 signal tdc_led_trig1            : std_logic:='0';
 signal tdc_led_trig2            : std_logic:='0';
 signal tdc_led_trig3            : std_logic:='0';
 signal tdc_led_trig4            : std_logic:='0';
 signal tdc_led_trig5            : std_logic:='0';
-signal spec_led_green           : std_logic:='0';
-signal spec_led_red             : std_logic:='0';
 
 signal acam_errflag_p           : std_logic;
 signal acam_intflag_p           : std_logic;
-signal acam_refclk              : std_logic;
 signal acam_start01             : std_logic_vector(16 downto 0);
 signal acam_timestamp           : std_logic_vector(28 downto 0);
 signal acam_timestamp_valid     : std_logic;
-signal clk                      : std_logic;
 signal full_timestamp           : std_logic_vector(3*g_width-1 downto 0);
 signal full_timestamp_valid     : std_logic;
 signal general_reset            : std_logic;
 signal one_hz_p                 : std_logic;
 signal start_nb_offset          : std_logic_vector(g_width-1 downto 0);
+signal start_trig               : std_logic;
 signal start_timer_reg          : std_logic_vector(7 downto 0);
 signal utc_current_time         : std_logic_vector(g_width-1 downto 0);
 
@@ -402,6 +410,10 @@ signal dma_dat_o                : std_logic_vector(31 downto 0);
 signal dma_ack                  : std_logic;
 signal dma_stall                : std_logic;
 
+signal acam_refclk              : std_logic;
+signal clk                      : std_logic;
+signal spec_clk                 : std_logic;
+
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
@@ -421,35 +433,36 @@ begin
         one_hz_p_o          => one_hz_p
     );
     
---    start_nb_block: start_nb_offset_gen
---    generic map(
---        g_width             => g_width
---    )
---    port map(
---        acam_intflag_p_i    => acam_intflag_p,
---        clk_i               => clk,
---        one_hz_p_i          => one_hz_p,
---        reset_i             => general_reset,
---        
---        start_nb_offset_o   => start_nb_offset
---    );
+    start_retrigger_block: start_retrigger_control
+    generic map(
+        g_width             => g_width
+    )
+    port map(
+        acam_intflag_p_i    => acam_intflag_p,
+        clk_i               => clk,
+        one_hz_p_i          => one_hz_p,
+        reset_i             => general_reset,
+        
+        start_nb_offset_o   => start_nb_offset,
+        start_trig_o        => start_trig
+    );
     
---    data_formatting_block: data_formatting
---    generic map(
---        g_width             => g_width
---    )
---    port map(
---        acam_start01_i          => acam_start01,
---        acam_timestamp_i        => acam_timestamp,
---        acam_timestamp_valid_i  => acam_timestamp_valid,
---        clk_i                   => clk_i,
---        reset_i                 => general_reset,
---        start_nb_offset_i       => start_nb_offset,
---        utc_current_time_i      => utc_current_time,
---        
---        full_timestamp_o        => full_timestamp,
---        full_timestamp_valid_o  => full_timestamp_valid
---    );
+    data_formatting_block: data_formatting
+    generic map(
+        g_width             => g_width
+    )
+    port map(
+        acam_start01_i          => acam_start01,
+        acam_timestamp_i        => acam_timestamp,
+        acam_timestamp_valid_i  => acam_timestamp_valid,
+        clk_i                   => clk,
+        reset_i                 => general_reset,
+        start_nb_offset_i       => start_nb_offset,
+        utc_current_time_i      => utc_current_time,
+        
+        full_timestamp_o        => full_timestamp,
+        full_timestamp_valid_o  => full_timestamp_valid
+    );
     
     acam_timing_block: acam_timecontrol_interface
     generic map(
@@ -461,14 +474,13 @@ begin
         int_flag_i              => int_flag_i,
         
         -- this is the config for acam test, in normal application connect the outputs
-        start_dis_o             => open,
-        stop_dis_o              => open,
---        start_dis_o             => start_dis_o,
- --       stop_dis_o              => stop_dis_o,
+        start_dis_o             => start_dis_o,
+        start_from_fpga_o       => start_from_fpga_o,
+        stop_dis_o              => stop_dis_o,
         
         -- signals internal to the chip: interface with other modules
         clk_i                   => clk,
-        one_hz_p_i              => one_hz_p,
+        start_trig_i            => start_trig,
         reset_i                 => general_reset,
             
         acam_errflag_p_o        => acam_errflag_p,
@@ -563,7 +575,11 @@ begin
         dma_stall_i             => dma_stall
     );
 
-    clocks_and_resets_management_block: clk_rst_managr
+    clks_rsts_mgment: clk_rst_managr
+    generic map(
+        nb_of_reg               => 68,
+        values_for_simulation   => values_for_simulation
+    )
     port map(
         acam_refclk_i       => acam_refclk_i,
         pll_ld_i            => pll_ld_i,
@@ -577,7 +593,7 @@ begin
         
         acam_refclk_o       => acam_refclk,
         general_reset_o     => general_reset,
-        pll_cs_o            => pll_cs,
+        pll_cs_o            => pll_cs_o,
         pll_dac_sync_o      => pll_dac_sync_o,
         pll_sdi_o           => pll_sdi_o,
         pll_sclk_o          => pll_sclk_o,
@@ -596,19 +612,6 @@ begin
         current_value       => open
     );
     
-    spec_led_period         <= spec_led_period_sim when values_for_simulation
-                                else spec_led_period_syn;
-    
-    spec_led: process
-    begin
-        if spec_led_count_done ='1' then
-            spec_led_red        <= not(spec_led_red);
-        end if;
-        wait until spec_clk ='1';
-    end process;
-    
-    spec_led_green          <= pll_ld_i;
-
     tdc_led_counter: countdown_counter
     port map(
         clk                 => clk,
@@ -620,12 +623,51 @@ begin
         current_value       => open
     );
 
-    tdc_led_status      <= not(tdc_led_count_done);
+    spec_led: process
+    begin
+        if gnum_reset ='1' then
+            spec_led_red        <= '0';
+        elsif spec_led_count_done ='1' then
+            spec_led_red        <= not(spec_led_red);
+        end if;
+        wait until spec_clk ='1';
+    end process;
+    
+    tdc_led: process
+    begin
+        if one_hz_p ='1' then
+            tdc_led_status      <= '1';
+        elsif tdc_led_count_done = '1' then
+            tdc_led_status      <= '0';
+        end if;
+        wait until clk ='1';
+    end process;
+    
+--    two_seconds: process
+--    begin
+--        if gnum_reset ='1' then
+--            tdc_led_trig5       <= '0';
+--        elsif one_hz_p ='1' then
+--            tdc_led_trig5       <= not(tdc_led_trig5);
+--        end if;
+--        wait until clk ='1';
+--    end process;
         
-    -- inputs
-    gnum_reset              <= not(rst_n_a_i);
+--    tdc_led_period          <= tdc_led_period_sim when values_for_simulation
+--                                else tdc_led_period_syn;
+    
+    spec_led_period         <= spec_led_period_sim when values_for_simulation
+                                else spec_led_period_syn;
+    
+    visible_blink_length    <= blink_length_sim when values_for_simulation
+                                else blink_length_syn;
+    
+    clock_period            <= sim_clock_period when values_for_simulation
+                                else syn_clock_period;
 
     -- internal signals
+    spec_led_green          <= pll_ld_i;
+
     acm_adr(19)             <= '0';
     acm_adr(18 downto 0)    <= csr_adr;
     acm_cyc                 <= csr_cyc(0);
@@ -635,28 +677,42 @@ begin
     csr_ack(0)              <= acm_ack;
     csr_dat_r               <= acm_dat_r;
     
-    clock_period            <= sim_clock_period when values_for_simulation
-                                else syn_clock_period;
-    pulse_delay             <= x"00000000";
+    -- inputs
+    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);
 
     -- outputs
-    pll_cs_o                <= pll_cs;
 
+    spec_led_green_o        <= spec_led_green;
+    spec_led_red_o          <= spec_led_red;
     tdc_led_status_o        <= tdc_led_status;
+    
     tdc_led_trig1_o         <= tdc_led_trig1;
     tdc_led_trig2_o         <= tdc_led_trig2;
     tdc_led_trig3_o         <= tdc_led_trig3;
     tdc_led_trig4_o         <= tdc_led_trig4;
     tdc_led_trig5_o         <= tdc_led_trig5;
-    spec_led_green_o        <= spec_led_green;
-    spec_led_red_o          <= spec_led_red;
-    
-    -- this is the config for acam test...
-    start_dis_o             <= '0';
-    stop_dis_o              <= '0';
-    start_from_fpga_o       <= one_hz_p when spec_aux1_i ='0' else not(spec_aux0_i);
-    spec_aux2_o             <= spec_aux0_i;
-    spec_aux3_o             <= spec_aux1_i;
+
+    -- these will evolve as we implement all the features
+    mute_inputs_o           <= '1';
+    term_en_1_o             <= '1';
+    term_en_2_o             <= '1';
+    term_en_3_o             <= '1';
+    term_en_4_o             <= '1';
+    term_en_5_o             <= '1';
+
+    spec_aux5_o             <= spec_aux0_i;
+    spec_aux4_o             <= spec_aux1_i;
+    button_with_spec_clk: process
+    begin
+        spec_aux3_o             <= spec_aux0_i;
+        wait until spec_clk ='1';
+    end process;
+
+    button_with_tdc_clk: process
+    begin
+        spec_aux2_o             <= spec_aux0_i;
+        wait until clk ='1';
+    end process;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

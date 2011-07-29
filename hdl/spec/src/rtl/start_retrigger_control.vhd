@@ -2,11 +2,13 @@
 --  CERN-BE-CO-HT
 ----------------------------------------------------------------------------------------------------
 --
---  unit name   : internal start number offset generator (start_nb_offset_gen)
+--  unit name   : start retrigger control and internal start number offset generator 
+--              (start_retrigger_control)
 --  author      : G. Penacoba
---  date        : May 2011
+--  date        : July 2011
 --  version     : Revision 1
---  description : generates the offset to be added to the start number provided by tha Acam
+--  description : launches the start pulses and the ACAM generates the internal start retriggers.
+--                Also generates the offset to be added to the start number provided by tha Acam
 --                by counting the number of times the 1-Byte counter of the Acam is overloaded.
 --                The result is then multiplied by 256 (shifted by 8).
 --  dependencies:
@@ -24,9 +26,9 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 ----------------------------------------------------------------------------------------------------
---  entity declaration for start_nb_offset_gen
+--  entity declaration for start_retrigger_control
 ----------------------------------------------------------------------------------------------------
-entity start_nb_offset_gen is
+entity start_retrigger_control is
     generic(
         g_width             : integer :=32
     );
@@ -35,15 +37,16 @@ entity start_nb_offset_gen is
         clk_i               : in std_logic;
         one_hz_p_i          : in std_logic;
         reset_i             : in std_logic;
-
-        start_nb_offset_o   : out std_logic_vector(g_width-1 downto 0)
+        
+        start_nb_offset_o   : out std_logic_vector(g_width-1 downto 0);
+        start_trig_o        : out std_logic
     );
-end start_nb_offset_gen;
+end start_retrigger_control;
 
 ----------------------------------------------------------------------------------------------------
---  architecture declaration for start_nb_offset_gen
+--  architecture declaration for start_retrigger_control
 ----------------------------------------------------------------------------------------------------
-architecture rtl of start_nb_offset_gen is
+architecture rtl of start_retrigger_control is
 
     component incr_counter
     generic(
@@ -67,6 +70,8 @@ signal offset_value     : std_logic_vector(g_width-1 downto 0);
 signal offset_to_shift  : unsigned(g_width-1 downto 0);
 signal one_hz_p         : std_logic;
 signal reset            : std_logic;
+signal start_nb_offset  : std_logic_vector(g_width-1 downto 0);
+signal start_trig       : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -89,12 +94,18 @@ begin
     
     counter_reset       <= reset or one_hz_p;
     offset_to_shift     <= unsigned(offset_value);
-    start_nb_offset_o   <= std_logic_vector(shift_left(offset_to_shift,8));
+    start_nb_offset     <= std_logic_vector(shift_left(offset_to_shift,8));
+    start_trig          <= one_hz_p;
     
+    -- inputs
     acam_intflag_p      <= acam_intflag_p_i;
     clk                 <= clk_i;
     one_hz_p            <= one_hz_p_i;
     reset               <= reset_i;
+    
+    -- outputs
+    start_nb_offset_o   <= start_nb_offset;
+    start_trig_o        <= start_trig;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
