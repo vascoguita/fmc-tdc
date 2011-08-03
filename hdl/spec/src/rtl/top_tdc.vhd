@@ -143,16 +143,17 @@ architecture rtl of top_tdc is
 
     component start_retrigger_control is
     generic(
-        g_width             : integer :=32
+        g_width                 : integer :=32
     );
     port(
-        acam_intflag_p_i    : in std_logic;
-        clk_i               : in std_logic;
-        one_hz_p_i          : in std_logic;
-        reset_i             : in std_logic;
+        acam_rise_intflag_p_i   : in std_logic;
+        acam_fall_intflag_p_i   : in std_logic;
+        clk_i                   : in std_logic;
+        one_hz_p_i              : in std_logic;
+        reset_i                 : in std_logic;
         
-        start_nb_offset_o   : out std_logic_vector(g_width-1 downto 0);
-        start_trig_o        : out std_logic
+        start_nb_offset_o       : out std_logic_vector(g_width-1 downto 0);
+        start_trig_o            : out std_logic
     );
     end component;
 
@@ -176,24 +177,26 @@ architecture rtl of top_tdc is
 
     component acam_timecontrol_interface
     generic(
-        g_width             : integer :=32
+        g_width                 : integer :=32
     );
     port(
         -- signals external to the chip: interface with acam
-        err_flag_i          : in std_logic;
-        int_flag_i          : in std_logic;
+        err_flag_i              : in std_logic;
+        int_flag_i              : in std_logic;
 
-        start_dis_o         : out std_logic;
-        start_from_fpga_o   : out std_logic;
-        stop_dis_o          : out std_logic;
+        start_dis_o             : out std_logic;
+        start_from_fpga_o       : out std_logic;
+        stop_dis_o              : out std_logic;
 
         -- signals internal to the chip: interface with other modules
-        clk_i               : in std_logic;
-        start_trig_i        : in std_logic;
-        reset_i             : in std_logic;
+        clk_i                   : in std_logic;
+        start_trig_i            : in std_logic;
+        reset_i                 : in std_logic;
         
-        acam_errflag_p_o    : out std_logic;
-        acam_intflag_p_o    : out std_logic
+        acam_rise_errflag_p_o   : out std_logic;
+        acam_fall_errflag_p_o   : out std_logic;
+        acam_rise_intflag_p_o   : out std_logic;
+        acam_fall_intflag_p_o   : out std_logic
     );
     end component;
 
@@ -366,8 +369,10 @@ signal tdc_led_trig3            : std_logic:='0';
 signal tdc_led_trig4            : std_logic:='0';
 signal tdc_led_trig5            : std_logic:='0';
 
-signal acam_errflag_p           : std_logic;
-signal acam_intflag_p           : std_logic;
+signal acam_fall_errflag_p      : std_logic;
+signal acam_rise_errflag_p      : std_logic;
+signal acam_fall_intflag_p      : std_logic;
+signal acam_rise_intflag_p      : std_logic;
 signal acam_start01             : std_logic_vector(16 downto 0);
 signal acam_timestamp           : std_logic_vector(28 downto 0);
 signal acam_timestamp_valid     : std_logic;
@@ -435,16 +440,17 @@ begin
     
     start_retrigger_block: start_retrigger_control
     generic map(
-        g_width             => g_width
+        g_width                 => g_width
     )
     port map(
-        acam_intflag_p_i    => acam_intflag_p,
-        clk_i               => clk,
-        one_hz_p_i          => one_hz_p,
-        reset_i             => general_reset,
+        acam_fall_intflag_p_i   => acam_fall_intflag_p,
+        acam_rise_intflag_p_i   => acam_rise_intflag_p,
+        clk_i                   => clk,
+        one_hz_p_i              => one_hz_p,
+        reset_i                 => general_reset,
         
-        start_nb_offset_o   => start_nb_offset,
-        start_trig_o        => start_trig
+        start_nb_offset_o       => start_nb_offset,
+        start_trig_o            => start_trig
     );
     
     data_formatting_block: data_formatting
@@ -483,8 +489,10 @@ begin
         start_trig_i            => start_trig,
         reset_i                 => general_reset,
             
-        acam_errflag_p_o        => acam_errflag_p,
-        acam_intflag_p_o        => acam_intflag_p
+        acam_fall_errflag_p_o   => acam_fall_errflag_p,
+        acam_rise_errflag_p_o   => acam_rise_errflag_p,
+        acam_fall_intflag_p_o   => acam_fall_intflag_p,
+        acam_rise_intflag_p_o   => acam_rise_intflag_p
     );
     
     acam_data_block: acam_databus_interface
@@ -686,13 +694,14 @@ begin
     spec_led_red_o          <= spec_led_red;
     tdc_led_status_o        <= tdc_led_status;
     
-    tdc_led_trig1_o         <= tdc_led_trig1;
-    tdc_led_trig2_o         <= tdc_led_trig2;
-    tdc_led_trig3_o         <= tdc_led_trig3;
-    tdc_led_trig4_o         <= tdc_led_trig4;
+    tdc_led_trig1_o         <= ef2_i;
+    tdc_led_trig2_o         <= ef1_i;
+    tdc_led_trig3_o         <= lf2_i;
+    tdc_led_trig4_o         <= lf1_i;
     tdc_led_trig5_o         <= tdc_led_trig5;
 
     -- these will evolve as we implement all the features
+    pulse_delay             <= x"00000001";
     mute_inputs_o           <= '1';
     term_en_1_o             <= '1';
     term_en_2_o             <= '1';

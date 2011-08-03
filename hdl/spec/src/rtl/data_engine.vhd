@@ -34,10 +34,11 @@ entity data_engine is
     port(
         -- wishbone master signals internal to the chip: interface with other modules
         ack_i                   : in std_logic;
-        dat_i                   : in std_logic_vector(31 downto 0);
+        dat_i                   : in std_logic_vector(g_width-1 downto 0);
 
+        adr_o                   : out std_logic_vector(19 downto 0);
         cyc_o                   : out std_logic;
-        dat_o                   : out std_logic_vector(31 downto 0);
+        dat_o                   : out std_logic_vector(g_width-1 downto 0);
         stb_o                   : out std_logic;
         we_o                    : out std_logic;
         
@@ -59,17 +60,39 @@ end data_engine;
 ----------------------------------------------------------------------------------------------------
 architecture rtl of data_engine is
 
-type engine_state_ty                is (wr_config, rest_wr, rd_timestamp, rest_rd);
+type engine_state_ty                is (idle, wr_config, rest_wr, rd_timestamp, rest_rd);
 signal engine_st, nxt_engine_st     : engine_state_ty;
 
 signal ef1                          : std_logic;
 signal ef2                          : std_logic;
+
+signal clk                          : std_logic;
+signal reset                        : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
 begin
 
+    data_engine_seq_fsm: process
+    begin
+        if reset ='1' then
+            engine_st           <= idle;
+        else
+            engine_st           <= nxt_engine_st;
+        end if;
+        wait until clk ='1';
+    end process;
+    
+--    data_engine_comb_fsm: process
+--    begin
+--    case engine_st is
+--        when waiting =>
+--            
+
+    -- inputs
+    clk                 <= clk_i;
+    reset               <= reset_i;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

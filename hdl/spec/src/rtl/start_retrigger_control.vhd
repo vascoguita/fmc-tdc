@@ -30,16 +30,17 @@ use IEEE.numeric_std.all;
 ----------------------------------------------------------------------------------------------------
 entity start_retrigger_control is
     generic(
-        g_width             : integer :=32
+        g_width                 : integer :=32
     );
     port(
-        acam_intflag_p_i    : in std_logic;
-        clk_i               : in std_logic;
-        one_hz_p_i          : in std_logic;
-        reset_i             : in std_logic;
+        acam_rise_intflag_p_i   : in std_logic;
+        acam_fall_intflag_p_i   : in std_logic;
+        clk_i                   : in std_logic;
+        one_hz_p_i              : in std_logic;
+        reset_i                 : in std_logic;
         
-        start_nb_offset_o   : out std_logic_vector(g_width-1 downto 0);
-        start_trig_o        : out std_logic
+        start_nb_offset_o       : out std_logic_vector(g_width-1 downto 0);
+        start_trig_o            : out std_logic
     );
 end start_retrigger_control;
 
@@ -63,15 +64,18 @@ architecture rtl of start_retrigger_control is
     );
     end component;
 
-signal acam_intflag_p   : std_logic;
-signal clk              : std_logic;
-signal counter_reset    : std_logic;
-signal offset_value     : std_logic_vector(g_width-1 downto 0);
-signal offset_to_shift  : unsigned(g_width-1 downto 0);
-signal one_hz_p         : std_logic;
-signal reset            : std_logic;
-signal start_nb_offset  : std_logic_vector(g_width-1 downto 0);
-signal start_trig       : std_logic;
+signal acam_fall_intflag_p      : std_logic;
+signal acam_rise_intflag_p      : std_logic;
+signal acam_halfcounter_gone    : std_logic;
+signal add_offset               : std_logic;
+signal clk                      : std_logic;
+signal counter_reset            : std_logic;
+signal offset_value             : std_logic_vector(g_width-1 downto 0);
+signal offset_to_shift          : unsigned(g_width-1 downto 0);
+signal one_hz_p                 : std_logic;
+signal reset                    : std_logic;
+signal start_nb_offset          : std_logic_vector(g_width-1 downto 0);
+signal start_trig           : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -85,20 +89,34 @@ begin
     port map(
         clk             => clk,
         end_value       => x"FFFFFFFF",
-        incr            => acam_intflag_p,
+        incr            => add_offset,
         reset           => counter_reset,
         
         count_done      => open,
         current_value   => offset_value
     );
     
+    halfcounter_monitor: process                    -- The halfcounter monitor is needed to make
+    begin                                           -- sure that the falling edge pulse received 
+        if reset ='1' or one_hz_p ='1' then         -- corresponds to a real overflow of the ACAM
+            acam_halfcounter_gone       <= '0';     -- counter and not to a different reason,
+        elsif acam_rise_intflag_p ='1' then         -- for example a reset. 
+            acam_halfcounter_gone       <= '1';     -- This way the start_nb_offset will really 
+        elsif acam_fall_intflag_p ='1' then         -- track the number of internal start retriggers
+            acam_halfcounter_gone       <= '0';     -- inside the ACAM.
+        end if;
+        wait until clk ='1';
+    end process;
+    
+    add_offset          <= acam_fall_intflag_p and acam_halfcounter_gone;
     counter_reset       <= reset or one_hz_p;
     offset_to_shift     <= unsigned(offset_value);
     start_nb_offset     <= std_logic_vector(shift_left(offset_to_shift,8));
     start_trig          <= one_hz_p;
     
     -- inputs
-    acam_intflag_p      <= acam_intflag_p_i;
+    acam_fall_intflag_p <= acam_fall_intflag_p_i;
+    acam_rise_intflag_p <= acam_rise_intflag_p_i;
     clk                 <= clk_i;
     one_hz_p            <= one_hz_p_i;
     reset               <= reset_i;

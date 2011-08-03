@@ -13,7 +13,7 @@
 --  modified by :
 --
 ----------------------------------------------------------------------------------------------------
---  last changes:
+--  last changes: Added registers for the outputs.
 ----------------------------------------------------------------------------------------------------
 --  to do:
 ----------------------------------------------------------------------------------------------------
@@ -134,8 +134,8 @@ begin
 
         when rd_ack =>
             ack                 <= '1';
-            cs                  <= '1';
-            rd                  <= '1';
+            cs                  <= '0';
+            rd                  <= '0';
             wr                  <= '0';
 
             nxt_acam_data_st    <= idle;
@@ -150,9 +150,9 @@ begin
             
         when write =>
             ack                 <= '0';
-            cs                  <= '1';
+            cs                  <= '0';
             rd                  <= '0';
-            wr                  <= '1';
+            wr                  <= '0';
             
             nxt_acam_data_st    <= wr_ack;
             
@@ -196,10 +196,22 @@ begin
 
     -- outputs to the ACAM
     address_o                   <= adr(3 downto 0);
-    cs_n_o                      <= not(cs);
+    
+    output_registers: process
+    begin
+        if reset ='1' then
+            cs_n_o                      <= '1';
+            rd_n_o                      <= '1';
+            wr_n_o                      <= '1';
+        else
+            cs_n_o                      <= not(cs);
+            rd_n_o                      <= not(rd);
+            wr_n_o                      <= not(wr);
+        end if;
+        wait until clk ='1';
+    end process;
+
     oe_n_o                      <= '1';
-    rd_n_o                      <= not(rd);
-    wr_n_o                      <= not(wr);
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
