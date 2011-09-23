@@ -79,8 +79,11 @@ signal cyc                      : std_logic;
 signal stb                      : std_logic;
 signal we                       : std_logic;
 signal cs                       : std_logic;
+signal cs_extend                : std_logic;
 signal rd                       : std_logic;
+signal rd_extend                : std_logic;
 signal wr                       : std_logic;
+signal wr_extend                : std_logic;
 signal ack                      : std_logic;
 
 ----------------------------------------------------------------------------------------------------
@@ -103,9 +106,9 @@ begin
     case acam_data_st is
         when idle =>
             ack                 <= '0';
-            cs                  <= '0';
-            rd                  <= '0';
-            wr                  <= '0';
+            cs_extend           <= '0';
+            rd_extend           <= '0';
+            wr_extend           <= '0';
             if stb ='1' and cyc ='1' then
                 if we = '1' then
                     nxt_acam_data_st    <= wr_start;
@@ -118,61 +121,65 @@ begin
             
         when rd_start =>
             ack                 <= '0';
-            cs                  <= '1';
-            rd                  <= '1';
-            wr                  <= '0';
+            cs_extend           <= '1';
+            rd_extend           <= '1';
+            wr_extend           <= '0';
             
             nxt_acam_data_st    <= read;
             
         when read =>
             ack                 <= '0';
-            cs                  <= '1';
-            rd                  <= '1';
-            wr                  <= '0';
+            cs_extend           <= '1';
+            rd_extend           <= '1';
+            wr_extend           <= '0';
             
             nxt_acam_data_st    <= rd_ack;
 
         when rd_ack =>
             ack                 <= '1';
-            cs                  <= '0';
-            rd                  <= '0';
-            wr                  <= '0';
+            cs_extend           <= '0';
+            rd_extend           <= '0';
+            wr_extend           <= '0';
 
             nxt_acam_data_st    <= idle;
             
         when wr_start =>
             ack                 <= '0';
-            cs                  <= '1';
-            rd                  <= '0';
-            wr                  <= '1';
+            cs_extend           <= '1';
+            rd_extend           <= '0';
+            wr_extend           <= '1';
             
             nxt_acam_data_st    <= write;
             
         when write =>
             ack                 <= '0';
-            cs                  <= '0';
-            rd                  <= '0';
-            wr                  <= '0';
+            cs_extend           <= '0';
+            rd_extend           <= '0';
+            wr_extend           <= '0';
             
             nxt_acam_data_st    <= wr_ack;
             
         when wr_ack =>
             ack                 <= '1';
-            cs                  <= '0';
-            rd                  <= '0';
-            wr                  <= '0';
+            cs_extend           <= '0';
+            rd_extend           <= '0';
+            wr_extend           <= '0';
 
             nxt_acam_data_st    <= idle;
             
         when others =>
             ack                 <= '0';
-            cs                  <= '0';
-            rd                  <= '0';
-            wr                  <= '0';
+            cs_extend           <= '0';
+            rd_extend           <= '0';
+            wr_extend           <= '0';
 
             nxt_acam_data_st    <= idle;
     end case;
     end process;
+    
+    cs          <= ((stb and cyc)               or cs_extend) and not(ack);
+    rd          <= ((stb and cyc and not(we))   or rd_extend) and not(ack);
+    wr          <= ((stb and cyc and we)        or wr_extend) and not(ack);
     
     -- inputs from other blocks    
     clk                         <= clk_i;
