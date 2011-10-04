@@ -22,13 +22,14 @@ ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work wor
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/countdown_counter.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/clk_rst_managr.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/one_hz_gen.vhd
-ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/start_nb_offset_gen.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/start_retrigger_control.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/data_formatting.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/data_engine.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/acam_timecontrol_interface.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/acam_databus_interface.vhd
 
-#ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/top_tdc.vhd
-ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/test_tdc_acam/top_test_acam.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/top_tdc.vhd
+#ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/test_tdc_acam/top_test_acam.vhd
 #ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/test_tdc_pll/top_test_pll.vhd
 
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/test_bench/gnum_model/util.vhd
