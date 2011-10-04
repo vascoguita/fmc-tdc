@@ -95,6 +95,8 @@ architecture behavioral of tb_tdc is
         wr_n_o                  : out std_logic;
 
         -- other signals on the tdc card
+        tdc_in_fpga_5_i         : in std_logic;
+
         mute_inputs_o           : out std_logic;
         tdc_led_status_o        : out std_logic;
         tdc_led_trig1_o         : out std_logic;
@@ -319,6 +321,8 @@ signal tstop3               : std_logic;
 signal tstop4               : std_logic;
 signal tstop5               : std_logic;
 
+signal tdc_in_fpga_5        : std_logic;
+
 signal tdc_led_status       : std_logic;
 signal tdc_led_trig1        : std_logic;
 signal tdc_led_trig2        : std_logic;
@@ -445,6 +449,8 @@ begin
         wr_n_o              => wr_n_o,
         
         -- other signals on the tdc card
+        tdc_in_fpga_5_i     => tdc_in_fpga_5,
+
         mute_inputs_o       => mute_inputs,
         tdc_led_status_o    => tdc_led_status,
         tdc_led_trig1_o     => tdc_led_trig1,
@@ -637,6 +643,8 @@ begin
     rst_n               <= RSTOUT18n;
     GPIO(0)             <= irq_p;
     GPIO(1)             <= spare;
+    
+    tdc_in_fpga_5       <= tstop5;
     
     spec_aux0_i         <= '1';
     spec_aux1_i         <= '1';
