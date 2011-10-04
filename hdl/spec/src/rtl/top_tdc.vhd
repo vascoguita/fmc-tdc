@@ -191,9 +191,11 @@ architecture rtl of top_tdc is
         stop_dis_o              : out std_logic;
 
         -- signals internal to the chip: interface with other modules
+        acam_refclk_i           : in std_logic;
         clk_i                   : in std_logic;
         start_trig_i            : in std_logic;
         reset_i                 : in std_logic;
+        window_delay_i          : in std_logic_vector(g_width-1 downto 0);
         
         acam_rise_errflag_p_o   : out std_logic;
         acam_fall_errflag_p_o   : out std_logic;
@@ -357,6 +359,7 @@ signal visible_blink_length     : std_logic_vector(g_width-1 downto 0);
 
 -- will be registers of the core
 signal pulse_delay              : std_logic_vector(g_width-1 downto 0);
+signal window_delay             : std_logic_vector(g_width-1 downto 0);
 signal clock_period             : std_logic_vector(g_width-1 downto 0);
 
 signal gnum_reset               : std_logic;
@@ -484,16 +487,16 @@ begin
         int_flag_i              => int_flag_i,
         
         -- this is the config for acam test, in normal application connect the outputs
---        start_dis_o             => start_dis_o,
---        start_from_fpga_o       => start_from_fpga_o,
-        start_dis_o             => open,
-        start_from_fpga_o       => open,
+        start_dis_o             => start_dis_o,
+        start_from_fpga_o       => start_from_fpga_o,
         stop_dis_o              => stop_dis_o,
         
         -- signals internal to the chip: interface with other modules
+        acam_refclk_i           => acam_refclk,
         clk_i                   => clk,
         start_trig_i            => start_trig,
         reset_i                 => general_reset,
+        window_delay_i          => window_delay,
             
         acam_fall_errflag_p_o   => acam_fall_errflag_p,
         acam_rise_errflag_p_o   => acam_rise_errflag_p,
@@ -711,6 +714,7 @@ begin
 
     -- these will evolve as we implement all the features
     pulse_delay             <= x"00000001";
+    window_delay            <= x"00000002";
     mute_inputs_o           <= '1';
     term_en_1_o             <= '1';
     term_en_2_o             <= '1';
@@ -742,9 +746,6 @@ begin
     end process;
     
     start_trig                  <= tdc_in_fpga_5_i;
-    start_from_fpga_o           <= tdc_in_fpga_5_i;
-    start_dis_o                 <= '0';
-           
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
