@@ -14,8 +14,8 @@ define_clock            {n:gnum_interface_block.cmp_clk_in.rx_pllout_x1}        
 # -clockgroup default_clkgroup_0
 # Inputs/Outputs
 #
-define_input_delay      -default            2.00 -ref tdc_clk125:r
-define_output_delay     -default            2.00 -ref tdc_clk125:r
+define_input_delay      -default                2.00 -ref tdc_clk125:r
+define_output_delay     -default                2.00 -ref tdc_clk125:r
 
 define_input_delay      {p:p2l_clk_p_i }        2.00 -ref gnum_clk200:r
 define_input_delay      {p:p2l_clk_n_i }        2.00 -ref gnum_clk200:r
@@ -51,10 +51,6 @@ define_input_delay      {p:pll_refmon_i}        2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_sdo_i}           2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_status_i}        2.00 -ref spec_clk20:r
 
-define_false_path       -to     {p:cs_n_o}
-define_false_path       -to     {p:wr_n_o}
-define_false_path       -to     {p:rd_n_o}
-
 define_false_path       -from   {p:spec_aux0_i}
 define_false_path       -from   {p:spec_aux1_i}
 define_false_path       -to     {p:spec_aux2_o}
@@ -70,10 +66,6 @@ define_false_path       -to     {p:tdc_led_trig2_o}
 define_false_path       -to     {p:tdc_led_trig3_o}
 define_false_path       -to     {p:tdc_led_trig4_o}
 define_false_path       -to     {p:tdc_led_trig5_o}
-
-define_false_path       -to     {p:start_from_fpga_o}
-
-#define_path_delay   -from   {p:adress_o}    -to {p:wr_n_o} -max 2
 
 # Attributes
 # Global attribute definitions for improving implementation targetting Xilinx
@@ -210,6 +202,8 @@ define_attribute    {p:term_en_3_o}         {syn_loc}   {A20}
 define_attribute    {p:term_en_4_o}         {syn_loc}   {H10}
 define_attribute    {p:term_en_5_o}         {syn_loc}   {E6}
 
+define_attribute    {p:tdc_in_fpga_5_i}     {syn_loc}   {AA14}
+
 define_attribute    {p:spec_aux0_i}         {syn_loc}   {C22}
 define_attribute    {p:spec_aux1_i}         {syn_loc}   {D21}
 define_attribute    {p:spec_aux2_o}         {syn_loc}   {G19}
@@ -289,6 +283,8 @@ define_io_standard  {term_en_2_o}       syn_pad_type  {LVCMOS_25}
 define_io_standard  {term_en_3_o}       syn_pad_type  {LVCMOS_25}
 define_io_standard  {term_en_4_o}       syn_pad_type  {LVCMOS_25}
 define_io_standard  {term_en_5_o}       syn_pad_type  {LVCMOS_25}
+
+define_io_standard  {tdc_in_fpga_5_i}   syn_pad_type  {LVCMOS_25}
 
 define_io_standard  {spec_aux0_i}       syn_pad_type  {LVCMOS18}
 define_io_standard  {spec_aux1_i}       syn_pad_type  {LVCMOS18}

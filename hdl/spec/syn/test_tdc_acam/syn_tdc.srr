@@ -5,39 +5,40 @@
 
 #Implementation: test_tdc_acam
 
-#Thu Jul 21 19:57:39 2011
+#Tue Aug  2 16:06:31 2011
 
 $ Start of Compile
-#Thu Jul 21 19:57:39 2011
+#Tue Aug  2 16:06:31 2011
 
 Synopsys VHDL Compiler, version comp500rc, Build 027R, built Feb 19 2010
 Copyright (C) 1994-2010, Synopsys Inc.  All Rights Reserved
 
 @N: CD720 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/vhd/std.vhd":123:18:123:21|Setting time resolution to ns
-@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":29:7:29:13|Top entity is set to top_tdc.
+@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":29:7:29:13|Top entity is set to top_tdc.
 VHDL syntax check successful!
-@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":29:7:29:13|Synthesizing work.top_tdc.rtl 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":354:7:354:12|Signal pll_cs is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":359:7:359:19|Signal tdc_led_trig1 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":360:7:360:19|Signal tdc_led_trig2 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":361:7:361:19|Signal tdc_led_trig3 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":362:7:362:19|Signal tdc_led_trig4 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":367:7:367:18|Signal acam_start01 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":368:7:368:20|Signal acam_timestamp is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":369:7:369:26|Signal acam_timestamp_valid is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":370:7:370:20|Signal full_timestamp is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":371:7:371:26|Signal full_timestamp_valid is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":374:7:374:21|Signal start_nb_offset is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":375:7:375:21|Signal start_timer_reg is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":376:7:376:22|Signal utc_current_time is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":387:7:387:11|Signal irq_p is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":404:7:404:15|Signal dma_dat_o is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":405:7:405:13|Signal dma_ack is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":406:7:406:15|Signal dma_stall is undriven 
-@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":15:7:15:18|Synthesizing work.free_counter.rtl 
-Post processing for work.free_counter.rtl
+File /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd changed - recompiling
+File /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_engine.vhd changed - recompiling
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":29:7:29:13|Synthesizing work.top_tdc.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":353:7:353:20|Signal tdc_led_period is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":361:7:361:12|Signal pll_cs is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":366:7:366:19|Signal tdc_led_trig1 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":367:7:367:19|Signal tdc_led_trig2 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":368:7:368:19|Signal tdc_led_trig3 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":369:7:369:19|Signal tdc_led_trig4 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":370:7:370:19|Signal tdc_led_trig5 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":376:7:376:18|Signal acam_start01 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":377:7:377:20|Signal acam_timestamp is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":378:7:378:26|Signal acam_timestamp_valid is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":385:7:385:21|Signal start_timer_reg is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":386:7:386:22|Signal utc_current_time is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":397:7:397:11|Signal irq_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":414:7:414:15|Signal dma_dat_o is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":415:7:415:13|Signal dma_ack is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":416:7:416:15|Signal dma_stall is undriven 
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":17:7:17:23|Synthesizing work.countdown_counter.rtl 
 Post processing for work.countdown_counter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":15:7:15:18|Synthesizing work.free_counter.rtl 
+Post processing for work.free_counter.rtl
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":32:7:32:20|Synthesizing work.clk_rst_managr.rtl 
 @N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":84:24:84:25|Using onehot encoding for type t_pll_init_st (start="10000")
 @N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6077:10:6077:15|Synthesizing unisim.ibufds.syn_black_box 
@@ -411,49 +412,61 @@ Post processing for work.gn4124_core.rtl
 Post processing for work.acam_databus_interface.rtl
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":27:7:27:32|Synthesizing work.acam_timecontrol_interface.rtl 
 Post processing for work.acam_timecontrol_interface.rtl
+@N: CL177 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":79:7:79:15|Sharing sequential element start_dis.
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":28:7:28:21|Synthesizing work.data_formatting.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":64:7:64:14|Signal reserved is undriven 
+Post processing for work.data_formatting.rtl
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(0) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(1) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(2) assign '0', register removed by optimization
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/start_retrigger_control.vhd":31:7:31:29|Synthesizing work.start_retrigger_control.rtl 
+Post processing for work.start_retrigger_control.rtl
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/one_hz_gen.vhd":27:7:27:16|Synthesizing work.one_hz_gen.rtl 
 Post processing for work.one_hz_gen.rtl
 Post processing for work.top_tdc.rtl
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":406:7:406:15|dma_stall is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":405:7:405:13|dma_ack is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":387:7:387:11|irq_p is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":60:8:60:14|spare_o is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":461:4:461:20|Pruning instance acam_timing_block - not in use ... 
-@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Input irq_p_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 0 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 1 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 2 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 3 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 4 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 5 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 6 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 7 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 8 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 9 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 10 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 11 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 12 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 13 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 14 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 15 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 16 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 17 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 18 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 19 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 20 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 21 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 22 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 23 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 24 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 25 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 26 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 27 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 28 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 29 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 30 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 31 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Input dma_ack_i of instance gnum_interface_block is floating
-@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Input dma_stall_i of instance gnum_interface_block is floating
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":416:7:416:15|dma_stall is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":415:7:415:13|dma_ack is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":397:7:397:11|irq_p is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":378:7:378:26|acam_timestamp_valid is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":60:8:60:14|spare_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":456:4:456:24|Pruning instance data_formatting_block - not in use ... 
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input irq_p_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 0 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 1 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 2 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 3 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 4 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 5 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 6 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 7 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 8 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 9 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 10 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 11 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 12 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 13 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 14 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 15 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 16 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 17 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 18 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 19 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 20 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 21 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 22 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 23 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 24 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 25 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 26 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 27 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 28 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 29 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 30 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 31 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input dma_ack_i of instance gnum_interface_block is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input dma_stall_i of instance gnum_interface_block is floating
+@W: CL247 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":34:8:34:23|Input port bit 17 of acam_timestamp_i(28 downto 0) is unused 
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":38:8:38:24|Input port bits 31 to 24 of start_nb_offset_i(31 downto 0) are unused 
 @N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":68:7:68:18|Trying to extract state machine for register acam_data_st
 Extracted state machine for register acam_data_st
 State machine has 7 reachable states with original encodings of:
@@ -603,11 +616,9 @@ State machine has 5 reachable states with original encodings of:
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":40:8:40:19|Input pll_refmon_i is unused
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":41:8:41:16|Input pll_sdo_i is unused
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":42:8:42:19|Input pll_status_i is unused
-@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":77:8:77:17|Input err_flag_i is unused
-@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":78:8:78:17|Input int_flag_i is unused
 @END
 Process took 0h:00m:03s realtime, 0h:00m:03s cputime
-# Thu Jul 21 19:57:43 2011
+# Tue Aug  2 16:06:35 2011
 
 ###########################################################]
 Synopsys Xilinx Technology Mapper, Version map510rc, Build 068R, Built Feb 22 2010 15:14:03
@@ -616,24 +627,20 @@ Product Version D-2010.03
 Reading constraint file: /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/tdc_syn_constraints.sdc
 Adding property syn_input_delay1, value "r=2.00,f=2.00,rs=0.0,fs=0.0,improve=0,route=0,ref=tdc_clk125:r" to view:work.top_tdc(rtl)
 Adding property syn_output_delay2, value "r=2.00,f=2.00,rs=0.0,fs=0.0,improve=0,route=0,ref=tdc_clk125:r" to view:work.top_tdc(rtl)
-Adding property syn_false_path1037, value "to p:cs_n_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1038, value "to p:wr_n_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1039, value "to p:rd_n_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1040, value "from p:spec_aux0_i" to view:work.top_tdc(rtl)
-Adding property syn_false_path1041, value "from p:spec_aux1_i" to view:work.top_tdc(rtl)
-Adding property syn_false_path1042, value "to p:spec_aux2_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1043, value "to p:spec_aux3_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1044, value "to p:spec_aux4_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1045, value "to p:spec_aux5_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1046, value "to p:spec_led_green_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1047, value "to p:spec_led_red_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1048, value "to p:tdc_led_status_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1049, value "to p:tdc_led_trig1_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1050, value "to p:tdc_led_trig2_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1051, value "to p:tdc_led_trig3_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1052, value "to p:tdc_led_trig4_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1053, value "to p:tdc_led_trig5_o" to view:work.top_tdc(rtl)
-Adding property syn_false_path1054, value "to p:start_from_fpga_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1037, value "from p:spec_aux0_i" to view:work.top_tdc(rtl)
+Adding property syn_false_path1038, value "from p:spec_aux1_i" to view:work.top_tdc(rtl)
+Adding property syn_false_path1039, value "to p:spec_aux2_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1040, value "to p:spec_aux3_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1041, value "to p:spec_aux4_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1042, value "to p:spec_aux5_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1043, value "to p:spec_led_green_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1044, value "to p:spec_led_red_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1045, value "to p:tdc_led_status_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1046, value "to p:tdc_led_trig1_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1047, value "to p:tdc_led_trig2_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1048, value "to p:tdc_led_trig3_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1049, value "to p:tdc_led_trig4_o" to view:work.top_tdc(rtl)
+Adding property syn_false_path1050, value "to p:tdc_led_trig5_o" to view:work.top_tdc(rtl)
 Adding property syn_useioff, value 1 to view:work.top_tdc(rtl)
 Adding property syn_noarrayports, value 1 to view:work.top_tdc(rtl)
 Adding property syn_netlist_hierarchy, value 0 to view:work.top_tdc(rtl)
@@ -646,12 +653,11 @@ Adding property syn_pad_type, value "LVCMOS_25", to instance spare_o
 Adding property syn_pad_type, value "LVCMOS18", to instance spec_aux2_o
 Adding property syn_pad_type, value "LVCMOS18", to instance spec_aux3_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance mute_inputs_o
-Adding property syn_pad_type, value "LVCMOS_25", to instance start_dis_o
-Adding property syn_pad_type, value "LVCMOS_25", to instance stop_dis_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig1_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig2_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig3_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig4_o
+Adding property syn_pad_type, value "LVCMOS_25", to instance tdc_led_trig5_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance term_en_1_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance term_en_2_o
 Adding property syn_pad_type, value "LVCMOS_25", to instance term_en_3_o
@@ -815,10 +821,10 @@ Adding property syn_pad_type, value "LVCMOS_25", to port spec_clk_i
 Reading Xilinx I/O pad type table from file </afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/x_io_tbl.txt> 
 Reading Xilinx Rocket I/O parameter type table from file </afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/gttype.txt> 
 @N|Running in logic synthesis mode without enhanced optimization
-@W: FX474 |User specified initial value found in some of the sequential elements in the design. Applying an initial value to a register may not deliver the best synthesis results. For example, registers with initial values may be preserved and retiming/pipelining may not be performed. To improve synthesis results you may want to remove the register initialization from the RTL code 
 @W: BN132 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cal_data_master,  because it is equivalent to instance cal_data_sint
 @W: BN132 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cal_data_master,  because it is equivalent to instance cal_data_sint
-@W: BN132 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":192:7:192:18|Removing sequential instance silly_altern,  because it is equivalent to instance pll_sclk
+@W: BN132 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":382:31:382:42|Removing user instance pll_sclk_generator.pll_sclk_3,  because it is equivalent to instance un1_silly_altern
+@W: BN132 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":183:7:183:14|Removing sequential instance pll_sclk,  because it is equivalent to instance silly_altern
 
 Automatic dissolve at startup in view:work.dma_controller(behaviour) of dma_controller_wb_slave_0(dma_controller_wb_slave)
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Removing sequential instance dma_controller_wb_slave_0.dma_stat_int_write[31:0] of view:PrimLib.dffre(prim) because there are no references to its outputs 
@@ -841,10 +847,12 @@ Automatic dissolve at startup in view:work.gn4124_core(rtl) of cmp_p2l_decode32(
 Available hyper_sources - for debug and ip models
 	None Found
 
-Finished RTL optimizations (Time elapsed 0h:00m:01s; Memory used current: 132MB peak: 134MB)
+Finished RTL optimizations (Time elapsed 0h:00m:01s; Memory used current: 133MB peak: 135MB)
 
 @N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":35:7:35:11|Found counter in view:work.free_counter_clock_periods_counter(rtl) inst value[31:0]
-@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":37:7:37:11|Found counter in view:work.countdown_counter_tdc_led_counter(rtl) inst value[31:0]
+@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":37:7:37:11|Found counter in view:work.countdown_counter(rtl) inst value[31:0]
+@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":36:7:36:11|Found counter in view:work.incr_counter(rtl) inst value[31:0]
+@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":36:7:36:11|Found counter in view:work.incr_counter_window_counter(rtl) inst value[31:0]
 Encoding state machine work.acam_databus_interface(rtl)-acam_data_st[0:6]
 original code -> new code
    0000001 -> 0000001
@@ -975,9 +983,9 @@ original code -> new code
    01000 -> 01000
    10000 -> 10000
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":339:8:339:19|Removing sequential instance pll_init_st[0] of view:PrimLib.dff(prim) because there are no references to its outputs 
-@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":36:7:36:11|Found counter in view:work.incr_counter(rtl) inst value[31:0]
-@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":37:7:37:11|Found counter in view:work.countdown_counter_tdc_led_counter_tdc_led_counter(rtl) inst value[31:0]
+@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":36:7:36:11|Found counter in view:work.incr_counter_general_poreset(rtl) inst value[31:0]
 @N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":35:7:35:11|Found counter in view:work.free_counter_spec_led_counter(rtl) inst value[31:0]
+@N:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":37:7:37:11|Found counter in view:work.countdown_counter_tdc_led_counter(rtl) inst value[31:0]
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cmp_p2l_des.cmp_valid_in.counter[8] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cmp_p2l_des.cmp_valid_in.counter[7] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cmp_p2l_des.cmp_valid_in.counter[6] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
@@ -1015,7 +1023,22 @@ original code -> new code
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cmp_p2l_des.cmp_data_in.cal_data_sint of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cmp_p2l_des.cmp_data_in.enable of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Removing sequential instance cmp_p2l_des.cmp_data_in.state[0] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
-Finished factoring (Time elapsed 0h:00m:02s; Memory used current: 156MB peak: 156MB)
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":76:7:76:16|Removing sequential instance acam_timing_block.s_int_flag[2] of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":76:7:76:16|Boundary register acam_timing_block.s_int_flag[2] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":76:7:76:16|Removing sequential instance acam_timing_block.s_int_flag[1] of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":76:7:76:16|Boundary register acam_timing_block.s_int_flag[1] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":76:7:76:16|Removing sequential instance acam_timing_block.s_int_flag[0] of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":76:7:76:16|Boundary register acam_timing_block.s_int_flag[0] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":77:7:77:16|Removing sequential instance acam_timing_block.s_err_flag[2] of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":77:7:77:16|Boundary register acam_timing_block.s_err_flag[2] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":77:7:77:16|Removing sequential instance acam_timing_block.s_err_flag[1] of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":77:7:77:16|Boundary register acam_timing_block.s_err_flag[1] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":77:7:77:16|Removing sequential instance acam_timing_block.s_err_flag[0] of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":77:7:77:16|Boundary register acam_timing_block.s_err_flag[0] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":441:4:441:24|Removing sequential instance start_retrigger_block.acam_halfcounter_gone of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/start_retrigger_control.vhd":85:4:85:22|Removing sequential instance start_retrigger_block.acam_irflag_counter.count_done of view:UNILIB.FDR(PRIM) because there are no references to its outputs 
+@N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":36:7:36:11|Removing sequential instance start_retrigger_block.acam_irflag_counter.value[31:0] of view:PrimLib.scounter(prim) because there are no references to its outputs 
+Finished factoring (Time elapsed 0h:00m:03s; Memory used current: 157MB peak: 158MB)
 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_decode32.vhd":187:4:187:5|Removing sequential instance gnum_interface_block.cmp_p2l_decode32.p2l_hdr_length[9] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_decode32.vhd":187:4:187:5|Removing sequential instance gnum_interface_block.cmp_p2l_decode32.p2l_hdr_length[8] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
@@ -1281,10 +1304,10 @@ gnum_interface_block.cmp_p2l_decode32.p2l_addr_start:C              Not Done
 
 ##################### END OF GENERATED CLOCK OPTIMIZATION REPORT #####################]
 
-Finished gated-clock and generated-clock conversion (Time elapsed 0h:00m:03s; Memory used current: 152MB peak: 158MB)
+Finished gated-clock and generated-clock conversion (Time elapsed 0h:00m:03s; Memory used current: 154MB peak: 160MB)
 
 @N: FX430 |Found 3 global buffers instantiated by user 
-Finished generic timing optimizations - Pass 1 (Time elapsed 0h:00m:04s; Memory used current: 150MB peak: 158MB)
+Finished generic timing optimizations - Pass 1 (Time elapsed 0h:00m:04s; Memory used current: 152MB peak: 160MB)
 
 @N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":390:41:390:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_00 = 00000000000000000000000000000000000000000000000001E009E102300231
 @N: FX276 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":390:41:390:50|Startup value clks_rsts_mgment.un7_word_being_sent_0_0.INIT_04 = 101600171C18001900120C13241400150C030004F01004110632600000014002
@@ -1297,50 +1320,33 @@ Finished generic timing optimizations - Pass 1 (Time elapsed 0h:00m:04s; Memory 
 @N: FX404 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":261:25:261:55|Found addmux in view:work.top_tdc(rtl) inst gnum_interface_block.cmp_l2p_dma_master.p_pkt_gen\.l2p_len_cnt_4_i_0_m2[29:5] from gnum_interface_block.cmp_l2p_dma_master.l2p_len_cnt_2[29:5] 
 @A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":35:7:35:11|Boundary register spec_led_counter.value[31:0] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
 @A: BN291 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":36:7:36:11|Boundary register clks_rsts_mgment.general_poreset.value[31:0] has been packed into a complex cell. To disable this register packing, set syn_keep=1 on the net between the register and the complex cell. 
-Starting Early Timing Optimization (Time elapsed 0h:00m:05s; Memory used current: 153MB peak: 158MB)
+Starting Early Timing Optimization (Time elapsed 0h:00m:06s; Memory used current: 154MB peak: 160MB)
 
-Finished Early Timing Optimization (Time elapsed 0h:00m:07s; Memory used current: 153MB peak: 158MB)
+Finished Early Timing Optimization (Time elapsed 0h:00m:07s; Memory used current: 154MB peak: 160MB)
 
-Finished generic timing optimizations - Pass 2 (Time elapsed 0h:00m:07s; Memory used current: 152MB peak: 158MB)
+Finished generic timing optimizations - Pass 2 (Time elapsed 0h:00m:07s; Memory used current: 153MB peak: 160MB)
 
 @N: BN116 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_decode32.vhd":220:4:220:5|Removing sequential instance gnum_interface_block.cmp_p2l_decode32.p2l_addr[1] of view:UNILIB.FDCPE(PRIM) because there are no references to its outputs 
-Finished preparing to map (Time elapsed 0h:00m:09s; Memory used current: 153MB peak: 158MB)
+Finished preparing to map (Time elapsed 0h:00m:09s; Memory used current: 155MB peak: 160MB)
 
-Finished technology mapping (Time elapsed 0h:00m:10s; Memory used current: 153MB peak: 158MB)
-
-Pass		 CPU time		Worst Slack		Luts / Registers
-------------------------------------------------------------
-Pass		 CPU time		Worst Slack		Luts / Registers
-------------------------------------------------------------
-   1		0h:00m:10s		    -3.64ns		1753 /      2683
-   2		0h:00m:10s		    -3.64ns		1749 /      2683
-------------------------------------------------------------
-
-Timing driven replication report
-No replication required.
-
-Timing driven replication report
-No replication required.
-
-Timing driven replication report
-No replication required.
-
-Timing driven replication report
-No replication required.
-
-Timing driven replication report
-No replication required.
+Finished technology mapping (Time elapsed 0h:00m:10s; Memory used current: 154MB peak: 160MB)
 
 Pass		 CPU time		Worst Slack		Luts / Registers
 ------------------------------------------------------------
-   1		0h:00m:15s		    -3.64ns		1749 /      2683
+Pass		 CPU time		Worst Slack		Luts / Registers
+------------------------------------------------------------
+   1		0h:00m:11s		    -3.64ns		1823 /      2721
+   2		0h:00m:11s		    -3.64ns		1819 /      2721
+------------------------------------------------------------
+
 Timing driven replication report
 No replication required.
 
-   2		0h:00m:15s		    -3.64ns		1749 /      2683
-   3		0h:00m:15s		    -3.64ns		1749 /      2683
-   4		0h:00m:15s		    -3.64ns		1749 /      2683
-------------------------------------------------------------
+Timing driven replication report
+No replication required.
+
+Timing driven replication report
+No replication required.
 
 Timing driven replication report
 No replication required.
@@ -1350,22 +1356,39 @@ No replication required.
 
 Pass		 CPU time		Worst Slack		Luts / Registers
 ------------------------------------------------------------
-   1		0h:00m:16s		    -3.64ns		1749 /      2683
+   1		0h:00m:15s		    -3.64ns		1819 /      2721
 Timing driven replication report
 No replication required.
 
-   2		0h:00m:16s		    -3.64ns		1749 /      2683
-   3		0h:00m:16s		    -3.64ns		1749 /      2683
-   4		0h:00m:16s		    -3.64ns		1749 /      2683
+   2		0h:00m:16s		    -3.64ns		1819 /      2721
+   3		0h:00m:16s		    -3.64ns		1819 /      2721
+   4		0h:00m:16s		    -3.64ns		1819 /      2721
+------------------------------------------------------------
+
+Timing driven replication report
+No replication required.
+
+Timing driven replication report
+No replication required.
+
+Pass		 CPU time		Worst Slack		Luts / Registers
+------------------------------------------------------------
+   1		0h:00m:17s		    -3.64ns		1819 /      2721
+Timing driven replication report
+No replication required.
+
+   2		0h:00m:17s		    -3.64ns		1819 /      2721
+   3		0h:00m:17s		    -3.64ns		1819 /      2721
+   4		0h:00m:17s		    -3.64ns		1819 /      2721
 ------------------------------------------------------------
 
 Net buffering Report for view:work.top_tdc(rtl):
 No nets needed buffering.
 
-Finished technology timing optimizations and critical path resynthesis (Time elapsed 0h:00m:17s; Memory used current: 153MB peak: 158MB)
+Finished technology timing optimizations and critical path resynthesis (Time elapsed 0h:00m:18s; Memory used current: 155MB peak: 160MB)
 
 @N: FX623 |Packing into LUT62
-Finished restoring hierarchy (Time elapsed 0h:00m:18s; Memory used current: 155MB peak: 158MB)
+Finished restoring hierarchy (Time elapsed 0h:00m:19s; Memory used current: 157MB peak: 160MB)
 
 @W: BN102 |Cannot find object p2l_data_i to apply define_input_delay 
 @W: BN102 |Cannot find object p_wr_req_i to apply define_input_delay 
@@ -1375,21 +1398,21 @@ Finished restoring hierarchy (Time elapsed 0h:00m:18s; Memory used current: 155M
 @W: BN102 |Cannot find object l_wr_rdy_i to apply define_input_delay 
 @W: BN102 |Cannot find object p_rd_d_rdy_i to apply define_input_delay 
 Writing Analyst data base /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_acam/syn_tdc.srm
-Finished Writing Netlist Databases (Time elapsed 0h:00m:20s; Memory used current: 147MB peak: 158MB)
+Finished Writing Netlist Databases (Time elapsed 0h:00m:21s; Memory used current: 148MB peak: 160MB)
 
 Writing EDIF Netlist and constraint files
 D-2010.03
-Finished Writing EDIF Netlist and constraint files (Time elapsed 0h:00m:21s; Memory used current: 150MB peak: 158MB)
+Finished Writing EDIF Netlist and constraint files (Time elapsed 0h:00m:22s; Memory used current: 151MB peak: 160MB)
 
-Starting Writing Gated Clock Conversion Report (Time elapsed 0h:00m:21s; Memory used current: 145MB peak: 158MB)
+Starting Writing Gated Clock Conversion Report (Time elapsed 0h:00m:22s; Memory used current: 146MB peak: 160MB)
 
 @N: MF276 |Gated clock conversion enabled, but no gated clocks found in design 
-Finished Writing Gated Clock Conversion Report (Time elapsed 0h:00m:21s; Memory used current: 145MB peak: 158MB)
+Finished Writing Gated Clock Conversion Report (Time elapsed 0h:00m:22s; Memory used current: 146MB peak: 160MB)
 
-Starting Writing Generated Clock Conversion Report (Time elapsed 0h:00m:21s; Memory used current: 145MB peak: 158MB)
+Starting Writing Generated Clock Conversion Report (Time elapsed 0h:00m:22s; Memory used current: 146MB peak: 160MB)
 
 @N: MF333 |Generated clock conversion enabled, but no generated clocks found in design 
-Finished Writing Generated Clock Conversion Report (Time elapsed 0h:00m:21s; Memory used current: 145MB peak: 158MB)
+Finished Writing Generated Clock Conversion Report (Time elapsed 0h:00m:22s; Memory used current: 146MB peak: 160MB)
 
 Found clock tdc_clk125 with period 8.00ns 
 Found clock spec_clk20 with period 50.00ns 
@@ -1435,7 +1458,7 @@ Port spec_led_red_o - has output constraint of 2.00ns w.r.t. clock spec_clk20:r
 
 
 ##### START OF TIMING REPORT #####[
-# Timing Report written on Thu Jul 21 19:58:07 2011
+# Timing Report written on Tue Aug  2 16:07:01 2011
 #
 
 
@@ -1538,22 +1561,22 @@ lf1_i               tdc_clk125 (rising)      2.000          2.000       10.086  
 lf2_i               tdc_clk125 (rising)      2.000          2.000       10.086       8.086
 p2l_clk_n_i         gnum_clk200 (rising)     2.000          2.000       5.619        3.619
 p2l_clk_p_i         gnum_clk200 (rising)     2.000          2.000       5.619        3.619
-p2l_data_i[0]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[1]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[2]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[3]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[4]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[5]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[6]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[7]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[8]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[9]       tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[10]      tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[11]      tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[12]      tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[13]      tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[14]      tdc_clk125 (rising)      2.000          2.000       10.322       8.322
-p2l_data_i[15]      tdc_clk125 (rising)      2.000          2.000       10.322       8.322
+p2l_data_i[0]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[1]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[2]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[3]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[4]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[5]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[6]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[7]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[8]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[9]       tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[10]      tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[11]      tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[12]      tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[13]      tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[14]      tdc_clk125 (rising)      2.000          2.000       10.327       8.327
+p2l_data_i[15]      tdc_clk125 (rising)      2.000          2.000       10.327       8.327
 p2l_dframe_i        gnum_clk200 (rising)     2.000          2.000       5.667        3.667
 p2l_valid_i         gnum_clk200 (rising)     2.000          2.000       5.667        3.667
 p_rd_d_rdy_i[0]     tdc_clk125 (rising)      2.000          NA          NA           NA   
@@ -1564,7 +1587,7 @@ pll_ld_i            spec_clk20 (rising)      2.000          NA          NA      
 pll_refmon_i        spec_clk20 (rising)      2.000          NA          NA           NA   
 pll_sdo_i           spec_clk20 (rising)      2.000          NA          NA           NA   
 pll_status_i        spec_clk20 (rising)      2.000          NA          NA           NA   
-rst_n_a_i           tdc_clk125 (rising)      2.000          2.000       9.099        7.099
+rst_n_a_i           tdc_clk125 (rising)      2.000          2.000       9.104        7.104
 spec_aux0_i         tdc_clk125 (rising)      2.000          NA          NA           NA   
 spec_aux1_i         tdc_clk125 (rising)      2.000          NA          NA           NA   
 spec_clk_i          NA                       NA             NA          NA           NA   
@@ -1586,7 +1609,7 @@ address_o[0]          tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.3
 address_o[1]          tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 address_o[2]          tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 address_o[3]          tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
-cs_n_o                tdc_clk125 (rising)      2.000(tdc_clk125 rising)      11.144      NA           NA    
+cs_n_o                tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 data_bus_io[0]        tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 data_bus_io[1]        tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 data_bus_io[2]        tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
@@ -1616,32 +1639,32 @@ data_bus_io[25]       tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.3
 data_bus_io[26]       tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 data_bus_io[27]       tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 l2p_clk_p_o           System (rising)          2.000(gnum_clk200 rising)     4.302       0.181        -4.122
-l2p_data_o[0]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[1]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[2]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[3]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[4]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[5]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[6]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[7]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[8]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[9]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[10]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[11]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[12]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[13]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[14]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
-l2p_data_o[15]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.525        -2.777
+l2p_data_o[0]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[1]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[2]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[3]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[4]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[5]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[6]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[7]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[8]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[9]         System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[10]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[11]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[12]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[13]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[14]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
+l2p_data_o[15]        System (rising)          2.000(tdc_clk125 rising)      4.302       1.521        -2.782
 l2p_dframe_o          System (rising)          2.000(gnum_clk200 rising)     4.302       0.181        -4.122
 l2p_edb_o             gnum_clk200 (rising)     2.000(gnum_clk200 rising)     3.612       3.000        -0.612
 l2p_valid_o           System (rising)          2.000(gnum_clk200 rising)     4.302       0.181        -4.122
 p2l_rdy_o             System (rising)          2.000(gnum_clk200 rising)     5.433       0.181        -5.252
-p_wr_rdy_o[0]         System (rising)          2.000(tdc_clk125 rising)      5.261       1.525        -3.736
-p_wr_rdy_o[1]         System (rising)          2.000(tdc_clk125 rising)      5.261       1.525        -3.736
+p_wr_rdy_o[0]         System (rising)          2.000(tdc_clk125 rising)      5.261       1.521        -3.740
+p_wr_rdy_o[1]         System (rising)          2.000(tdc_clk125 rising)      5.261       1.521        -3.740
 pll_cs_o              spec_clk20 (rising)      2.000(spec_clk20 rising)      10.789      48.000       37.211
 pll_sclk_o            spec_clk20 (rising)      2.000(spec_clk20 rising)      5.344       48.000       42.656
 pll_sdi_o             spec_clk20 (rising)      2.000(spec_clk20 rising)      16.565      48.000       31.435
-rd_n_o                tdc_clk125 (rising)      2.000(tdc_clk125 rising)      10.839      NA           NA    
+rd_n_o                tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 rx_error_o            gnum_clk200 (rising)     2.000(gnum_clk200 rising)     3.612       3.000        -0.612
 spec_aux2_o           tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       NA           NA    
 spec_aux3_o           spec_clk20 (rising)      2.000(tdc_clk125 rising)      5.344       NA           NA    
@@ -1649,10 +1672,10 @@ spec_aux4_o           tdc_clk125 (rising)      2.000(tdc_clk125 rising)      7.8
 spec_aux5_o           tdc_clk125 (rising)      2.000(tdc_clk125 rising)      7.655       NA           NA    
 spec_led_green_o      spec_clk20 (rising)      2.000(spec_clk20 rising)      7.592       NA           NA    
 spec_led_red_o        spec_clk20 (rising)      2.000(spec_clk20 rising)      5.344       NA           NA    
-start_from_fpga_o     tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       NA           NA    
+start_dis_o           tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
+start_from_fpga_o     tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 tdc_led_status_o      tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       NA           NA    
-tdc_led_trig5_o       tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       NA           NA    
-wr_n_o                tdc_clk125 (rising)      2.000(tdc_clk125 rising)      10.689      NA           NA    
+wr_n_o                tdc_clk125 (rising)      2.000(tdc_clk125 rising)      5.344       6.000        0.656 
 ============================================================================================================
 
 
@@ -1690,16 +1713,16 @@ Ending Points with Worst Slack
 Instance                                                              Reference       Type     Pin     Net          Time         Slack 
                                                                       Clock                                                            
 ---------------------------------------------------------------------------------------------------------------------------------------
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[0]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[1]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[2]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[3]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[4]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[5]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[6]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[7]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[8]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
-gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[9]     gnum_clk200     FDCE     CE      N_1431_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[0]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[1]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[2]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[3]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[4]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[5]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[6]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[7]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[8]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
+gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[9]     gnum_clk200     FDCE     CE      N_1404_i     7.525        -1.541
 =======================================================================================================================================
 
 
@@ -1737,7 +1760,7 @@ gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_27_5             Net        -        -       0.935     -           4         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       I5       In      -         7.049       -         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       O        Out     0.122     7.171       -         
-N_1431_i                                                                                         Net        -        -       1.895     -           94        
+N_1404_i                                                                                         Net        -        -       1.895     -           94        
 gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[0]                                FDCE       CE       In      -         9.066       -         
 =============================================================================================================================================================
 Total path delay (propagation time + setup) of 6.541 is 1.676(25.6%) logic and 4.865(74.4%) route.
@@ -1799,7 +1822,7 @@ gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_27_5             Net        -        -       0.935     -           4         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       I5       In      -         7.049       -         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       O        Out     0.122     7.171       -         
-N_1431_i                                                                                         Net        -        -       1.895     -           94        
+N_1404_i                                                                                         Net        -        -       1.895     -           94        
 gnum_interface_block.cmp_dma_controller.dma_ctrl_host_addr_h_o[0]                                FDCE       CE       In      -         9.066       -         
 =============================================================================================================================================================
 Total path delay (propagation time + setup) of 6.541 is 1.676(25.6%) logic and 4.865(74.4%) route.
@@ -1861,7 +1884,7 @@ gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_27_5             Net        -        -       0.935     -           4         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       I5       In      -         7.049       -         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       O        Out     0.122     7.171       -         
-N_1431_i                                                                                         Net        -        -       1.895     -           94        
+N_1404_i                                                                                         Net        -        -       1.895     -           94        
 gnum_interface_block.cmp_dma_controller.dma_ctrl_len_o[3]                                        FDCE       CE       In      -         9.066       -         
 =============================================================================================================================================================
 Total path delay (propagation time + setup) of 6.541 is 1.676(25.6%) logic and 4.865(74.4%) route.
@@ -1923,7 +1946,7 @@ gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_27_5             Net        -        -       0.935     -           4         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       I5       In      -         7.049       -         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       O        Out     0.122     7.171       -         
-N_1431_i                                                                                         Net        -        -       1.895     -           94        
+N_1404_i                                                                                         Net        -        -       1.895     -           94        
 gnum_interface_block.cmp_dma_controller.dma_ctrl_len_o[4]                                        FDCE       CE       In      -         9.066       -         
 =============================================================================================================================================================
 Total path delay (propagation time + setup) of 6.541 is 1.676(25.6%) logic and 4.865(74.4%) route.
@@ -1985,7 +2008,7 @@ gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_27_5             Net        -        -       0.935     -           4         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       I5       In      -         7.049       -         
 gnum_interface_block.cmp_dma_controller.dma_ctrl_carrier_addr_o_1_sqmuxa_i_0_a2_26_0_RNIJ00I     LUT6       O        Out     0.122     7.171       -         
-N_1431_i                                                                                         Net        -        -       1.895     -           94        
+N_1404_i                                                                                         Net        -        -       1.895     -           94        
 gnum_interface_block.cmp_dma_controller.dma_ctrl_len_o[5]                                        FDCE       CE       In      -         9.066       -         
 =============================================================================================================================================================
 Total path delay (propagation time + setup) of 6.541 is 1.676(25.6%) logic and 4.865(74.4%) route.
@@ -2093,10 +2116,10 @@ clks_rsts_mgment.un7_word_being_sent_0_0     RAMB8BWER     DOADO[2]      Out    
 clks_rsts_mgment.un4_word_being_sent[8]      Net           -             -       2.117     -           1         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        I2            In      -         9.248       -         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        LO            Out     0.488     9.736       -         
-N_67                                         Net           -             -       1.050     -           1         
+N_92                                         Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        I4            In      -         10.786      -         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        LO            Out     0.305     11.091      -         
-N_69                                         Net           -             -       1.050     -           1         
+N_94                                         Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          I5            In      -         12.141      -         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          O             Out     0.122     12.263      -         
 pll_sdi_o_c                                  Net           -             -       0.862     -           1         
@@ -2150,10 +2173,10 @@ clks_rsts_mgment.un7_word_being_sent_0_0     RAMB8BWER     DOADO[6]      Out    
 clks_rsts_mgment.un4_word_being_sent[12]     Net           -             -       2.117     -           1         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        I3            In      -         9.248       -         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        LO            Out     0.488     9.736       -         
-N_67                                         Net           -             -       1.050     -           1         
+N_92                                         Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        I4            In      -         10.786      -         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        LO            Out     0.305     11.091      -         
-N_69                                         Net           -             -       1.050     -           1         
+N_94                                         Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          I5            In      -         12.141      -         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          O             Out     0.122     12.263      -         
 pll_sdi_o_c                                  Net           -             -       0.862     -           1         
@@ -2207,10 +2230,10 @@ clks_rsts_mgment.un7_word_being_sent_0_0     RAMB8BWER     DOADO[12]     Out    
 clks_rsts_mgment.un7_word_being_sent[2]      Net           -             -       2.117     -           1         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        I4            In      -         9.248       -         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        LO            Out     0.488     9.736       -         
-N_67                                         Net           -             -       1.050     -           1         
+N_92                                         Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        I4            In      -         10.786      -         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        LO            Out     0.305     11.091      -         
-N_69                                         Net           -             -       1.050     -           1         
+N_94                                         Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          I5            In      -         12.141      -         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          O             Out     0.122     12.263      -         
 pll_sdi_o_c                                  Net           -             -       0.862     -           1         
@@ -2264,10 +2287,10 @@ clks_rsts_mgment.un7_word_being_sent_0_0     RAMB8BWER     DOPADOP[0]     Out   
 clks_rsts_mgment.un7_word_being_sent[6]      Net           -              -       2.117     -           1         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        I5             In      -         9.248       -         
 clks_rsts_mgment.pll_sdi_o_2                 LUT6_L        LO             Out     0.488     9.736       -         
-N_67                                         Net           -              -       1.050     -           1         
+N_92                                         Net           -              -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        I4             In      -         10.786      -         
 clks_rsts_mgment.pll_sdi_o_6                 LUT5_L        LO             Out     0.305     11.091      -         
-N_69                                         Net           -              -       1.050     -           1         
+N_94                                         Net           -              -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          I5             In      -         12.141      -         
 clks_rsts_mgment.pll_sdi_o_u                 LUT6          O              Out     0.122     12.263      -         
 pll_sdi_o_c                                  Net           -              -       0.862     -           1         
@@ -2319,12 +2342,12 @@ Name                                              Type          Name          Di
 ----------------------------------------------------------------------------------------------------------------------
 clks_rsts_mgment.un7_word_being_sent_0_0          RAMB8BWER     DOADO[5]      Out     2.576     7.131       -         
 clks_rsts_mgment.un4_word_being_sent[11]          Net           -             -       2.117     -           1         
-clks_rsts_mgment.word_being_sent_lut6_2_o5[7]     LUT3          I1            In      -         9.248       -         
-clks_rsts_mgment.word_being_sent_lut6_2_o5[7]     LUT3          O             Out     0.244     9.492       -         
+clks_rsts_mgment.word_being_sent_lut6_2_o6[5]     LUT3          I1            In      -         9.248       -         
+clks_rsts_mgment.word_being_sent_lut6_2_o6[5]     LUT3          O             Out     0.244     9.492       -         
 clks_rsts_mgment.word_being_sent[5]               Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_6                      LUT5_L        I2            In      -         10.542      -         
 clks_rsts_mgment.pll_sdi_o_6                      LUT5_L        LO            Out     0.427     10.969      -         
-N_69                                              Net           -             -       1.050     -           1         
+N_94                                              Net           -             -       1.050     -           1         
 clks_rsts_mgment.pll_sdi_o_u                      LUT6          I5            In      -         12.019      -         
 clks_rsts_mgment.pll_sdi_o_u                      LUT6          O             Out     0.122     12.141      -         
 pll_sdi_o_c                                       Net           -             -       0.862     -           1         
@@ -2371,16 +2394,16 @@ Starting Points with Worst Slack
 Instance                                                   Reference      Type     Pin     Net                                                        Time        Slack
                                                            Clock                                                                                                       
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+acam_data_block.cs_n_o                                     tdc_clk125     FDS      Q       cs_n_o_c                                                   4.555       0.656
+acam_data_block.rd_n_o                                     tdc_clk125     FDS      Q       rd_n_o_c                                                   4.555       0.656
+acam_data_block.wr_n_o                                     tdc_clk125     FDS      Q       wr_n_o_c                                                   4.555       0.656
+acam_timing_block.start_from_fpga                          tdc_clk125     FD       Q       start_from_fpga_o_c                                        4.555       0.656
+acam_timing_block.start_window_reg_rep0_i[2]               tdc_clk125     FDS      Q       acam_timing_block.start_window_reg_rep0_i[2]               4.555       0.656
 gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[0]       tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[0]       4.555       0.656
 gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[1]       tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[1]       4.555       0.656
 gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[2]       tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[2]       4.555       0.656
 gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[3]       tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[3]       4.555       0.656
 gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[0]     tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[0]     4.555       0.656
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[1]     tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[1]     4.555       0.656
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[2]     tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[2]     4.555       0.656
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[3]     tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[3]     4.555       0.656
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[4]     tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[4]     4.555       0.656
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[5]     tdc_clk125     FDCE     Q       gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[5]     4.555       0.656
 =======================================================================================================================================================================
 
 
@@ -2395,12 +2418,12 @@ address_o[3:0]        tdc_clk125     Port     address_o[0]       address_o[0]   
 address_o[3:0]        tdc_clk125     Port     address_o[1]       address_o[1]       6.000        0.656
 address_o[3:0]        tdc_clk125     Port     address_o[2]       address_o[2]       6.000        0.656
 address_o[3:0]        tdc_clk125     Port     address_o[3]       address_o[3]       6.000        0.656
+cs_n_o                tdc_clk125     Port     cs_n_o             cs_n_o             6.000        0.656
 data_bus_io[27:0]     tdc_clk125     Port     data_bus_io[0]     data_bus_io[0]     6.000        0.656
 data_bus_io[27:0]     tdc_clk125     Port     data_bus_io[1]     data_bus_io[1]     6.000        0.656
 data_bus_io[27:0]     tdc_clk125     Port     data_bus_io[2]     data_bus_io[2]     6.000        0.656
 data_bus_io[27:0]     tdc_clk125     Port     data_bus_io[3]     data_bus_io[3]     6.000        0.656
 data_bus_io[27:0]     tdc_clk125     Port     data_bus_io[4]     data_bus_io[4]     6.000        0.656
-data_bus_io[27:0]     tdc_clk125     Port     data_bus_io[5]     data_bus_io[5]     6.000        0.656
 ======================================================================================================
 
 
@@ -2419,42 +2442,42 @@ Path information for path number 1:
     = Slack (non-critical) :                 0.656
 
     Number of logic level(s):                1
-    Starting point:                          gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[0] / Q
-    Ending point:                            address_o[3:0] / address_o[0]
+    Starting point:                          acam_data_block.cs_n_o / Q
+    Ending point:                            cs_n_o / cs_n_o
     The start point is clocked by            tdc_clk125 [rising] on pin C
     The end   point is clocked by            tdc_clk125 [rising]
 
-Instance / Net                                                    Pin              Pin               Arrival     No. of    
-Name                                                     Type     Name             Dir     Delay     Time        Fan Out(s)
----------------------------------------------------------------------------------------------------------------------------
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[0]     FDCE     Q                Out     0.000     4.555       -         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[0]     Net      -                -       0.000     -           1         
-address_o_obuf[0]                                        OBUF     I                In      -         4.555       -         
-address_o_obuf[0]                                        OBUF     O                Out     0.789     5.344       -         
-address_o[0]                                             Net      -                -       0.000     -           1         
-address_o[3:0]                                           Port     address_o[0]     Out     -         5.344       -         
-===========================================================================================================================
+Instance / Net                      Pin        Pin               Arrival     No. of    
+Name                       Type     Name       Dir     Delay     Time        Fan Out(s)
+---------------------------------------------------------------------------------------
+acam_data_block.cs_n_o     FDS      Q          Out     0.000     4.555       -         
+cs_n_o_c                   Net      -          -       0.000     -           1         
+cs_n_o_obuf                OBUF     I          In      -         4.555       -         
+cs_n_o_obuf                OBUF     O          Out     0.789     5.344       -         
+cs_n_o                     Net      -          -       0.000     -           1         
+cs_n_o                     Port     cs_n_o     Out     -         5.344       -         
+=======================================================================================
 Total path delay (propagation time + setup) of 0.789 is 0.789(100.0%) logic and 0.000(0.0%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
 Start clock path:
 
-Instance / Net                                                          Pin             Pin               Arrival     No. of    
-Name                                                     Type           Name            Dir     Delay     Time        Fan Out(s)
---------------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                            tdc_clk125                                                             
-------------                                                                                                                    
-tdc_clk_p_i                                              Port           tdc_clk_p_i     In      -         0.000       -         
-tdc_clk_p_i                                              Net            -               -       0.000     -           1         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         I               In      -         0.000       -         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         O               Out     1.290     1.290       -         
-clks_rsts_mgment.tdc_clk_buf                             Net            -               -       1.304     -           1         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           I               In      -         2.594       -         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           O               Out     0.250     2.844       -         
-clk                                                      Net            -               -       1.711     -           5         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[0]     FDCE           C               In      -         4.555       -         
-================================================================================================================================
+Instance / Net                                      Pin             Pin               Arrival     No. of    
+Name                                 Type           Name            Dir     Delay     Time        Fan Out(s)
+------------------------------------------------------------------------------------------------------------
+Start Clock :                        tdc_clk125                                                             
+------------                                                                                                
+tdc_clk_p_i                          Port           tdc_clk_p_i     In      -         0.000       -         
+tdc_clk_p_i                          Net            -               -       0.000     -           1         
+clks_rsts_mgment.tdc_clk125_ibuf     IBUFDS         I               In      -         0.000       -         
+clks_rsts_mgment.tdc_clk125_ibuf     IBUFDS         O               Out     1.290     1.290       -         
+clks_rsts_mgment.tdc_clk_buf         Net            -               -       1.304     -           1         
+clks_rsts_mgment.tdc_clk125_gbuf     BUFG           I               In      -         2.594       -         
+clks_rsts_mgment.tdc_clk125_gbuf     BUFG           O               Out     0.250     2.844       -         
+clk                                  Net            -               -       1.711     -           5         
+acam_data_block.cs_n_o               FDS            C               In      -         4.555       -         
+============================================================================================================
 
 
 Path information for path number 2: 
@@ -2467,42 +2490,42 @@ Path information for path number 2:
     = Slack (non-critical) :                 0.656
 
     Number of logic level(s):                1
-    Starting point:                          gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[1] / Q
-    Ending point:                            address_o[3:0] / address_o[1]
+    Starting point:                          acam_data_block.rd_n_o / Q
+    Ending point:                            rd_n_o / rd_n_o
     The start point is clocked by            tdc_clk125 [rising] on pin C
     The end   point is clocked by            tdc_clk125 [rising]
 
-Instance / Net                                                    Pin              Pin               Arrival     No. of    
-Name                                                     Type     Name             Dir     Delay     Time        Fan Out(s)
----------------------------------------------------------------------------------------------------------------------------
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[1]     FDCE     Q                Out     0.000     4.555       -         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[1]     Net      -                -       0.000     -           1         
-address_o_obuf[1]                                        OBUF     I                In      -         4.555       -         
-address_o_obuf[1]                                        OBUF     O                Out     0.789     5.344       -         
-address_o[1]                                             Net      -                -       0.000     -           1         
-address_o[3:0]                                           Port     address_o[1]     Out     -         5.344       -         
-===========================================================================================================================
+Instance / Net                      Pin        Pin               Arrival     No. of    
+Name                       Type     Name       Dir     Delay     Time        Fan Out(s)
+---------------------------------------------------------------------------------------
+acam_data_block.rd_n_o     FDS      Q          Out     0.000     4.555       -         
+rd_n_o_c                   Net      -          -       0.000     -           1         
+rd_n_o_obuf                OBUF     I          In      -         4.555       -         
+rd_n_o_obuf                OBUF     O          Out     0.789     5.344       -         
+rd_n_o                     Net      -          -       0.000     -           1         
+rd_n_o                     Port     rd_n_o     Out     -         5.344       -         
+=======================================================================================
 Total path delay (propagation time + setup) of 0.789 is 0.789(100.0%) logic and 0.000(0.0%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
 Start clock path:
 
-Instance / Net                                                          Pin             Pin               Arrival     No. of    
-Name                                                     Type           Name            Dir     Delay     Time        Fan Out(s)
---------------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                            tdc_clk125                                                             
-------------                                                                                                                    
-tdc_clk_p_i                                              Port           tdc_clk_p_i     In      -         0.000       -         
-tdc_clk_p_i                                              Net            -               -       0.000     -           1         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         I               In      -         0.000       -         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         O               Out     1.290     1.290       -         
-clks_rsts_mgment.tdc_clk_buf                             Net            -               -       1.304     -           1         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           I               In      -         2.594       -         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           O               Out     0.250     2.844       -         
-clk                                                      Net            -               -       1.711     -           5         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[1]     FDCE           C               In      -         4.555       -         
-================================================================================================================================
+Instance / Net                                      Pin             Pin               Arrival     No. of    
+Name                                 Type           Name            Dir     Delay     Time        Fan Out(s)
+------------------------------------------------------------------------------------------------------------
+Start Clock :                        tdc_clk125                                                             
+------------                                                                                                
+tdc_clk_p_i                          Port           tdc_clk_p_i     In      -         0.000       -         
+tdc_clk_p_i                          Net            -               -       0.000     -           1         
+clks_rsts_mgment.tdc_clk125_ibuf     IBUFDS         I               In      -         0.000       -         
+clks_rsts_mgment.tdc_clk125_ibuf     IBUFDS         O               Out     1.290     1.290       -         
+clks_rsts_mgment.tdc_clk_buf         Net            -               -       1.304     -           1         
+clks_rsts_mgment.tdc_clk125_gbuf     BUFG           I               In      -         2.594       -         
+clks_rsts_mgment.tdc_clk125_gbuf     BUFG           O               Out     0.250     2.844       -         
+clk                                  Net            -               -       1.711     -           5         
+acam_data_block.rd_n_o               FDS            C               In      -         4.555       -         
+============================================================================================================
 
 
 Path information for path number 3: 
@@ -2515,42 +2538,42 @@ Path information for path number 3:
     = Slack (non-critical) :                 0.656
 
     Number of logic level(s):                1
-    Starting point:                          gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[2] / Q
-    Ending point:                            address_o[3:0] / address_o[2]
+    Starting point:                          acam_data_block.wr_n_o / Q
+    Ending point:                            wr_n_o / wr_n_o
     The start point is clocked by            tdc_clk125 [rising] on pin C
     The end   point is clocked by            tdc_clk125 [rising]
 
-Instance / Net                                                    Pin              Pin               Arrival     No. of    
-Name                                                     Type     Name             Dir     Delay     Time        Fan Out(s)
----------------------------------------------------------------------------------------------------------------------------
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[2]     FDCE     Q                Out     0.000     4.555       -         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[2]     Net      -                -       0.000     -           1         
-address_o_obuf[2]                                        OBUF     I                In      -         4.555       -         
-address_o_obuf[2]                                        OBUF     O                Out     0.789     5.344       -         
-address_o[2]                                             Net      -                -       0.000     -           1         
-address_o[3:0]                                           Port     address_o[2]     Out     -         5.344       -         
-===========================================================================================================================
+Instance / Net                      Pin        Pin               Arrival     No. of    
+Name                       Type     Name       Dir     Delay     Time        Fan Out(s)
+---------------------------------------------------------------------------------------
+acam_data_block.wr_n_o     FDS      Q          Out     0.000     4.555       -         
+wr_n_o_c                   Net      -          -       0.000     -           1         
+wr_n_o_obuf                OBUF     I          In      -         4.555       -         
+wr_n_o_obuf                OBUF     O          Out     0.789     5.344       -         
+wr_n_o                     Net      -          -       0.000     -           1         
+wr_n_o                     Port     wr_n_o     Out     -         5.344       -         
+=======================================================================================
 Total path delay (propagation time + setup) of 0.789 is 0.789(100.0%) logic and 0.000(0.0%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
 Start clock path:
 
-Instance / Net                                                          Pin             Pin               Arrival     No. of    
-Name                                                     Type           Name            Dir     Delay     Time        Fan Out(s)
---------------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                            tdc_clk125                                                             
-------------                                                                                                                    
-tdc_clk_p_i                                              Port           tdc_clk_p_i     In      -         0.000       -         
-tdc_clk_p_i                                              Net            -               -       0.000     -           1         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         I               In      -         0.000       -         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         O               Out     1.290     1.290       -         
-clks_rsts_mgment.tdc_clk_buf                             Net            -               -       1.304     -           1         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           I               In      -         2.594       -         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           O               Out     0.250     2.844       -         
-clk                                                      Net            -               -       1.711     -           5         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[2]     FDCE           C               In      -         4.555       -         
-================================================================================================================================
+Instance / Net                                      Pin             Pin               Arrival     No. of    
+Name                                 Type           Name            Dir     Delay     Time        Fan Out(s)
+------------------------------------------------------------------------------------------------------------
+Start Clock :                        tdc_clk125                                                             
+------------                                                                                                
+tdc_clk_p_i                          Port           tdc_clk_p_i     In      -         0.000       -         
+tdc_clk_p_i                          Net            -               -       0.000     -           1         
+clks_rsts_mgment.tdc_clk125_ibuf     IBUFDS         I               In      -         0.000       -         
+clks_rsts_mgment.tdc_clk125_ibuf     IBUFDS         O               Out     1.290     1.290       -         
+clks_rsts_mgment.tdc_clk_buf         Net            -               -       1.304     -           1         
+clks_rsts_mgment.tdc_clk125_gbuf     BUFG           I               In      -         2.594       -         
+clks_rsts_mgment.tdc_clk125_gbuf     BUFG           O               Out     0.250     2.844       -         
+clk                                  Net            -               -       1.711     -           5         
+acam_data_block.wr_n_o               FDS            C               In      -         4.555       -         
+============================================================================================================
 
 
 Path information for path number 4: 
@@ -2563,42 +2586,42 @@ Path information for path number 4:
     = Slack (non-critical) :                 0.656
 
     Number of logic level(s):                1
-    Starting point:                          gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[3] / Q
-    Ending point:                            address_o[3:0] / address_o[3]
+    Starting point:                          acam_timing_block.start_from_fpga / Q
+    Ending point:                            start_from_fpga_o / start_from_fpga_o
     The start point is clocked by            tdc_clk125 [rising] on pin C
     The end   point is clocked by            tdc_clk125 [rising]
 
-Instance / Net                                                    Pin              Pin               Arrival     No. of    
-Name                                                     Type     Name             Dir     Delay     Time        Fan Out(s)
----------------------------------------------------------------------------------------------------------------------------
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[3]     FDCE     Q                Out     0.000     4.555       -         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[3]     Net      -                -       0.000     -           1         
-address_o_obuf[3]                                        OBUF     I                In      -         4.555       -         
-address_o_obuf[3]                                        OBUF     O                Out     0.789     5.344       -         
-address_o[3]                                             Net      -                -       0.000     -           1         
-address_o[3:0]                                           Port     address_o[3]     Out     -         5.344       -         
-===========================================================================================================================
+Instance / Net                                 Pin                   Pin               Arrival     No. of    
+Name                                  Type     Name                  Dir     Delay     Time        Fan Out(s)
+-------------------------------------------------------------------------------------------------------------
+acam_timing_block.start_from_fpga     FD       Q                     Out     0.000     4.555       -         
+start_from_fpga_o_c                   Net      -                     -       0.000     -           1         
+start_from_fpga_o_obuf                OBUF     I                     In      -         4.555       -         
+start_from_fpga_o_obuf                OBUF     O                     Out     0.789     5.344       -         
+start_from_fpga_o                     Net      -                     -       0.000     -           1         
+start_from_fpga_o                     Port     start_from_fpga_o     Out     -         5.344       -         
+=============================================================================================================
 Total path delay (propagation time + setup) of 0.789 is 0.789(100.0%) logic and 0.000(0.0%) route.
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
 Start clock path:
 
-Instance / Net                                                          Pin             Pin               Arrival     No. of    
-Name                                                     Type           Name            Dir     Delay     Time        Fan Out(s)
---------------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                            tdc_clk125                                                             
-------------                                                                                                                    
-tdc_clk_p_i                                              Port           tdc_clk_p_i     In      -         0.000       -         
-tdc_clk_p_i                                              Net            -               -       0.000     -           1         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         I               In      -         0.000       -         
-clks_rsts_mgment.tdc_clk125_ibuf                         IBUFDS         O               Out     1.290     1.290       -         
-clks_rsts_mgment.tdc_clk_buf                             Net            -               -       1.304     -           1         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           I               In      -         2.594       -         
-clks_rsts_mgment.tdc_clk125_gbuf                         BUFG           O               Out     0.250     2.844       -         
-clk                                                      Net            -               -       1.711     -           5         
-gnum_interface_block.cmp_wbmaster32.wb_adr_t_oreg[3]     FDCE           C               In      -         4.555       -         
-================================================================================================================================
+Instance / Net                                       Pin             Pin               Arrival     No. of    
+Name                                  Type           Name            Dir     Delay     Time        Fan Out(s)
+-------------------------------------------------------------------------------------------------------------
+Start Clock :                         tdc_clk125                                                             
+------------                                                                                                 
+tdc_clk_p_i                           Port           tdc_clk_p_i     In      -         0.000       -         
+tdc_clk_p_i                           Net            -               -       0.000     -           1         
+clks_rsts_mgment.tdc_clk125_ibuf      IBUFDS         I               In      -         0.000       -         
+clks_rsts_mgment.tdc_clk125_ibuf      IBUFDS         O               Out     1.290     1.290       -         
+clks_rsts_mgment.tdc_clk_buf          Net            -               -       1.304     -           1         
+clks_rsts_mgment.tdc_clk125_gbuf      BUFG           I               In      -         2.594       -         
+clks_rsts_mgment.tdc_clk125_gbuf      BUFG           O               Out     0.250     2.844       -         
+clk                                   Net            -               -       1.711     -           5         
+acam_timing_block.start_from_fpga     FD             C               In      -         4.555       -         
+=============================================================================================================
 
 
 Path information for path number 5: 
@@ -2611,43 +2634,42 @@ Path information for path number 5:
     = Slack (non-critical) :                 0.656
 
     Number of logic level(s):                1
-    Starting point:                          gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[0] / Q
-    Ending point:                            data_bus_io[27:0] / data_bus_io[0]
+    Starting point:                          acam_timing_block.start_window_reg_rep0_i[2] / Q
+    Ending point:                            start_dis_o / start_dis_o
     The start point is clocked by            tdc_clk125 [rising] on pin C
     The end   point is clocked by            tdc_clk125 [rising]
 
-Instance / Net                                                       Pin                Pin               Arrival     No. of    
-Name                                                       Type      Name               Dir     Delay     Time        Fan Out(s)
---------------------------------------------------------------------------------------------------------------------------------
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[0]     FDCE      Q                  Out     0.000     4.555       -         
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[0]     Net       -                  -       0.000     -           1         
-data_bus_io_iobuf[0]                                       IOBUF     I                  In      -         4.555       -         
-data_bus_io_iobuf[0]                                       IOBUF     IO                 Out     0.789     5.344       -         
-data_bus_io[0]                                             Net       -                  -       0.000     -           2(1)      
-data_bus_io[27:0]                                          Port      data_bus_io[0]     Out     -         5.344       -         
-================================================================================================================================
+Instance / Net                                            Pin             Pin               Arrival     No. of    
+Name                                             Type     Name            Dir     Delay     Time        Fan Out(s)
+------------------------------------------------------------------------------------------------------------------
+acam_timing_block.start_window_reg_rep0_i[2]     FDS      Q               Out     0.000     4.555       -         
+acam_timing_block.start_window_reg_rep0_i[2]     Net      -               -       0.000     -           1         
+start_dis_o_obuf                                 OBUF     I               In      -         4.555       -         
+start_dis_o_obuf                                 OBUF     O               Out     0.789     5.344       -         
+start_dis_o                                      Net      -               -       0.000     -           1         
+start_dis_o                                      Port     start_dis_o     Out     -         5.344       -         
+==================================================================================================================
 Total path delay (propagation time + setup) of 0.789 is 0.789(100.0%) logic and 0.000(0.0%) route.
-Fanout format: logic fanout (physical fanout)
 Path delay compensated for clock skew. Clock skew is added to clock-to-out value, and is subtracted from setup time value
 
 
 Start clock path:
 
-Instance / Net                                                            Pin             Pin               Arrival     No. of    
-Name                                                       Type           Name            Dir     Delay     Time        Fan Out(s)
-----------------------------------------------------------------------------------------------------------------------------------
-Start Clock :                                              tdc_clk125                                                             
-------------                                                                                                                      
-tdc_clk_p_i                                                Port           tdc_clk_p_i     In      -         0.000       -         
-tdc_clk_p_i                                                Net            -               -       0.000     -           1         
-clks_rsts_mgment.tdc_clk125_ibuf                           IBUFDS         I               In      -         0.000       -         
-clks_rsts_mgment.tdc_clk125_ibuf                           IBUFDS         O               Out     1.290     1.290       -         
-clks_rsts_mgment.tdc_clk_buf                               Net            -               -       1.304     -           1         
-clks_rsts_mgment.tdc_clk125_gbuf                           BUFG           I               In      -         2.594       -         
-clks_rsts_mgment.tdc_clk125_gbuf                           BUFG           O               Out     0.250     2.844       -         
-clk                                                        Net            -               -       1.711     -           5         
-gnum_interface_block.cmp_wbmaster32.wb_dat_o_t_oreg[0]     FDCE           C               In      -         4.555       -         
-==================================================================================================================================
+Instance / Net                                                  Pin             Pin               Arrival     No. of    
+Name                                             Type           Name            Dir     Delay     Time        Fan Out(s)
+------------------------------------------------------------------------------------------------------------------------
+Start Clock :                                    tdc_clk125                                                             
+------------                                                                                                            
+tdc_clk_p_i                                      Port           tdc_clk_p_i     In      -         0.000       -         
+tdc_clk_p_i                                      Net            -               -       0.000     -           1         
+clks_rsts_mgment.tdc_clk125_ibuf                 IBUFDS         I               In      -         0.000       -         
+clks_rsts_mgment.tdc_clk125_ibuf                 IBUFDS         O               Out     1.290     1.290       -         
+clks_rsts_mgment.tdc_clk_buf                     Net            -               -       1.304     -           1         
+clks_rsts_mgment.tdc_clk125_gbuf                 BUFG           I               In      -         2.594       -         
+clks_rsts_mgment.tdc_clk125_gbuf                 BUFG           O               Out     0.250     2.844       -         
+clk                                              Net            -               -       1.711     -           5         
+acam_timing_block.start_window_reg_rep0_i[2]     FDS            C               In      -         4.555       -         
+========================================================================================================================
 
 
 
@@ -2670,11 +2692,11 @@ gnum_interface_block.cmp_p2l_dma_master.cmp_to_wb_fifo                      Syst
 gnum_interface_block.cmp_l2p_ser.cmp_clk_out.loop0\.0\.loop3\.oserdes_m     System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_clk_out.tx_data_out[0]        0.000       -4.122
 gnum_interface_block.cmp_l2p_ser.cmp_dframe_out.loop0\.0\.loop3\.oserdes_m  System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_dframe_out.tx_data_out[0]     0.000       -4.122
 gnum_interface_block.cmp_l2p_ser.cmp_valid_out.loop0\.0\.loop3\.oserdes_m   System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_valid_out.tx_data_out[0]      0.000       -4.122
-gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.0\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[0]       0.000       -2.777
-gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.1\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[1]       0.000       -2.777
-gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.2\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[2]       0.000       -2.777
-gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.3\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[3]       0.000       -2.777
-gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.4\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[4]       0.000       -2.777
+gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.0\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[0]       0.000       -2.782
+gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.1\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[1]       0.000       -2.782
+gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.2\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[2]       0.000       -2.782
+gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.3\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[3]       0.000       -2.782
+gnum_interface_block.cmp_l2p_ser.cmp_data_out.loop0\.4\.loop3\.oserdes_m    System        OSERDES2        OQ            gnum_interface_block.cmp_l2p_ser.cmp_data_out.tx_data_out[4]       0.000       -2.782
 =============================================================================================================================================================================================================
 
 
@@ -2689,12 +2711,12 @@ p2l_rdy_o            System        Port     p2l_rdy_o         p2l_rdy_o         
 l2p_clk_p_o          System        Port     l2p_clk_p_o       l2p_clk_p_o       0.181        -4.122
 l2p_dframe_o         System        Port     l2p_dframe_o      l2p_dframe_o      0.181        -4.122
 l2p_valid_o          System        Port     l2p_valid_o       l2p_valid_o       0.181        -4.122
-p_wr_rdy_o[1:0]      System        Port     p_wr_rdy_o[0]     p_wr_rdy_o[0]     1.525        -3.736
-p_wr_rdy_o[1:0]      System        Port     p_wr_rdy_o[1]     p_wr_rdy_o[1]     1.525        -3.736
-l2p_data_o[15:0]     System        Port     l2p_data_o[0]     l2p_data_o[0]     1.525        -2.777
-l2p_data_o[15:0]     System        Port     l2p_data_o[1]     l2p_data_o[1]     1.525        -2.777
-l2p_data_o[15:0]     System        Port     l2p_data_o[2]     l2p_data_o[2]     1.525        -2.777
-l2p_data_o[15:0]     System        Port     l2p_data_o[3]     l2p_data_o[3]     1.525        -2.777
+p_wr_rdy_o[1:0]      System        Port     p_wr_rdy_o[0]     p_wr_rdy_o[0]     1.520        -3.740
+p_wr_rdy_o[1:0]      System        Port     p_wr_rdy_o[1]     p_wr_rdy_o[1]     1.520        -3.740
+l2p_data_o[15:0]     System        Port     l2p_data_o[0]     l2p_data_o[0]     1.520        -2.782
+l2p_data_o[15:0]     System        Port     l2p_data_o[1]     l2p_data_o[1]     1.520        -2.782
+l2p_data_o[15:0]     System        Port     l2p_data_o[2]     l2p_data_o[2]     1.520        -2.782
+l2p_data_o[15:0]     System        Port     l2p_data_o[3]     l2p_data_o[3]     1.520        -2.782
 ===================================================================================================
 
 
@@ -2868,6 +2890,7 @@ Path delay compensated for clock skew. Clock skew is added to clock-to-out value
 @W: MT305 |Timing constraint (to p:tdc_led_trig2_o) (false path) was not applied to the design because none of the '-to' objects specified by the constraint exist in the design 
 @W: MT305 |Timing constraint (to p:tdc_led_trig3_o) (false path) was not applied to the design because none of the '-to' objects specified by the constraint exist in the design 
 @W: MT305 |Timing constraint (to p:tdc_led_trig4_o) (false path) was not applied to the design because none of the '-to' objects specified by the constraint exist in the design 
+@W: MT305 |Timing constraint (to p:tdc_led_trig5_o) (false path) was not applied to the design because none of the '-to' objects specified by the constraint exist in the design 
 ---------------------------------------
 Resource Usage Report for top_tdc 
 
@@ -2877,35 +2900,35 @@ BUFIO2          1 use
 BUFIO2FB        1 use
 BUFPLL          1 use
 DSP48A1         2 uses
-FD              24 uses
+FD              23 uses
 FDC             341 uses
 FDCE            2141 uses
-FDE             63 uses
+FDE             62 uses
 FDP             5 uses
 FDPE            28 uses
-FDR             74 uses
+FDR             110 uses
 FDRE            2 uses
-FDS             4 uses
+FDS             8 uses
 FDSE            1 use
 GND             1 use
 IODELAY2        2 uses
 ISERDES2        20 uses
-MUXCY_L         314 uses
+MUXCY_L         344 uses
 MUXF7           2 uses
 MUXF8           1 use
 OSERDES2        19 uses
 PLL_ADV         1 use
 RAMB8BWER       1 use
 VCC             1 use
-XORCY           317 uses
+XORCY           348 uses
 fifo_32x512     3 uses
 fifo_64x512     2 uses
-LUT1            192 uses
-LUT2            265 uses
-LUT3            578 uses
-LUT4            203 uses
-LUT5            114 uses
-LUT6            381 uses
+LUT1            224 uses
+LUT2            270 uses
+LUT3            579 uses
+LUT4            200 uses
+LUT5            118 uses
+LUT6            412 uses
 LUT6_2            3 uses
 
 I/O ports: 135
@@ -2919,8 +2942,8 @@ OBUFDS         1 use
 
 BUFG           3 uses
 
-I/O Register bits:                  75
-Register bits not including I/Os:   2608 (4%)
+I/O Register bits:                  78
+Register bits not including I/Os:   2643 (4%)
 
 RAM/ROM usage summary
 Block Rams : 1 of 116 (0%)
@@ -2931,22 +2954,22 @@ DSP48s: 2 of 58 (3%)
 Global Clock Buffers: 3 of 16 (18%)
 
 
- Number of unique control sets:              116
- C(clk), CLR(GND), PRE(GND), CE(VCC)		: 10
- C(clk), R(clks_rsts_mgment.inv_reset_i), S(GND), CE(VCC)		: 68
+ Number of unique control sets:              117
+ C(clk), CLR(GND), PRE(GND), CE(VCC)		: 9
+ C(clk), R(clks_rsts_mgment.inv_reset_i), S(GND), CE(VCC)		: 71
  C(gnum_interface_block.sys_clk), CLR(un1_gnum_interface_block_i), PRE(GND), CE(VCC)		: 19
  C(gnum_interface_block.sys_clk), CLR(GND), PRE(un1_gnum_interface_block_i), CE(VCC)		: 2
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(VCC)		: 262
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_wbmaster32.from_wb_fifo_din_0_sqmuxa)		: 32
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(VCC)		: 51
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1298_i)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1446_i)		: 1
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_961_i)		: 33
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_4_i)		: 2
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1807)		: 32
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1942)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_wbmaster32.N_329_i)		: 32
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_wbmaster32.wishbone_current_state_46_d)		: 38
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.p2l_hdr_start)		: 2
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1431_i)		: 94
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1404_i)		: 94
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.N_96_i)		: 30
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_nextl_reg_1_sqmuxa_i)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_nexth_reg_1_sqmuxa_i)		: 32
@@ -2956,23 +2979,23 @@ Global Clock Buffers: 3 of 16 (18%)
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_cstart_reg_1_sqmuxa_i)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_attrib_reg_1_sqmuxa_i)		: 32
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.N_71_i)		: 32
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1461_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1451_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1456_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1450_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1459_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1449_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1457_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1447_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1463_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1453_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1462_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1452_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1464_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1455_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1460_i)		: 1
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1454_i)		: 2
- C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1448_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1598_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1588_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1593_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1587_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1596_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1586_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1594_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1584_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1600_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1590_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1599_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1589_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1601_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1592_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1597_i)		: 1
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1591_i)		: 2
+ C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1585_i)		: 2
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_controller_wb_slave_0.dma_stat_lw_1_sqmuxa_1)		: 1
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_controller_wb_slave_0.dma_nextl_lw_1_sqmuxa_1)		: 1
  C(clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_controller_wb_slave_0.dma_nexth_lw_1_sqmuxa_1)		: 1
@@ -3009,14 +3032,14 @@ Global Clock Buffers: 3 of 16 (18%)
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_dma_controller.dma_ctrl_load)		: 31
  C(gnum_interface_block.sys_clk), CLR(GND), PRE(gnum_interface_block.rst_reg_i), CE(VCC)		: 3
  C(gnum_interface_block.sys_clk), CLR(GND), PRE(GND), CE(gnum_interface_block.cmp_l2p_dma_master.addr_fifo_din_1_sqmuxa)		: 30
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1236_i)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1369_i)		: 1
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_563_i)		: 7
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_6_i)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.dma_ctrl_start_l2p_i)		: 1
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1185_i)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1343_i)		: 1
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_701_i)		: 39
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_656)		: 30
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1350_i)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1401_i)		: 1
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.N_106_i)		: 1
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.p2l_dma_current_state[3])		: 11
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.N_1515_i)		: 32
@@ -3028,8 +3051,8 @@ Global Clock Buffers: 3 of 16 (18%)
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.next_item_host_addr_h_o_1_sqmuxa)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.next_item_carrier_addr_o_0_sqmuxa)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.next_item_attrib_o_1_sqmuxa)		: 32
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1222_i)		: 1
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1221_i)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1367_i)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1398_i)		: 1
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.N_138)		: 62
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.N_1430_i)		: 30
  C(gnum_interface_block.sys_clk), CLR(rst_n_a_i_c_i), PRE(GND), CE(VCC)		: 1
@@ -3037,16 +3060,17 @@ Global Clock Buffers: 3 of 16 (18%)
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_decode32.p2l_packet_start)		: 2
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.des_pd_valid)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.N_578_i)		: 30
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_3751)		: 1
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_3867)		: 1
  C(spec_clk), CLR(GND), PRE(GND), CE(VCC)		: 11
  C(clk), CLR(pll_sclk_o_c_i), PRE(GND), CE(VCC)		: 1
- C(spec_clk), R(N_8_i), S(GND), CE(VCC)		: 4
+ C(spec_clk), R(N_7_i), S(GND), CE(VCC)		: 4
  C(clk), CLR(GND), PRE(GND), CE(N_34_i)		: 32
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_l2p_dma_master.N_1473_i)		: 60
- C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1238_i)		: 11
+ C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(N_1511_i)		: 11
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.N_1422_i)		: 11
  C(gnum_interface_block.sys_clk), CLR(gnum_interface_block.rst_reg_i), PRE(GND), CE(gnum_interface_block.cmp_p2l_dma_master.N_1514_i_i)		: 30
- C(spec_clk), R(GND), S(N_8_i), CE(VCC)		: 4
+ C(clk), R(N_2), S(GND), CE(VCC)		: 33
+ C(spec_clk), R(GND), S(N_7_i), CE(VCC)		: 4
  C(clk), R(clks_rsts_mgment.inv_reset_i), S(GND), CE(N_34_i)		: 1
 
 Total load per clock:
@@ -3057,10 +3081,10 @@ Total load per clock:
    gnum_clk200: 2087
 
 Mapping Summary:
-Total  LUTs: 1736 (5%)
+Total  LUTs: 1806 (5%)
 
 Mapper successful!
-Process took 0h:00m:22s realtime, 0h:00m:22s cputime
-# Thu Jul 21 19:58:08 2011
+Process took 0h:00m:23s realtime, 0h:00m:23s cputime
+# Tue Aug  2 16:07:01 2011
 
 ###########################################################]

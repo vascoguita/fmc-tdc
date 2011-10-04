@@ -1,25 +1,24 @@
-@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":29:7:29:13|Synthesizing work.top_tdc.rtl 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":354:7:354:12|Signal pll_cs is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":359:7:359:19|Signal tdc_led_trig1 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":360:7:360:19|Signal tdc_led_trig2 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":361:7:361:19|Signal tdc_led_trig3 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":362:7:362:19|Signal tdc_led_trig4 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":367:7:367:18|Signal acam_start01 is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":368:7:368:20|Signal acam_timestamp is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":369:7:369:26|Signal acam_timestamp_valid is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":370:7:370:20|Signal full_timestamp is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":371:7:371:26|Signal full_timestamp_valid is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":374:7:374:21|Signal start_nb_offset is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":375:7:375:21|Signal start_timer_reg is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":376:7:376:22|Signal utc_current_time is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":387:7:387:11|Signal irq_p is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":404:7:404:15|Signal dma_dat_o is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":405:7:405:13|Signal dma_ack is undriven 
-@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":406:7:406:15|Signal dma_stall is undriven 
-@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":15:7:15:18|Synthesizing work.free_counter.rtl 
-Post processing for work.free_counter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":29:7:29:13|Synthesizing work.top_tdc.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":353:7:353:20|Signal tdc_led_period is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":361:7:361:12|Signal pll_cs is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":366:7:366:19|Signal tdc_led_trig1 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":367:7:367:19|Signal tdc_led_trig2 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":368:7:368:19|Signal tdc_led_trig3 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":369:7:369:19|Signal tdc_led_trig4 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":370:7:370:19|Signal tdc_led_trig5 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":376:7:376:18|Signal acam_start01 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":377:7:377:20|Signal acam_timestamp is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":378:7:378:26|Signal acam_timestamp_valid is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":385:7:385:21|Signal start_timer_reg is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":386:7:386:22|Signal utc_current_time is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":397:7:397:11|Signal irq_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":414:7:414:15|Signal dma_dat_o is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":415:7:415:13|Signal dma_ack is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":416:7:416:15|Signal dma_stall is undriven 
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":17:7:17:23|Synthesizing work.countdown_counter.rtl 
 Post processing for work.countdown_counter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":15:7:15:18|Synthesizing work.free_counter.rtl 
+Post processing for work.free_counter.rtl
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":32:7:32:20|Synthesizing work.clk_rst_managr.rtl 
 @N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":84:24:84:25|Using onehot encoding for type t_pll_init_st (start="10000")
 @N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6077:10:6077:15|Synthesizing unisim.ibufds.syn_black_box 
@@ -393,49 +392,61 @@ Post processing for work.gn4124_core.rtl
 Post processing for work.acam_databus_interface.rtl
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":27:7:27:32|Synthesizing work.acam_timecontrol_interface.rtl 
 Post processing for work.acam_timecontrol_interface.rtl
+@N: CL177 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":79:7:79:15|Sharing sequential element start_dis.
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":28:7:28:21|Synthesizing work.data_formatting.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":64:7:64:14|Signal reserved is undriven 
+Post processing for work.data_formatting.rtl
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(0) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(1) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(2) assign '0', register removed by optimization
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/start_retrigger_control.vhd":31:7:31:29|Synthesizing work.start_retrigger_control.rtl 
+Post processing for work.start_retrigger_control.rtl
 @N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/one_hz_gen.vhd":27:7:27:16|Synthesizing work.one_hz_gen.rtl 
 Post processing for work.one_hz_gen.rtl
 Post processing for work.top_tdc.rtl
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":406:7:406:15|dma_stall is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":405:7:405:13|dma_ack is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":387:7:387:11|irq_p is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":60:8:60:14|spare_o is not assigned a value (floating) - a simulation mismatch is possible 
-@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":461:4:461:20|Pruning instance acam_timing_block - not in use ... 
-@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Input irq_p_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 0 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 1 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 2 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 3 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 4 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 5 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 6 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 7 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 8 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 9 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 10 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 11 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 12 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 13 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 14 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 15 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 16 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 17 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 18 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 19 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 20 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 21 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 22 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 23 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 24 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 25 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 26 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 27 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 28 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 29 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 30 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Bit 31 of input dma_dat_i of instance gnum_interface_block is floating
-@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Input dma_ack_i of instance gnum_interface_block is floating
-@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":517:4:517:23|Input dma_stall_i of instance gnum_interface_block is floating
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":416:7:416:15|dma_stall is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":415:7:415:13|dma_ack is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":397:7:397:11|irq_p is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":378:7:378:26|acam_timestamp_valid is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":60:8:60:14|spare_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":456:4:456:24|Pruning instance data_formatting_block - not in use ... 
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input irq_p_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 0 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 1 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 2 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 3 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 4 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 5 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 6 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 7 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 8 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 9 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 10 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 11 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 12 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 13 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 14 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 15 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 16 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 17 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 18 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 19 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 20 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 21 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 22 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 23 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 24 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 25 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 26 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 27 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 28 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 29 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 30 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 31 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input dma_ack_i of instance gnum_interface_block is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input dma_stall_i of instance gnum_interface_block is floating
+@W: CL247 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":34:8:34:23|Input port bit 17 of acam_timestamp_i(28 downto 0) is unused 
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":38:8:38:24|Input port bits 31 to 24 of start_nb_offset_i(31 downto 0) are unused 
 @N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":68:7:68:18|Trying to extract state machine for register acam_data_st
 Extracted state machine for register acam_data_st
 State machine has 7 reachable states with original encodings of:
@@ -585,5 +596,3 @@ State machine has 5 reachable states with original encodings of:
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":40:8:40:19|Input pll_refmon_i is unused
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":41:8:41:16|Input pll_sdo_i is unused
 @W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":42:8:42:19|Input pll_status_i is unused
-@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":77:8:77:17|Input err_flag_i is unused
-@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_acam/top_test_acam.vhd":78:8:78:17|Input int_flag_i is unused

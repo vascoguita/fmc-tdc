@@ -1,7 +1,7 @@
 #-- Synopsys, Inc.
 #-- Version D-2010.03
 #-- Project file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_acam/run_options.txt
-#-- Written on Thu Jul 21 19:57:38 2011
+#-- Written on Tue Aug  2 16:06:31 2011
 
 
 #project files
@@ -30,11 +30,12 @@ add_file -vhdl -lib work "../src/rtl/incr_counter.vhd"
 add_file -vhdl -lib work "../src/rtl/countdown_counter.vhd"
 add_file -vhdl -lib work "../src/rtl/clk_rst_managr.vhd"
 add_file -vhdl -lib work "../src/rtl/one_hz_gen.vhd"
-add_file -vhdl -lib work "../src/rtl/start_nb_offset_gen.vhd"
+add_file -vhdl -lib work "../src/rtl/start_retrigger_control.vhd"
 add_file -vhdl -lib work "../src/rtl/data_formatting.vhd"
+add_file -vhdl -lib work "../src/rtl/data_engine.vhd"
 add_file -vhdl -lib work "../src/rtl/acam_timecontrol_interface.vhd"
 add_file -vhdl -lib work "../src/rtl/acam_databus_interface.vhd"
-add_file -vhdl -lib work "../src/rtl/test_tdc_acam/top_test_acam.vhd"
+add_file -vhdl -lib work "../src/rtl/top_tdc.vhd"
 add_file -constraint "./tdc_syn_constraints.sdc"
 
 
