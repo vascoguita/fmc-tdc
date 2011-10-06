@@ -82,10 +82,8 @@ component blk_mem_gen_v6_2
     );
 end component;
 
-type t_wb_classic_mem_interface             is (idle, acknowledge);
 type t_wb_pipelined_mem_interface           is (idle, mem_access, mem_access_and_acknowledge, acknowledge);
 
-signal wb_classic_st, nxt_wb_classic_st     : t_wb_classic_mem_interface;
 signal wb_pipelined_st, nxt_wb_pipelined_st : t_wb_pipelined_mem_interface;
 
 signal class_ack                            : std_logic;
@@ -113,41 +111,8 @@ signal pipe_we                              : std_logic_vector(0 downto 0);
 ----------------------------------------------------------------------------------------------------
 begin
 
---    classic_seq_fsm: process
---    begin
---        if class_reset ='1' then
---            wb_classic_st        <= idle;
---        else
---            wb_classic_st        <= nxt_wb_classic_st;
---        end if;
---        wait until class_clk ='1';
---    end process;
---    
---    classic_comb_fsm: process(wb_classic_st, class_stb, class_cyc)
---    begin
---    case wb_classic_st is
---        when idle =>
---            class_ack           <= '0';
---
---            if class_stb ='1' and class_cyc ='1' then
---                nxt_wb_classic_st    <= acknowledge;
---            else
---                nxt_wb_classic_st    <= idle;
---            end if;
---            
---        when acknowledge =>
---            class_ack           <= '1';
---            
---            nxt_wb_classic_st   <= idle;
---            
---        when others =>
---            class_ack           <= '0';
---
---            nxt_wb_classic_st   <= idle;
---    end case;
---    end process;
-
-    wishbone_classic_compatible_interface: process
+    -- Wishbone classic interface compatible slave
+    classic_interface: process
     begin
         if class_reset ='1' then
             class_ack           <= '0';
@@ -157,6 +122,7 @@ begin
         wait until class_clk ='1';
     end process;
 
+    -- Wishbone pipelined interfacte compatible slave
     pipelined_seq_fsm: process
     begin
         if pipe_reset ='1' then
