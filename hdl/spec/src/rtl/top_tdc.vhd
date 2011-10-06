@@ -235,6 +235,40 @@ architecture rtl of top_tdc is
     );
     end component;
 
+    component circular_buffer
+    generic(
+        g_width             : integer :=32
+    );
+    port(
+        -- wishbone classic slave signals to interface RAM with the modules providing the timestamps
+        class_clk_i             : in std_logic;
+        class_reset_i           : in std_logic;
+
+        class_adr_i             : in std_logic_vector(19 downto 0);
+        class_cyc_i             : in std_logic;
+        class_dat_i             : in std_logic_vector(4*g_width-1 downto 0);
+        class_stb_i             : in std_logic;
+        class_we_i              : in std_logic;
+
+        class_ack_o             : out std_logic;
+        class_dat_o             : out std_logic_vector(4*g_width-1 downto 0);
+
+        -- wishbone pipelined slave signals to interface RAM with gnum core for DMA access from PCI-e
+        pipe_clk_i              : in std_logic;
+        pipe_reset_i            : in std_logic;
+
+        pipe_adr_i              : in std_logic_vector(19 downto 0);
+        pipe_cyc_i              : in std_logic;
+        pipe_dat_i              : in std_logic_vector(g_width-1 downto 0);
+        pipe_stb_i              : in std_logic;
+        pipe_we_i               : in std_logic;
+
+        pipe_ack_o              : out std_logic;
+        pipe_dat_o              : out std_logic_vector(g_width-1 downto 0);
+        pipe_stall_o            : out std_logic
+    );
+    end component;
+
     component clk_rst_managr
     generic(
         nb_of_reg               : integer:=68;
@@ -419,12 +453,26 @@ signal dma_dat_o                : std_logic_vector(31 downto 0);
 signal dma_ack                  : std_logic;
 signal dma_stall                : std_logic;
 
+signal mem_class_adr            : std_logic_vector(19 downto 0);
+signal mem_class_cyc            : std_logic;
+signal mem_class_data_wr        : std_logic_vector(4*g_width-1 downto 0);
+signal mem_class_stb            : std_logic;
+signal mem_class_we             : std_logic;
+signal mem_class_ack            : std_logic;
+signal mem_class_data_rd        : std_logic_vector(4*g_width-1 downto 0);
+        
+signal mem_pipe_adr             : std_logic_vector(19 downto 0);
+signal mem_pipe_cyc             : std_logic;
+signal mem_pipe_data_wr         : std_logic_vector(g_width-1 downto 0);
+signal mem_pipe_stb             : std_logic;
+signal mem_pipe_we              : std_logic;
+signal mem_pipe_ack             : std_logic;
+signal mem_pipe_data_rd         : std_logic_vector(g_width-1 downto 0);
+signal mem_pipe_stall           : std_logic;
+
 signal acam_refclk              : std_logic;
 signal clk                      : std_logic;
 signal spec_clk                 : std_logic;
-
-signal conditions_reg               : unsigned(2 downto 0);
-signal conditions_pulse             : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -534,6 +582,39 @@ begin
         
         ack_o                   => acm_ack,
         dat_o                   => acm_dat_r
+    );
+    
+    circular_buffer_block: circular_buffer
+    generic map(
+        g_width                 => g_width
+    )
+    port map(
+        -- wishbone classic slave signals to interface RAM with the internal modules providing the timestamps
+        class_clk_i             => clk,
+        class_reset_i           => general_reset,
+        
+        class_adr_i             => mem_class_adr,
+        class_cyc_i             => mem_class_cyc,
+        class_dat_i             => mem_class_data_wr,
+        class_stb_i             => mem_class_stb,
+        class_we_i              => mem_class_we,
+        
+        class_ack_o             => mem_class_ack,
+        class_dat_o             => mem_class_data_rd,
+        
+        -- wishbone pipelined slave signals to interface RAM with gnum core for DMA access from PCI-e
+        pipe_clk_i              => clk,
+        pipe_reset_i            => general_reset,
+        
+        pipe_adr_i              => mem_pipe_adr,
+        pipe_cyc_i              => mem_pipe_cyc,
+        pipe_dat_i              => mem_pipe_data_wr,
+        pipe_stb_i              => mem_pipe_stb,
+        pipe_we_i               => mem_pipe_we,
+        
+        pipe_ack_o              => mem_pipe_ack,
+        pipe_dat_o              => mem_pipe_data_rd,
+        pipe_stall_o            => mem_pipe_stall
     );
     
     gnum_interface_block: gn4124_core
@@ -687,14 +768,30 @@ begin
     -- internal signals
     spec_led_green          <= pll_ld_i;
 
-    acm_adr(19)             <= '0';
-    acm_adr(18 downto 0)    <= csr_adr;
-    acm_cyc                 <= csr_cyc(0);
-    acm_stb                 <= csr_stb;
-    acm_we                  <= csr_we;
-    acm_dat_w               <= csr_dat_w;
-    csr_ack(0)              <= acm_ack;
-    csr_dat_r               <= acm_dat_r;
+--    acm_adr(19)             <= '0';
+--    acm_adr(18 downto 0)    <= csr_adr;
+--    acm_cyc                 <= csr_cyc(0);
+--    acm_stb                 <= csr_stb;
+--    acm_we                  <= csr_we;
+--    acm_dat_w               <= csr_dat_w;
+--    csr_ack(0)              <= acm_ack;
+--    csr_dat_r               <= acm_dat_r;
+    
+    mem_class_adr(19)                       <= '0';
+    mem_class_adr(18 downto 0)              <= csr_adr;
+    mem_class_cyc                           <= csr_cyc(0);
+    mem_class_stb                           <= csr_stb;
+    mem_class_we                            <= csr_we;
+    mem_class_data_wr(127 downto 32)        <= (others=>'0');
+    mem_class_data_wr(31 downto 0)          <= csr_dat_w;
+    csr_ack(0)                              <= mem_class_ack;
+    csr_dat_r                               <= mem_class_data_rd(31 downto 0);
+
+    mem_pipe_adr                            <= (others=>'0');
+    mem_pipe_cyc                            <= '0';
+    mem_pipe_stb                            <= '0';
+    mem_pipe_we                             <= '0';
+    mem_pipe_data_wr                        <= (others=>'0');
     
     -- inputs
 --    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);
