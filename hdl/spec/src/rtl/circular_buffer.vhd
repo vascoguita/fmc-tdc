@@ -36,7 +36,7 @@ entity circular_buffer is
         class_clk_i             : in std_logic;
         class_reset_i           : in std_logic;
 
-        class_adr_i             : in std_logic_vector(19 downto 0);
+        class_adr_i             : in std_logic_vector(g_width-1 downto 0);
         class_cyc_i             : in std_logic;
         class_dat_i             : in std_logic_vector(4*g_width-1 downto 0);
         class_stb_i             : in std_logic;
@@ -49,7 +49,7 @@ entity circular_buffer is
         pipe_clk_i              : in std_logic;
         pipe_reset_i            : in std_logic;
 
-        pipe_adr_i              : in std_logic_vector(19 downto 0);
+        pipe_adr_i              : in std_logic_vector(g_width-1 downto 0);
         pipe_cyc_i              : in std_logic;
         pipe_dat_i              : in std_logic_vector(g_width-1 downto 0);
         pipe_stb_i              : in std_logic;
@@ -66,17 +66,19 @@ end circular_buffer;
 ----------------------------------------------------------------------------------------------------
 architecture rtl of circular_buffer is
 
-component blk_mem_gen_v6_2
+component blk_mem_gen_v6_3
     port(
     clka    : in std_logic;
     addra   : in std_logic_vector(6 downto 0);
     dina    : in std_logic_vector(127 downto 0);
+    ena     : in std_logic;
     wea     : in std_logic_vector(0 downto 0);
     douta   : out std_logic_vector(127 downto 0);
 
     clkb    : in std_logic;
     addrb   : in std_logic_vector(8 downto 0);
     dinb    : in std_logic_vector(31 downto 0);
+    enb     : in std_logic;
     web     : in std_logic_vector(0 downto 0);
     doutb   : out std_logic_vector(31 downto 0)
     );
@@ -92,6 +94,7 @@ signal class_clk                            : std_logic;
 signal class_cyc                            : std_logic;
 signal class_data_rd                        : std_logic_vector(4*g_width-1 downto 0);
 signal class_data_wr                        : std_logic_vector(4*g_width-1 downto 0);
+signal class_en                             : std_logic;
 signal class_reset                          : std_logic;
 signal class_stb                            : std_logic;
 signal class_we                             : std_logic_vector(0 downto 0);
@@ -102,6 +105,7 @@ signal pipe_clk                             : std_logic;
 signal pipe_cyc                             : std_logic;
 signal pipe_data_rd                         : std_logic_vector(g_width-1 downto 0);
 signal pipe_data_wr                         : std_logic_vector(g_width-1 downto 0);
+signal pipe_en                              : std_logic;
 signal pipe_reset                           : std_logic;
 signal pipe_stb                             : std_logic;
 signal pipe_we                              : std_logic_vector(0 downto 0);
@@ -179,17 +183,19 @@ begin
     end case;
     end process;
     
-    memory_block: blk_mem_gen_v6_2
+    memory_block: blk_mem_gen_v6_3
     port map(
         clka        => class_clk,
         addra       => class_adr,
         dina        => class_data_wr,
+        ena         => class_en,
         wea         => class_we,
         douta       => class_data_rd,
         
         clkb        => pipe_clk,
         addrb       => pipe_adr,
         dinb        => pipe_data_wr,
+        enb         => pipe_en,
         web         => pipe_we,
         doutb       => pipe_data_rd
     );
@@ -201,6 +207,7 @@ begin
     class_adr                   <= class_adr_i(6 downto 0);
     class_cyc                   <= class_cyc_i;
     class_data_wr               <= class_dat_i;
+    class_en                    <= class_cyc;
     class_stb                   <= class_stb_i;
     class_we(0)                 <= class_we_i;
     
@@ -210,6 +217,7 @@ begin
     pipe_adr                    <= pipe_adr_i(8 downto 0);
     pipe_cyc                    <= pipe_cyc_i;
     pipe_data_wr                <= pipe_dat_i;
+    pipe_en                     <= pipe_cyc;
     pipe_stb                    <= pipe_stb_i;
     pipe_we(0)                  <= pipe_we_i;
     

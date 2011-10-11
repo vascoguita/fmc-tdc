@@ -6,7 +6,8 @@
 --  author      : G. Penacoba
 --  date        : May 2011
 --  version     : Revision 1
---  description : generates one pulse every second synchronously with the acam reference clock
+--  description : generates one pulse every second synchronously with the acam reference clock.
+--                  The phase with the reference clock can be adjusted.
 --  dependencies:
 --  references  :
 --  modified by :
@@ -32,9 +33,9 @@ entity one_hz_gen is
     port(
         acam_refclk_i   : in std_logic;
         clk_i           : in std_logic;
-        clock_period_i  : in std_logic_vector(g_width-1 downto 0);
-        pulse_delay_i   : in std_logic_vector(g_width-1 downto 0);
-        reset_i         : in std_logic;
+        clock_period_i  : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods for 1s
+        pulse_delay_i   : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods phase delay
+        reset_i         : in std_logic;                            -- with respect to reference clock
 
         one_hz_p_o      : out std_logic
     );
