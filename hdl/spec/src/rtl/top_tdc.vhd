@@ -28,6 +28,7 @@ use work.gn4124_core_pkg.all;
 ----------------------------------------------------------------------------------------------------
 entity top_tdc is
     generic(
+        g_span                  : integer :=32;
         g_width                 : integer :=32;
         values_for_simulation   : boolean :=FALSE
     );
@@ -206,6 +207,7 @@ architecture rtl of top_tdc is
 
     component acam_databus_interface
     generic(
+        g_span                  : integer :=32;
         g_width                 : integer :=32
     );
     port(
@@ -221,30 +223,79 @@ architecture rtl of top_tdc is
         rd_n_o                  : out std_logic;
         wr_n_o                  : out std_logic;
 
+        acam_ef1_o              : out std_logic;
+        acam_ef2_o              : out std_logic;
+        acam_lf1_o              : out std_logic;
+        acam_lf2_o              : out std_logic;
+
         clk_i                   : in std_logic;
         reset_i                 : in std_logic;
 
-        adr_i                   : in std_logic_vector(19 downto 0);
+        adr_i                   : in std_logic_vector(g_span-1 downto 0);
         cyc_i                   : in std_logic;
-        dat_i                   : in std_logic_vector(31 downto 0);
+        dat_i                   : in std_logic_vector(g_width-1 downto 0);
         stb_i                   : in std_logic;
         we_i                    : in std_logic;
 
         ack_o                   : out std_logic;
-        dat_o                   : out std_logic_vector(31 downto 0)
+        dat_o                   : out std_logic_vector(g_width-1 downto 0)
+    );
+    end component;
+
+    component data_engine
+    generic(
+        g_span                  : integer :=32;
+        g_width                 : integer :=32
+    );
+    port(
+        -- wishbone master signals internal to the chip: interface with other modules
+        ack_i                   : in std_logic;
+        dat_i                   : in std_logic_vector(g_width-1 downto 0);
+
+        adr_o                   : out std_logic_vector(g_span-1 downto 0);
+        cyc_o                   : out std_logic;
+        dat_o                   : out std_logic_vector(g_width-1 downto 0);
+        stb_o                   : out std_logic;
+        we_o                    : out std_logic;
+        
+        -- signals internal to the chip: interface with other modules
+        clk_i                   : in std_logic;
+        reset_i                 : in std_logic;
+        acam_ef1_i              : in std_logic;
+        acam_ef2_i              : in std_logic;
+
+        activate_acq_i          : in std_logic;
+        deactivate_acq_i        : in std_logic;
+        load_acam_config_i      : in std_logic;
+        read_acam_config_i      : in std_logic;
+        read_acam_status_i      : in std_logic;
+        read_ififo1_i           : in std_logic;
+        read_ififo2_i           : in std_logic;
+        read_start01_i          : in std_logic;
+        reset_acam_i            : in std_logic;
+        acam_config_i           : in config_vector;
+        
+        acam_config_rdbk_o      : out config_vector;
+        acam_status_o           : out std_logic_vector(g_width-1 downto 0);
+        acam_ififo1_o           : out std_logic_vector(g_width-1 downto 0);
+        acam_ififo2_o           : out std_logic_vector(g_width-1 downto 0);
+        acam_start01_o          : out std_logic_vector(g_width-1 downto 0);
+        acam_timestamp_o        : out std_logic_vector(28 downto 0);
+        acam_timestamp_valid_o  : out std_logic
     );
     end component;
 
     component circular_buffer
     generic(
-        g_width             : integer :=32
+        g_span                  : integer :=32;
+        g_width                 : integer :=32
     );
     port(
         -- wishbone classic slave signals to interface RAM with the modules providing the timestamps
         class_clk_i             : in std_logic;
         class_reset_i           : in std_logic;
 
-        class_adr_i             : in std_logic_vector(g_width-1 downto 0);
+        class_adr_i             : in std_logic_vector(g_span-1 downto 0);
         class_cyc_i             : in std_logic;
         class_dat_i             : in std_logic_vector(4*g_width-1 downto 0);
         class_stb_i             : in std_logic;
@@ -257,7 +308,7 @@ architecture rtl of top_tdc is
         pipe_clk_i              : in std_logic;
         pipe_reset_i            : in std_logic;
 
-        pipe_adr_i              : in std_logic_vector(g_width-1 downto 0);
+        pipe_adr_i              : in std_logic_vector(g_span-1 downto 0);
         pipe_cyc_i              : in std_logic;
         pipe_dat_i              : in std_logic_vector(g_width-1 downto 0);
         pipe_stb_i              : in std_logic;
@@ -298,55 +349,52 @@ architecture rtl of top_tdc is
     
     component reg_ctrl
     generic(
-        g_width             : integer :=32
+        g_span                  : integer :=32;
+        g_width                 : integer :=32
     );
     port(
-        -- wishbone classic slave signals to interface the registers with the internal application modules
-        appli_clk_i         : in std_logic;
-        appli_reset_i       : in std_logic;
-
-        appli_adr_i         : in std_logic_vector(g_width-1 downto 0);
-        appli_cyc_i         : in std_logic;
-        appli_dat_i         : in std_logic_vector(g_width-1 downto 0);
-        appli_stb_i         : in std_logic;
-        appli_we_i          : in std_logic;
-
-        appli_ack_o         : out std_logic;
-        appli_dat_o         : out std_logic_vector(g_width-1 downto 0);
-
         -- wishbone classic slave signals to interface with the host through the gnum core and the gnum chip
-        host_clk_i          : in std_logic;
-        host_reset_i        : in std_logic;
+        reg_clk_i               : in std_logic;
+        reg_reset_i             : in std_logic;
 
-        host_adr_i          : in std_logic_vector(g_width-1 downto 0);
-        host_cyc_i          : in std_logic;
-        host_dat_i          : in std_logic_vector(g_width-1 downto 0);
-        host_stb_i          : in std_logic;
-        host_we_i           : in std_logic;
+        reg_adr_i               : in std_logic_vector(g_span-1 downto 0);
+        reg_cyc_i               : in std_logic;
+        reg_dat_i               : in std_logic_vector(g_width-1 downto 0);
+        reg_stb_i               : in std_logic;
+        reg_we_i                : in std_logic;
 
-        host_ack_o          : out std_logic;
-        host_dat_o          : out std_logic_vector(g_width-1 downto 0);
+        reg_ack_o               : out std_logic;
+        reg_dat_o               : out std_logic_vector(g_width-1 downto 0);
+
+        -- control signals for interface with other internal modules
+        activate_acq_o          : out std_logic;
+        deactivate_acq_o        : out std_logic;
+        load_utc_o              : out std_logic;
+        load_tdc_config_o       : out std_logic;
+        load_acam_config_o      : out std_logic;
+        read_acam_config_o      : out std_logic;
+        reset_acam_o            : out std_logic;
+        read_acam_status_o      : out std_logic;
+        read_ififo1_o           : out std_logic;
+        read_ififo2_o           : out std_logic;
+        read_start01_o          : out std_logic;
         
-        -- control signals for interface with other application internal modules
-        activate_acq_o      : out std_logic;
-        deactivate_acq_o    : out std_logic;
-        load_utc_o          : out std_logic;
-        load_tdc_config_o   : out std_logic;
-        load_acam_config_o  : out std_logic;
-        read_acam_config_o  : out std_logic;
-        reset_acam_o        : out std_logic;
-        read_acam_status_o  : out std_logic;
-        read_ififo1_o       : out std_logic;
-        read_ififo2_o       : out std_logic;
-        read_start01_o      : out std_logic;
-        
-        -- configuration registers for the modules of the TDC core
-        starting_utc_time_o : out std_logic_vector(31 downto 0);
-        clk_freq_o          : out std_logic_vector(31 downto 0);
-        ref_clk_freq_o      : out std_logic_vector(31 downto 0);
-        start_phase_o       : out std_logic_vector(31 downto 0);
-        one_hz_phase_o      : out std_logic_vector(31 downto 0);
-        retrig_freq_o       : out std_logic_vector(31 downto 0)
+        -- configuration registers from and for the ACAM and the modules of the TDC core
+        acam_config_rdbk_i      : in config_vector;
+        acam_status_i           : in std_logic_vector(g_width-1 downto 0);
+        acam_ififo1_i           : in std_logic_vector(g_width-1 downto 0);
+        acam_ififo2_i           : in std_logic_vector(g_width-1 downto 0);
+        acam_start01_i          : in std_logic_vector(g_width-1 downto 0);
+        current_utc_i       : in std_logic_vector(g_width-1 downto 0);
+        irq_code_i          : in std_logic_vector(g_width-1 downto 0);
+
+        acam_config_o           : out config_vector;
+        starting_utc_o          : out std_logic_vector(g_width-1 downto 0);
+        clk_freq_o              : out std_logic_vector(g_width-1 downto 0);
+        ref_clk_freq_o          : out std_logic_vector(g_width-1 downto 0);
+        start_phase_o           : out std_logic_vector(g_width-1 downto 0);
+        one_hz_phase_o          : out std_logic_vector(g_width-1 downto 0);
+        retrig_freq_o           : out std_logic_vector(g_width-1 downto 0)
     );
     end component;
 
@@ -461,11 +509,15 @@ signal tdc_led_trig3            : std_logic:='0';
 signal tdc_led_trig4            : std_logic:='0';
 signal tdc_led_trig5            : std_logic:='0';
 
+signal acam_ef1                 : std_logic;
+signal acam_ef2                 : std_logic;
+signal acam_lf1                 : std_logic;
+signal acam_lf2                 : std_logic;
 signal acam_fall_errflag_p      : std_logic;
 signal acam_rise_errflag_p      : std_logic;
 signal acam_fall_intflag_p      : std_logic;
 signal acam_rise_intflag_p      : std_logic;
-signal acam_start01             : std_logic_vector(16 downto 0);
+--signal acam_start01             : std_logic_vector(16 downto 0);
 signal acam_timestamp           : std_logic_vector(28 downto 0);
 signal acam_timestamp_valid     : std_logic;
 signal full_timestamp           : std_logic_vector(3*g_width-1 downto 0);
@@ -477,7 +529,7 @@ signal start_trig               : std_logic;
 signal start_timer_reg          : std_logic_vector(7 downto 0);
 signal utc_current_time         : std_logic_vector(g_width-1 downto 0);
 
-signal acm_adr                  : std_logic_vector(19 downto 0);
+signal acm_adr                  : std_logic_vector(g_span-1 downto 0);
 signal acm_cyc                  : std_logic;
 signal acm_stb                  : std_logic;
 signal acm_we                   : std_logic;
@@ -507,7 +559,7 @@ signal dma_ack                  : std_logic;
 signal dma_dat_r                : std_logic_vector(31 downto 0);
 signal dma_stall                : std_logic;
 
-signal mem_class_adr            : std_logic_vector(g_width-1 downto 0);
+signal mem_class_adr            : std_logic_vector(g_span-1 downto 0);
 signal mem_class_cyc            : std_logic;
 signal mem_class_data_wr        : std_logic_vector(4*g_width-1 downto 0);
 signal mem_class_stb            : std_logic;
@@ -515,7 +567,7 @@ signal mem_class_we             : std_logic;
 signal mem_class_ack            : std_logic;
 signal mem_class_data_rd        : std_logic_vector(4*g_width-1 downto 0);
         
-signal mem_pipe_adr             : std_logic_vector(g_width-1 downto 0);
+signal mem_pipe_adr             : std_logic_vector(g_span-1 downto 0);
 signal mem_pipe_cyc             : std_logic;
 signal mem_pipe_data_wr         : std_logic_vector(g_width-1 downto 0);
 signal mem_pipe_stb             : std_logic;
@@ -524,21 +576,13 @@ signal mem_pipe_ack             : std_logic;
 signal mem_pipe_data_rd         : std_logic_vector(g_width-1 downto 0);
 signal mem_pipe_stall           : std_logic;
 
-signal reg_appli_adr            : std_logic_vector(g_width-1 downto 0);
-signal reg_appli_cyc            : std_logic;
-signal reg_appli_data_wr        : std_logic_vector(g_width-1 downto 0);
-signal reg_appli_stb            : std_logic;
-signal reg_appli_we             : std_logic;
-signal reg_appli_ack            : std_logic;
-signal reg_appli_data_rd        : std_logic_vector(g_width-1 downto 0);
-        
-signal reg_host_adr             : std_logic_vector(g_width-1 downto 0);
-signal reg_host_cyc             : std_logic;
-signal reg_host_data_wr         : std_logic_vector(g_width-1 downto 0);
-signal reg_host_stb             : std_logic;
-signal reg_host_we              : std_logic;
-signal reg_host_ack             : std_logic;
-signal reg_host_data_rd         : std_logic_vector(g_width-1 downto 0);
+signal reg_adr                  : std_logic_vector(g_span-1 downto 0);
+signal reg_cyc                  : std_logic;
+signal reg_data_wr              : std_logic_vector(g_width-1 downto 0);
+signal reg_stb                  : std_logic;
+signal reg_we                   : std_logic;
+signal reg_ack                  : std_logic;
+signal reg_data_rd              : std_logic_vector(g_width-1 downto 0);
 
 signal activate_acq             : std_logic;
 signal deactivate_acq           : std_logic;
@@ -551,12 +595,21 @@ signal read_acam_status         : std_logic;
 signal read_ififo1              : std_logic;
 signal read_ififo2              : std_logic;
 signal read_start01             : std_logic;
-signal starting_utc_time        : std_logic_vector(31 downto 0);
-signal clk_freq                 : std_logic_vector(31 downto 0);
-signal ref_clk_freq             : std_logic_vector(31 downto 0);
-signal start_phase              : std_logic_vector(31 downto 0);
-signal one_hz_phase             : std_logic_vector(31 downto 0);
-signal retrig_freq              : std_logic_vector(31 downto 0);
+signal starting_utc             : std_logic_vector(g_width-1 downto 0);
+signal clk_freq                 : std_logic_vector(g_width-1 downto 0);
+signal ref_clk_freq             : std_logic_vector(g_width-1 downto 0);
+signal start_phase              : std_logic_vector(g_width-1 downto 0);
+signal one_hz_phase             : std_logic_vector(g_width-1 downto 0);
+signal retrig_freq              : std_logic_vector(g_width-1 downto 0);
+
+signal acam_config_rdbk         : config_vector;
+signal acam_status              : std_logic_vector(g_width-1 downto 0);
+signal acam_ififo1              : std_logic_vector(g_width-1 downto 0);
+signal acam_ififo2              : std_logic_vector(g_width-1 downto 0);
+signal acam_start01             : std_logic_vector(g_width-1 downto 0);
+signal current_utc              : std_logic_vector(g_width-1 downto 0);
+signal irq_code                 : std_logic_vector(g_width-1 downto 0);
+signal acam_config              : config_vector;
 
 signal acam_refclk              : std_logic;
 signal clk                      : std_logic;
@@ -596,22 +649,22 @@ begin
         start_trig_o            => open
     );
     
-    data_formatting_block: data_formatting
-    generic map(
-        g_width             => g_width
-    )
-    port map(
-        acam_start01_i          => acam_start01,
-        acam_timestamp_i        => acam_timestamp,
-        acam_timestamp_valid_i  => acam_timestamp_valid,
-        clk_i                   => clk,
-        reset_i                 => general_reset,
-        start_nb_offset_i       => start_nb_offset,
-        utc_current_time_i      => utc_current_time,
-        
-        full_timestamp_o        => full_timestamp,
-        full_timestamp_valid_o  => full_timestamp_valid
-    );
+--    data_formatting_block: data_formatting
+--    generic map(
+--        g_width             => g_width
+--    )
+--    port map(
+--        acam_start01_i          => acam_start01,
+--        acam_timestamp_i        => acam_timestamp,
+--        acam_timestamp_valid_i  => acam_timestamp_valid,
+--        clk_i                   => clk,
+--        reset_i                 => general_reset,
+--        start_nb_offset_i       => start_nb_offset,
+--        utc_current_time_i      => utc_current_time,
+--        
+--        full_timestamp_o        => full_timestamp,
+--        full_timestamp_valid_o  => full_timestamp_valid
+--    );
     
     acam_timing_block: acam_timecontrol_interface
     generic map(
@@ -642,6 +695,7 @@ begin
     
     acam_data_block: acam_databus_interface
     generic map(
+        g_span                  => g_span,
         g_width                 => g_width
     )
     port map(
@@ -658,6 +712,11 @@ begin
         rd_n_o                  => rd_n_o,
         wr_n_o                  => wr_n_o,
         
+        acam_ef1_o              => acam_ef1,
+        acam_ef2_o              => acam_ef2,
+        acam_lf1_o              => acam_lf1,
+        acam_lf2_o              => acam_lf2,
+
         -- signals internal to the chip: interface with other modules
         clk_i                   => clk,
         reset_i                 => general_reset,
@@ -671,9 +730,52 @@ begin
         ack_o                   => acm_ack,
         dat_o                   => acm_dat_r
     );
+
+    data_engine_block: data_engine
+    generic map(
+        g_span                  => g_span,
+        g_width                 => g_width
+    )
+    port map(
+        -- wishbone master signals internal to the chip: interface with the ACAM core
+        ack_i                   => acm_ack,
+        dat_i                   => acm_dat_r,
+
+        adr_o                   => acm_adr,
+        cyc_o                   => acm_cyc,
+        dat_o                   => acm_dat_w,
+        stb_o                   => acm_stb,
+        we_o                    => acm_we,
+        
+        -- signals internal to the chip: interface with other modules
+        clk_i                   => clk,
+        reset_i                 => general_reset,
+        acam_ef1_i              => acam_ef1,
+        acam_ef2_i              => acam_ef2,
+
+        activate_acq_i          => activate_acq,
+        deactivate_acq_i        => deactivate_acq,
+        load_acam_config_i      => load_acam_config,
+        read_acam_config_i      => read_acam_config,
+        read_acam_status_i      => read_acam_status,
+        read_ififo1_i           => read_ififo1,
+        read_ififo2_i           => read_ififo2,
+        read_start01_i          => read_start01,
+        reset_acam_i            => reset_acam,
+        acam_config_i           => acam_config,
+        
+        acam_config_rdbk_o      => acam_config_rdbk,
+        acam_status_o           => acam_status,
+        acam_ififo1_o           => acam_ififo1,
+        acam_ififo2_o           => acam_ififo2,
+        acam_start01_o          => acam_start01,
+        acam_timestamp_o        => open,
+        acam_timestamp_valid_o  => open
+    );
     
     circular_buffer_block: circular_buffer
     generic map(
+        g_span                  => g_span,
         g_width                 => g_width
     )
     port map(
@@ -707,34 +809,22 @@ begin
     
     reg_control_block: reg_ctrl
     generic map(
+        g_span                  => g_span,
         g_width                 => g_width
     )
     port map(
-        -- wishbone classic slave signals to interface the registers with the internal application modules
-        appli_clk_i             => clk,
-        appli_reset_i           => general_reset,
-        
-        appli_adr_i             => reg_appli_adr,
-        appli_cyc_i             => reg_appli_cyc,
-        appli_dat_i             => reg_appli_data_wr,
-        appli_stb_i             => reg_appli_stb,
-        appli_we_i              => reg_appli_we,
-        
-        appli_ack_o             => reg_appli_ack,
-        appli_dat_o             => reg_appli_data_rd,
-    
         -- wishbone classic slave signals to interface with the host through the gnum core and the gnum chip
-        host_clk_i              => clk,
-        host_reset_i            => general_reset,
+        reg_clk_i               => clk,
+        reg_reset_i             => general_reset,
         
-        host_adr_i              => reg_host_adr,
-        host_cyc_i              => reg_host_cyc,
-        host_dat_i              => reg_host_data_wr,
-        host_stb_i              => reg_host_stb,
-        host_we_i               => reg_host_we,
+        reg_adr_i               => reg_adr,
+        reg_cyc_i               => reg_cyc,
+        reg_dat_i               => reg_data_wr,
+        reg_stb_i               => reg_stb,
+        reg_we_i                => reg_we,
         
-        host_ack_o              => reg_host_ack,
-        host_dat_o              => reg_host_data_rd,
+        reg_ack_o               => reg_ack,
+        reg_dat_o               => reg_data_rd,
     
         -- control signals for interface with other application internal modules
         activate_acq_o          => activate_acq,
@@ -743,14 +833,23 @@ begin
         load_tdc_config_o       => load_tdc_config,
         load_acam_config_o      => load_acam_config,
         read_acam_config_o      => read_acam_config,
-        reset_acam_o            => reset_acam,
         read_acam_status_o      => read_acam_status,
         read_ififo1_o           => read_ififo1,
         read_ififo2_o           => read_ififo2,
         read_start01_o          => read_start01,
+        reset_acam_o            => reset_acam,
         
         -- configuration registers for the modules of the TDC core
-        starting_utc_time_o     => starting_utc_time,
+        acam_config_rdbk_i      => acam_config_rdbk,
+        acam_status_i           => acam_status,
+        acam_ififo1_i           => acam_ififo1,
+        acam_ififo2_i           => acam_ififo2,
+        acam_start01_i          => acam_start01,
+        current_utc_i           => current_utc,
+        irq_code_i              => irq_code,
+
+        acam_config_o           => acam_config,
+        starting_utc_o          => starting_utc,
         clk_freq_o              => clk_freq,
         ref_clk_freq_o          => ref_clk_freq,
         start_phase_o           => start_phase,
@@ -935,7 +1034,7 @@ begin
 --    csr_ack(0)                              <= mem_class_ack;
 --    csr_dat_r                               <= mem_class_data_rd(31 downto 0);
 
-    -- (address decoding)
+    -- (address decoding: memory used has 512 bytes depth)
     mem_pipe_cyc                            <= '1' when dma_cyc='1' and dma_adr(31 downto 9)=x"00000" & "000" else '0';
     mem_pipe_adr                            <= dma_adr;
 
@@ -948,27 +1047,16 @@ begin
     
 --  CSR master connected to register memory slave
 -----------------------------------------------------------
---    -- (address decoding)
---    reg_appli_cyc                           <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 6)="0" & x"800" else '0';
---    reg_appli_adr(31 downto 19)             <= (others=>'0');
---    reg_appli_adr(18 downto 0)              <= csr_adr;
---
---    reg_appli_stb                           <= csr_stb;
---    reg_appli_we                            <= csr_we;
---    reg_appli_data_wr                       <= csr_dat_w;
---    csr_ack(0)                              <= reg_appli_ack;
---    csr_dat_r                               <= reg_appli_data_rd;
+    -- address decoding: first 512 kB for GNUM core, second 512 kB for TDC application (of which only 256 bytes are reserved)
+    reg_cyc                             <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 8)="010" & x"00" else '0';
+    reg_adr(31 downto 19)               <= (others=>'0');
+    reg_adr(18 downto 0)                <= csr_adr;
 
-    -- (address decoding)
-    reg_host_cyc                            <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 6)="0" & x"800" else '0';
-    reg_host_adr(31 downto 19)              <= (others=>'0');
-    reg_host_adr(18 downto 0)               <= csr_adr;
-
-    reg_host_stb                            <= csr_stb;
-    reg_host_we                             <= csr_we;
-    reg_host_data_wr                        <= csr_dat_w;
-    csr_ack(0)                              <= reg_host_ack;
-    csr_dat_r                               <= reg_host_data_rd;
+    reg_stb                             <= csr_stb;
+    reg_we                              <= csr_we;
+    reg_data_wr                         <= csr_dat_w;
+    csr_ack(0)                          <= reg_ack;
+    csr_dat_r                           <= reg_data_rd;
     
     -- inputs
 --    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);

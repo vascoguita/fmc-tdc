@@ -78,7 +78,7 @@ constant spec_led_period_syn    : std_logic_vector(data_width-1 downto 0):=x"013
 constant blink_length_syn       : std_logic_vector(data_width-1 downto 0):=x"00BEBC20";     -- 100 ms at 125 MHz
 constant blink_length_sim       : std_logic_vector(data_width-1 downto 0):=x"000004E2";     -- 10 us at 125 MHz
 
-subtype config_register         is std_logic_vector(27 downto 0);
+subtype config_register         is std_logic_vector(data_width-1 downto 0);
 type config_vector              is array (10 downto 0) of config_register;
 
 

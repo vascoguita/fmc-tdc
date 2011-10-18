@@ -27,7 +27,8 @@ use IEEE.numeric_std.all;
 ----------------------------------------------------------------------------------------------------
 entity acam_databus_interface is
     generic(
-        g_width             : integer :=32
+        g_span                  : integer :=32;
+        g_width                 : integer :=32
     );
     port(
         -- signals external to the chip: interface with acam
@@ -43,11 +44,17 @@ entity acam_databus_interface is
         rd_n_o                  : out std_logic;
         wr_n_o                  : out std_logic;
 
+        -- signals internal to the chip: interface with other modules
+        acam_ef1_o              : out std_logic;
+        acam_ef2_o              : out std_logic;
+        acam_lf1_o              : out std_logic;
+        acam_lf2_o              : out std_logic;
+
         -- wishbone slave signals internal to the chip: interface with other modules
         clk_i                   : in std_logic;
         reset_i                 : in std_logic;
 
-        adr_i                   : in std_logic_vector(19 downto 0);
+        adr_i                   : in std_logic_vector(g_span-1 downto 0);
         cyc_i                   : in std_logic;
         dat_i                   : in std_logic_vector(g_width-1 downto 0);
         stb_i                   : in std_logic;
@@ -74,7 +81,7 @@ signal lf2                      : std_logic;
 
 signal clk                      : std_logic;
 signal reset                    : std_logic;
-signal adr                      : std_logic_vector(19 downto 0);
+signal adr                      : std_logic_vector(g_span-1 downto 0);
 signal cyc                      : std_logic;
 signal stb                      : std_logic;
 signal we                       : std_logic;
@@ -84,6 +91,7 @@ signal rd                       : std_logic;
 signal rd_extend                : std_logic;
 signal wr                       : std_logic;
 signal wr_extend                : std_logic;
+signal wr_remove                : std_logic;
 signal ack                      : std_logic;
 
 ----------------------------------------------------------------------------------------------------
@@ -109,6 +117,7 @@ begin
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
+            wr_remove           <= '0';
             if stb ='1' and cyc ='1' then
                 if we = '1' then
                     nxt_acam_data_st    <= wr_start;
@@ -124,6 +133,7 @@ begin
             cs_extend           <= '1';
             rd_extend           <= '1';
             wr_extend           <= '0';
+            wr_remove           <= '0';
             
             nxt_acam_data_st    <= read;
             
@@ -132,6 +142,7 @@ begin
             cs_extend           <= '1';
             rd_extend           <= '1';
             wr_extend           <= '0';
+            wr_remove           <= '0';
             
             nxt_acam_data_st    <= rd_ack;
 
@@ -140,6 +151,7 @@ begin
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
+            wr_remove           <= '0';
 
             nxt_acam_data_st    <= idle;
             
@@ -148,6 +160,7 @@ begin
             cs_extend           <= '1';
             rd_extend           <= '0';
             wr_extend           <= '1';
+            wr_remove           <= '0';
             
             nxt_acam_data_st    <= write;
             
@@ -156,6 +169,7 @@ begin
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
+            wr_remove           <= '1';
             
             nxt_acam_data_st    <= wr_ack;
             
@@ -164,6 +178,7 @@ begin
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
+            wr_remove           <= '0';
 
             nxt_acam_data_st    <= idle;
             
@@ -172,6 +187,7 @@ begin
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
+            wr_remove           <= '0';
 
             nxt_acam_data_st    <= idle;
     end case;
@@ -179,7 +195,7 @@ begin
     
     cs          <= ((stb and cyc)               or cs_extend) and not(ack);
     rd          <= ((stb and cyc and not(we))   or rd_extend) and not(ack);
-    wr          <= ((stb and cyc and we)        or wr_extend) and not(ack);
+    wr          <= ((stb and cyc and we)        or wr_extend) and not(wr_remove) and not(ack);
     
     -- inputs from other blocks    
     clk                         <= clk_i;
@@ -196,13 +212,29 @@ begin
     dat_o                       <= ef1 & ef2 & lf1 & lf2 & data_bus_io;
 
     -- inputs from the ACAM
-    ef1                         <= ef1_i;
-    ef2                         <= ef2_i;
-    lf1                         <= lf1_i;
-    lf2                         <= lf2_i;
+    
+    input_registers: process
+    begin
+        if reset ='1' then
+            ef1                         <= '1';
+            ef2                         <= '1';
+            lf1                         <= '1';
+            lf2                         <= '1';
+        else
+            ef1                         <= ef1_i;
+            ef2                         <= ef2_i;
+            lf1                         <= lf1_i;
+            lf2                         <= lf2_i;
+        end if;
+        wait until clk ='1';
+    end process;
 
     -- outputs to the ACAM
     address_o                   <= adr(3 downto 0);
+    acam_ef1_o                  <= ef1;
+    acam_ef2_o                  <= ef2;
+    acam_lf1_o                  <= lf1;
+    acam_lf2_o                  <= lf2;
     
     output_registers: process
     begin

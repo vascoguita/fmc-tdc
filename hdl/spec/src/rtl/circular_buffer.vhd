@@ -29,14 +29,15 @@ use IEEE.numeric_std.all;
 ----------------------------------------------------------------------------------------------------
 entity circular_buffer is
     generic(
-        g_width             : integer :=32
+        g_span                  : integer :=32;
+        g_width                 : integer :=32
     );
     port(
         -- wishbone classic slave signals to interface RAM with the internal modules providing the timestamps
         class_clk_i             : in std_logic;
         class_reset_i           : in std_logic;
 
-        class_adr_i             : in std_logic_vector(g_width-1 downto 0);
+        class_adr_i             : in std_logic_vector(g_span-1 downto 0);
         class_cyc_i             : in std_logic;
         class_dat_i             : in std_logic_vector(4*g_width-1 downto 0);
         class_stb_i             : in std_logic;
@@ -49,7 +50,7 @@ entity circular_buffer is
         pipe_clk_i              : in std_logic;
         pipe_reset_i            : in std_logic;
 
-        pipe_adr_i              : in std_logic_vector(g_width-1 downto 0);
+        pipe_adr_i              : in std_logic_vector(g_span-1 downto 0);
         pipe_cyc_i              : in std_logic;
         pipe_dat_i              : in std_logic_vector(g_width-1 downto 0);
         pipe_stb_i              : in std_logic;
