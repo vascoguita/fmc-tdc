@@ -101,6 +101,7 @@ signal start_from_fpga      : std_logic;
 signal start_trig           : std_logic;
 signal start_trig_r         : unsigned(2 downto 0);
 signal start_trig_edge      : std_logic;
+signal start_trig_received  : std_logic;
 signal waitingfor_refclk    : std_logic;
 signal window_active        : std_logic;
 signal window_delay         : std_logic_vector(g_width-1 downto 0);
@@ -167,14 +168,14 @@ begin
     port map(
         clk             => clk,
         end_value       => x"00000004",
-        incr            => '1',
+        incr            => start_trig_received,
         reset           => counter_reset,
         
         count_done      => window_inverted,
         current_value   => counter_value
     );
     
-    window_active           <= not(window_inverted);
+    window_active           <= not(window_inverted) and start_trig_received;
 
     -- After many tests with the ACAM chip, the Start Disable feature
     -- doesn't seem to be stable. It has therefore been decided to
@@ -213,6 +214,18 @@ begin
                             waitingfor_refclk       <= '1';
         elsif refclk_edge ='1' then
                             waitingfor_refclk       <= '0';
+        end if;
+        wait until clk ='1';
+    end process;
+
+    actual_trigger_received: process                -- signal needed to exclude the generation of
+    begin                                           -- the start_from_fpga after a general reset
+        if reset ='1' then  
+                            start_trig_received     <= '0';
+        elsif window_start ='1' then
+                            start_trig_received     <= '1';
+        elsif counter_value =x"00000004" then
+                            start_trig_received     <= '0';
         end if;
         wait until clk ='1';
     end process;

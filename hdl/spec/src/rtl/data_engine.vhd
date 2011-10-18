@@ -65,8 +65,10 @@ entity data_engine is
         acam_ififo1_o           : out std_logic_vector(g_width-1 downto 0);
         acam_ififo2_o           : out std_logic_vector(g_width-1 downto 0);
         acam_start01_o          : out std_logic_vector(g_width-1 downto 0);
-        acam_timestamp_o        : out std_logic_vector(28 downto 0);
-        acam_timestamp_valid_o  : out std_logic
+        acam_timestamp1_o       : out std_logic_vector(g_width-1 downto 0);
+        acam_timestamp1_valid_o : out std_logic;
+        acam_timestamp2_o       : out std_logic_vector(g_width-1 downto 0);
+        acam_timestamp2_valid_o : out std_logic
     );
 end data_engine;
 
@@ -112,6 +114,11 @@ signal acam_status                  : std_logic_vector(g_width-1 downto 0);
 signal acam_ififo1                  : std_logic_vector(g_width-1 downto 0);
 signal acam_ififo2                  : std_logic_vector(g_width-1 downto 0);
 signal acam_start01                 : std_logic_vector(g_width-1 downto 0);
+
+signal acam_timestamp1              : std_logic_vector(g_width-1 downto 0);
+signal acam_timestamp1_valid        : std_logic;
+signal acam_timestamp2              : std_logic_vector(g_width-1 downto 0);
+signal acam_timestamp2_valid        : std_logic;
 
 signal reset_word                   : std_logic_vector(g_width-1 downto 0);
 signal reg4                         : std_logic_vector(g_width-1 downto 0);
@@ -169,9 +176,9 @@ begin
             
             if deactivate_acq ='1'      then
                 nxt_engine_st               <= inactive;
-            elsif acam_ef1 ='1'         then
+            elsif acam_ef1 ='0'         then
                 nxt_engine_st               <= get_stamp1;
-            elsif acam_ef2 ='1'         then
+            elsif acam_ef2 ='0'         then
                 nxt_engine_st               <= get_stamp2;
             else
                 nxt_engine_st               <= active;
@@ -183,8 +190,10 @@ begin
             acam_we                 <= '0';
 
             if acam_ack ='1' then
-                if acam_ef2 ='1' then
+                if acam_ef2 ='0' then
                     nxt_engine_st   <= get_stamp2;
+                elsif acam_ef1 ='0' then
+                    nxt_engine_st   <= get_stamp1;
                 else
                     nxt_engine_st   <= active;
                 end if;
@@ -198,8 +207,10 @@ begin
             acam_we                 <= '0';
 
             if acam_ack ='1' then
-                if acam_ef1 ='1' then
+                if acam_ef1 ='0' then
                     nxt_engine_st   <= get_stamp1;
+                elsif acam_ef2 ='0' then
+                    nxt_engine_st   <= get_stamp2;
                 else
                     nxt_engine_st   <= active;
                 end if;
@@ -429,43 +440,56 @@ begin
         end if;
         wait until clk ='1';
     end process;
+    
+    acam_timestamp1             <= acam_data_rd;
+    acam_timestamp2             <= acam_data_rd;
 
-    acam_status         <= acam_config_rdbk(9);
-    reg4                <= acam_config(4);
-    reset_word          <= reg4(31 downto 24) & "01" & reg4(21 downto 0);
+    acam_timestamp1_valid       <= '1' when (acam_ack ='1' and engine_st = get_stamp1)
+                                    else '0';
+    acam_timestamp2_valid       <= '1' when (acam_ack ='1' and engine_st = get_stamp2)
+                                    else '0';
+
+    acam_status                 <= acam_config_rdbk(9);
+    reg4                        <= acam_config(4);
+    reset_word                  <= reg4(31 downto 24) & "01" & reg4(21 downto 0);
 
     -- inputs
-    clk                 <= clk_i;
-    reset               <= reset_i;
-    acam_ack            <= ack_i;
-    acam_data_rd        <= dat_i;
-    acam_ef1            <= acam_ef1_i;
-    acam_ef2            <= acam_ef2_i;
+    clk                         <= clk_i;
+    reset                       <= reset_i;
+    acam_ack                    <= ack_i;
+    acam_data_rd                <= dat_i;
+    acam_ef1                    <= acam_ef1_i;
+    acam_ef2                    <= acam_ef2_i;
     
-    activate_acq        <= activate_acq_i;
-    deactivate_acq      <= deactivate_acq_i;
-    load_acam_config    <= load_acam_config_i;
-    read_acam_config    <= read_acam_config_i;
-    read_acam_status    <= read_acam_status_i;
-    read_ififo1         <= read_ififo1_i;
-    read_ififo2         <= read_ififo2_i;
-    read_start01        <= read_start01_i;
-    reset_acam          <= reset_acam_i;
-    acam_config         <= acam_config_i;
+    activate_acq                <= activate_acq_i;
+    deactivate_acq              <= deactivate_acq_i;
+    load_acam_config            <= load_acam_config_i;
+    read_acam_config            <= read_acam_config_i;
+    read_acam_status            <= read_acam_status_i;
+    read_ififo1                 <= read_ififo1_i;
+    read_ififo2                 <= read_ififo2_i;
+    read_start01                <= read_start01_i;
+    reset_acam                  <= reset_acam_i;
+    acam_config                 <= acam_config_i;
     
     --outputs
-    adr_o               <= x"000000" & acam_adr;
-    cyc_o               <= acam_cyc;
-    dat_o               <= acam_data_wr;
-    stb_o               <= acam_stb;
-    we_o                <= acam_we;
+    adr_o                       <= x"000000" & acam_adr;
+    cyc_o                       <= acam_cyc;
+    dat_o                       <= acam_data_wr;
+    stb_o                       <= acam_stb;
+    we_o                        <= acam_we;
     
-    acam_config_rdbk_o  <= acam_config_rdbk;
-    acam_status_o       <= acam_status;
-    acam_ififo1_o       <= acam_ififo1;
-    acam_ififo2_o       <= acam_ififo2;
-    acam_start01_o      <= acam_start01;
+    acam_config_rdbk_o          <= acam_config_rdbk;
+    acam_status_o               <= acam_status;
+    acam_ififo1_o               <= acam_ififo1;
+    acam_ififo2_o               <= acam_ififo2;
+    acam_start01_o              <= acam_start01;
     
+    acam_timestamp1_o           <= acam_timestamp1;
+    acam_timestamp2_o           <= acam_timestamp2;
+
+    acam_timestamp1_valid_o     <= acam_timestamp1_valid;
+    acam_timestamp2_valid_o     <= acam_timestamp2_valid;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

@@ -166,7 +166,7 @@ architecture rtl of top_tdc is
     );
     port(
         acam_start01_i          : in std_logic_vector(16 downto 0);
-        acam_timestamp_i        : in std_logic_vector(28 downto 0);
+        acam_timestamp_i        : in std_logic_vector(27 downto 0);
         acam_timestamp_valid_i  : in std_logic;
         clk_i                   : in std_logic;
         reset_i                 : in std_logic;
@@ -280,8 +280,10 @@ architecture rtl of top_tdc is
         acam_ififo1_o           : out std_logic_vector(g_width-1 downto 0);
         acam_ififo2_o           : out std_logic_vector(g_width-1 downto 0);
         acam_start01_o          : out std_logic_vector(g_width-1 downto 0);
-        acam_timestamp_o        : out std_logic_vector(28 downto 0);
-        acam_timestamp_valid_o  : out std_logic
+        acam_timestamp1_o       : out std_logic_vector(g_width-1 downto 0);
+        acam_timestamp1_valid_o : out std_logic;
+        acam_timestamp2_o       : out std_logic_vector(g_width-1 downto 0);
+        acam_timestamp2_valid_o : out std_logic
     );
     end component;
 
@@ -518,8 +520,10 @@ signal acam_rise_errflag_p      : std_logic;
 signal acam_fall_intflag_p      : std_logic;
 signal acam_rise_intflag_p      : std_logic;
 --signal acam_start01             : std_logic_vector(16 downto 0);
-signal acam_timestamp           : std_logic_vector(28 downto 0);
-signal acam_timestamp_valid     : std_logic;
+signal acam_timestamp1          : std_logic_vector(g_width-1 downto 0);
+signal acam_timestamp1_valid    : std_logic;
+signal acam_timestamp2          : std_logic_vector(g_width-1 downto 0);
+signal acam_timestamp2_valid    : std_logic;
 signal full_timestamp           : std_logic_vector(3*g_width-1 downto 0);
 signal full_timestamp_valid     : std_logic;
 signal general_reset            : std_logic;
@@ -769,8 +773,10 @@ begin
         acam_ififo1_o           => acam_ififo1,
         acam_ififo2_o           => acam_ififo2,
         acam_start01_o          => acam_start01,
-        acam_timestamp_o        => open,
-        acam_timestamp_valid_o  => open
+        acam_timestamp1_o       => acam_timestamp1,
+        acam_timestamp1_valid_o => acam_timestamp1_valid,
+        acam_timestamp2_o       => acam_timestamp2,
+        acam_timestamp2_valid_o => acam_timestamp2_valid
     );
     
     circular_buffer_block: circular_buffer
