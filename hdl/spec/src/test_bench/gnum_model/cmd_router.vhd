@@ -68,7 +68,7 @@ end component; -- cmd_router1
 	type boolean_vector is array (natural range <>) of boolean; 
 
 	constant MAX_FILES         : integer := 10;
-	constant FILENAMES         : FILE_ARRAY(0 to MAX_FILES-1) := (others=>"data_vectors/acam_test_cmd0.vec");
+	constant FILENAMES         : FILE_ARRAY(0 to MAX_FILES-1) := (others=>"data_vectors/atdc_test_cmd0.vec");
 --    , "data_vectors/acam_test_cmd1.vec");
 --	                                                               "data_vectors/acam_test_cmd2.vec", "data_vectors/acam_test_cmd3.vec", 
 --	                                                               "data_vectors/acam_test_cmd4.vec", "data_vectors/acam_test_cmd5.vec", 

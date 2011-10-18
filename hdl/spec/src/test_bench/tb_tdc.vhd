@@ -271,7 +271,7 @@ constant spec_clk_period        : time:= 50 ns;
 
   -- Number of Models receiving commands
   constant N_BFM      : integer                      := 1;  -- 0 : GN412X_BFM in Model Mode
-  --                                  -- 1 : GN412X_BFM in DUT mode
+  --                                                        -- 1 : GN412X_BFM in DUT mode
   -- Number of files to feed BFMs
   constant N_FILES    : integer                      := 1;
   --
@@ -320,6 +320,7 @@ signal tstop2               : std_logic;
 signal tstop3               : std_logic;
 signal tstop4               : std_logic;
 signal tstop5               : std_logic;
+signal dummy_tstop5         : std_logic;
 
 signal tdc_in_fpga_5        : std_logic;
 
@@ -482,7 +483,7 @@ begin
         tstop2_i                => tstop2,
         tstop3_i                => tstop3,
         tstop4_i                => tstop4,
-        tstop5_i                => tstop5,
+        tstop5_i                => dummy_tstop5,
         startdis_i              => start_dis_o,
         stopdis_i               => stop_dis_o,
         

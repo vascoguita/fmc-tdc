@@ -31,6 +31,8 @@ end acam_fifo_model;
 
 architecture behavioral of acam_fifo_model is
 
+constant ts_ef              : time:= 11800 ps;      -- maximum empty flag set time
+
 subtype index               is natural range size-1 downto 0;
 subtype memory_cell         is std_logic_vector(27 downto 0);
 type memory_block           is array (natural range size-1 downto 0) of memory_cell;
@@ -59,15 +61,22 @@ begin
     begin
         if rising_edge(rd_fifo) then
             data_output             <= fifo(rd_pointer);
+
+            if rd_pointer = size-1 then
+                rd_pointer          <= 0 after ts_ef;
+            else
+                rd_pointer          <= rd_pointer + 1 after ts_ef;
+            end if;
+
         end if;
         
-        if falling_edge(rd_fifo) then
-            if rd_pointer = size-1 then
-                rd_pointer          <= 0;
-            else
-                rd_pointer          <= rd_pointer + 1;
-            end if;
-        end if;
+--        if falling_edge(rd_fifo) then
+--            if rd_pointer = size-1 then
+--                rd_pointer          <= 0;
+--            else
+--                rd_pointer          <= rd_pointer + 1;
+--            end if;
+--        end if;
     end process;
     
     flags: process(level)

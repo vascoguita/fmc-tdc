@@ -152,8 +152,8 @@ begin
     interface_fifo1: acam_fifo_model
     generic map(
         size                => 256,
-        full_threshold      => 20,
-        empty_threshold     => 10
+        full_threshold      => 10,
+        empty_threshold     => 1
     )
     port map(
         data_input          => timestamp_for_fifo1,
@@ -167,8 +167,8 @@ begin
     interface_fifo2: acam_fifo_model
     generic map(
         size                => 256,
-        full_threshold      => 20,
-        empty_threshold     => 10
+        full_threshold      => 10,
+        empty_threshold     => 1
     )
     port map(
         data_input          => timestamp_for_fifo2,
