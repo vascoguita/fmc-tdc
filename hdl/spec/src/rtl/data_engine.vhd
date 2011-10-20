@@ -2,12 +2,16 @@
 --  CERN-BE-CO-HT
 ----------------------------------------------------------------------------------------------------
 --
---  unit name   : data polling engine (data_engine)
+--  unit name   : data managing engine (data_engine)
 --  author      : G. Penacoba
 --  date        : June 2011
 --  version     : Revision 1
---  description : engine polling data continuouly from the acam interface provided the FIFO is not 
---                empty. acts as a wishbone master.
+--  description : engine managing the configuration and acquisition modes of operation for the ACAM.
+--                  in acquisition mode: monitors permanently the Empty Flags of the ACAM iFIFOs
+--                  and reads timestamps accordingly.
+--                  when acquisition mode is inactive: allows the configuration and readback of ACAM
+--                  registers.
+--                  Acts as a wishbone master.
 --  dependencies:
 --  references  :
 --  modified by :
@@ -15,8 +19,7 @@
 ----------------------------------------------------------------------------------------------------
 --  last changes:
 ----------------------------------------------------------------------------------------------------
---  to do: REPLACE THE POLLING BY INTERRUPT FROM THE EMPTY SIGNALS. ADD RESET ACAM COMMAND
---        AND GET STATUS COMMAND
+--  to do: 
 ----------------------------------------------------------------------------------------------------
 
 library IEEE;
@@ -334,8 +337,8 @@ begin
         end case;
     end process;
     
-    config_adr: process             -- process to generate the valid addresses for the ACAM registers
-    begin
+    config_adr: process             -- process to generate the valid addresses 
+    begin                           -- for the ACAM config registers
         if reset ='1' then
             config_adr_counter      <= x"00";
 
@@ -356,7 +359,6 @@ begin
         wait until clk ='1';
     end process;
 
-        
     data_config_decoding: process(acam_adr, engine_st, acam_config, reset_word)
     begin
         case acam_adr is
@@ -393,7 +395,23 @@ begin
 
     data_readback_decoding: process
     begin
-        if acam_cyc ='1' and acam_stb ='1' and acam_ack ='1' and acam_we ='0' then
+        if reset ='1' then
+            acam_config_rdbk(0)      <= (others =>'0');
+            acam_config_rdbk(1)      <= (others =>'0');
+            acam_config_rdbk(2)      <= (others =>'0');
+            acam_config_rdbk(3)      <= (others =>'0');
+            acam_config_rdbk(4)      <= (others =>'0');
+            acam_config_rdbk(5)      <= (others =>'0');
+            acam_config_rdbk(6)      <= (others =>'0');
+            acam_config_rdbk(7)      <= (others =>'0');
+            acam_config_rdbk(8)      <= (others =>'0');
+            acam_config_rdbk(9)      <= (others =>'0');
+            acam_config_rdbk(10)     <= (others =>'0');
+
+            acam_ififo1              <= (others =>'0');
+            acam_ififo2              <= (others =>'0');
+            acam_start01             <= (others =>'0');
+        elsif acam_cyc ='1' and acam_stb ='1' and acam_ack ='1' and acam_we ='0' then
             if acam_adr= x"00" then
                 acam_config_rdbk(0)         <= acam_data_rd;
             end if;

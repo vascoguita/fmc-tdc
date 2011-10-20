@@ -162,19 +162,32 @@ architecture rtl of top_tdc is
 
     component data_formatting
     generic(
+        g_span                  : integer :=32;
         g_width                 : integer :=32
     );
     port(
-        acam_start01_i          : in std_logic_vector(16 downto 0);
-        acam_timestamp_i        : in std_logic_vector(27 downto 0);
-        acam_timestamp_valid_i  : in std_logic;
+        -- wishbone master signals internal to the chip: interface with the circular buffer
+        ack_i                   : in std_logic;
+        dat_i                   : in std_logic_vector(4*g_width-1 downto 0);
+
+        adr_o                   : out std_logic_vector(g_span-1 downto 0);
+        cyc_o                   : out std_logic;
+        dat_o                   : out std_logic_vector(4*g_width-1 downto 0);
+        stb_o                   : out std_logic;
+        we_o                    : out std_logic;
+        
+        -- signals internal to the chip: interface with other modules
+        acam_timestamp1_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_timestamp1_valid_i : in std_logic;
+        acam_timestamp2_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_timestamp2_valid_i : in std_logic;
         clk_i                   : in std_logic;
+        clear_dacapo_flag_i     : in std_logic;
         reset_i                 : in std_logic;
         start_nb_offset_i       : in std_logic_vector(g_width-1 downto 0);
         utc_current_time_i      : in std_logic_vector(g_width-1 downto 0);
 
-        full_timestamp_o        : out std_logic_vector(3*g_width-1 downto 0);
-        full_timestamp_valid_o  : out std_logic
+        wr_pointer_o            : out std_logic_vector(g_width-1 downto 0)
     );
     end component;
 
@@ -371,15 +384,16 @@ architecture rtl of top_tdc is
         -- control signals for interface with other internal modules
         activate_acq_o          : out std_logic;
         deactivate_acq_o        : out std_logic;
-        load_utc_o              : out std_logic;
-        load_tdc_config_o       : out std_logic;
         load_acam_config_o      : out std_logic;
         read_acam_config_o      : out std_logic;
-        reset_acam_o            : out std_logic;
         read_acam_status_o      : out std_logic;
         read_ififo1_o           : out std_logic;
         read_ififo2_o           : out std_logic;
         read_start01_o          : out std_logic;
+        reset_acam_o            : out std_logic;
+        load_utc_o              : out std_logic;
+        load_tdc_config_o       : out std_logic;
+        clear_dacapo_flag_o     : out std_logic;
         
         -- configuration registers from and for the ACAM and the modules of the TDC core
         acam_config_rdbk_i      : in config_vector;
@@ -387,8 +401,10 @@ architecture rtl of top_tdc is
         acam_ififo1_i           : in std_logic_vector(g_width-1 downto 0);
         acam_ififo2_i           : in std_logic_vector(g_width-1 downto 0);
         acam_start01_i          : in std_logic_vector(g_width-1 downto 0);
-        current_utc_i       : in std_logic_vector(g_width-1 downto 0);
-        irq_code_i          : in std_logic_vector(g_width-1 downto 0);
+        current_utc_i           : in std_logic_vector(g_width-1 downto 0);
+        irq_code_i              : in std_logic_vector(g_width-1 downto 0);
+        core_status_i           : in std_logic_vector(g_width-1 downto 0);
+        wr_pointer_i            : in std_logic_vector(g_width-1 downto 0);
 
         acam_config_o           : out config_vector;
         starting_utc_o          : out std_logic_vector(g_width-1 downto 0);
@@ -524,14 +540,15 @@ signal acam_timestamp1          : std_logic_vector(g_width-1 downto 0);
 signal acam_timestamp1_valid    : std_logic;
 signal acam_timestamp2          : std_logic_vector(g_width-1 downto 0);
 signal acam_timestamp2_valid    : std_logic;
-signal full_timestamp           : std_logic_vector(3*g_width-1 downto 0);
-signal full_timestamp_valid     : std_logic;
+signal clear_dacapo_flag        : std_logic;
+signal core_status              : std_logic_vector(g_width-1 downto 0);
 signal general_reset            : std_logic;
 signal one_hz_p                 : std_logic;
 signal start_nb_offset          : std_logic_vector(g_width-1 downto 0);
 signal start_trig               : std_logic;
 signal start_timer_reg          : std_logic_vector(7 downto 0);
 signal utc_current_time         : std_logic_vector(g_width-1 downto 0);
+signal wr_pointer               : std_logic_vector(g_width-1 downto 0);
 
 signal acm_adr                  : std_logic_vector(g_span-1 downto 0);
 signal acm_cyc                  : std_logic;
@@ -653,22 +670,33 @@ begin
         start_trig_o            => open
     );
     
---    data_formatting_block: data_formatting
---    generic map(
---        g_width             => g_width
---    )
---    port map(
---        acam_start01_i          => acam_start01,
---        acam_timestamp_i        => acam_timestamp,
---        acam_timestamp_valid_i  => acam_timestamp_valid,
---        clk_i                   => clk,
---        reset_i                 => general_reset,
---        start_nb_offset_i       => start_nb_offset,
---        utc_current_time_i      => utc_current_time,
---        
---        full_timestamp_o        => full_timestamp,
---        full_timestamp_valid_o  => full_timestamp_valid
---    );
+    data_formatting_block: data_formatting
+    generic map(
+        g_span                  => g_span,
+        g_width                 => g_width
+    )
+    port map(
+        ack_i                   => mem_class_ack,
+        dat_i                   => mem_class_data_rd,
+
+        adr_o                   => mem_class_adr,
+        cyc_o                   => mem_class_cyc,
+        dat_o                   => mem_class_data_wr,
+        stb_o                   => mem_class_stb,
+        we_o                    => mem_class_we,
+
+        acam_timestamp1_i       => acam_timestamp1,
+        acam_timestamp1_valid_i => acam_timestamp1_valid,
+        acam_timestamp2_i       => acam_timestamp2,
+        acam_timestamp2_valid_i => acam_timestamp2_valid,
+        clk_i                   => clk,
+        clear_dacapo_flag_i     => clear_dacapo_flag,
+        reset_i                 => general_reset,
+        start_nb_offset_i       => start_nb_offset,
+        utc_current_time_i      => utc_current_time,
+        
+        wr_pointer_o            => wr_pointer
+    );
     
     acam_timing_block: acam_timecontrol_interface
     generic map(
@@ -835,8 +863,6 @@ begin
         -- control signals for interface with other application internal modules
         activate_acq_o          => activate_acq,
         deactivate_acq_o        => deactivate_acq,
-        load_utc_o              => load_utc,
-        load_tdc_config_o       => load_tdc_config,
         load_acam_config_o      => load_acam_config,
         read_acam_config_o      => read_acam_config,
         read_acam_status_o      => read_acam_status,
@@ -844,8 +870,11 @@ begin
         read_ififo2_o           => read_ififo2,
         read_start01_o          => read_start01,
         reset_acam_o            => reset_acam,
+        load_utc_o              => load_utc,
+        load_tdc_config_o       => load_tdc_config,
+        clear_dacapo_flag_o     => clear_dacapo_flag,
         
-        -- configuration registers for the modules of the TDC core
+        -- configuration registers for the ACAM and the modules of the TDC core
         acam_config_rdbk_i      => acam_config_rdbk,
         acam_status_i           => acam_status,
         acam_ififo1_i           => acam_ififo1,
@@ -853,6 +882,8 @@ begin
         acam_start01_i          => acam_start01,
         current_utc_i           => current_utc,
         irq_code_i              => irq_code,
+        core_status_i           => core_status,
+        wr_pointer_i            => wr_pointer,
 
         acam_config_o           => acam_config,
         starting_utc_o          => starting_utc,
@@ -1081,6 +1112,7 @@ begin
     tdc_led_trig5_o         <= tdc_led_trig5;
 
     -- these will evolve as we implement all the features
+    irq_p                   <= dma_irq(0) or dma_irq(1);
     pulse_delay             <= x"00000001";
     window_delay            <= x"00000002";
     mute_inputs_o           <= '1';

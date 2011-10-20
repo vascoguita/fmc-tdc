@@ -48,8 +48,6 @@ entity reg_ctrl is
         -- control signals for interface with other internal modules
         activate_acq_o      : out std_logic;
         deactivate_acq_o    : out std_logic;
-        load_utc_o          : out std_logic;
-        load_tdc_config_o   : out std_logic;
         load_acam_config_o  : out std_logic;
         read_acam_config_o  : out std_logic;
         read_acam_status_o  : out std_logic;
@@ -57,6 +55,9 @@ entity reg_ctrl is
         read_ififo2_o       : out std_logic;
         read_start01_o      : out std_logic;
         reset_acam_o        : out std_logic;
+        load_utc_o          : out std_logic;
+        load_tdc_config_o   : out std_logic;
+        clear_dacapo_flag_o : out std_logic;
         
         -- configuration registers from and for the ACAM and the modules of the TDC core
         acam_config_rdbk_i  : in config_vector;
@@ -66,6 +67,8 @@ entity reg_ctrl is
         acam_start01_i      : in std_logic_vector(g_width-1 downto 0);
         current_utc_i       : in std_logic_vector(g_width-1 downto 0);
         irq_code_i          : in std_logic_vector(g_width-1 downto 0);
+        core_status_i       : in std_logic_vector(g_width-1 downto 0);
+        wr_pointer_i        : in std_logic_vector(g_width-1 downto 0);
 
         acam_config_o       : out config_vector;
         starting_utc_o      : out std_logic_vector(g_width-1 downto 0);
@@ -118,6 +121,8 @@ signal acam_ififo2              : std_logic_vector(g_width-1 downto 0);
 signal acam_start01             : std_logic_vector(g_width-1 downto 0);
 signal current_utc              : std_logic_vector(g_width-1 downto 0);
 signal irq_code                 : std_logic_vector(g_width-1 downto 0);
+signal core_status              : std_logic_vector(g_width-1 downto 0);
+signal wr_pointer               : std_logic_vector(g_width-1 downto 0);
 
 signal acam_config              : config_vector;
 signal starting_utc             : std_logic_vector(g_width-1 downto 0);
@@ -307,6 +312,8 @@ begin
                                 retrig_freq             when x"25",
                                 current_utc             when x"26",
                                 irq_code                when x"27",
+                                core_status             when x"28",
+                                wr_pointer              when x"29",
                                 x"FFFFFFFF"             when others;
 
     -- inputs from other blocks    
@@ -326,6 +333,8 @@ begin
     acam_ififo2                 <= acam_ififo2_i;
     acam_start01                <= acam_start01_i;
     irq_code                    <= irq_code_i;
+    core_status                 <= core_status_i;
+    wr_pointer                  <= wr_pointer_i;
     
     -- outputs to other blocks
     reg_ack_o                   <= reg_ack;
@@ -343,6 +352,7 @@ begin
     reset_acam_o                <= control_register(8);
     load_utc_o                  <= control_register(9);
     load_tdc_config_o           <= control_register(10);
+    clear_dacapo_flag_o         <= control_register(11);
 
     starting_utc_o              <= starting_utc;
     clk_freq_o                  <= clk_freq;

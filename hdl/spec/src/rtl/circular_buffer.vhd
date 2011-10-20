@@ -121,8 +121,10 @@ begin
     begin
         if class_reset ='1' then
             class_ack           <= '0';
+        elsif class_stb ='1' and class_cyc ='1' and class_ack ='0' then
+            class_ack           <= '1';
         else
-            class_ack           <= class_stb and class_cyc;
+            class_ack           <= '0';
         end if;
         wait until class_clk ='1';
     end process;
