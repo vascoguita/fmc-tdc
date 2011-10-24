@@ -65,7 +65,7 @@ entity reg_ctrl is
         acam_ififo1_i       : in std_logic_vector(g_width-1 downto 0);
         acam_ififo2_i       : in std_logic_vector(g_width-1 downto 0);
         acam_start01_i      : in std_logic_vector(g_width-1 downto 0);
-        current_utc_i       : in std_logic_vector(g_width-1 downto 0);
+        local_utc_i         : in std_logic_vector(g_width-1 downto 0);
         irq_code_i          : in std_logic_vector(g_width-1 downto 0);
         core_status_i       : in std_logic_vector(g_width-1 downto 0);
         wr_pointer_i        : in std_logic_vector(g_width-1 downto 0);
@@ -119,7 +119,7 @@ signal acam_status              : std_logic_vector(g_width-1 downto 0);
 signal acam_ififo1              : std_logic_vector(g_width-1 downto 0);
 signal acam_ififo2              : std_logic_vector(g_width-1 downto 0);
 signal acam_start01             : std_logic_vector(g_width-1 downto 0);
-signal current_utc              : std_logic_vector(g_width-1 downto 0);
+signal local_utc                : std_logic_vector(g_width-1 downto 0);
 signal irq_code                 : std_logic_vector(g_width-1 downto 0);
 signal core_status              : std_logic_vector(g_width-1 downto 0);
 signal wr_pointer               : std_logic_vector(g_width-1 downto 0);
@@ -310,7 +310,7 @@ begin
                                 start_phase             when x"23",
                                 one_hz_phase            when x"24",
                                 retrig_freq             when x"25",
-                                current_utc             when x"26",
+                                local_utc               when x"26",
                                 irq_code                when x"27",
                                 core_status             when x"28",
                                 wr_pointer              when x"29",

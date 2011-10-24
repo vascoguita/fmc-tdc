@@ -27,6 +27,7 @@ use IEEE.numeric_std.all;
 ----------------------------------------------------------------------------------------------------
 entity data_formatting is
     generic(
+        g_retrig_period_shift   : integer :=8;
         g_span                  : integer :=32;
         g_width                 : integer :=32
     );
@@ -49,8 +50,10 @@ entity data_formatting is
         clk_i                   : in std_logic;
         clear_dacapo_flag_i     : in std_logic;
         reset_i                 : in std_logic;
-        start_nb_offset_i       : in std_logic_vector(g_width-1 downto 0);
-        utc_current_time_i      : in std_logic_vector(g_width-1 downto 0);
+        clk_cycles_offset_i     : in std_logic_vector(g_width-1 downto 0);
+        current_roll_over_i     : in std_logic_vector(g_width-1 downto 0);
+        local_utc_i             : in std_logic_vector(g_width-1 downto 0);
+        retrig_nb_offset_i      : in std_logic_vector(g_width-1 downto 0);
 
         wr_pointer_o            : out std_logic_vector(g_width-1 downto 0)
     );
@@ -61,6 +64,11 @@ end data_formatting;
 ----------------------------------------------------------------------------------------------------
 architecture rtl of data_formatting is
 
+signal acam_timestamp1              : std_logic_vector(g_width-1 downto 0);
+signal acam_timestamp1_valid        : std_logic;
+signal acam_timestamp2              : std_logic_vector(g_width-1 downto 0);
+signal acam_timestamp2_valid        : std_logic;
+
 signal acam_channel                 : std_logic_vector(2 downto 0);
 signal acam_fifo_ef                 : std_logic;
 signal acam_fifo_lf                 : std_logic;
@@ -68,14 +76,19 @@ signal acam_fine_timestamp          : std_logic_vector(16 downto 0);
 signal acam_slope                   : std_logic;
 signal acam_start_nb                : std_logic_vector(7 downto 0);
 
-signal acam_timestamp1              : std_logic_vector(g_width-1 downto 0);
-signal acam_timestamp1_valid        : std_logic;
-signal acam_timestamp2              : std_logic_vector(g_width-1 downto 0);
-signal acam_timestamp2_valid        : std_logic;
 signal clk                          : std_logic;
 signal reset                        : std_logic;
-signal start_nb_offset              : std_logic_vector(g_width-1 downto 0);
-signal utc_current_time             : std_logic_vector(g_width-1 downto 0);
+signal clk_cycles_offset            : std_logic_vector(g_width-1 downto 0);
+signal current_roll_over            : std_logic_vector(g_width-1 downto 0);
+signal retrig_nb_offset             : std_logic_vector(g_width-1 downto 0);
+
+signal un_acam_start_nb             : unsigned(g_width-1 downto 0);
+signal un_clk_cycles_offset         : unsigned(g_width-1 downto 0);
+signal un_nb_of_retrig              : unsigned(g_width-1 downto 0);
+signal un_nb_of_cycles              : unsigned(g_width-1 downto 0);
+signal un_retrig_from_roll_over     : unsigned(g_width-1 downto 0);
+signal un_retrig_nb_offset          : unsigned(g_width-1 downto 0);
+signal un_roll_over                 : unsigned(g_width-1 downto 0);
 
 signal full_timestamp               : std_logic_vector(4*g_width-1 downto 0);
 signal metadata                     : std_logic_vector(g_width-1 downto 0);
@@ -183,16 +196,55 @@ begin
         wait until clk ='1';
     end process;
     
+--    coarse_time                             <= x"000000" 
+--                                            & acam_start_nb;
+    
+    -- the metadata field contains extra information about the timestamp
+
     metadata                                <= x"0000" 
                                             & "000" & acam_fifo_ef
                                             & "000" & acam_fifo_lf
                                             & "000" & acam_slope
                                             & "0" & acam_channel;
-    
-    local_utc                               <= utc_current_time;
 
-    coarse_time                             <= x"000000" 
-                                            & acam_start_nb;
+
+    -- the UTC time is updated every second by the one_hz_pulse    
+
+    local_utc                               <= local_utc_i;
+
+    -- the coarse time is expressed as the number of 125 MHz clock cycles since the last one_hz_pulse.
+    -- Since the clk and the pulse are derived from the same PLL, any offset between them is constant 
+    -- and will cancel when substracting timestamps.
+
+    coarse_time                             <= std_logic_vector(un_nb_of_cycles);
+    
+    -- all the values needed for the calculations have to be converted to unsigned
+
+    un_acam_start_nb                        <= unsigned(x"000000" & acam_start_nb);
+    un_clk_cycles_offset                    <= unsigned(clk_cycles_offset);
+    un_retrig_nb_offset                     <= unsigned(retrig_nb_offset);
+    un_roll_over                            <= unsigned(current_roll_over);
+
+    -- the number of roll-overs of the ACAM internal start retrigger counter is converted to a number
+    -- of internal start retriggers.
+
+    un_retrig_from_roll_over                <= shift_left(un_roll_over,8); -- shifted left to multiply by 256
+    
+    -- the actual number of internal start retriggers actually occurred is calculated by subtracting the offset number
+    -- already present when the one_hz_pulse arrives, and adding the start nb provided by the ACAM.
+
+    un_nb_of_retrig                         <=  un_retrig_from_roll_over
+                                                - un_retrig_nb_offset
+                                                + un_acam_start_nb;
+    -- finally, the coarse time is obtained by multiplying by the number of clk cycles in an internal
+    -- start retrigger period and adding the number of clk cycles still to be discounted when the
+    -- one_hz_pulse arrives.
+
+    un_nb_of_cycles                         <= shift_left(un_nb_of_retrig - 1,g_retrig_period_shift) 
+                                                + un_clk_cycles_offset;
+    
+    -- the fine time is directly provided by the ACAM as a number of BINs since the last
+    -- internal retrigger.
 
     fine_time                               <= x"000" 
                                             & "000" 
@@ -215,8 +267,9 @@ begin
     clk                                 <= clk_i;
     clear_dacapo_flag                   <= clear_dacapo_flag_i;
     reset                               <= reset_i;
-    start_nb_offset                     <= start_nb_offset_i;
-    utc_current_time                    <= utc_current_time_i;
+    clk_cycles_offset                   <= clk_cycles_offset_i;
+    retrig_nb_offset                    <= retrig_nb_offset_i;
+    current_roll_over                   <= current_roll_over_i;
 
     mem_ack                             <= ack_i;
     mem_data_rd                         <= dat_i;

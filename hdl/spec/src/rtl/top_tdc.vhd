@@ -137,57 +137,13 @@ architecture rtl of top_tdc is
         acam_refclk_i           : in std_logic;
         clk_i                   : in std_logic;
         clock_period_i          : in std_logic_vector(g_width-1 downto 0);
+        load_utc_i              : in std_logic;
         pulse_delay_i           : in std_logic_vector(g_width-1 downto 0);
         reset_i                 : in std_logic;
+        starting_utc_i          : in std_logic_vector(g_width-1 downto 0);
 
+        local_utc_o             : out std_logic_vector(g_width-1 downto 0);
         one_hz_p_o              : out std_logic
-    );
-    end component;
-
-    component start_retrigger_control is
-    generic(
-        g_width                 : integer :=32
-    );
-    port(
-        acam_rise_intflag_p_i   : in std_logic;
-        acam_fall_intflag_p_i   : in std_logic;
-        clk_i                   : in std_logic;
-        one_hz_p_i              : in std_logic;
-        reset_i                 : in std_logic;
-        
-        start_nb_offset_o       : out std_logic_vector(g_width-1 downto 0);
-        start_trig_o            : out std_logic
-    );
-    end component;
-
-    component data_formatting
-    generic(
-        g_span                  : integer :=32;
-        g_width                 : integer :=32
-    );
-    port(
-        -- wishbone master signals internal to the chip: interface with the circular buffer
-        ack_i                   : in std_logic;
-        dat_i                   : in std_logic_vector(4*g_width-1 downto 0);
-
-        adr_o                   : out std_logic_vector(g_span-1 downto 0);
-        cyc_o                   : out std_logic;
-        dat_o                   : out std_logic_vector(4*g_width-1 downto 0);
-        stb_o                   : out std_logic;
-        we_o                    : out std_logic;
-        
-        -- signals internal to the chip: interface with other modules
-        acam_timestamp1_i       : in std_logic_vector(g_width-1 downto 0);
-        acam_timestamp1_valid_i : in std_logic;
-        acam_timestamp2_i       : in std_logic_vector(g_width-1 downto 0);
-        acam_timestamp2_valid_i : in std_logic;
-        clk_i                   : in std_logic;
-        clear_dacapo_flag_i     : in std_logic;
-        reset_i                 : in std_logic;
-        start_nb_offset_i       : in std_logic_vector(g_width-1 downto 0);
-        utc_current_time_i      : in std_logic_vector(g_width-1 downto 0);
-
-        wr_pointer_o            : out std_logic_vector(g_width-1 downto 0)
     );
     end component;
 
@@ -255,6 +211,24 @@ architecture rtl of top_tdc is
     );
     end component;
 
+    component start_retrigger_control is
+    generic(
+        g_width                 : integer :=32
+    );
+    port(
+        acam_rise_intflag_p_i   : in std_logic;
+        acam_fall_intflag_p_i   : in std_logic;
+        clk_i                   : in std_logic;
+        one_hz_p_i              : in std_logic;
+        reset_i                 : in std_logic;
+        retrig_period_i         : in std_logic_vector(g_width-1 downto 0);
+        
+        clk_cycles_offset_o     : out std_logic_vector(g_width-1 downto 0);
+        current_roll_over_o     : out std_logic_vector(g_width-1 downto 0);
+        retrig_nb_offset_o      : out std_logic_vector(g_width-1 downto 0)
+    );
+    end component;
+
     component data_engine
     generic(
         g_span                  : integer :=32;
@@ -300,6 +274,40 @@ architecture rtl of top_tdc is
     );
     end component;
 
+    component data_formatting
+    generic(
+        g_retrig_period_shift   : integer :=8;
+        g_span                  : integer :=32;
+        g_width                 : integer :=32
+    );
+    port(
+        -- wishbone master signals internal to the chip: interface with the circular buffer
+        ack_i                   : in std_logic;
+        dat_i                   : in std_logic_vector(4*g_width-1 downto 0);
+
+        adr_o                   : out std_logic_vector(g_span-1 downto 0);
+        cyc_o                   : out std_logic;
+        dat_o                   : out std_logic_vector(4*g_width-1 downto 0);
+        stb_o                   : out std_logic;
+        we_o                    : out std_logic;
+        
+        -- signals internal to the chip: interface with other modules
+        acam_timestamp1_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_timestamp1_valid_i : in std_logic;
+        acam_timestamp2_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_timestamp2_valid_i : in std_logic;
+        clk_i                   : in std_logic;
+        clear_dacapo_flag_i     : in std_logic;
+        reset_i                 : in std_logic;
+        clk_cycles_offset_i     : in std_logic_vector(g_width-1 downto 0);
+        current_roll_over_i     : in std_logic_vector(g_width-1 downto 0);
+        local_utc_i             : in std_logic_vector(g_width-1 downto 0);
+        retrig_nb_offset_i      : in std_logic_vector(g_width-1 downto 0);
+
+        wr_pointer_o            : out std_logic_vector(g_width-1 downto 0)
+    );
+    end component;
+
     component circular_buffer
     generic(
         g_span                  : integer :=32;
@@ -335,33 +343,6 @@ architecture rtl of top_tdc is
     );
     end component;
 
-    component clk_rst_managr
-    generic(
-        nb_of_reg               : integer:=68;
-        values_for_simulation   : boolean:=FALSE
-    );
-    port(
-        acam_refclk_i           : in std_logic;
-        pll_ld_i                : in std_logic;
-        pll_refmon_i            : in std_logic;
-        pll_sdo_i               : in std_logic;
-        pll_status_i            : in std_logic;
-        gnum_reset_i            : in std_logic;
-        spec_clk_i              : in std_logic;
-        tdc_clk_p_i             : in std_logic;
-        tdc_clk_n_i             : in std_logic;
-        
-        acam_refclk_o           : out std_logic;
-        general_reset_o         : out std_logic;
-        pll_cs_o                : out std_logic;
-        pll_dac_sync_o          : out std_logic;
-        pll_sdi_o               : out std_logic;
-        pll_sclk_o              : out std_logic;
-        spec_clk_o              : out std_logic;
-        tdc_clk_o               : out std_logic
-    );
-    end component;
-    
     component reg_ctrl
     generic(
         g_span                  : integer :=32;
@@ -401,7 +382,7 @@ architecture rtl of top_tdc is
         acam_ififo1_i           : in std_logic_vector(g_width-1 downto 0);
         acam_ififo2_i           : in std_logic_vector(g_width-1 downto 0);
         acam_start01_i          : in std_logic_vector(g_width-1 downto 0);
-        current_utc_i           : in std_logic_vector(g_width-1 downto 0);
+        local_utc_i             : in std_logic_vector(g_width-1 downto 0);
         irq_code_i              : in std_logic_vector(g_width-1 downto 0);
         core_status_i           : in std_logic_vector(g_width-1 downto 0);
         wr_pointer_i            : in std_logic_vector(g_width-1 downto 0);
@@ -416,6 +397,33 @@ architecture rtl of top_tdc is
     );
     end component;
 
+    component clk_rst_managr
+    generic(
+        nb_of_reg               : integer:=68;
+        values_for_simulation   : boolean:=FALSE
+    );
+    port(
+        acam_refclk_i           : in std_logic;
+        pll_ld_i                : in std_logic;
+        pll_refmon_i            : in std_logic;
+        pll_sdo_i               : in std_logic;
+        pll_status_i            : in std_logic;
+        gnum_reset_i            : in std_logic;
+        spec_clk_i              : in std_logic;
+        tdc_clk_p_i             : in std_logic;
+        tdc_clk_n_i             : in std_logic;
+        
+        acam_refclk_o           : out std_logic;
+        general_reset_o         : out std_logic;
+        pll_cs_o                : out std_logic;
+        pll_dac_sync_o          : out std_logic;
+        pll_sdi_o               : out std_logic;
+        pll_sclk_o              : out std_logic;
+        spec_clk_o              : out std_logic;
+        tdc_clk_o               : out std_logic
+    );
+    end component;
+    
     component gn4124_core
     generic(
     g_BAR0_APERTURE     : integer := 20;     -- BAR0 aperture, defined in GN4124 PCI_BAR_CONFIG register (0x80C)
@@ -502,8 +510,12 @@ architecture rtl of top_tdc is
     end component;
 
 --used to generate the one_hz_p pulse
+--constant sim_clock_period       : std_logic_vector(g_width-1 downto 0):=x"0000F424"; -- 500 us at 125 MHz (tdc board clock)
 constant sim_clock_period       : std_logic_vector(g_width-1 downto 0):=x"0001E848"; -- 1 ms at 125 MHz (tdc board clock)
 constant syn_clock_period       : std_logic_vector(g_width-1 downto 0):=x"07735940"; -- 1 s at 125 MHz (tdc board clock)
+
+constant retrig_period          : std_logic_vector(g_width-1 downto 0):= x"00000040";
+constant retrig_period_shift    : integer:=6;
 
 signal spec_led_blink_done      : std_logic;
 signal spec_led_period_done     : std_logic;
@@ -542,12 +554,13 @@ signal acam_timestamp2          : std_logic_vector(g_width-1 downto 0);
 signal acam_timestamp2_valid    : std_logic;
 signal clear_dacapo_flag        : std_logic;
 signal core_status              : std_logic_vector(g_width-1 downto 0);
+signal clk_cycles_offset        : std_logic_vector(g_width-1 downto 0);
+signal current_roll_over        : std_logic_vector(g_width-1 downto 0);
 signal general_reset            : std_logic;
 signal one_hz_p                 : std_logic;
-signal start_nb_offset          : std_logic_vector(g_width-1 downto 0);
+signal retrig_nb_offset         : std_logic_vector(g_width-1 downto 0);
 signal start_trig               : std_logic;
-signal start_timer_reg          : std_logic_vector(7 downto 0);
-signal utc_current_time         : std_logic_vector(g_width-1 downto 0);
+signal local_utc                : std_logic_vector(g_width-1 downto 0);
 signal wr_pointer               : std_logic_vector(g_width-1 downto 0);
 
 signal acm_adr                  : std_logic_vector(g_span-1 downto 0);
@@ -628,7 +641,6 @@ signal acam_status              : std_logic_vector(g_width-1 downto 0);
 signal acam_ififo1              : std_logic_vector(g_width-1 downto 0);
 signal acam_ififo2              : std_logic_vector(g_width-1 downto 0);
 signal acam_start01             : std_logic_vector(g_width-1 downto 0);
-signal current_utc              : std_logic_vector(g_width-1 downto 0);
 signal irq_code                 : std_logic_vector(g_width-1 downto 0);
 signal acam_config              : config_vector;
 
@@ -649,53 +661,13 @@ begin
         acam_refclk_i       => acam_refclk,
         clk_i               => clk,
         clock_period_i      => clock_period,
+        load_utc_i          => load_utc,
         pulse_delay_i       => pulse_delay,
         reset_i             => general_reset,
+        starting_utc_i      => starting_utc,
         
+        local_utc_o         => local_utc,
         one_hz_p_o          => one_hz_p
-    );
-    
-    start_retrigger_block: start_retrigger_control
-    generic map(
-        g_width                 => g_width
-    )
-    port map(
-        acam_fall_intflag_p_i   => acam_fall_intflag_p,
-        acam_rise_intflag_p_i   => acam_rise_intflag_p,
-        clk_i                   => clk,
-        one_hz_p_i              => one_hz_p,
-        reset_i                 => general_reset,
-        
-        start_nb_offset_o       => start_nb_offset,
-        start_trig_o            => open
-    );
-    
-    data_formatting_block: data_formatting
-    generic map(
-        g_span                  => g_span,
-        g_width                 => g_width
-    )
-    port map(
-        ack_i                   => mem_class_ack,
-        dat_i                   => mem_class_data_rd,
-
-        adr_o                   => mem_class_adr,
-        cyc_o                   => mem_class_cyc,
-        dat_o                   => mem_class_data_wr,
-        stb_o                   => mem_class_stb,
-        we_o                    => mem_class_we,
-
-        acam_timestamp1_i       => acam_timestamp1,
-        acam_timestamp1_valid_i => acam_timestamp1_valid,
-        acam_timestamp2_i       => acam_timestamp2,
-        acam_timestamp2_valid_i => acam_timestamp2_valid,
-        clk_i                   => clk,
-        clear_dacapo_flag_i     => clear_dacapo_flag,
-        reset_i                 => general_reset,
-        start_nb_offset_i       => start_nb_offset,
-        utc_current_time_i      => utc_current_time,
-        
-        wr_pointer_o            => wr_pointer
     );
     
     acam_timing_block: acam_timecontrol_interface
@@ -763,6 +735,23 @@ begin
         dat_o                   => acm_dat_r
     );
 
+    start_retrigger_block: start_retrigger_control
+    generic map(
+        g_width                 => g_width
+    )
+    port map(
+        acam_fall_intflag_p_i   => acam_fall_intflag_p,
+        acam_rise_intflag_p_i   => acam_rise_intflag_p,
+        clk_i                   => clk,
+        one_hz_p_i              => one_hz_p,
+        reset_i                 => general_reset,
+        retrig_period_i         => retrig_period,
+        
+        clk_cycles_offset_o     => clk_cycles_offset,
+        current_roll_over_o     => current_roll_over,
+        retrig_nb_offset_o      => retrig_nb_offset
+    );
+    
     data_engine_block: data_engine
     generic map(
         g_span                  => g_span,
@@ -805,6 +794,37 @@ begin
         acam_timestamp1_valid_o => acam_timestamp1_valid,
         acam_timestamp2_o       => acam_timestamp2,
         acam_timestamp2_valid_o => acam_timestamp2_valid
+    );
+    
+    data_formatting_block: data_formatting
+    generic map(
+        g_retrig_period_shift   => retrig_period_shift,
+        g_span                  => g_span,
+        g_width                 => g_width
+    )
+    port map(
+        ack_i                   => mem_class_ack,
+        dat_i                   => mem_class_data_rd,
+
+        adr_o                   => mem_class_adr,
+        cyc_o                   => mem_class_cyc,
+        dat_o                   => mem_class_data_wr,
+        stb_o                   => mem_class_stb,
+        we_o                    => mem_class_we,
+
+        acam_timestamp1_i       => acam_timestamp1,
+        acam_timestamp1_valid_i => acam_timestamp1_valid,
+        acam_timestamp2_i       => acam_timestamp2,
+        acam_timestamp2_valid_i => acam_timestamp2_valid,
+        clk_i                   => clk,
+        clear_dacapo_flag_i     => clear_dacapo_flag,
+        reset_i                 => general_reset,
+        clk_cycles_offset_i     => clk_cycles_offset,
+        current_roll_over_i     => current_roll_over,
+        retrig_nb_offset_i      => retrig_nb_offset,
+        local_utc_i             => local_utc,
+        
+        wr_pointer_o            => wr_pointer
     );
     
     circular_buffer_block: circular_buffer
@@ -880,7 +900,7 @@ begin
         acam_ififo1_i           => acam_ififo1,
         acam_ififo2_i           => acam_ififo2,
         acam_start01_i          => acam_start01,
-        current_utc_i           => current_utc,
+        local_utc_i             => local_utc,
         irq_code_i              => irq_code,
         core_status_i           => core_status,
         wr_pointer_i            => wr_pointer,
@@ -892,6 +912,32 @@ begin
         start_phase_o           => start_phase,
         one_hz_phase_o          => one_hz_phase,
         retrig_freq_o           => retrig_freq
+    );
+    
+    clks_rsts_mgment: clk_rst_managr
+    generic map(
+        nb_of_reg               => 68,
+        values_for_simulation   => values_for_simulation
+    )
+    port map(
+        acam_refclk_i       => acam_refclk_i,
+        pll_ld_i            => pll_ld_i,
+        pll_refmon_i        => pll_refmon_i,
+        pll_sdo_i           => pll_sdo_i,
+        pll_status_i        => pll_status_i,
+        gnum_reset_i        => gnum_reset,
+        spec_clk_i          => spec_clk_i,
+        tdc_clk_p_i         => tdc_clk_p_i,
+        tdc_clk_n_i         => tdc_clk_n_i,
+        
+        acam_refclk_o       => acam_refclk,
+        general_reset_o     => general_reset,
+        pll_cs_o            => pll_cs_o,
+        pll_dac_sync_o      => pll_dac_sync_o,
+        pll_sdi_o           => pll_sdi_o,
+        pll_sclk_o          => pll_sclk_o,
+        spec_clk_o          => spec_clk,
+        tdc_clk_o           => clk
     );
     
     gnum_interface_block: gn4124_core
@@ -950,32 +996,6 @@ begin
         dma_stall_i             => dma_stall
     );
 
-    clks_rsts_mgment: clk_rst_managr
-    generic map(
-        nb_of_reg               => 68,
-        values_for_simulation   => values_for_simulation
-    )
-    port map(
-        acam_refclk_i       => acam_refclk_i,
-        pll_ld_i            => pll_ld_i,
-        pll_refmon_i        => pll_refmon_i,
-        pll_sdo_i           => pll_sdo_i,
-        pll_status_i        => pll_status_i,
-        gnum_reset_i        => gnum_reset,
-        spec_clk_i          => spec_clk_i,
-        tdc_clk_p_i         => tdc_clk_p_i,
-        tdc_clk_n_i         => tdc_clk_n_i,
-        
-        acam_refclk_o       => acam_refclk,
-        general_reset_o     => general_reset,
-        pll_cs_o            => pll_cs_o,
-        pll_dac_sync_o      => pll_dac_sync_o,
-        pll_sdi_o           => pll_sdi_o,
-        pll_sclk_o          => pll_sclk_o,
-        spec_clk_o          => spec_clk,
-        tdc_clk_o           => clk
-    );
-    
     spec_led_period_counter: free_counter
     port map(
         clk                 => spec_clk,

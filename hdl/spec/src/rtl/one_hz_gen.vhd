@@ -34,9 +34,12 @@ entity one_hz_gen is
         acam_refclk_i   : in std_logic;
         clk_i           : in std_logic;
         clock_period_i  : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods for 1s
+        load_utc_i      : in std_logic;
         pulse_delay_i   : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods phase delay
         reset_i         : in std_logic;                            -- with respect to reference clock
+        starting_utc_i  : in std_logic_vector(g_width-1 downto 0);
 
+        local_utc_o     : out std_logic_vector(g_width-1 downto 0);
         one_hz_p_o      : out std_logic
     );
 end one_hz_gen;
@@ -79,12 +82,15 @@ architecture rtl of one_hz_gen is
 constant constant_delay     : unsigned(3 downto 0):=x"4";
 
 signal clk                  : std_logic;
+signal local_utc            : unsigned(g_width-1 downto 0);
+signal load_utc             : std_logic;
 signal one_hz_p_pre         : std_logic;
 signal one_hz_p_post        : std_logic;
 signal onesec_counter_en    : std_logic;
 signal refclk_edge          : std_logic;
 signal reset                : std_logic;
 signal s_acam_refclk        : unsigned(3 downto 0);
+signal starting_utc         : std_logic_vector(g_width-1 downto 0);
 signal total_delay          : std_logic_vector(g_width-1 downto 0);
 
 
@@ -92,27 +98,6 @@ signal total_delay          : std_logic_vector(g_width-1 downto 0);
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
 begin
-
-    sync_acam_refclk: process
-    begin
-        if reset ='1' then
-            s_acam_refclk       <= (others=>'0');
-        else
-            s_acam_refclk       <= shift_right(s_acam_refclk,1);
-            s_acam_refclk(3)    <= acam_refclk_i;
-        end if;
-        wait until clk ='1';
-    end process;
-    
-    onesec_trigger: process
-    begin
-        if reset ='1' then
-            onesec_counter_en   <= '0';
-        elsif refclk_edge ='1' then
-            onesec_counter_en   <= '1';
-        end if;
-        wait until clk ='1';
-    end process;
 
     clock_periods_counter: free_counter
     generic map(
@@ -142,8 +127,27 @@ begin
         current_value   => open
     );
     
-    clk                 <= clk_i;
-    reset               <= reset_i;
+    onesec_trigger: process
+    begin
+        if reset ='1' then
+            onesec_counter_en   <= '0';
+        elsif refclk_edge ='1' then
+            onesec_counter_en   <= '1';
+        end if;
+        wait until clk ='1';
+    end process;
+
+    utc_counter: process
+    begin   
+        if reset ='1' then
+            local_utc   <= (others=>'0');
+        elsif load_utc ='1' then
+            local_utc   <= unsigned(starting_utc);
+        elsif one_hz_p_post ='1' then
+            local_utc   <= local_utc + 1;
+        end if;
+        wait until clk ='1';
+    end process;
     
     refclk_edge         <= not(s_acam_refclk(3)) and
                            s_acam_refclk(2) and
@@ -152,6 +156,25 @@ begin
                            
     total_delay         <= std_logic_vector(unsigned(pulse_delay_i)+constant_delay);
 
+    -- inputs
+    sync_acam_refclk: process
+    begin
+        if reset ='1' then
+            s_acam_refclk       <= (others=>'0');
+        else
+            s_acam_refclk       <= shift_right(s_acam_refclk,1);
+            s_acam_refclk(3)    <= acam_refclk_i;
+        end if;
+        wait until clk ='1';
+    end process;
+    
+    clk                 <= clk_i;
+    reset               <= reset_i;
+    load_utc            <= load_utc_i;
+    starting_utc        <= starting_utc_i;
+
+    -- output
+    local_utc_o         <= std_logic_vector(local_utc);
     one_hz_p_o          <= one_hz_p_post;
 
 end rtl;
