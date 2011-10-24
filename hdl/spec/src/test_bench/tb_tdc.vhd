@@ -28,6 +28,7 @@ architecture behavioral of tb_tdc is
 
     component top_tdc
     generic(
+        g_span                  : integer :=32;
         g_width                 : integer :=32;
         values_for_simulation   : boolean :=FALSE
     );
@@ -266,8 +267,9 @@ architecture behavioral of tb_tdc is
 
 constant pll_clk_period         : time:= 8 ns;
 constant g_width                : integer:= 32;
-constant start_retrig_period    : time:= 3200 ns;
+constant g_span                 : integer:= 32;
 constant spec_clk_period        : time:= 50 ns;
+constant start_retrig_period    : time:= 512 ns;
 
   -- Number of Models receiving commands
   constant N_BFM      : integer                      := 1;  -- 0 : GN412X_BFM in Model Mode
@@ -385,6 +387,7 @@ begin
 
     dut: top_tdc
     generic map(
+        g_span                  => 32,
         g_width                 => 32,
         values_for_simulation   => TRUE
     )
