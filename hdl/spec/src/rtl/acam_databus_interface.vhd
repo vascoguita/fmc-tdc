@@ -208,6 +208,10 @@ begin
     we                          <= we_i;
     
     -- outputs to other blocks
+    acam_ef1_o                  <= ef1;
+    acam_ef2_o                  <= ef2;
+    acam_lf1_o                  <= lf1;
+    acam_lf2_o                  <= lf2;
     ack_o                       <= ack;
     dat_o                       <= ef1 & ef2 & lf1 & lf2 & data_bus_io;
 
@@ -231,10 +235,6 @@ begin
 
     -- outputs to the ACAM
     address_o                   <= adr(3 downto 0);
-    acam_ef1_o                  <= ef1;
-    acam_ef2_o                  <= ef2;
-    acam_lf1_o                  <= lf1;
-    acam_lf2_o                  <= lf2;
     
     output_registers: process
     begin

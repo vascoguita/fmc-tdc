@@ -86,6 +86,8 @@ architecture rtl of acam_timecontrol_interface is
     );
     end component;
 
+constant constant_delay     : unsigned(g_width-1 downto 0):=x"00000004";
+
 signal acam_refclk          : std_logic;
 signal clk                  : std_logic;
 signal counter_reset        : std_logic;
@@ -104,6 +106,7 @@ signal start_trig_edge      : std_logic;
 signal start_trig_received  : std_logic;
 signal waitingfor_refclk    : std_logic;
 signal window_active        : std_logic;
+signal total_delay          : std_logic_vector(g_width-1 downto 0);
 signal window_delay         : std_logic_vector(g_width-1 downto 0);
 signal window_inverted      : std_logic;
 signal window_prepulse      : std_logic;
@@ -155,7 +158,7 @@ begin
         clk             => clk,
         reset           => reset,
         start           => window_prepulse,
-        start_value     => window_delay,
+        start_value     => total_delay,
 
         count_done      => window_start,
         current_value   => open
@@ -256,6 +259,7 @@ begin
 
     window_prepulse         <= waitingfor_refclk and refclk_edge;
     counter_reset           <= reset or window_start;
+    total_delay             <= std_logic_vector(unsigned(window_delay)+constant_delay);
     
     -- inputs
     clk                     <= clk_i;

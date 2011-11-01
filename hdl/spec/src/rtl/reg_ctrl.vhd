@@ -56,7 +56,7 @@ entity reg_ctrl is
         read_start01_o      : out std_logic;
         reset_acam_o        : out std_logic;
         load_utc_o          : out std_logic;
-        load_tdc_config_o   : out std_logic;
+--        load_tdc_config_o   : out std_logic;
         clear_dacapo_flag_o : out std_logic;
         
         -- configuration registers from and for the ACAM and the modules of the TDC core
@@ -72,11 +72,11 @@ entity reg_ctrl is
 
         acam_config_o       : out config_vector;
         starting_utc_o      : out std_logic_vector(g_width-1 downto 0);
-        clk_freq_o          : out std_logic_vector(g_width-1 downto 0);
-        ref_clk_freq_o      : out std_logic_vector(g_width-1 downto 0);
+--        clk_freq_o          : out std_logic_vector(g_width-1 downto 0);
+--        ref_clk_freq_o      : out std_logic_vector(g_width-1 downto 0);
         start_phase_o       : out std_logic_vector(g_width-1 downto 0);
-        one_hz_phase_o      : out std_logic_vector(g_width-1 downto 0);
-        retrig_freq_o       : out std_logic_vector(g_width-1 downto 0)
+        one_hz_phase_o      : out std_logic_vector(g_width-1 downto 0)
+--        retrig_freq_o       : out std_logic_vector(g_width-1 downto 0)
     );
 end reg_ctrl;
 
@@ -126,11 +126,11 @@ signal wr_pointer               : std_logic_vector(g_width-1 downto 0);
 
 signal acam_config              : config_vector;
 signal starting_utc             : std_logic_vector(g_width-1 downto 0);
-signal clk_freq                 : std_logic_vector(g_width-1 downto 0);
-signal ref_clk_freq             : std_logic_vector(g_width-1 downto 0);
+--signal clk_freq                 : std_logic_vector(g_width-1 downto 0);
+--signal ref_clk_freq             : std_logic_vector(g_width-1 downto 0);
 signal start_phase              : std_logic_vector(g_width-1 downto 0);
 signal one_hz_phase             : std_logic_vector(g_width-1 downto 0);
-signal retrig_freq              : std_logic_vector(g_width-1 downto 0);
+--signal retrig_freq              : std_logic_vector(g_width-1 downto 0);
 
 signal control_register         : std_logic_vector(g_width-1 downto 0);
 signal clear_ctrl_reg           : std_logic;
@@ -220,11 +220,11 @@ begin
     begin
         if reg_reset ='1' then
             starting_utc        <= (others =>'0');
-            clk_freq            <= (others =>'0');
-            ref_clk_freq        <= (others =>'0');
+--            clk_freq            <= (others =>'0');
+--            ref_clk_freq        <= (others =>'0');
             start_phase         <= (others =>'0');
             one_hz_phase        <= (others =>'0');
-            retrig_freq         <= (others =>'0');
+--            retrig_freq         <= (others =>'0');
         elsif reg_cyc ='1'      and reg_stb ='1'    and reg_we ='1' then
 
             if reg_adr = x"20" then             -- corresponds to address 80080 of the gnum BAR 0
@@ -232,24 +232,24 @@ begin
             end if;
 
             if reg_adr = x"21" then             -- corresponds to address 80084 of the gnum BAR 0
-                clk_freq            <= reg_data_wr;
-            end if;
-
-            if reg_adr = x"22" then             -- corresponds to address 80088 of the gnum BAR 0
-                ref_clk_freq        <= reg_data_wr;
-            end if;
-
-            if reg_adr = x"23" then             -- corresponds to address 8008C of the gnum BAR 0
                 start_phase         <= reg_data_wr;
             end if;
 
-            if reg_adr = x"24" then             -- corresponds to address 80090 of the gnum BAR 0
+            if reg_adr = x"22" then             -- corresponds to address 80088 of the gnum BAR 0
                 one_hz_phase        <= reg_data_wr;
             end if;
 
-            if reg_adr = x"25" then             -- corresponds to address 80094 of the gnum BAR 0
-                retrig_freq         <= reg_data_wr;
-            end if;
+--            if reg_adr = x"23" then             -- corresponds to address 8008C of the gnum BAR 0
+--                start_phase         <= reg_data_wr;
+--            end if;
+--
+--            if reg_adr = x"24" then             -- corresponds to address 80090 of the gnum BAR 0
+--                one_hz_phase        <= reg_data_wr;
+--            end if;
+--
+--            if reg_adr = x"25" then             -- corresponds to address 80094 of the gnum BAR 0
+--                retrig_freq         <= reg_data_wr;
+--            end if;
         end if;
         wait until reg_clk ='1';
     end process;
@@ -305,15 +305,14 @@ begin
                                 acam_config_rdbk(10)    when x"1E",
                                 
                                 starting_utc            when x"20",
-                                clk_freq                when x"21",
-                                ref_clk_freq            when x"22",
-                                start_phase             when x"23",
-                                one_hz_phase            when x"24",
-                                retrig_freq             when x"25",
-                                local_utc               when x"26",
-                                irq_code                when x"27",
+                                start_phase             when x"21",
+                                one_hz_phase            when x"22",
+--                                                      when x"23",
+                                irq_code                when x"24",
+                                local_utc               when x"25",
+--                                                      when x"26",
+                                wr_pointer              when x"27",
                                 core_status             when x"28",
-                                wr_pointer              when x"29",
                                 x"FFFFFFFF"             when others;
 
     -- inputs from other blocks    
@@ -333,8 +332,9 @@ begin
     acam_ififo2                 <= acam_ififo2_i;
     acam_start01                <= acam_start01_i;
     irq_code                    <= irq_code_i;
-    core_status                 <= core_status_i;
+    local_utc                   <= local_utc_i;
     wr_pointer                  <= wr_pointer_i;
+    core_status                 <= core_status_i;
     
     -- outputs to other blocks
     reg_ack_o                   <= reg_ack;
@@ -351,15 +351,14 @@ begin
     read_start01_o              <= control_register(7);
     reset_acam_o                <= control_register(8);
     load_utc_o                  <= control_register(9);
-    load_tdc_config_o           <= control_register(10);
-    clear_dacapo_flag_o         <= control_register(11);
+    clear_dacapo_flag_o         <= control_register(10);
 
     starting_utc_o              <= starting_utc;
-    clk_freq_o                  <= clk_freq;
-    ref_clk_freq_o              <= ref_clk_freq;
+--    clk_freq_o                  <= clk_freq;
+--    ref_clk_freq_o              <= ref_clk_freq;
     start_phase_o               <= start_phase;
     one_hz_phase_o              <= one_hz_phase;
-    retrig_freq_o               <= retrig_freq;
+--    retrig_freq_o               <= retrig_freq;
         
 end rtl;
 ----------------------------------------------------------------------------------------------------

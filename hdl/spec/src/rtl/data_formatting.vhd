@@ -275,7 +275,7 @@ begin
     mem_data_rd                         <= dat_i;
 
     -- outputs
-    wr_pointer_o                        <= dacapo_flag & std_logic_vector(wr_pointer(g_width-4 downto 0)) & "00";
+    wr_pointer_o                        <= dacapo_flag & std_logic_vector(wr_pointer(g_width-6 downto 0)) & x"0";
 
     adr_o                               <= mem_adr;
     cyc_o                               <= mem_cyc;

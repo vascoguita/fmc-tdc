@@ -79,7 +79,7 @@ architecture rtl of one_hz_gen is
     );
     end component;
 
-constant constant_delay     : unsigned(3 downto 0):=x"4";
+constant constant_delay     : unsigned(g_width-1 downto 0):=x"00000004";
 
 signal clk                  : std_logic;
 signal local_utc            : unsigned(g_width-1 downto 0);

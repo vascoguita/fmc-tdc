@@ -373,7 +373,7 @@ architecture rtl of top_tdc is
         read_start01_o          : out std_logic;
         reset_acam_o            : out std_logic;
         load_utc_o              : out std_logic;
-        load_tdc_config_o       : out std_logic;
+--        load_tdc_config_o       : out std_logic;
         clear_dacapo_flag_o     : out std_logic;
         
         -- configuration registers from and for the ACAM and the modules of the TDC core
@@ -389,11 +389,11 @@ architecture rtl of top_tdc is
 
         acam_config_o           : out config_vector;
         starting_utc_o          : out std_logic_vector(g_width-1 downto 0);
-        clk_freq_o              : out std_logic_vector(g_width-1 downto 0);
-        ref_clk_freq_o          : out std_logic_vector(g_width-1 downto 0);
+--        clk_freq_o              : out std_logic_vector(g_width-1 downto 0);
+--        ref_clk_freq_o          : out std_logic_vector(g_width-1 downto 0);
         start_phase_o           : out std_logic_vector(g_width-1 downto 0);
-        one_hz_phase_o          : out std_logic_vector(g_width-1 downto 0);
-        retrig_freq_o           : out std_logic_vector(g_width-1 downto 0)
+        one_hz_phase_o          : out std_logic_vector(g_width-1 downto 0)
+--        retrig_freq_o           : out std_logic_vector(g_width-1 downto 0)
     );
     end component;
 
@@ -630,11 +630,11 @@ signal read_ififo1              : std_logic;
 signal read_ififo2              : std_logic;
 signal read_start01             : std_logic;
 signal starting_utc             : std_logic_vector(g_width-1 downto 0);
-signal clk_freq                 : std_logic_vector(g_width-1 downto 0);
-signal ref_clk_freq             : std_logic_vector(g_width-1 downto 0);
+--signal clk_freq                 : std_logic_vector(g_width-1 downto 0);
+--signal ref_clk_freq             : std_logic_vector(g_width-1 downto 0);
 signal start_phase              : std_logic_vector(g_width-1 downto 0);
 signal one_hz_phase             : std_logic_vector(g_width-1 downto 0);
-signal retrig_freq              : std_logic_vector(g_width-1 downto 0);
+--signal retrig_freq              : std_logic_vector(g_width-1 downto 0);
 
 signal acam_config_rdbk         : config_vector;
 signal acam_status              : std_logic_vector(g_width-1 downto 0);
@@ -891,7 +891,7 @@ begin
         read_start01_o          => read_start01,
         reset_acam_o            => reset_acam,
         load_utc_o              => load_utc,
-        load_tdc_config_o       => load_tdc_config,
+--        load_tdc_config_o       => load_tdc_config,
         clear_dacapo_flag_o     => clear_dacapo_flag,
         
         -- configuration registers for the ACAM and the modules of the TDC core
@@ -907,11 +907,13 @@ begin
 
         acam_config_o           => acam_config,
         starting_utc_o          => starting_utc,
-        clk_freq_o              => clk_freq,
-        ref_clk_freq_o          => ref_clk_freq,
-        start_phase_o           => start_phase,
-        one_hz_phase_o          => one_hz_phase,
-        retrig_freq_o           => retrig_freq
+--        clk_freq_o              => clk_freq,
+--        ref_clk_freq_o          => ref_clk_freq,
+--        start_phase_o           => start_phase,
+--        one_hz_phase_o          => one_hz_phase,
+        start_phase_o           => window_delay,
+        one_hz_phase_o          => pulse_delay
+--        retrig_freq_o           => retrig_freq
     );
     
     clks_rsts_mgment: clk_rst_managr
@@ -1029,6 +1031,31 @@ begin
         current_value       => open
     );
 
+    -- (address decoding: memory used has 512 bytes depth)
+    -----------------------------------------------------
+    mem_pipe_cyc                            <= '1' when dma_cyc='1' and dma_adr(31 downto 9)=x"00000" & "000" else '0';
+    mem_pipe_adr                            <= dma_adr;
+
+    mem_pipe_stb                            <= dma_stb;
+    mem_pipe_we                             <= dma_we;
+    mem_pipe_data_wr                        <= dma_dat_w;
+    dma_ack                                 <= mem_pipe_ack;
+    dma_dat_r                               <= mem_pipe_data_rd;
+    dma_stall                               <= mem_pipe_stall;
+    
+    --  CSR master connected to register control slave
+    --------------------------------------------------
+    -- address decoding: first 512 kB for GNUM core, second 512 kB for TDC application (of which only 256 bytes are reserved)
+    reg_cyc                             <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 8)="010" & x"00" else '0';
+    reg_adr(31 downto 19)               <= (others=>'0');
+    reg_adr(18 downto 0)                <= csr_adr;
+
+    reg_stb                             <= csr_stb;
+    reg_we                              <= csr_we;
+    reg_data_wr                         <= csr_dat_w;
+    csr_ack(0)                          <= reg_ack;
+    csr_dat_r                           <= reg_data_rd;
+    
     spec_led: process
     begin
         if gnum_reset ='1' then
@@ -1065,56 +1092,6 @@ begin
     -- internal signals
     spec_led_green          <= pll_ld_i;
 
---  CSR master connected directly to ACAM slave
------------------------------------------------
---    acm_adr(19)             <= '0';
---    acm_adr(18 downto 0)    <= csr_adr;
---    acm_cyc                 <= csr_cyc(0);
---    acm_stb                 <= csr_stb;
---    acm_we                  <= csr_we;
---    acm_dat_w               <= csr_dat_w;
---    csr_ack(0)              <= acm_ack;
---    csr_dat_r               <= acm_dat_r;
-    
---  CSR master connected to circular buffer slave
---  DMA master connected to circular buffer pipelined slave
------------------------------------------------------------
---    -- (address decoding)
---    mem_class_cyc                           <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 7)=x"400" else '0';
---    mem_class_adr(31 downto 19)             <= (others=>'0');
---    mem_class_adr(18 downto 0)              <= csr_adr;
---
---    mem_class_stb                           <= csr_stb;
---    mem_class_we                            <= csr_we;
---    mem_class_data_wr(127 downto 32)        <= (others=>'0');
---    mem_class_data_wr(31 downto 0)          <= csr_dat_w;
---    csr_ack(0)                              <= mem_class_ack;
---    csr_dat_r                               <= mem_class_data_rd(31 downto 0);
-
-    -- (address decoding: memory used has 512 bytes depth)
-    mem_pipe_cyc                            <= '1' when dma_cyc='1' and dma_adr(31 downto 9)=x"00000" & "000" else '0';
-    mem_pipe_adr                            <= dma_adr;
-
-    mem_pipe_stb                            <= dma_stb;
-    mem_pipe_we                             <= dma_we;
-    mem_pipe_data_wr                        <= dma_dat_w;
-    dma_ack                                 <= mem_pipe_ack;
-    dma_dat_r                               <= mem_pipe_data_rd;
-    dma_stall                               <= mem_pipe_stall;
-    
---  CSR master connected to register memory slave
------------------------------------------------------------
-    -- address decoding: first 512 kB for GNUM core, second 512 kB for TDC application (of which only 256 bytes are reserved)
-    reg_cyc                             <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 8)="010" & x"00" else '0';
-    reg_adr(31 downto 19)               <= (others=>'0');
-    reg_adr(18 downto 0)                <= csr_adr;
-
-    reg_stb                             <= csr_stb;
-    reg_we                              <= csr_we;
-    reg_data_wr                         <= csr_dat_w;
-    csr_ack(0)                          <= reg_ack;
-    csr_dat_r                           <= reg_data_rd;
-    
     -- inputs
 --    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);
     gnum_reset               <= not(rst_n_a_i);
@@ -1131,10 +1108,11 @@ begin
     tdc_led_trig4_o         <= lf1_i;
     tdc_led_trig5_o         <= tdc_led_trig5;
 
-    -- these will evolve as we implement all the features
+    -- all the section below may evolve as we implement all the features
+    --------------------------------------------------------------------
     irq_p                   <= dma_irq(0) or dma_irq(1);
-    pulse_delay             <= x"00000001";
-    window_delay            <= x"00000002";
+--    pulse_delay             <= x"00000001";
+--    window_delay            <= x"00000002";
     mute_inputs_o           <= '1';
     term_en_1_o             <= '1';
     term_en_2_o             <= '1';
@@ -1165,7 +1143,8 @@ begin
         wait until clk ='1';
     end process;
     
-    start_trig                  <= tdc_in_fpga_5_i;
+--    start_trig                  <= tdc_in_fpga_5_i;
+    start_trig                  <= activate_acq;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
