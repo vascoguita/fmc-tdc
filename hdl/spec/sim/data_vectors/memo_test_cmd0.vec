@@ -38,13 +38,13 @@ wait   %d60000
 -- the BFM model does not forward them to the Local bus
 
 wr 0000000040000808 F 0001F04C
-wait   %d50
+wait   %d20
 wr 0000000040000800 F 00021040
-wait   %d50
+wait   %d20
 wr 0000000040000800 F 00025000
-wait   %d50
+wait   %d60
 
--- Gonzalo: 5 reads inside Matthieu's core memory space to check that the core
+-- Gonzalo: 3 reads inside Matthieu's core memory space to check that the core
 -- does not forward them to the wishbone bus
 
 rd 0000000000000000 F 0000A0A1
@@ -52,24 +52,57 @@ wait   %d20
 rd 0000000000000004 F 0000A0A2
 wait   %d20
 rd 0000000000000008 F 0000A0A3
-wait   %d20
-rd 000000000000000C F 0000A0A4
-wait   %d20
-rd 0000000000000010 F 0000A0A5
 wait   %d60
 
--- Gonzalo: actual wr and rd for test
+-- Gonzalo: actual wr and rd on the application memory space for test
 
-wr 0000000000080000 F 0000FC81
-wait   %d50
-wr 000000000008002C F 00FF0000
-wait   %d50
-rd 0000000000080000 F 0000FC81
-wait   %d50
-rd 000000000008002C F 00FF0000
-wait   %d50
+wr 0000000000080000 F 00001234
+wait   %d20
+wr 0000000000080004 F 00005678
+wait   %d20
+wr 0000000000080008 F 0000abcd
+wait   %d20
+wr 000000000008000C F 0000ef90
+wait   %d60
 
-wr 0000000000080030 F 04000000
-wait   %d50
-rd 0000000000080030 F 04000000
-wait   %d50
+rd 0000000000080000 F 00001234
+wait   %d20
+rd 0000000000080004 F 00005678
+wait   %d20
+rd 0000000000080008 F 0000abcd
+wait   %d20
+rd 000000000008000C F 0000ef90
+wait   %d60
+
+wr 0000000000080100 F 00000001
+wait   %d100
+wr 0000000000080100 F 00000002
+wait   %d100
+
+-- Gonzalo: registers inside Matthieu's core memory space are written with the
+-- settings for DMA transfer
+
+-- Start address on the carrier local memory
+wr 0000000000000008 F 00000000
+wait   %d20
+
+-- Start addresses on the PCI host memory
+wr 000000000000000C F 0000A0A4
+wait   %d20
+wr 0000000000000010 F 0000A0A5
+wait   %d20
+
+-- Transfer length
+wr 0000000000000014 F 00000060
+wait   %d20
+
+-- Chain control
+wr 0000000000000020 F 00000000
+wait   %d60
+
+-- Start transfer through the Control register and check through the status register
+wr 0000000000000000 F 00000001
+wait   %d100
+rd 0000000000000004 F 00000001
+wait   %d100
+

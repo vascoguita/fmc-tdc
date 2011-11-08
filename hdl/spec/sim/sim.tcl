@@ -27,6 +27,11 @@ ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work wor
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/data_engine.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/acam_timecontrol_interface.vhd
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/acam_databus_interface.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.vhd
+#ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/ip_cores/mem_core/reg_mem_gen_v6_2.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/circular_buffer.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/reg_ctrl.vhd
+ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/data_engine.vhd
 
 ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/top_tdc.vhd
 #ncvhdl -nocopyright -nolog -messages -linedebug -v93 -cdslib ./cds.lib -work worklib ../src/rtl/test_tdc_acam/top_test_acam.vhd

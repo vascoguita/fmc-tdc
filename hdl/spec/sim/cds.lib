@@ -1,6 +1,6 @@
 include $CDS_INST_DIR/tools/inca/files/cds.lib
-
-define worklib       /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/worklib
-DEFINE unimacro      /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/unimacro
-DEFINE unisim        /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/unisim
-DEFINE xilinxcorelib /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/xilinxcorelib
+define worklib          /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/worklib
+DEFINE secureip         /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/secureip
+DEFINE unimacro         /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/unimacro
+DEFINE unisim           /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/unisim
+DEFINE xilinxcorelib    /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/sim/INCA_libs/xilinxcorelib
