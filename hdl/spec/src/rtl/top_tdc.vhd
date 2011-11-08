@@ -350,50 +350,47 @@ architecture rtl of top_tdc is
     );
     port(
         -- wishbone classic slave signals to interface with the host through the gnum core and the gnum chip
-        reg_clk_i               : in std_logic;
-        reg_reset_i             : in std_logic;
+        reg_clk_i           : in std_logic;
+        reg_reset_i         : in std_logic;
 
-        reg_adr_i               : in std_logic_vector(g_span-1 downto 0);
-        reg_cyc_i               : in std_logic;
-        reg_dat_i               : in std_logic_vector(g_width-1 downto 0);
-        reg_stb_i               : in std_logic;
-        reg_we_i                : in std_logic;
+        reg_adr_i           : in std_logic_vector(g_span-1 downto 0);
+        reg_cyc_i           : in std_logic;
+        reg_dat_i           : in std_logic_vector(g_width-1 downto 0);
+        reg_stb_i           : in std_logic;
+        reg_we_i            : in std_logic;
 
-        reg_ack_o               : out std_logic;
-        reg_dat_o               : out std_logic_vector(g_width-1 downto 0);
+        reg_ack_o           : out std_logic;
+        reg_dat_o           : out std_logic_vector(g_width-1 downto 0);
 
         -- control signals for interface with other internal modules
-        activate_acq_o          : out std_logic;
-        deactivate_acq_o        : out std_logic;
-        load_acam_config_o      : out std_logic;
-        read_acam_config_o      : out std_logic;
-        read_acam_status_o      : out std_logic;
-        read_ififo1_o           : out std_logic;
-        read_ififo2_o           : out std_logic;
-        read_start01_o          : out std_logic;
-        reset_acam_o            : out std_logic;
-        load_utc_o              : out std_logic;
---        load_tdc_config_o       : out std_logic;
-        clear_dacapo_flag_o     : out std_logic;
+        activate_acq_o      : out std_logic;
+        deactivate_acq_o    : out std_logic;
+        load_acam_config_o  : out std_logic;
+        read_acam_config_o  : out std_logic;
+        read_acam_status_o  : out std_logic;
+        read_ififo1_o       : out std_logic;
+        read_ififo2_o       : out std_logic;
+        read_start01_o      : out std_logic;
+        reset_acam_o        : out std_logic;
+        load_utc_o          : out std_logic;
+        clear_dacapo_flag_o : out std_logic;
         
         -- configuration registers from and for the ACAM and the modules of the TDC core
-        acam_config_rdbk_i      : in config_vector;
-        acam_status_i           : in std_logic_vector(g_width-1 downto 0);
-        acam_ififo1_i           : in std_logic_vector(g_width-1 downto 0);
-        acam_ififo2_i           : in std_logic_vector(g_width-1 downto 0);
-        acam_start01_i          : in std_logic_vector(g_width-1 downto 0);
-        local_utc_i             : in std_logic_vector(g_width-1 downto 0);
-        irq_code_i              : in std_logic_vector(g_width-1 downto 0);
-        core_status_i           : in std_logic_vector(g_width-1 downto 0);
-        wr_pointer_i            : in std_logic_vector(g_width-1 downto 0);
+        acam_config_rdbk_i  : in config_vector;
+        acam_status_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_ififo1_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_ififo2_i       : in std_logic_vector(g_width-1 downto 0);
+        acam_start01_i      : in std_logic_vector(g_width-1 downto 0);
+        local_utc_i         : in std_logic_vector(g_width-1 downto 0);
+        irq_code_i          : in std_logic_vector(g_width-1 downto 0);
+        core_status_i       : in std_logic_vector(g_width-1 downto 0);
+        wr_pointer_i        : in std_logic_vector(g_width-1 downto 0);
 
-        acam_config_o           : out config_vector;
-        starting_utc_o          : out std_logic_vector(g_width-1 downto 0);
---        clk_freq_o              : out std_logic_vector(g_width-1 downto 0);
---        ref_clk_freq_o          : out std_logic_vector(g_width-1 downto 0);
-        start_phase_o           : out std_logic_vector(g_width-1 downto 0);
-        one_hz_phase_o          : out std_logic_vector(g_width-1 downto 0)
---        retrig_freq_o           : out std_logic_vector(g_width-1 downto 0)
+        acam_config_o       : out config_vector;
+        starting_utc_o      : out std_logic_vector(g_width-1 downto 0);
+        in_en_ctrl_o        : out std_logic_vector(g_width-1 downto 0);
+        start_phase_o       : out std_logic_vector(g_width-1 downto 0);
+        one_hz_phase_o      : out std_logic_vector(g_width-1 downto 0)
     );
     end component;
 
@@ -523,7 +520,6 @@ signal spec_led_period          : std_logic_vector(g_width-1 downto 0);
 signal tdc_led_blink_done       : std_logic;
 signal visible_blink_length     : std_logic_vector(g_width-1 downto 0);
 
--- will be registers of the core
 signal pulse_delay              : std_logic_vector(g_width-1 downto 0);
 signal window_delay             : std_logic_vector(g_width-1 downto 0);
 signal clock_period             : std_logic_vector(g_width-1 downto 0);
@@ -533,11 +529,11 @@ signal gnum_reset               : std_logic;
 signal spec_led_green           : std_logic;
 signal spec_led_red             : std_logic;
 signal tdc_led_status           : std_logic;
-signal tdc_led_trig1            : std_logic:='0';
-signal tdc_led_trig2            : std_logic:='0';
-signal tdc_led_trig3            : std_logic:='0';
-signal tdc_led_trig4            : std_logic:='0';
-signal tdc_led_trig5            : std_logic:='0';
+signal tdc_led_trig1            : std_logic;
+signal tdc_led_trig2            : std_logic;
+signal tdc_led_trig3            : std_logic;
+signal tdc_led_trig4            : std_logic;
+signal tdc_led_trig5            : std_logic;
 
 signal acam_ef1                 : std_logic;
 signal acam_ef2                 : std_logic;
@@ -547,7 +543,6 @@ signal acam_fall_errflag_p      : std_logic;
 signal acam_rise_errflag_p      : std_logic;
 signal acam_fall_intflag_p      : std_logic;
 signal acam_rise_intflag_p      : std_logic;
---signal acam_start01             : std_logic_vector(16 downto 0);
 signal acam_timestamp1          : std_logic_vector(g_width-1 downto 0);
 signal acam_timestamp1_valid    : std_logic;
 signal acam_timestamp2          : std_logic_vector(g_width-1 downto 0);
@@ -630,11 +625,9 @@ signal read_ififo1              : std_logic;
 signal read_ififo2              : std_logic;
 signal read_start01             : std_logic;
 signal starting_utc             : std_logic_vector(g_width-1 downto 0);
---signal clk_freq                 : std_logic_vector(g_width-1 downto 0);
---signal ref_clk_freq             : std_logic_vector(g_width-1 downto 0);
+signal in_en_ctrl               : std_logic_vector(g_width-1 downto 0);
 signal start_phase              : std_logic_vector(g_width-1 downto 0);
 signal one_hz_phase             : std_logic_vector(g_width-1 downto 0);
---signal retrig_freq              : std_logic_vector(g_width-1 downto 0);
 
 signal acam_config_rdbk         : config_vector;
 signal acam_status              : std_logic_vector(g_width-1 downto 0);
@@ -891,7 +884,6 @@ begin
         read_start01_o          => read_start01,
         reset_acam_o            => reset_acam,
         load_utc_o              => load_utc,
---        load_tdc_config_o       => load_tdc_config,
         clear_dacapo_flag_o     => clear_dacapo_flag,
         
         -- configuration registers for the ACAM and the modules of the TDC core
@@ -907,13 +899,9 @@ begin
 
         acam_config_o           => acam_config,
         starting_utc_o          => starting_utc,
---        clk_freq_o              => clk_freq,
---        ref_clk_freq_o          => ref_clk_freq,
---        start_phase_o           => start_phase,
---        one_hz_phase_o          => one_hz_phase,
+        in_en_ctrl_o            => in_en_ctrl,
         start_phase_o           => window_delay,
         one_hz_phase_o          => pulse_delay
---        retrig_freq_o           => retrig_freq
     );
     
     clks_rsts_mgment: clk_rst_managr
@@ -1031,9 +1019,10 @@ begin
         current_value       => open
     );
 
-    -- (address decoding: memory used has 512 bytes depth)
-    -----------------------------------------------------
-    mem_pipe_cyc                            <= '1' when dma_cyc='1' and dma_adr(31 downto 9)=x"00000" & "000" else '0';
+    -- connection of the DMA master port from the GNUM core to the circular buffer slave
+    ------------------------------------------------------------------------------------
+    -- (address decoding: memory used has 1024 bytes depth)
+    mem_pipe_cyc                            <= '1' when dma_cyc='1' and dma_adr(31 downto 10)=x"00000" & "00" else '0';
     mem_pipe_adr                            <= dma_adr;
 
     mem_pipe_stb                            <= dma_stb;
@@ -1043,8 +1032,8 @@ begin
     dma_dat_r                               <= mem_pipe_data_rd;
     dma_stall                               <= mem_pipe_stall;
     
-    --  CSR master connected to register control slave
-    --------------------------------------------------
+    --  CSR master connected to the register control slave
+    ------------------------------------------------------
     -- address decoding: first 512 kB for GNUM core, second 512 kB for TDC application (of which only 256 bytes are reserved)
     reg_cyc                             <= '1' when csr_cyc(0)='1' and csr_adr(18 downto 8)="010" & x"00" else '0';
     reg_adr(31 downto 19)               <= (others=>'0');
@@ -1090,62 +1079,51 @@ begin
                                 else syn_clock_period;
 
     -- internal signals
+    irq_p                   <= dma_irq(0) or dma_irq(1);
     spec_led_green          <= pll_ld_i;
+    start_trig              <= activate_acq;
 
     -- inputs
---    gnum_reset               <= not(rst_n_a_i) or not(spec_aux1_i);
-    gnum_reset               <= not(rst_n_a_i);
+    gnum_reset              <= not(rst_n_a_i);
 
     -- outputs
-
-    spec_led_green_o        <= spec_led_green;
-    spec_led_red_o          <= spec_led_red;
-    tdc_led_status_o        <= tdc_led_status;
+    process
+    begin
+        mute_inputs_o           <= in_en_ctrl(7);
+        term_en_5_o             <= in_en_ctrl(4);
+        term_en_4_o             <= in_en_ctrl(3);
+        term_en_3_o             <= in_en_ctrl(2);
+        term_en_2_o             <= in_en_ctrl(1);
+        term_en_1_o             <= in_en_ctrl(0);
     
-    tdc_led_trig1_o         <= ef2_i;
-    tdc_led_trig2_o         <= ef1_i;
-    tdc_led_trig3_o         <= lf2_i;
-    tdc_led_trig4_o         <= lf1_i;
-    tdc_led_trig5_o         <= tdc_led_trig5;
-
-    -- all the section below may evolve as we implement all the features
-    --------------------------------------------------------------------
-    irq_p                   <= dma_irq(0) or dma_irq(1);
---    pulse_delay             <= x"00000001";
---    window_delay            <= x"00000002";
-    mute_inputs_o           <= '1';
-    term_en_1_o             <= '1';
-    term_en_2_o             <= '1';
-    term_en_3_o             <= '1';
-    term_en_4_o             <= '1';
-    term_en_5_o             <= '1';
+        spec_led_green_o        <= spec_led_green;
+        spec_led_red_o          <= spec_led_red;
+        tdc_led_status_o        <= tdc_led_status;
+        
+        tdc_led_trig5_o         <= in_en_ctrl(4) and in_en_ctrl(7);
+        tdc_led_trig4_o         <= in_en_ctrl(3) and in_en_ctrl(7);
+        tdc_led_trig3_o         <= in_en_ctrl(2) and in_en_ctrl(7);
+        tdc_led_trig2_o         <= in_en_ctrl(1) and in_en_ctrl(7);
+        tdc_led_trig1_o         <= in_en_ctrl(0) and in_en_ctrl(7);
+    wait until clk ='1';
+    end process;
 
     -- note: all spec_aux signals are active low
-    spec_aux5_o             <= spec_aux0_i;
-    spec_aux4_o             <= spec_aux0_i;
-    spec_aux3_o             <= spec_aux0_i;
 
+    button_with_spec_clk: process
+    begin
+        spec_aux3_o             <= spec_aux0_i;
+        spec_aux2_o             <= spec_aux0_i;
+        wait until spec_clk ='1';
+    end process;
+    
     button_with_tdc_clk: process
     begin
-        spec_aux2_o             <= spec_aux1_i;
+        spec_aux4_o             <= spec_aux1_i;
+        spec_aux5_o             <= spec_aux1_i;
         wait until clk ='1';
     end process;
     
-    tdc_led5: process
-    begin
-        if general_reset ='1' then
-            tdc_led_trig5           <= '0';
-        elsif tdc_in_fpga_5_i ='1' or spec_aux0_i ='0' then
-            tdc_led_trig5           <= '1';
-        elsif spec_aux1_i = '0' then
-            tdc_led_trig5           <= '0';
-        end if;
-        wait until clk ='1';
-    end process;
-    
---    start_trig                  <= tdc_in_fpga_5_i;
-    start_trig                  <= activate_acq;
-
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

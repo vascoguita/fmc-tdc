@@ -67,17 +67,17 @@ end circular_buffer;
 ----------------------------------------------------------------------------------------------------
 architecture rtl of circular_buffer is
 
-component blk_mem_gen_v6_3
+component blk_mem_circ_buff_v6_4
     port(
     clka    : in std_logic;
-    addra   : in std_logic_vector(6 downto 0);
+    addra   : in std_logic_vector(7 downto 0);
     dina    : in std_logic_vector(127 downto 0);
     ena     : in std_logic;
     wea     : in std_logic_vector(0 downto 0);
     douta   : out std_logic_vector(127 downto 0);
 
     clkb    : in std_logic;
-    addrb   : in std_logic_vector(8 downto 0);
+    addrb   : in std_logic_vector(9 downto 0);
     dinb    : in std_logic_vector(31 downto 0);
     enb     : in std_logic;
     web     : in std_logic_vector(0 downto 0);
@@ -90,7 +90,7 @@ type t_wb_pipelined_mem_interface           is (idle, mem_access, mem_access_and
 signal wb_pipelined_st, nxt_wb_pipelined_st : t_wb_pipelined_mem_interface;
 
 signal class_ack                            : std_logic;
-signal class_adr                            : std_logic_vector(6 downto 0);
+signal class_adr                            : std_logic_vector(7 downto 0);
 signal class_clk                            : std_logic;
 signal class_cyc                            : std_logic;
 signal class_data_rd                        : std_logic_vector(4*g_width-1 downto 0);
@@ -101,7 +101,7 @@ signal class_stb                            : std_logic;
 signal class_we                             : std_logic_vector(0 downto 0);
 
 signal pipe_ack                             : std_logic;
-signal pipe_adr                             : std_logic_vector(8 downto 0);
+signal pipe_adr                             : std_logic_vector(9 downto 0);
 signal pipe_clk                             : std_logic;
 signal pipe_cyc                             : std_logic;
 signal pipe_data_rd                         : std_logic_vector(g_width-1 downto 0);
@@ -186,7 +186,7 @@ begin
     end case;
     end process;
     
-    memory_block: blk_mem_gen_v6_3
+    memory_block: blk_mem_circ_buff_v6_4
     port map(
         clka        => class_clk,
         addra       => class_adr,
@@ -207,7 +207,7 @@ begin
     class_clk                   <= class_clk_i;
     class_reset                 <= class_reset_i;
 
-    class_adr                   <= class_adr_i(6 downto 0);
+    class_adr                   <= class_adr_i(7 downto 0);
     class_cyc                   <= class_cyc_i;
     class_data_wr               <= class_dat_i;
     class_en                    <= class_cyc;
@@ -217,7 +217,7 @@ begin
     pipe_clk                    <= pipe_clk_i;
     pipe_reset                  <= pipe_reset_i;
 
-    pipe_adr                    <= pipe_adr_i(8 downto 0);
+    pipe_adr                    <= pipe_adr_i(9 downto 0);
     pipe_cyc                    <= pipe_cyc_i;
     pipe_data_wr                <= pipe_dat_i;
     pipe_en                     <= pipe_cyc;

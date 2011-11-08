@@ -64,6 +64,8 @@ end data_formatting;
 ----------------------------------------------------------------------------------------------------
 architecture rtl of data_formatting is
 
+constant buff_size                  : unsigned(g_width-1 downto 0):= x"00000100";
+
 signal acam_timestamp1              : std_logic_vector(g_width-1 downto 0);
 signal acam_timestamp1_valid        : std_logic;
 signal acam_timestamp2              : std_logic_vector(g_width-1 downto 0);
@@ -109,46 +111,38 @@ signal mem_data_wr                  : std_logic_vector(4*g_width-1 downto 0);
 signal mem_stb                      : std_logic;
 signal mem_we                       : std_logic;
 
---signal reserved                     : std_logic_vector(2 downto 0):=(others=>'0');
---signal u_start_nb_offset            : unsigned(g_width-1 downto 0);
---signal u_acam_start_nb              : unsigned(7 downto 0);
---signal start_nb                     : std_logic_vector(g_width-1 downto 0);
-
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
 begin
     
+    -- classic wishbone to write the full timestamps into the circular buffer memory
     pushing_data_to_buffer: process
     begin
         if reset ='1' then
---            mem_adr         <= (others =>'0');
             mem_cyc         <= '0';
---            mem_data_wr     <= (others =>'0');
             mem_stb         <= '0';
             mem_we          <= '0';
         elsif acam_timestamp1_valid ='1' or acam_timestamp2_valid ='1' then    
---            mem_adr         <= std_logic_vector(wr_pointer);
             mem_cyc         <= '1';
---            mem_data_wr     <= full_timestamp;
             mem_stb         <= '1';
             mem_we          <= '1';
         elsif mem_ack ='1' then
---            mem_adr         <= std_logic_vector(wr_pointer);
             mem_cyc         <= '0';
---            mem_data_wr     <= full_timestamp;
             mem_stb         <= '0';
             mem_we          <= '0';
         end if;
         wait until clk ='1';
     end process;
     
+    -- the wr_pointer indicates which one is the next address to write
+    -- it will be used by the PCIe host to configure the DMA coherently
     pointer_update: process
     begin
         if reset ='1' then
             wr_pointer      <= (others=>'0');
         elsif mem_cyc ='1' and mem_stb ='1' and mem_we ='1' and mem_ack ='1' then
-            if wr_pointer = 127 then
+            if wr_pointer = buff_size - 1 then
                 wr_pointer  <= (others=>'0');
             else
                 wr_pointer  <= wr_pointer + 1;
@@ -157,18 +151,22 @@ begin
         wait until clk ='1';
     end process;
     
+    -- the Da Capo flag indicates if the circular buffer has been written completely
+    -- it is cleared by the PCIe host.
     dacapo_flag_update: process
     begin
         if reset ='1' then
             dacapo_flag         <= '0';
         elsif clear_dacapo_flag ='1' then
             dacapo_flag         <= '0';
-        elsif wr_pointer = 127 then
+        elsif wr_pointer = buff_size - 1 then
             dacapo_flag         <= '1';
         end if;
         wait until clk ='1';
     end process;
     
+    -- the 28-bits word received from the Acam is interpreted according to the datasheet
+    -- and the corresponding values will be used to build the full timestamp
     acam_data_slicing: process
     begin   
         if reset ='1' then  
@@ -196,11 +194,21 @@ begin
         wait until clk ='1';
     end process;
     
---    coarse_time                             <= x"000000" 
---                                            & acam_start_nb;
+    mem_adr                                 <= std_logic_vector(wr_pointer);
+    mem_data_wr                             <= full_timestamp;
+        
+    -- the full timestamp is a 128-bits word divided in four 32-bits words
+    -- the highest weight word contains the metadata for each timestamp
+    -- the following 32-bits word contains the local UTC time with 1s resolution
+    -- then the coarse timing of the timestamp within the current second with 8 ns resolution
+    -- finally the fine time for the timestamp with 81.03 ps resolution
     
-    -- the metadata field contains extra information about the timestamp
+    full_timestamp(127 downto 96)           <= metadata;
+    full_timestamp(95 downto 64)            <= local_utc;
+    full_timestamp(63 downto 32)            <= coarse_time;
+    full_timestamp(31 downto 0)             <= fine_time;
 
+    -- the metadata field contains extra information about the timestamp
     metadata                                <= x"0000" 
                                             & "000" & acam_fifo_ef
                                             & "000" & acam_fifo_lf
@@ -209,7 +217,6 @@ begin
 
 
     -- the UTC time is updated every second by the one_hz_pulse    
-
     local_utc                               <= local_utc_i;
 
     -- the coarse time is expressed as the number of 125 MHz clock cycles since the last one_hz_pulse.
@@ -245,19 +252,10 @@ begin
     
     -- the fine time is directly provided by the ACAM as a number of BINs since the last
     -- internal retrigger.
-
     fine_time                               <= x"000" 
                                             & "000" 
                                             & acam_fine_timestamp;
 
-    full_timestamp(127 downto 96)           <= metadata;
-    full_timestamp(95 downto 64)            <= local_utc;
-    full_timestamp(63 downto 32)            <= coarse_time;
-    full_timestamp(31 downto 0)             <= fine_time;
-
-    mem_adr                                 <= std_logic_vector(wr_pointer);
-    mem_data_wr                             <= full_timestamp;
-        
     -- inputs
     acam_timestamp1                     <= acam_timestamp1_i;
     acam_timestamp1_valid               <= acam_timestamp1_valid_i;
@@ -283,11 +281,6 @@ begin
     stb_o                               <= mem_stb;
     we_o                                <= mem_we;
     
---    u_start_nb_offset                   <= unsigned(start_nb_offset);
---    u_acam_start_nb                     <= unsigned(acam_timestamp(25 downto 18));
---    start_nb                            <= std_logic_vector(u_start_nb_offset + u_acam_start_nb);
-    
-
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends
