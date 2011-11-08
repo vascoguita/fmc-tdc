@@ -1,0 +1,28 @@
+@P:  Worst Slack : -5.252
+@P:  gnum_clk200 - Estimated Frequency : 152.9 MHz
+@P:  gnum_clk200 - Requested Frequency : 200.0 MHz
+@P:  gnum_clk200 - Estimated Period : 6.541
+@P:  gnum_clk200 - Requested Period : 5.000
+@P:  gnum_clk200 - Slack : -1.541
+@P:  spec_clk20 - Estimated Frequency : 53.9 MHz
+@P:  spec_clk20 - Requested Frequency : 20.0 MHz
+@P:  spec_clk20 - Estimated Period : 18.565
+@P:  spec_clk20 - Requested Period : 50.000
+@P:  spec_clk20 - Slack : 31.435
+@P:  tdc_clk125 - Estimated Frequency : 136.2 MHz
+@P:  tdc_clk125 - Requested Frequency : 125.0 MHz
+@P:  tdc_clk125 - Estimated Period : 7.344
+@P:  tdc_clk125 - Requested Period : 8.000
+@P:  tdc_clk125 - Slack : 0.656
+@P:  System - Estimated Frequency : 464.7 MHz
+@P:  System - Requested Frequency : 200.0 MHz
+@P:  System - Estimated Period : 2.152
+@P:  System - Requested Period : 5.000
+@P:  System - Slack : 2.848
+@P: top_tdc Part : xc6slx45tfgg484-2
+@P: top_tdc I/O primitives : 122
+@P: top_tdc I/O Register bits : 78
+@P: top_tdc Register bits (Non I/O) : 2643 (4%)
+@P: top_tdc Block Rams : 1 of 116 (0%)
+@P: top_tdc Total Luts : 1806 (5%)
+@P:  CPU Time : 0h:00m:23s
