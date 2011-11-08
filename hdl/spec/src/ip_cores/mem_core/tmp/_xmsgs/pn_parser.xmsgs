@@ -8,7 +8,7 @@
 <!-- Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.    -->
 
 <messages>
-<msg type="info" file="ProjectMgmt" num="1061" ><arg fmt="%s" index="1">Parsing VHDL file &quot;/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/tmp/_cg/blk_mem_gen_v6_2.vhd&quot; into library work</arg>
+<msg type="info" file="ProjectMgmt" num="1061" ><arg fmt="%s" index="1">Parsing VHDL file &quot;/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/tmp/_cg/blk_mem_circ_buff_v6_4.vhd&quot; into library work</arg>
 </msg>
 
 </messages>

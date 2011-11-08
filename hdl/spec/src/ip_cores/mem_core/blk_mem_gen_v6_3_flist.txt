@@ -1,0 +1,11 @@
+# Output products list for <blk_mem_gen_v6_3>
+blk_mem_gen_ds512.pdf
+blk_mem_gen_readme.txt
+blk_mem_gen_v6_3.gise
+blk_mem_gen_v6_3.ngc
+blk_mem_gen_v6_3.vhd
+blk_mem_gen_v6_3.vho
+blk_mem_gen_v6_3.xco
+blk_mem_gen_v6_3.xise
+blk_mem_gen_v6_3_flist.txt
+blk_mem_gen_v6_3_xmdf.tcl
