@@ -1,0 +1,49 @@
+
+# file: synplify.prj
+#add_file options
+add_file -vhdl "../example_design/blk_mem_circ_buff_v6_4_top.vhd"
+add_file -vhdl "../example_design/bmg_wrapper.vhd"
+
+#reporting options
+
+#implementation:
+impl -add blk_mem_circ_buff_v6_4
+
+set_option -vlog_std v2001
+
+#device options
+set_option -technology spartan6
+set_option -part xc6slx45t
+set_option -package fgg484
+set_option -speed_grade -2
+set_option -part_companion ""
+
+
+#compilation/mapping options
+set_option -default_enum_encoding default
+set_option -symbolic_fsm_compiler 1
+set_option -resource_sharing 1
+set_option -use_fsm_explorer 0
+set_option -top_module "blk_mem_circ_buff_v6_4_top"
+
+#map options
+set_option -frequency 400.000
+set_option -fanout_limit 10000
+set_option -disable_io_insertion 0
+set_option -pipe 0
+set_option -update_models_cp 0
+set_option -verification_mode 0
+set_option -fixgatedclocks 0
+set_option -modular 0
+set_option -retiming 0
+
+#simulation options
+set_option -write_verilog 0
+set_option -write_vhdl 0
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 0
+
+#set result format/file last
+project -result_file "results/blk_mem_circ_buff_v6_4_top.edf"
+impl -active "blk_mem_circ_buff_v6_4"
