@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- IMPORTANT: This is an internal file that has been generated
+     by the Xilinx ISE software.  Any direct editing or
+     changes made to this file may result in unpredictable
+     behavior or data corruption.  It is strongly advised that
+     users do not edit the contents of this file. -->
+<messages>
+<msg type="warning" file="NgdBuild" num="931" delta="new" >The value of SIM_DEVICE on instance &apos;<arg fmt="%s" index="1">gnum_interface_block.cmp_clk_in.rx_pll_adv_inst</arg>&apos; of type <arg fmt="%s" index="2">PLL_ADV</arg> has been changed from &apos;<arg fmt="%s" index="3">VIRTEX5</arg>&apos; to &apos;<arg fmt="%s" index="4">SPARTAN6</arg>&apos; to correct post-ngdbuild and timing simulation for this primitive.  In order for functional simulation to be correct, the value of SIM_DEVICE should be changed in this same manner in the source netlist or constraint file.
+</msg>
+
+<msg type="info" file="ConstraintSystem" num="178" delta="new" ><arg fmt="%s" index="1">TNM</arg> &apos;<arg fmt="%s" index="2">gnum_interface_block_cmp_clk_in_buf_P_clk</arg>&apos;, used in period specification &apos;<arg fmt="%s" index="3">TS_gnum_interface_block_cmp_clk_in_buf_P_clk</arg>&apos;, was traced into <arg fmt="%s" index="4">PLL_ADV</arg> instance <arg fmt="%s" index="5">gnum_interface_block.cmp_clk_in.rx_pll_adv_inst</arg>. The following new TNM groups and period specifications were generated at the <arg fmt="%s" index="6">PLL_ADV</arg> output(s): 
+<arg fmt="%s" index="7">CLKOUT0</arg>: <arg fmt="%s" index="8">&lt;TIMESPEC TS_gnum_interface_block_un1_cmp_clk_in = PERIOD &quot;gnum_interface_block_un1_cmp_clk_in&quot; TS_gnum_interface_block_cmp_clk_in_buf_P_clk / 2 HIGH 50%&gt;</arg>
+</msg>
+
+<msg type="info" file="ConstraintSystem" num="178" delta="new" ><arg fmt="%s" index="1">TNM</arg> &apos;<arg fmt="%s" index="2">gnum_interface_block_cmp_clk_in_buf_P_clk</arg>&apos;, used in period specification &apos;<arg fmt="%s" index="3">TS_gnum_interface_block_cmp_clk_in_buf_P_clk</arg>&apos;, was traced into <arg fmt="%s" index="4">PLL_ADV</arg> instance <arg fmt="%s" index="5">gnum_interface_block.cmp_clk_in.rx_pll_adv_inst</arg>. The following new TNM groups and period specifications were generated at the <arg fmt="%s" index="6">PLL_ADV</arg> output(s): 
+<arg fmt="%s" index="7">CLKOUT2</arg>: <arg fmt="%s" index="8">&lt;TIMESPEC TS_gnum_interface_block_cmp_clk_in_rx_pllout_x1_0 = PERIOD &quot;gnum_interface_block_cmp_clk_in_rx_pllout_x1_0&quot; TS_gnum_interface_block_cmp_clk_in_buf_P_clk PHASE 1.25 ns HIGH 50%&gt;</arg>
+</msg>
+
+<msg type="warning" file="ConstraintSystem" num="0" >The Offset constraint &lt;TIMEGRP &quot;acam_refclk_i&quot; OFFSET = IN: 6.000 : BEFORE  tdc_clk_p_i;&gt; [synplicity.ucf(49)], is specified without a duration.  This will result in a lack of hold time checks in timing reports.  If hold time checks are desired a duration value should be specified following the &apos;VALID&apos; keyword.
+</msg>
+
+</messages>
+

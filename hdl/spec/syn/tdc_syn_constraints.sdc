@@ -34,15 +34,15 @@ define_output_delay     {p:l2p_data_o  }        2.00 -ref gnum_clk200:r
 define_output_delay     {p:l2p_dframe_o}        2.00 -ref gnum_clk200:r
 define_output_delay     {p:l2p_valid_o }        2.00 -ref gnum_clk200:r
 define_output_delay     {p:l2p_edb_o   }        2.00 -ref gnum_clk200:r
-define_output_delay     {p:irq_p_o     }        2.00 -ref gnum_clk200:r
+#define_output_delay     {p:irq_p_o     }        2.00 -ref gnum_clk200:r
 define_output_delay     {p:spare_o     }        2.00 -ref gnum_clk200:r
 define_input_delay      {p:l2p_rdy_i   }        2.00 -ref gnum_clk200:r
 define_input_delay      {p:l_wr_rdy_i  }        2.00 -ref gnum_clk200:r
 define_input_delay      {p:p_rd_d_rdy_i}        2.00 -ref gnum_clk200:r
 define_input_delay      {p:tx_error_i  }        2.00 -ref gnum_clk200:r
 
-define_output_delay     {p:spec_led_green_o}    2.00 -ref spec_clk20:r
-define_output_delay     {p:spec_led_red_o}      2.00 -ref spec_clk20:r
+#define_output_delay     {p:spec_led_green_o}    2.00 -ref spec_clk20:r
+#define_output_delay     {p:spec_led_red_o}      2.00 -ref spec_clk20:r
 define_output_delay     {p:pll_sdi_o}           2.00 -ref spec_clk20:r
 define_output_delay     {p:pll_cs_o}            2.00 -ref spec_clk20:r
 define_output_delay     {p:pll_sclk_o}          2.00 -ref spec_clk20:r
@@ -50,6 +50,12 @@ define_input_delay      {p:pll_ld_i}            2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_refmon_i}        2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_sdo_i}           2.00 -ref spec_clk20:r
 define_input_delay      {p:pll_status_i}        2.00 -ref spec_clk20:r
+
+define_multicycle_path  -from       {p:data_bus_io[27:0]}   3
+define_multicycle_path  -to         {p:data_bus_io[27:0]}   3
+define_multicycle_path  -to         {p:address_o[3:0]}      3
+define_multicycle_path  -through    {n:csr_adr[18:0]}       2
+define_multicycle_path  -to         {p:start_from_fpga_o}   2
 
 define_false_path       -from   {p:spec_aux0_i}
 define_false_path       -from   {p:spec_aux1_i}
@@ -66,6 +72,8 @@ define_false_path       -to     {p:tdc_led_trig2_o}
 define_false_path       -to     {p:tdc_led_trig3_o}
 define_false_path       -to     {p:tdc_led_trig4_o}
 define_false_path       -to     {p:tdc_led_trig5_o}
+
+define_false_path       -to     {p:irq_p_o}
 
 # Attributes
 # Global attribute definitions for improving implementation targetting Xilinx

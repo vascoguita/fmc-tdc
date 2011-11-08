@@ -1,0 +1,9 @@
+rrcmd r 0:80000
+rrcmd r 0:80004
+rrcmd r 0:80008
+rrcmd r 0:8000C
+rrcmd r 0:80010
+rrcmd r 0:80014
+rrcmd r 0:80018
+rrcmd r 0:8001C
+rrcmd r 0:80020

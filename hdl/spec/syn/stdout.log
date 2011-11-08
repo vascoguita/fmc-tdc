@@ -1,0 +1,351 @@
+SystemDesigner executable set to /afs/cern.ch/project/parc/elec/synplify/D-2010.03/system_designer/bin/system_designer
+
+Starting:    /afs/cern.ch/project/parc/elec/synplify/D-2010.03/linux_a_64/mbin/synplify
+Install:     /afs/cern.ch/project/parc/elec/synplify/D-2010.03
+Date:        Thu Nov  3 19:47:16 2011
+Version:     D-2010.03
+
+Arguments:   -product synplify_pro
+ProductType: synplify_pro
+
+License checkout: synplifypremierdp
+License: synplifypremierdp from server lxlic01 (Using premium license)
+
+
+
+
+Warning: File already exists in project: "/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_engine.vhd"
+"enhance_optimization" is unrecognized option for current device
+
+Running synthesis on tdc_syn_script:syn
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying template /afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/run_ise.tcl to file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/run_ise.tcl
+
+log file: "/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syn_tdc.srr"
+
+
+
+Running flow compile_flow ...
+
+
+Running HDL Compiler...
+Start Time:19:48:04
+
+
+Compiler Completed
+Return Code: 0
+Completion Time:19:48:14
+
+Launching mapper in pro mode
+
+
+Running property_annotator...
+Start Time:19:48:14
+
+
+property_annotator Completed
+Return Code: 0
+Completion Time:19:48:18
+
+Analysis Property Generator Complete
+
+
+Running flow synthesis ...
+
+Launching mapper in pro mode
+
+
+Running Spartan6 Mapper...
+Start Time:19:48:18
+
+
+Spartan6 Mapper Completed with warnings
+Return Code: 1
+Completion Time:19:49:14
+
+Running synthesis on tdc_syn_script:syn
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying template /afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/run_ise.tcl to file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/run_ise.tcl
+
+log file: "/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syn_tdc.srr"
+
+
+
+Running flow compile_flow ...
+
+
+Running HDL Compiler...
+Start Time:10:35:23
+
+
+Compiler Completed
+Return Code: 0
+Completion Time:10:35:28
+
+Launching mapper in pro mode
+
+
+Running property_annotator...
+Start Time:10:35:28
+
+
+property_annotator Completed
+Return Code: 0
+Completion Time:10:35:30
+
+Analysis Property Generator Complete
+
+
+Running flow synthesis ...
+
+Launching mapper in pro mode
+
+
+Running Spartan6 Mapper...
+Start Time:10:35:30
+
+
+Spartan6 Mapper Completed with warnings
+Return Code: 1
+Completion Time:10:36:25
+
+Running synthesis on tdc_syn_script:syn
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying template /afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/run_ise.tcl to file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/run_ise.tcl
+
+log file: "/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syn_tdc.srr"
+
+
+
+Running flow compile_flow ...
+
+
+Running HDL Compiler...
+Start Time:11:14:17
+
+
+Compiler Completed
+Return Code: 0
+Completion Time:11:14:23
+
+Launching mapper in pro mode
+
+
+Running property_annotator...
+Start Time:11:14:23
+
+
+property_annotator Completed
+Return Code: 0
+Completion Time:11:14:25
+
+Analysis Property Generator Complete
+
+
+Running flow synthesis ...
+
+Launching mapper in pro mode
+
+
+Running Spartan6 Mapper...
+Start Time:11:14:25
+
+
+Spartan6 Mapper Completed with warnings
+Return Code: 1
+Completion Time:11:15:17
+
+Warning: File already exists in project: "/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_engine.vhd"
+"enhance_optimization" is unrecognized option for current device
+
+
+Running synthesis on tdc_syn_script:syn
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syntmp/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/coreip/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/xplace/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_32x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/fifo_64x512.ngc
+
+
+Copying /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc to /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/blk_mem_circ_buff_v6_4.ngc
+
+
+Copying template /afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/run_ise.tcl to file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/run_ise.tcl
+
+log file: "/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/syn_tdc.srr"
+
+
+
+Running flow compile_flow ...
+
+
+Running HDL Compiler...
+Start Time:11:35:03
+
+
+Compiler Completed
+Return Code: 0
+Completion Time:11:35:09
+
+Launching mapper in pro mode
+
+
+Running property_annotator...
+Start Time:11:35:09
+
+
+property_annotator Completed
+Return Code: 0
+Completion Time:11:35:11
+
+Analysis Property Generator Complete
+
+
+Running flow synthesis ...
+
+Launching mapper in pro mode
+
+
+Running Spartan6 Mapper...
+Start Time:11:35:11
+
+
+Spartan6 Mapper Completed with warnings
+Return Code: 1
+Completion Time:11:36:04
+

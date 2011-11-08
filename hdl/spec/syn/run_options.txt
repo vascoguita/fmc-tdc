@@ -1,0 +1,107 @@
+#-- Synopsys, Inc.
+#-- Version D-2010.03
+#-- Project file /afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/run_options.txt
+#-- Written on Fri Nov  4 11:35:03 2011
+
+
+#project files
+add_file -include "../src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc"
+add_file -include "../src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc"
+add_file -include "../src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/gn4124_core_pkg_s6.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/l2p_ser_s6.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/p2l_des_s6.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/p2l_decode32.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/wbmaster32.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/dma_controller_wb_slave.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/dma_controller.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/l2p_dma_master.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/p2l_dma_master.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/l2p_arbiter.vhd"
+add_file -vhdl -lib work "../src/ip_cores/gnum_core/gn4124_core_s6.vhd"
+add_file -vhdl -lib work "../src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.vhd"
+add_file -vhdl -lib work "../src/rtl/tdc_core_pkg.vhd"
+add_file -vhdl -lib work "../src/rtl/free_counter.vhd"
+add_file -vhdl -lib work "../src/rtl/incr_counter.vhd"
+add_file -vhdl -lib work "../src/rtl/countdown_counter.vhd"
+add_file -vhdl -lib work "../src/rtl/clk_rst_managr.vhd"
+add_file -vhdl -lib work "../src/rtl/one_hz_gen.vhd"
+add_file -vhdl -lib work "../src/rtl/start_retrigger_control.vhd"
+add_file -vhdl -lib work "../src/rtl/data_formatting.vhd"
+add_file -vhdl -lib work "../src/rtl/data_engine.vhd"
+add_file -vhdl -lib work "../src/rtl/acam_timecontrol_interface.vhd"
+add_file -vhdl -lib work "../src/rtl/acam_databus_interface.vhd"
+add_file -vhdl -lib work "../src/rtl/circular_buffer.vhd"
+add_file -vhdl -lib work "../src/rtl/reg_ctrl.vhd"
+add_file -vhdl -lib work "../src/rtl/top_tdc.vhd"
+add_file -constraint "./tdc_syn_constraints.sdc"
+
+
+#implementation: "syn"
+impl -add syn -type fpga
+
+#
+#implementation attributes
+
+set_option -vlog_std v2001
+set_option -num_critical_paths 5
+set_option -project_relative_includes 1
+
+#device options
+set_option -technology Spartan6
+set_option -part XC6SLX45T
+set_option -package FGG484
+set_option -speed_grade -3
+set_option -part_companion ""
+
+#compilation/mapping options
+set_option -use_fsm_explorer 0
+set_option -top_module "top_tdc"
+
+# mapper_options
+set_option -frequency 200
+set_option -default_enum_encoding onehot
+set_option -write_verilog 0
+set_option -write_vhdl 0
+
+# Xilinx Spartan3
+set_option -run_prop_extract 1
+set_option -maxfan 10000
+set_option -disable_io_insertion 0
+set_option -pipe 0
+set_option -retiming 0
+set_option -update_models_cp 0
+set_option -fixgatedclocks 3
+set_option -fixgeneratedclocks 3
+set_option -no_sequential_opt 0
+
+# Xilinx Spartan6
+set_option -enable_prepacking 1
+
+# NFilter
+set_option -popfeed 1
+set_option -constprop 1
+set_option -createhierarchy 0
+
+# sequential_optimization_options
+set_option -symbolic_fsm_compiler 1
+
+# Compiler Options
+set_option -compiler_compatible 0
+set_option -resource_sharing 0
+
+#VIF options
+set_option -write_vif 0
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 1
+
+#set result format/file last
+project -result_file "./syn_tdc.edf"
+impl -active "syn"

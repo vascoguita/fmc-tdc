@@ -50,8 +50,8 @@ rm par_tdc.unroutes
 rm par_tdc.xpi
 rm par_usage_statistics.html
 
-rm par_tdc.twr
-rm par_tdc.twx
+rm timing_report.twr
+rm timing_report.twx
 
 rm tdc.bgn
 rm tdc.bit
