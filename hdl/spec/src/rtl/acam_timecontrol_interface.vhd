@@ -183,6 +183,10 @@ begin
     -- After many tests with the ACAM chip, the Start Disable feature
     -- doesn't seem to be stable. It has therefore been decided to
     -- avoid its usage.
+    
+    -- The generation of the window is maintained to allow the for
+    -- the control of the delay between the Start_From_FPGA pulse
+    -- and the Reference Clock edge
 
 --    start_disable_control: process
 --    begin

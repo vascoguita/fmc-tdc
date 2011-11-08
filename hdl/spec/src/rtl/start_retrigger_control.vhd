@@ -121,20 +121,6 @@ begin
         current_value   => current_cycles
     );
     
---    retrig_number_counter: free_counter
---    generic map(
---        width           => g_width
---    )
---    port map(
---        clk             => clk,
---        enable          => retrig_p,
---        reset           => retrig_nb_reset,
---        start_value     => x"00000100",
---        
---        count_done      => open,
---        current_value   => current_retrig_nb
---    );
-    
     retrig_nb_counter: incr_counter
     generic map(
         width           => g_width
@@ -148,6 +134,8 @@ begin
         count_done      => open,
         current_value   => current_retrig_nb
     );
+    -- These two counters keep a track of the current internal start retrigger
+    -- of the Acam in parallel with the Acam itself
     
     roll_over_counter: incr_counter
     generic map(
@@ -162,6 +150,8 @@ begin
         count_done      => open,
         current_value   => roll_over_value
     );
+    -- This counter keeps track of the number of overflows of the Acam counter
+    -- for the internal start retrigger
     
     capture_offset: process
     begin
@@ -174,6 +164,9 @@ begin
         end if;
         wait until clk ='1';
     end process;
+    -- When a new second starts, all values are captured and stored as offsets.
+    -- when a timestamps arrives, these offset will be subrstracted in order
+    -- to base the final timestamp with respect to the current second.
     
     retrig_period_reset             <= acam_fall_intflag_p;
     retrig_nb_reset                 <= acam_fall_intflag_p;
@@ -193,24 +186,6 @@ begin
     retrig_nb_offset_o          <= retrig_nb_offset;
     current_roll_over_o         <= roll_over_value;
 
---    halfcounter_monitor: process                    -- The halfcounter monitor is needed to make
---    begin                                           -- sure that the falling edge pulse received 
---        if reset ='1' or one_hz_p ='1' then         -- corresponds to a real overflow of the ACAM
---            acam_halfcounter_gone       <= '0';     -- counter and not to a different reason,
---        elsif acam_rise_intflag_p ='1' then         -- for example a reset. 
---            acam_halfcounter_gone       <= '1';     -- This way the start_nb_offset will really 
---        elsif acam_fall_intflag_p ='1' then         -- track the number of internal start retriggers
---            acam_halfcounter_gone       <= '0';     -- inside the ACAM.
---        end if;
---        wait until clk ='1';
---    end process;
---    
---    add_offset          <= acam_fall_intflag_p and acam_halfcounter_gone;
---    counter_reset       <= reset or one_hz_p;
---    offset_to_shift     <= unsigned(offset_value);
---    start_nb_offset     <= std_logic_vector(shift_left(offset_to_shift,8));
---    start_trig          <= one_hz_p;
-    
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

@@ -6,7 +6,7 @@
 --  author      : G. Penacoba
 --  date        : Oct 2011
 --  version     : Revision 1
---  description : contains the RAM block (512 x 32) and the wishbone slave interfaces.
+--  description : contains the RAM block (1024 x 32) and the wishbone slave interfaces.
 --                From the side of the timestamps coming from the ACAM the wishbone interface is
 --                classic. On the side of the DMA access from the PCI, the wishbone interface is
 --                pipelined.

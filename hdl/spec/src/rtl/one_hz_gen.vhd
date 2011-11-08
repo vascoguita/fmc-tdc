@@ -8,6 +8,7 @@
 --  version     : Revision 1
 --  description : generates one pulse every second synchronously with the acam reference clock.
 --                  The phase with the reference clock can be adjusted.
+--                  It also keeps track of the UTC time based on the local clock
 --  dependencies:
 --  references  :
 --  modified by :

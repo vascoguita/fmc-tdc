@@ -167,7 +167,8 @@ constant reg_232        : t_byte:=x"01";
 
 constant sim_reset      : std_logic_vector(31 downto 0):=x"00000400";
 constant syn_reset      : std_logic_vector(31 downto 0):=x"00004E20";
-
+-- this value may still need adjustment according to the dispersion
+-- in the performance of the PLL observed during the production tests
 
 signal pll_init_st              : t_pll_init_st;
 signal nxt_pll_init_st          : t_pll_init_st;
@@ -246,6 +247,13 @@ begin
 --    );
     acam_refclk     <= acam_refclk_i;
     
+    -- The following processes generate a general internal reset signal for the whole core.
+    -- This internal reset is triggered by the reset signal coming from the GNUM chip.
+    -- The idea is to keep the internal reset asserted until the clock signal received
+    -- from the PLL is stable enough.
+    --
+    -- The way to evaluate that is to count a minimum number of edges on the 125 MHz clock
+    
     general_poreset: incr_counter
     port map(
         clk                 => spec_clk,
@@ -259,8 +267,11 @@ begin
     
     gral_reset_duration          <= sim_reset when values_for_simulation
                                     else syn_reset;
+    -- the number of edges will probably need to be better adjusted
+    -- depending on the actual performances of the PLL
     
-    silly: process
+    silly: process      -- this signal only exists to reset the sampling of the 125 MHz 
+                        -- edges
     begin
         if gnum_reset ='1' then
             silly_altern        <= '0';

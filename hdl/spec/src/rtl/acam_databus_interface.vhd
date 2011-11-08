@@ -98,7 +98,10 @@ signal ack                      : std_logic;
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
 begin
-
+    
+    -- the following state machine implements the slave side of the Wishbone interface
+    -- and converts the signals for the Acam proprietary bus interface
+    
     databus_access_seq_fsm: process
     begin
         if reset ='1' then
@@ -195,7 +198,11 @@ begin
     
     cs          <= ((stb and cyc)               or cs_extend) and not(ack);
     rd          <= ((stb and cyc and not(we))   or rd_extend) and not(ack);
-    wr          <= ((stb and cyc and we)        or wr_extend) and not(wr_remove) and not(ack);
+    wr          <= ((stb and cyc and we)        or wr_extend) and not(wr_remove) and not(ack);      -- the wr signal
+                                                                                                    -- has to be
+                                                                                                    -- removed to 
+                                                                                                    -- respect the
+                                                                                                    -- Acam specs
     
     -- inputs from other blocks    
     clk                         <= clk_i;
