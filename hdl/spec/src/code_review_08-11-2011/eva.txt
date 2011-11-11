@@ -1,0 +1,43 @@
+I found the code quite clear, even if there are not many comments.
+------------------------------------------
+
+
+data_engine, data_formatting and circular_buffer
+------------------------------------------
+I would suggest a bit cleaner names for the WBs:
+stb/ack/..                  in the data_engine     could be renamed to acam_stb/ acam_ack..
+stb/ack/..                  in the data_formatting could be renamed to internal_stb/ internal_ack..
+classic_stb/ classic_ack/.. in the circular_buffer could be renamed to gnum_classic_stb/ gnum_classic_ack..
+pipe_stb/ pipe_ack/..       in the circular_buffer could be renamed to gnum_pipe_stb/ gnum_pipe_ack..
+
+
+one_hz_gen and acam_timecontrol_interface
+------------------------------------------
+synchronization and edge detection of refclk takes place in both units
+one_hz_gen lines 153-170; acam_timecontrol_interface lines 240-258
+refclk_edge is a pulse (refclk_edge_p)
+use of the first DFF s_acam_refclk(3) should be avoided
+
+
+acam_timecontrol_interface
+------------------------------------------
+lines 260: start_trig_edge is a pulses (_p)
+           use of the first DFF (start_trig_r(2)) should be avoided 
+lines 120-146 : good!-)
+
+
+acam_databus_interface
+------------------------------------------
+lines 227-241: signals ef1/2, lf1/2 shouldn t be synchronized as well (use one more DFF)?
+
+
+acam_databus_interface and circular_buffer
+------------------------------------------
+The ack signals are pulses (_p)
+acam_databus_interface, ack, line 63
+circular_buffer, classic_ack, line 123
+
+
+circular_buffer
+------------------------------------------
+lines 37, 50: class_clk_i and pipe_clk_i are actually the same clock; maybe they could just be named gnum_clk_i
