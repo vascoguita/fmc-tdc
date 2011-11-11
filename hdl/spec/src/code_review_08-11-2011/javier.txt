@@ -1,0 +1,48 @@
+Disclaimer: not enough time to do this design justice. Looking at VHDL
+constructs independently, not trying to make sense of the design as a
+whole.
+
+top_tdc.vhd
+===========
+
+- Line 1057 (and others). The wait until spec_clk = '1'; at the end of
+the process looks awkward to me. I guess it means this is a
+synchronous process working on the rising edge of spec_clk. Is there
+any advantage to using this notation?
+
+acam_databus_interface.vhd
+==========================
+
+- Line 73. "read" and "write" are not VHDL reserved words but they are
+  names of functions people use to do I/O. Probably wise to chose
+  other names for states.
+
+- Line 244. address_o going to the ACAM is not registered. This signal
+  is driven by adr_i, the wishbone input address. These lines are
+  being used in another entity (data_engine.vhd) as inputs to other
+  processes so chances are they will not use IOB FFs, which might be
+  important to respect setup and hold constraints of the ACAM.
+
+acam_timecontrol_interface.vhd
+==============================
+
+- Line 246 (and others). This can be written in one line:
+  "start_trig_r <= start_trig & start_trig_r(1 downto 0);"
+
+- Line 255 (and others). This edge detector uses signal ref_clk_r(3),
+  which is potentially metastable. It also relies very heavily on the
+  fact that ref_clk should be at a given frequency.
+
+clk_rst_managr.vhd
+==================
+
+Line 284. This process can create metastability in signal gral_incr,
+which is then going to many destinations inside the incr_counter
+block, possibly leading to non-deterministic behavior of the counter.
+
+Line 309. Signal cs seems to be negative logic. This should be visible
+in its name. 
+
+Line 571. cs will not use an IOB FF because it is read in line
+366. Please check all other cases when this can happen.
+
