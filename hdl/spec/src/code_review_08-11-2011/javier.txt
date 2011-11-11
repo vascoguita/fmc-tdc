@@ -46,3 +46,10 @@ in its name.
 Line 571. cs will not use an IOB FF because it is read in line
 366. Please check all other cases when this can happen.
 
+one_hz_gen.vhd
+==============
+
+Line 153. Similar comments on metastability as before. Also, the
+assumption on the clock frequency of s_acam_refclk is very strong and
+might be in trouble if sampling happens close to the edges and the
+signals are a bit jittery. Why is this "frequency test" needed?
