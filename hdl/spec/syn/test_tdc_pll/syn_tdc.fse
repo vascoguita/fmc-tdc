@@ -1,0 +1,14 @@
+
+fsm_encoding {3216771671} onehot
+
+fsm_state_encoding {3216771671} start {00000}
+
+fsm_state_encoding {3216771671} sending_instruction {00011}
+
+fsm_state_encoding {3216771671} sending_data {00101}
+
+fsm_state_encoding {3216771671} rest {01001}
+
+fsm_state_encoding {3216771671} done {10001}
+
+fsm_registers {3216771671} {pll_init_st[0]}  {pll_init_st[1]}  {pll_init_st[2]}  {pll_init_st[3]}  {pll_init_st_i[4]} 

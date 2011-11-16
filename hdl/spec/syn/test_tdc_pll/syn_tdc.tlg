@@ -1,0 +1,113 @@
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":29:7:29:13|Synthesizing work.top_tdc.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":179:7:179:17|Signal pulse_delay is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":180:7:180:18|Signal clock_period is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":190:7:190:19|Signal tdc_led_trig1 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":191:7:191:19|Signal tdc_led_trig2 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":192:7:192:19|Signal tdc_led_trig3 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":193:7:193:19|Signal tdc_led_trig4 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":194:7:194:19|Signal tdc_led_trig5 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":196:7:196:20|Signal acam_errflag_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":197:7:197:20|Signal acam_intflag_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":198:7:198:18|Signal acam_start01 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":199:7:199:20|Signal acam_timestamp is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":200:7:200:26|Signal acam_timestamp_valid is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":201:7:201:20|Signal full_timestamp is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":202:7:202:26|Signal full_timestamp_valid is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":203:7:203:14|Signal one_hz_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":205:7:205:21|Signal start_nb_offset is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":206:7:206:21|Signal start_timer_reg is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":207:7:207:22|Signal utc_current_time is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":209:7:209:13|Signal acm_adr is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":210:7:210:13|Signal acm_cyc is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":211:7:211:13|Signal acm_stb is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":212:7:212:12|Signal acm_we is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":213:7:213:13|Signal acm_ack is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":214:7:214:15|Signal acm_dat_r is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":215:7:215:15|Signal acm_dat_w is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":217:7:217:13|Signal dma_irq is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":218:7:218:11|Signal irq_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":220:7:220:13|Signal csr_clk is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":221:7:221:13|Signal csr_adr is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":222:7:222:15|Signal csr_dat_r is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":223:7:223:13|Signal csr_sel is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":224:7:224:13|Signal csr_stb is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":225:7:225:12|Signal csr_we is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":226:7:226:13|Signal csr_cyc is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":227:7:227:15|Signal csr_dat_w is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":228:7:228:13|Signal csr_ack is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":230:7:230:13|Signal dma_clk is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":231:7:231:13|Signal dma_adr is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":232:7:232:15|Signal dma_dat_i is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":233:7:233:13|Signal dma_sel is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":234:7:234:13|Signal dma_stb is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":235:7:235:12|Signal dma_we is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":236:7:236:13|Signal dma_cyc is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":237:7:237:15|Signal dma_dat_o is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":238:7:238:13|Signal dma_ack is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":239:7:239:15|Signal dma_stall is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":15:7:15:18|Synthesizing work.free_counter.rtl 
+Post processing for work.free_counter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":32:7:32:20|Synthesizing work.clk_rst_managr.rtl 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":83:24:83:25|Using onehot encoding for type t_pll_init_st (start="10000")
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6077:10:6077:15|Synthesizing unisim.ibufds.syn_black_box 
+Post processing for unisim.ibufds.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6266:10:6266:14|Synthesizing unisim.ibufg.syn_black_box 
+Post processing for unisim.ibufg.syn_black_box
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":335:8:335:21|OTHERS clause is not synthesized 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":173:7:173:21|Signal acam_refclk_buf is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":16:7:16:18|Synthesizing work.incr_counter.rtl 
+Post processing for work.incr_counter.rtl
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":428:10:428:13|Synthesizing unisim.bufg.syn_black_box 
+Post processing for unisim.bufg.syn_black_box
+Post processing for work.clk_rst_managr.rtl
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":50:8:50:21|pll_dac_sync_o is not assigned a value (floating) - a simulation mismatch is possible 
+Post processing for work.top_tdc.rtl
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":95:8:95:13|wr_n_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":94:8:94:13|rd_n_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":93:8:93:13|oe_n_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":92:8:92:13|cs_n_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":91:8:91:16|address_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":82:8:82:17|stop_dis_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":81:8:81:24|start_from_fpga_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":80:8:80:18|start_dis_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":60:8:60:14|spare_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":59:8:59:14|irq_p_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":54:8:54:16|l2p_edb_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":53:8:53:18|l2p_valid_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":52:8:52:19|l2p_dframe_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":51:8:51:17|l2p_data_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":50:8:50:18|l2p_clk_n_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":49:8:49:18|l2p_clk_p_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":46:8:46:17|rx_error_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":45:8:45:17|p_wr_rdy_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":43:8:43:16|p2l_rdy_o is not assigned a value (floating) - a simulation mismatch is possible 
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":167:7:167:17|Trying to extract state machine for register pll_init_st
+Extracted state machine for register pll_init_st
+State machine has 5 reachable states with original encodings of:
+   00001
+   00010
+   00100
+   01000
+   10000
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":38:8:38:15|Input pll_ld_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":39:8:39:19|Input pll_refmon_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":40:8:40:16|Input pll_sdo_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":41:8:41:19|Input pll_status_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":38:8:38:18|Input p2l_clk_p_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":39:8:39:18|Input p2l_clk_n_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":40:8:40:17|Input p2l_data_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":41:8:41:19|Input p2l_dframe_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":42:8:42:18|Input p2l_valid_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":44:8:44:17|Input p_wr_req_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":47:8:47:15|Input vc_rdy_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":55:8:55:16|Input l2p_rdy_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":56:8:56:17|Input l_wr_rdy_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":57:8:57:19|Input p_rd_d_rdy_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":58:8:58:17|Input tx_error_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":77:8:77:17|Input err_flag_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":78:8:78:17|Input int_flag_i is unused
+@W: CL158 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":85:8:85:18|Inout data_bus_io is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":86:8:86:12|Input ef1_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":87:8:87:12|Input ef2_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":88:8:88:12|Input lf1_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/test_tdc_pll/top_test_pll.vhd":89:8:89:12|Input lf2_i is unused

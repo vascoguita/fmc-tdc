@@ -1,0 +1,284 @@
+//! **************************************************************************
+// Written by: Map O.40d on Mon Jul 18 09:44:36 2011
+//! **************************************************************************
+
+SCHEMATIC START;
+COMP "start_dis_o" LOCATE = SITE "T15" LEVEL 1;
+COMP "tdc_clk_n_i" LOCATE = SITE "L22" LEVEL 1;
+COMP "tdc_clk_p_i" LOCATE = SITE "L20" LEVEL 1;
+COMP "l2p_valid_o" LOCATE = SITE "T18" LEVEL 1;
+COMP "p2l_data_i(0)" LOCATE = SITE "K20" LEVEL 1;
+COMP "p2l_data_i(1)" LOCATE = SITE "H22" LEVEL 1;
+COMP "p2l_data_i(2)" LOCATE = SITE "H21" LEVEL 1;
+COMP "p2l_data_i(3)" LOCATE = SITE "L17" LEVEL 1;
+COMP "p2l_data_i(4)" LOCATE = SITE "K17" LEVEL 1;
+COMP "p2l_data_i(5)" LOCATE = SITE "G22" LEVEL 1;
+COMP "p2l_data_i(6)" LOCATE = SITE "G20" LEVEL 1;
+COMP "p2l_data_i(7)" LOCATE = SITE "K18" LEVEL 1;
+COMP "p2l_data_i(8)" LOCATE = SITE "K19" LEVEL 1;
+COMP "p2l_data_i(9)" LOCATE = SITE "H20" LEVEL 1;
+COMP "tdc_led_trig3_o" LOCATE = SITE "Y16" LEVEL 1;
+COMP "tdc_led_trig4_o" LOCATE = SITE "W15" LEVEL 1;
+COMP "tdc_led_trig5_o" LOCATE = SITE "V17" LEVEL 1;
+COMP "pll_sclk_o" LOCATE = SITE "AB17" LEVEL 1;
+COMP "p2l_data_i(10)" LOCATE = SITE "J19" LEVEL 1;
+COMP "p2l_data_i(11)" LOCATE = SITE "E22" LEVEL 1;
+COMP "p2l_data_i(12)" LOCATE = SITE "E20" LEVEL 1;
+COMP "p2l_data_i(13)" LOCATE = SITE "F22" LEVEL 1;
+COMP "p2l_data_i(14)" LOCATE = SITE "F21" LEVEL 1;
+COMP "p2l_data_i(15)" LOCATE = SITE "H19" LEVEL 1;
+COMP "p_rd_d_rdy_i(0)" LOCATE = SITE "N16" LEVEL 1;
+COMP "p_rd_d_rdy_i(1)" LOCATE = SITE "P19" LEVEL 1;
+COMP "ef1_i" LOCATE = SITE "W12" LEVEL 1;
+COMP "ef2_i" LOCATE = SITE "R11" LEVEL 1;
+COMP "spec_clk_i" LOCATE = SITE "H12" LEVEL 1;
+COMP "p2l_clk_n_i" LOCATE = SITE "M19" LEVEL 1;
+COMP "p2l_clk_p_i" LOCATE = SITE "M20" LEVEL 1;
+COMP "lf1_i" LOCATE = SITE "Y12" LEVEL 1;
+COMP "lf2_i" LOCATE = SITE "T11" LEVEL 1;
+COMP "vc_rdy_i(0)" LOCATE = SITE "B21" LEVEL 1;
+COMP "vc_rdy_i(1)" LOCATE = SITE "B22" LEVEL 1;
+COMP "tdc_led_status_o" LOCATE = SITE "W13" LEVEL 1;
+COMP "irq_p_o" LOCATE = SITE "U16" LEVEL 1;
+COMP "p2l_valid_i" LOCATE = SITE "L19" LEVEL 1;
+COMP "spare_o" LOCATE = SITE "AB19" LEVEL 1;
+COMP "data_bus_io(0)" LOCATE = SITE "W6" LEVEL 1;
+COMP "data_bus_io(1)" LOCATE = SITE "Y6" LEVEL 1;
+COMP "data_bus_io(2)" LOCATE = SITE "V7" LEVEL 1;
+COMP "data_bus_io(3)" LOCATE = SITE "W8" LEVEL 1;
+COMP "data_bus_io(4)" LOCATE = SITE "T8" LEVEL 1;
+COMP "data_bus_io(5)" LOCATE = SITE "AA12" LEVEL 1;
+COMP "data_bus_io(6)" LOCATE = SITE "U8" LEVEL 1;
+COMP "data_bus_io(7)" LOCATE = SITE "AB12" LEVEL 1;
+COMP "data_bus_io(8)" LOCATE = SITE "Y5" LEVEL 1;
+COMP "data_bus_io(9)" LOCATE = SITE "AB5" LEVEL 1;
+COMP "tdc_led_trig1_o" LOCATE = SITE "W14" LEVEL 1;
+COMP "tdc_led_trig2_o" LOCATE = SITE "Y14" LEVEL 1;
+COMP "p_wr_req_i(0)" LOCATE = SITE "M22" LEVEL 1;
+COMP "p_wr_req_i(1)" LOCATE = SITE "M21" LEVEL 1;
+COMP "rx_error_o" LOCATE = SITE "J17" LEVEL 1;
+COMP "p_wr_rdy_o(0)" LOCATE = SITE "L15" LEVEL 1;
+COMP "p_wr_rdy_o(1)" LOCATE = SITE "K16" LEVEL 1;
+COMP "tx_error_i" LOCATE = SITE "M17" LEVEL 1;
+COMP "pll_sdi_o" LOCATE = SITE "AA18" LEVEL 1;
+COMP "pll_sdo_i" LOCATE = SITE "AB18" LEVEL 1;
+COMP "term_en_1_o" LOCATE = SITE "W18" LEVEL 1;
+COMP "term_en_2_o" LOCATE = SITE "B20" LEVEL 1;
+COMP "term_en_3_o" LOCATE = SITE "A20" LEVEL 1;
+COMP "term_en_4_o" LOCATE = SITE "H10" LEVEL 1;
+COMP "term_en_5_o" LOCATE = SITE "E6" LEVEL 1;
+COMP "spec_aux0_i" LOCATE = SITE "C22" LEVEL 1;
+COMP "spec_aux1_i" LOCATE = SITE "D21" LEVEL 1;
+COMP "spec_aux2_o" LOCATE = SITE "G19" LEVEL 1;
+COMP "spec_aux3_o" LOCATE = SITE "F20" LEVEL 1;
+COMP "spec_aux4_o" LOCATE = SITE "F18" LEVEL 1;
+COMP "spec_aux5_o" LOCATE = SITE "C20" LEVEL 1;
+COMP "p2l_dframe_i" LOCATE = SITE "J22" LEVEL 1;
+COMP "stop_dis_o" LOCATE = SITE "U15" LEVEL 1;
+COMP "acam_refclk_i" LOCATE = SITE "E16" LEVEL 1;
+COMP "cs_n_o" LOCATE = SITE "T14" LEVEL 1;
+COMP "oe_n_o" LOCATE = SITE "V13" LEVEL 1;
+COMP "rd_n_o" LOCATE = SITE "AB13" LEVEL 1;
+COMP "pll_refmon_i" LOCATE = SITE "D17" LEVEL 1;
+COMP "wr_n_o" LOCATE = SITE "Y13" LEVEL 1;
+COMP "l2p_edb_o" LOCATE = SITE "U20" LEVEL 1;
+COMP "rst_n_a_i" LOCATE = SITE "N20" LEVEL 1;
+COMP "l2p_rdy_i" LOCATE = SITE "U19" LEVEL 1;
+COMP "l2p_data_o(10)" LOCATE = SITE "T21" LEVEL 1;
+COMP "l2p_data_o(11)" LOCATE = SITE "T19" LEVEL 1;
+COMP "l2p_data_o(12)" LOCATE = SITE "V22" LEVEL 1;
+COMP "l2p_data_o(13)" LOCATE = SITE "V20" LEVEL 1;
+COMP "l2p_data_o(14)" LOCATE = SITE "W20" LEVEL 1;
+COMP "l2p_data_o(15)" LOCATE = SITE "Y21" LEVEL 1;
+COMP "pll_cs_o" LOCATE = SITE "Y17" LEVEL 1;
+COMP "pll_ld_i" LOCATE = SITE "C18" LEVEL 1;
+COMP "address_o(0)" LOCATE = SITE "T12" LEVEL 1;
+COMP "address_o(1)" LOCATE = SITE "U12" LEVEL 1;
+COMP "address_o(2)" LOCATE = SITE "Y15" LEVEL 1;
+COMP "address_o(3)" LOCATE = SITE "AB15" LEVEL 1;
+COMP "mute_inputs_o" LOCATE = SITE "C19" LEVEL 1;
+COMP "err_flag_i" LOCATE = SITE "V11" LEVEL 1;
+COMP "pll_status_i" LOCATE = SITE "Y18" LEVEL 1;
+COMP "l_wr_rdy_i(0)" LOCATE = SITE "R20" LEVEL 1;
+COMP "l_wr_rdy_i(1)" LOCATE = SITE "T22" LEVEL 1;
+COMP "p2l_rdy_o" LOCATE = SITE "J16" LEVEL 1;
+COMP "data_bus_io(10)" LOCATE = SITE "R9" LEVEL 1;
+COMP "data_bus_io(11)" LOCATE = SITE "R8" LEVEL 1;
+COMP "data_bus_io(12)" LOCATE = SITE "AA6" LEVEL 1;
+COMP "data_bus_io(20)" LOCATE = SITE "T10" LEVEL 1;
+COMP "data_bus_io(13)" LOCATE = SITE "AB6" LEVEL 1;
+COMP "data_bus_io(21)" LOCATE = SITE "U10" LEVEL 1;
+COMP "data_bus_io(22)" LOCATE = SITE "W10" LEVEL 1;
+COMP "data_bus_io(14)" LOCATE = SITE "U9" LEVEL 1;
+COMP "data_bus_io(23)" LOCATE = SITE "Y10" LEVEL 1;
+COMP "data_bus_io(15)" LOCATE = SITE "V9" LEVEL 1;
+COMP "data_bus_io(24)" LOCATE = SITE "Y9" LEVEL 1;
+COMP "data_bus_io(16)" LOCATE = SITE "Y7" LEVEL 1;
+COMP "data_bus_io(25)" LOCATE = SITE "AB9" LEVEL 1;
+COMP "data_bus_io(17)" LOCATE = SITE "AB7" LEVEL 1;
+COMP "data_bus_io(26)" LOCATE = SITE "AA4" LEVEL 1;
+COMP "data_bus_io(18)" LOCATE = SITE "AA8" LEVEL 1;
+COMP "data_bus_io(27)" LOCATE = SITE "AB4" LEVEL 1;
+COMP "data_bus_io(19)" LOCATE = SITE "AB8" LEVEL 1;
+COMP "l2p_data_o(0)" LOCATE = SITE "P16" LEVEL 1;
+COMP "l2p_data_o(1)" LOCATE = SITE "P21" LEVEL 1;
+COMP "l2p_data_o(2)" LOCATE = SITE "P18" LEVEL 1;
+COMP "l2p_data_o(3)" LOCATE = SITE "T20" LEVEL 1;
+COMP "l2p_data_o(4)" LOCATE = SITE "V21" LEVEL 1;
+COMP "l2p_data_o(5)" LOCATE = SITE "V19" LEVEL 1;
+COMP "l2p_data_o(6)" LOCATE = SITE "W22" LEVEL 1;
+COMP "l2p_data_o(7)" LOCATE = SITE "Y22" LEVEL 1;
+COMP "l2p_data_o(8)" LOCATE = SITE "P22" LEVEL 1;
+COMP "l2p_data_o(9)" LOCATE = SITE "R22" LEVEL 1;
+COMP "pll_dac_sync_o" LOCATE = SITE "AB16" LEVEL 1;
+COMP "spec_led_green_o" LOCATE = SITE "E5" LEVEL 1;
+COMP "int_flag_i" LOCATE = SITE "W11" LEVEL 1;
+COMP "spec_led_red_o" LOCATE = SITE "D5" LEVEL 1;
+COMP "l2p_dframe_o" LOCATE = SITE "U22" LEVEL 1;
+COMP "l2p_clk_n_o" LOCATE = SITE "K22" LEVEL 1;
+COMP "l2p_clk_p_o" LOCATE = SITE "K21" LEVEL 1;
+PIN clks_rsts_mgment.spec_clk_gbuf_pin<1> = BEL
+        "clks_rsts_mgment.spec_clk_gbuf" PINNAME O;
+PIN "clks_rsts_mgment.spec_clk_gbuf_pin<1>" CLOCK_DEDICATED_ROUTE = FALSE;
+PIN clks_rsts_mgment.tdc_clk125_gbuf_pin<1> = BEL
+        "clks_rsts_mgment.tdc_clk125_gbuf" PINNAME O;
+PIN "clks_rsts_mgment.tdc_clk125_gbuf_pin<1>" CLOCK_DEDICATED_ROUTE = FALSE;
+PIN "spec_led_red_counter.value[31:0]_pins<92>" = BEL
+        "spec_led_red_counter.value[31:0]" PINNAME CLK;
+PIN clks_rsts_mgment.un7_word_being_sent_0_0_pins<26> = BEL
+        "clks_rsts_mgment.un7_word_being_sent_0_0" PINNAME CLKAWRCLK;
+TIMEGRP spec_clk_i = BEL "clks_rsts_mgment.spec_clk_gbuf" BEL
+        "clks_rsts_mgment.general_poreset.count_done" BEL
+        "clks_rsts_mgment.bit_index[0]" BEL "clks_rsts_mgment.bit_index[1]"
+        BEL "clks_rsts_mgment.bit_index[2]" BEL
+        "clks_rsts_mgment.bit_index[3]" BEL "clks_rsts_mgment.pll_sclk" PIN
+        "spec_led_red_counter.value[31:0]_pins<92>" BEL
+        "clks_rsts_mgment.general_poreset.count_done_rep0_i" BEL
+        "clks_rsts_mgment.general_poreset.value[0]" BEL
+        "clks_rsts_mgment.general_poreset.value[1]" BEL
+        "clks_rsts_mgment.general_poreset.value[2]" BEL
+        "clks_rsts_mgment.general_poreset.value[3]" BEL
+        "clks_rsts_mgment.general_poreset.value[4]" BEL
+        "clks_rsts_mgment.general_poreset.value[5]" BEL
+        "clks_rsts_mgment.general_poreset.value[6]" BEL
+        "clks_rsts_mgment.general_poreset.value[7]" BEL
+        "clks_rsts_mgment.general_poreset.value[8]" BEL
+        "clks_rsts_mgment.general_poreset.value[9]" BEL
+        "clks_rsts_mgment.general_poreset.value[10]" BEL
+        "clks_rsts_mgment.general_poreset.value[11]" BEL
+        "clks_rsts_mgment.general_poreset.value[12]" BEL
+        "clks_rsts_mgment.general_poreset.value[13]" BEL
+        "clks_rsts_mgment.general_poreset.value[14]" BEL
+        "clks_rsts_mgment.general_poreset.value[15]" BEL
+        "clks_rsts_mgment.general_poreset.value[16]" BEL
+        "clks_rsts_mgment.general_poreset.value[17]" BEL
+        "clks_rsts_mgment.general_poreset.value[18]" BEL
+        "clks_rsts_mgment.general_poreset.value[19]" BEL
+        "clks_rsts_mgment.general_poreset.value[20]" BEL
+        "clks_rsts_mgment.general_poreset.value[21]" BEL
+        "clks_rsts_mgment.general_poreset.value[22]" BEL
+        "clks_rsts_mgment.general_poreset.value[23]" BEL
+        "clks_rsts_mgment.general_poreset.value[24]" BEL
+        "clks_rsts_mgment.general_poreset.value[25]" BEL
+        "clks_rsts_mgment.general_poreset.value[26]" BEL
+        "clks_rsts_mgment.general_poreset.value[27]" BEL
+        "clks_rsts_mgment.general_poreset.value[28]" BEL
+        "clks_rsts_mgment.general_poreset.value[29]" BEL
+        "clks_rsts_mgment.general_poreset.value[30]" BEL
+        "clks_rsts_mgment.general_poreset.value[31]" BEL "spec_led_red_oreg"
+        BEL "clks_rsts_mgment.pll_sclk_oreg" PIN
+        "clks_rsts_mgment.un7_word_being_sent_0_0_pins<26>" BEL
+        "tdc_led_trig1_o" BEL "spec_led_red" BEL
+        "spec_led_red_counter.count_done" BEL
+        "clks_rsts_mgment.pll_init_st_i[4]" BEL
+        "clks_rsts_mgment.pll_init_st[1]" BEL
+        "clks_rsts_mgment.pll_init_st[2]" BEL
+        "clks_rsts_mgment.pll_init_st[3]" BEL "clks_rsts_mgment.byte_index[6]"
+        BEL "clks_rsts_mgment.byte_index[5]" BEL
+        "clks_rsts_mgment.byte_index[4]" BEL "clks_rsts_mgment.byte_index[3]"
+        BEL "clks_rsts_mgment.byte_index[2]" BEL
+        "clks_rsts_mgment.byte_index[1]" BEL "clks_rsts_mgment.byte_index[0]";
+TIMEGRP spec_clk = BEL "clks_rsts_mgment.general_poreset.count_done" BEL
+        "clks_rsts_mgment.bit_index[0]" BEL "clks_rsts_mgment.bit_index[1]"
+        BEL "clks_rsts_mgment.bit_index[2]" BEL
+        "clks_rsts_mgment.bit_index[3]" BEL "clks_rsts_mgment.pll_sclk" PIN
+        "spec_led_red_counter.value[31:0]_pins<92>" BEL
+        "clks_rsts_mgment.general_poreset.count_done_rep0_i" BEL
+        "clks_rsts_mgment.general_poreset.value[0]" BEL
+        "clks_rsts_mgment.general_poreset.value[1]" BEL
+        "clks_rsts_mgment.general_poreset.value[2]" BEL
+        "clks_rsts_mgment.general_poreset.value[3]" BEL
+        "clks_rsts_mgment.general_poreset.value[4]" BEL
+        "clks_rsts_mgment.general_poreset.value[5]" BEL
+        "clks_rsts_mgment.general_poreset.value[6]" BEL
+        "clks_rsts_mgment.general_poreset.value[7]" BEL
+        "clks_rsts_mgment.general_poreset.value[8]" BEL
+        "clks_rsts_mgment.general_poreset.value[9]" BEL
+        "clks_rsts_mgment.general_poreset.value[10]" BEL
+        "clks_rsts_mgment.general_poreset.value[11]" BEL
+        "clks_rsts_mgment.general_poreset.value[12]" BEL
+        "clks_rsts_mgment.general_poreset.value[13]" BEL
+        "clks_rsts_mgment.general_poreset.value[14]" BEL
+        "clks_rsts_mgment.general_poreset.value[15]" BEL
+        "clks_rsts_mgment.general_poreset.value[16]" BEL
+        "clks_rsts_mgment.general_poreset.value[17]" BEL
+        "clks_rsts_mgment.general_poreset.value[18]" BEL
+        "clks_rsts_mgment.general_poreset.value[19]" BEL
+        "clks_rsts_mgment.general_poreset.value[20]" BEL
+        "clks_rsts_mgment.general_poreset.value[21]" BEL
+        "clks_rsts_mgment.general_poreset.value[22]" BEL
+        "clks_rsts_mgment.general_poreset.value[23]" BEL
+        "clks_rsts_mgment.general_poreset.value[24]" BEL
+        "clks_rsts_mgment.general_poreset.value[25]" BEL
+        "clks_rsts_mgment.general_poreset.value[26]" BEL
+        "clks_rsts_mgment.general_poreset.value[27]" BEL
+        "clks_rsts_mgment.general_poreset.value[28]" BEL
+        "clks_rsts_mgment.general_poreset.value[29]" BEL
+        "clks_rsts_mgment.general_poreset.value[30]" BEL
+        "clks_rsts_mgment.general_poreset.value[31]" BEL "spec_led_red_oreg"
+        BEL "clks_rsts_mgment.pll_sclk_oreg" PIN
+        "clks_rsts_mgment.un7_word_being_sent_0_0_pins<26>" BEL
+        "tdc_led_trig1_o" BEL "spec_led_red" BEL
+        "spec_led_red_counter.count_done" BEL
+        "clks_rsts_mgment.pll_init_st_i[4]" BEL
+        "clks_rsts_mgment.pll_init_st[1]" BEL
+        "clks_rsts_mgment.pll_init_st[2]" BEL
+        "clks_rsts_mgment.pll_init_st[3]" BEL "clks_rsts_mgment.byte_index[6]"
+        BEL "clks_rsts_mgment.byte_index[5]" BEL
+        "clks_rsts_mgment.byte_index[4]" BEL "clks_rsts_mgment.byte_index[3]"
+        BEL "clks_rsts_mgment.byte_index[2]" BEL
+        "clks_rsts_mgment.byte_index[1]" BEL "clks_rsts_mgment.byte_index[0]";
+TIMEGRP clk = BEL "tdc_led_counter.value[31]" BEL "tdc_led_counter.value[30]"
+        BEL "tdc_led_counter.value[29]" BEL "tdc_led_counter.value[28]" BEL
+        "tdc_led_counter.value[27]" BEL "tdc_led_counter.value[26]" BEL
+        "tdc_led_counter.value[25]" BEL "tdc_led_counter.value[24]" BEL
+        "tdc_led_counter.value[23]" BEL "tdc_led_counter.value[22]" BEL
+        "tdc_led_counter.value[21]" BEL "tdc_led_counter.value[20]" BEL
+        "tdc_led_counter.value[19]" BEL "tdc_led_counter.value[18]" BEL
+        "tdc_led_counter.value[17]" BEL "tdc_led_counter.value[16]" BEL
+        "tdc_led_counter.value[15]" BEL "tdc_led_counter.value[14]" BEL
+        "tdc_led_counter.value[13]" BEL "tdc_led_counter.value[12]" BEL
+        "tdc_led_counter.value[11]" BEL "tdc_led_counter.value[10]" BEL
+        "tdc_led_counter.value[9]" BEL "tdc_led_counter.value[8]" BEL
+        "tdc_led_counter.value[7]" BEL "tdc_led_counter.value[6]" BEL
+        "tdc_led_counter.value[5]" BEL "tdc_led_counter.value[4]" BEL
+        "tdc_led_counter.value[3]" BEL "tdc_led_counter.value[2]" BEL
+        "tdc_led_counter.value[1]" BEL "tdc_led_counter.value[0]" BEL
+        "tdc_led_status_oreg" BEL "tdc_led_trig2_o" BEL "tdc_led_status" BEL
+        "tdc_led_counter.count_done" BEL "clks_rsts_mgment.gral_incr";
+TIMEGRP spec_aux0_i = BEL "spec_aux0_i";
+TIMEGRP tdc_led_status_o = BEL "tdc_led_status_o" BEL "tdc_led_trig2_o.PAD"
+        BEL "tdc_led_trig3_o" BEL "tdc_led_trig4_o" BEL "tdc_led_trig5_o" BEL
+        "spec_aux5_o";
+TIMEGRP spec_led_green_o = BEL "spec_led_green_o" BEL "spec_led_red_o";
+TS_clk = PERIOD TIMEGRP "clk" 8 ns HIGH 50%;
+TS_spec_clk = PERIOD TIMEGRP "spec_clk" 50 ns HIGH 50%;
+TS_spec_clk_i = PERIOD TIMEGRP "spec_clk_i" 5 ns HIGH 50%;
+TS_tdc_led_status_o_clk = MAXDELAY FROM TIMEGRP "clk" TO TIMEGRP
+        "tdc_led_status_o" 6 ns;
+TS_spec_led_green_o_spec_clk = MAXDELAY FROM TIMEGRP "spec_clk" TO TIMEGRP
+        "spec_led_green_o" 48 ns;
+TS_spec_aux0_i_clk = MAXDELAY FROM TIMEGRP "spec_aux0_i" TO TIMEGRP "clk" 6
+        ns;
+SCHEMATIC END;
+

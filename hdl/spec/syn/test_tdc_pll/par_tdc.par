@@ -1,0 +1,297 @@
+Release 13.1 par O.40d (lin64)
+Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
+
+lxplus427.cern.ch::  Mon Jul 18 09:44:37 2011
+
+par -ol high syn_tdc.ncd par_tdc 
+
+
+Constraints file: syn_tdc.pcf.
+Loading device for application Rf_Device from file '6slx45t.nph' in environment
+/afs/cern.ch/project/parc/elec/xilinx131/ISE_DS/ISE/.
+   "top_tdc" is an NCD, version 3.2, device xc6slx45t, package fgg484, speed -2
+
+Initializing temperature to 85.000 Celsius. (default - Range: 0.000 to 85.000 Celsius)
+Initializing voltage to 1.140 Volts. (default - Range: 1.140 to 1.260 Volts)
+
+
+Device speed data version:  "PRODUCTION 1.17 2011-02-03".
+
+
+
+Device Utilization Summary:
+
+Slice Logic Utilization:
+  Number of Slice Registers:                    86 out of  54,576    1%
+    Number used as Flip Flops:                  86
+    Number used as Latches:                      0
+    Number used as Latch-thrus:                  0
+    Number used as AND/OR logics:                0
+  Number of Slice LUTs:                        193 out of  27,288    1%
+    Number used as logic:                      192 out of  27,288    1%
+      Number using O6 output only:             121
+      Number using O5 output only:              31
+      Number using O5 and O6:                   40
+      Number used as ROM:                        0
+    Number used as Memory:                       0 out of   6,408    0%
+    Number used exclusively as route-thrus:      1
+      Number with same-slice register load:      0
+      Number with same-slice carry load:         1
+      Number with other load:                    0
+
+Slice Logic Distribution:
+  Number of occupied Slices:                    80 out of   6,822    1%
+  Number of LUT Flip Flop pairs used:          195
+    Number with an unused Flip Flop:           109 out of     195   55%
+    Number with an unused LUT:                   2 out of     195    1%
+    Number of fully used LUT-FF pairs:          84 out of     195   43%
+    Number of slice register sites lost
+      to control set restrictions:               0 out of  54,576    0%
+
+  A LUT Flip Flop pair for this architecture represents one LUT paired with
+  one Flip Flop within a slice.  A control set is a unique combination of
+  clock, reset, set, and enable signals for a registered element.
+  The Slice Logic Distribution report is not meaningful if the design is
+  over-mapped for a non-slice resource or if Placement fails.
+
+IO Utilization:
+  Number of bonded IOBs:                       135 out of     296   45%
+    Number of LOCed IOBs:                      134 out of     135   99%
+    IOB Flip Flops:                              6
+
+Specific Feature Utilization:
+  Number of RAMB16BWERs:                         0 out of     116    0%
+  Number of RAMB8BWERs:                          1 out of     232    1%
+  Number of BUFIO2/BUFIO2_2CLKs:                 0 out of      32    0%
+  Number of BUFIO2FB/BUFIO2FB_2CLKs:             0 out of      32    0%
+  Number of BUFG/BUFGMUXs:                       2 out of      16   12%
+    Number used as BUFGs:                        2
+    Number used as BUFGMUX:                      0
+  Number of DCM/DCM_CLKGENs:                     0 out of       8    0%
+  Number of ILOGIC2/ISERDES2s:                   0 out of     376    0%
+  Number of IODELAY2/IODRP2/IODRP2_MCBs:         0 out of     376    0%
+  Number of OLOGIC2/OSERDES2s:                   6 out of     376    1%
+    Number used as OLOGIC2s:                     6
+    Number used as OSERDES2s:                    0
+  Number of BSCANs:                              0 out of       4    0%
+  Number of BUFHs:                               0 out of     256    0%
+  Number of BUFPLLs:                             0 out of       8    0%
+  Number of BUFPLL_MCBs:                         0 out of       4    0%
+  Number of DSP48A1s:                            1 out of      58    1%
+  Number of GTPA1_DUALs:                         0 out of       2    0%
+  Number of ICAPs:                               0 out of       1    0%
+  Number of MCBs:                                0 out of       2    0%
+  Number of PCIE_A1s:                            0 out of       1    0%
+  Number of PCILOGICSEs:                         0 out of       2    0%
+  Number of PLL_ADVs:                            0 out of       4    0%
+  Number of PMVs:                                0 out of       1    0%
+  Number of STARTUPs:                            0 out of       1    0%
+  Number of SUSPEND_SYNCs:                       0 out of       1    0%
+
+
+Overall effort level (-ol):   High 
+Router effort level (-rl):    High 
+
+Starting initial Timing Analysis.  REAL time: 6 secs 
+Finished initial Timing Analysis.  REAL time: 6 secs 
+
+WARNING:Par:288 - The signal p2l_data_i(0)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(1)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(2)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(3)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(4)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(5)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(6)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(7)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(8)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(9)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(10)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(11)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(12)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(13)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(14)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_data_i(15)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p_rd_d_rdy_i(0)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p_rd_d_rdy_i(1)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal ef1_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal ef2_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_clk_n_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_clk_p_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal lf1_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal lf2_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal vc_rdy_i(0)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal vc_rdy_i(1)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_valid_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(0)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(1)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(2)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(3)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(4)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(5)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(6)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(7)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(8)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(9)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p_wr_req_i(0)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p_wr_req_i(1)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal tx_error_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal pll_sdo_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal p2l_dframe_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal acam_refclk_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal pll_refmon_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal l2p_rdy_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal err_flag_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal pll_status_i_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal l_wr_rdy_i(0)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal l_wr_rdy_i(1)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(10)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(11)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(12)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(20)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(13)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(21)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(22)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(14)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(23)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(15)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(24)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(16)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(25)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(17)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(26)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(18)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(27)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal data_bus_io(19)_IBUF has no load.  PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal int_flag_i_IBUF has no load.  PAR will not attempt to route this signal.
+Starting Router
+
+
+Phase  1  : 1136 unrouted;      REAL time: 7 secs 
+
+Phase  2  : 827 unrouted;      REAL time: 9 secs 
+
+Phase  3  : 180 unrouted;      REAL time: 10 secs 
+
+Phase  4  : 181 unrouted; (Setup:24717, Hold:0, Component Switching Limit:0)     REAL time: 12 secs 
+
+Updating file: par_tdc.ncd with current fully routed design.
+
+Phase  5  : 0 unrouted; (Setup:27847, Hold:0, Component Switching Limit:0)     REAL time: 12 secs 
+
+Phase  6  : 0 unrouted; (Setup:27646, Hold:0, Component Switching Limit:0)     REAL time: 17 secs 
+
+Updating file: par_tdc.ncd with current fully routed design.
+
+Phase  7  : 0 unrouted; (Setup:27646, Hold:0, Component Switching Limit:0)     REAL time: 20 secs 
+
+Phase  8  : 0 unrouted; (Setup:27646, Hold:0, Component Switching Limit:0)     REAL time: 20 secs 
+
+Phase  9  : 0 unrouted; (Setup:27646, Hold:0, Component Switching Limit:0)     REAL time: 20 secs 
+
+Phase 10  : 0 unrouted; (Setup:19904, Hold:0, Component Switching Limit:0)     REAL time: 20 secs 
+Total REAL time to Router completion: 20 secs 
+Total CPU time to Router completion: 20 secs 
+
+Partition Implementation Status
+-------------------------------
+
+  No Partitions were found in this design.
+
+-------------------------------
+
+Generating "PAR" statistics.
+
+**************************
+Generating Clock Report
+**************************
+
++---------------------+--------------+------+------+------------+-------------+
+|        Clock Net    |   Resource   |Locked|Fanout|Net Skew(ns)|Max Delay(ns)|
++---------------------+--------------+------+------+------------+-------------+
+|            spec_clk |  BUFGMUX_X2Y3| No   |   42 |  0.669     |  2.387      |
++---------------------+--------------+------+------+------------+-------------+
+|                 clk |  BUFGMUX_X3Y7| No   |   13 |  0.659     |  2.382      |
++---------------------+--------------+------+------+------------+-------------+
+
+* Net Skew is the difference between the minimum and maximum routing
+only delays for the net. Note this is different from Clock Skew which
+is reported in TRCE timing report. Clock Skew is the difference between
+the minimum and maximum path delays which includes logic delays.
+
+Timing Score: 19904 (Setup: 19904, Hold: 0, Component Switching Limit: 0)
+
+WARNING:Par:468 - Your design did not meet timing.  The following are some suggestions to assist you to meet timing in your design.
+
+   Review the timing report using Timing Analyzer (In ISE select "Post-Place &
+   Route Static Timing Report"). Go to the failing constraint(s) and evaluate the failing paths for each constraint.
+
+   Try the Design Goal and Strategies for Timing Performance(In ISE select Project -> Design Goals & Strategies) to ensure the best options
+   are set in the tools for timing closure.
+
+   Use the Xilinx "SmartXplorer" script to try special combinations of
+   options known to produce very good results.
+
+   Visit the Xilinx technical support web at http://support.xilinx.com and go to
+   either "Troubleshoot->Tech Tips->Timing & Constraints" or "
+   TechXclusives->Timing Closure" for tips and suggestions for meeting timing
+   in your design.
+
+Number of Timing Constraints that were not applied: 1
+
+Asterisk (*) preceding a constraint indicates it was not met.
+   This may be due to a setup or hold violation.
+
+----------------------------------------------------------------------------------------------------------
+  Constraint                                |    Check    | Worst Case |  Best Case | Timing |   Timing   
+                                            |             |    Slack   | Achievable | Errors |    Score   
+----------------------------------------------------------------------------------------------------------
+* TS_spec_aux0_i_clk = MAXDELAY FROM TIMEGR | SETUP       |    -5.929ns|    11.929ns|       1|        5929
+  P "spec_aux0_i" TO TIMEGRP "clk" 6        | HOLD        |     6.080ns|            |       0|           0
+    ns                                      |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+* TS_spec_clk_i = PERIOD TIMEGRP "spec_clk_ | SETUP       |    -2.332ns|     7.332ns|      17|       13975
+  i" 5 ns HIGH 50%                          | HOLD        |     0.429ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  TS_tdc_led_status_o_clk = MAXDELAY FROM T | MAXDELAY    |     2.191ns|     3.809ns|       0|           0
+  IMEGRP "clk" TO TIMEGRP         "tdc_led_ |             |            |            |        |            
+  status_o" 6 ns                            |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+  TS_clk = PERIOD TIMEGRP "clk" 8 ns HIGH 5 | SETUP       |     3.102ns|     4.898ns|       0|           0
+  0%                                        | HOLD        |     0.463ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  TS_spec_led_green_o_spec_clk = MAXDELAY F | MAXDELAY    |    44.140ns|     3.860ns|       0|           0
+  ROM TIMEGRP "spec_clk" TO TIMEGRP         |             |            |            |        |            
+   "spec_led_green_o" 48 ns                 |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+  TS_spec_clk = PERIOD TIMEGRP "spec_clk" 5 | MINPERIOD   |    46.430ns|     3.570ns|       0|           0
+  0 ns HIGH 50%                             |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+
+
+2 constraints not met.
+
+
+Generating Pad Report.
+
+All signals are completely routed.
+
+WARNING:Par:283 - There are 68 loadless signals in this design. This design will cause Bitgen to issue DRC warnings.
+
+Total REAL time to PAR completion: 21 secs 
+Total CPU time to PAR completion: 21 secs 
+
+Peak Memory Usage:  511 MB
+
+Placer: Placement generated during map.
+Routing: Completed - No errors found.
+Timing: Completed - 18 errors found.
+
+Number of error messages: 0
+Number of warning messages: 71
+Number of info messages: 0
+
+Writing design to file par_tdc.ncd
+
+
+
+PAR done!

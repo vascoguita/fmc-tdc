@@ -1,0 +1,747 @@
+Release 13.1 Map O.40d (lin64)
+Xilinx Mapping Report File for Design 'top_tdc'
+
+Design Information
+------------------
+Command Line   : map -detail -w -timing -ol high syn_tdc.ngd 
+Target Device  : xc6slx45t
+Target Package : fgg484
+Target Speed   : -2
+Mapper Version : spartan6 -- $Revision: 1.55 $
+Mapped Date    : Mon Jul 18 09:44:18 2011
+
+Design Summary
+--------------
+Number of errors:      0
+Number of warnings:   69
+Slice Logic Utilization:
+  Number of Slice Registers:                    86 out of  54,576    1%
+    Number used as Flip Flops:                  86
+    Number used as Latches:                      0
+    Number used as Latch-thrus:                  0
+    Number used as AND/OR logics:                0
+  Number of Slice LUTs:                        193 out of  27,288    1%
+    Number used as logic:                      192 out of  27,288    1%
+      Number using O6 output only:             121
+      Number using O5 output only:              31
+      Number using O5 and O6:                   40
+      Number used as ROM:                        0
+    Number used as Memory:                       0 out of   6,408    0%
+    Number used exclusively as route-thrus:      1
+      Number with same-slice register load:      0
+      Number with same-slice carry load:         1
+      Number with other load:                    0
+
+Slice Logic Distribution:
+  Number of occupied Slices:                    80 out of   6,822    1%
+  Number of LUT Flip Flop pairs used:          195
+    Number with an unused Flip Flop:           109 out of     195   55%
+    Number with an unused LUT:                   2 out of     195    1%
+    Number of fully used LUT-FF pairs:          84 out of     195   43%
+    Number of unique control sets:               6
+    Number of slice register sites lost
+      to control set restrictions:              18 out of  54,576    1%
+
+  A LUT Flip Flop pair for this architecture represents one LUT paired with
+  one Flip Flop within a slice.  A control set is a unique combination of
+  clock, reset, set, and enable signals for a registered element.
+  The Slice Logic Distribution report is not meaningful if the design is
+  over-mapped for a non-slice resource or if Placement fails.
+
+IO Utilization:
+  Number of bonded IOBs:                       135 out of     296   45%
+    Number of LOCed IOBs:                      134 out of     135   99%
+    IOB Flip Flops:                              6
+
+Specific Feature Utilization:
+  Number of RAMB16BWERs:                         0 out of     116    0%
+  Number of RAMB8BWERs:                          1 out of     232    1%
+  Number of BUFIO2/BUFIO2_2CLKs:                 0 out of      32    0%
+  Number of BUFIO2FB/BUFIO2FB_2CLKs:             0 out of      32    0%
+  Number of BUFG/BUFGMUXs:                       2 out of      16   12%
+    Number used as BUFGs:                        2
+    Number used as BUFGMUX:                      0
+  Number of DCM/DCM_CLKGENs:                     0 out of       8    0%
+  Number of ILOGIC2/ISERDES2s:                   0 out of     376    0%
+  Number of IODELAY2/IODRP2/IODRP2_MCBs:         0 out of     376    0%
+  Number of OLOGIC2/OSERDES2s:                   6 out of     376    1%
+    Number used as OLOGIC2s:                     6
+    Number used as OSERDES2s:                    0
+  Number of BSCANs:                              0 out of       4    0%
+  Number of BUFHs:                               0 out of     256    0%
+  Number of BUFPLLs:                             0 out of       8    0%
+  Number of BUFPLL_MCBs:                         0 out of       4    0%
+  Number of DSP48A1s:                            1 out of      58    1%
+  Number of GTPA1_DUALs:                         0 out of       2    0%
+  Number of ICAPs:                               0 out of       1    0%
+  Number of MCBs:                                0 out of       2    0%
+  Number of PCIE_A1s:                            0 out of       1    0%
+  Number of PCILOGICSEs:                         0 out of       2    0%
+  Number of PLL_ADVs:                            0 out of       4    0%
+  Number of PMVs:                                0 out of       1    0%
+  Number of STARTUPs:                            0 out of       1    0%
+  Number of SUSPEND_SYNCs:                       0 out of       1    0%
+
+Average Fanout of Non-Clock Nets:                2.34
+
+Peak Memory Usage:  607 MB
+Total REAL time to MAP completion:  18 secs 
+Total CPU time to MAP completion:   17 secs 
+
+Table of Contents
+-----------------
+Section 1 - Errors
+Section 2 - Warnings
+Section 3 - Informational
+Section 4 - Removed Logic Summary
+Section 5 - Removed Logic
+Section 6 - IOB Properties
+Section 7 - RPMs
+Section 8 - Guide Report
+Section 9 - Area Group and Partition Summary
+Section 10 - Timing Report
+Section 11 - Configuration String Information
+Section 12 - Control Set Information
+Section 13 - Utilization by Hierarchy
+
+Section 1 - Errors
+------------------
+
+Section 2 - Warnings
+--------------------
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(0)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(1)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(2)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(3)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(4)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(5)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(6)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(7)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(8)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(9)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(10)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(11)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(12)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(13)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(14)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_data_i(15)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p_rd_d_rdy_i(0)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p_rd_d_rdy_i(1)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <ef1_i_IBUF> is incomplete. The signal
+   does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <ef2_i_IBUF> is incomplete. The signal
+   does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_clk_n_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_clk_p_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <lf1_i_IBUF> is incomplete. The signal
+   does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <lf2_i_IBUF> is incomplete. The signal
+   does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <vc_rdy_i(0)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <vc_rdy_i(1)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_valid_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(0)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(1)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(2)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(3)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(4)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(5)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(6)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(7)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(8)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(9)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p_wr_req_i(0)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p_wr_req_i(1)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <tx_error_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <pll_sdo_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <p2l_dframe_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <acam_refclk_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <pll_refmon_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <l2p_rdy_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <err_flag_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <pll_status_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <l_wr_rdy_i(0)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <l_wr_rdy_i(1)_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(10)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(11)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(12)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(20)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(13)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(21)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(22)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(14)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(23)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(15)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(24)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(16)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(25)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(17)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(26)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(18)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(27)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <data_bus_io(19)_IBUF> is incomplete.
+   The signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:367 - The signal <int_flag_i_IBUF> is incomplete. The
+   signal does not drive any load pins in the design.
+WARNING:PhysDesignRules:2410 - This design is using one or more 9K Block RAMs
+   (RAMB8BWER).  9K Block RAM initialization data, both user defined and
+   default, may be incorrect and should not be used.  For more information,
+   please reference Xilinx Answer Record 39999.
+
+Section 3 - Informational
+-------------------------
+INFO:Map:220 - The command line option -timing is automatically supported for
+   this architecture. Therefore, it is not necessary to specify this option.
+INFO:LIT:243 - Logical network vc_rdy_i(0)_IBUF has no load.
+INFO:LIT:243 - Logical network vc_rdy_i(1)_IBUF has no load.
+INFO:LIT:243 - Logical network acam_refclk_i_IBUF has no load.
+INFO:LIT:243 - Logical network pll_sdo_i_IBUF has no load.
+INFO:LIT:243 - Logical network ef1_i_IBUF has no load.
+INFO:LIT:243 - Logical network lf1_i_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(0)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(1)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(2)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(3)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(4)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(5)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(6)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(0)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(7)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(1)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(8)_IBUF has no load.
+INFO:LIT:243 - Logical network int_flag_i_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(2)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(9)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(3)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(4)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(5)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(6)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(7)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(8)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(9)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_valid_i_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(13)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(14)_IBUF has no load.
+INFO:LIT:243 - Logical network ef2_i_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(15)_IBUF has no load.
+INFO:LIT:243 - Logical network l_wr_rdy_i(0)_IBUF has no load.
+INFO:LIT:243 - Logical network l_wr_rdy_i(1)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_dframe_i_IBUF has no load.
+INFO:LIT:243 - Logical network pll_status_i_IBUF has no load.
+INFO:LIT:243 - Logical network lf2_i_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(14)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(15)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(16)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(17)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(20)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(18)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(21)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(19)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(22)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(23)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(24)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(10)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(25)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(11)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(26)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_data_i(12)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(27)_IBUF has no load.
+INFO:LIT:243 - Logical network pll_refmon_i_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(10)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(11)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(12)_IBUF has no load.
+INFO:LIT:243 - Logical network data_bus_io(13)_IBUF has no load.
+INFO:LIT:243 - Logical network p_rd_d_rdy_i(0)_IBUF has no load.
+INFO:LIT:243 - Logical network p_rd_d_rdy_i(1)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_clk_p_i_IBUF has no load.
+INFO:LIT:243 - Logical network err_flag_i_IBUF has no load.
+INFO:LIT:243 - Logical network p_wr_req_i(0)_IBUF has no load.
+INFO:LIT:243 - Logical network p_wr_req_i(1)_IBUF has no load.
+INFO:LIT:243 - Logical network p2l_clk_n_i_IBUF has no load.
+INFO:LIT:243 - Logical network l2p_rdy_i_IBUF has no load.
+INFO:LIT:243 - Logical network tx_error_i_IBUF has no load.
+INFO:MapLib:562 - No environment variables are currently set.
+INFO:LIT:244 - All of the single ended outputs in this design are using slew
+   rate limited output drivers. The delay on speed critical single ended outputs
+   can be dramatically reduced by designating them as fast outputs.
+INFO:Pack:1716 - Initializing temperature to 85.000 Celsius. (default - Range:
+   0.000 to 85.000 Celsius)
+INFO:Pack:1720 - Initializing voltage to 1.140 Volts. (default - Range: 1.140 to
+   1.260 Volts)
+INFO:Map:215 - The Interim Design Summary has been generated in the MAP Report
+   (.mrp).
+INFO:Place:834 - Only a subset of IOs are locked. Out of 135 IOs, 134 are locked
+   and 1 are not locked. If you would like to print the names of these IOs,
+   please set the environment variable XIL_PAR_DESIGN_CHECK_VERBOSE to 1. 
+INFO:Pack:1650 - Map created a placed design.
+
+Section 4 - Removed Logic Summary
+---------------------------------
+   2 block(s) optimized away
+ 179 Block(s) redundant
+
+Section 5 - Removed Logic
+-------------------------
+
+Optimized Block(s):
+TYPE 		BLOCK
+GND 		GND
+VCC 		VCC
+
+Redundant Block(s):
+TYPE 		BLOCK
+LOCALBUF 		clks_rsts_mgment.un1_bit_index_2_cry_0/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_bit_index_2_cry_1/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_bit_index_2_cry_2/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_byte_index_cry_0/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_byte_index_cry_1/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_byte_index_cry_2/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_byte_index_cry_3/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_byte_index_cry_4/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.un1_byte_index_cry_5/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[1]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[2]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[3]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[4]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[5]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[6]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[7]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[8]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[9]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[10]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[11]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[12]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[13]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[14]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[15]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[16]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[17]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[18]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[19]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[20]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[21]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[22]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[23]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[24]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[25]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[26]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[27]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[28]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[29]/MUXCY_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_cry[30]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[0]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[1]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[2]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[3]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[4]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[5]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[6]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[7]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[8]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[9]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[10]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[11]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[12]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[13]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[14]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[15]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[16]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[17]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[18]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[19]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[20]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[21]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[22]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[23]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[24]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[25]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[26]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[27]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[28]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[29]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_cry[30]/MUXCY_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI7QVF[13]/LUT2_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_RNITDB5[10]/LUT2_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNIUJ66[1]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNIVN66[2]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI0S66[3]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI1076[4]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI2476[5]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI3876[6]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI4C76[7]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI5G76[8]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI6K76[9]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI0TV7[10]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI1TV7[11]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI2TV7[12]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI3TV7[13]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI4TV7[14]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI5TV7[15]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI6TV7[16]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI7TV7[17]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI8TV7[18]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI9TV7[19]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI31[20]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI41[21]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI51[22]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI61[23]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI71[24]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI81[25]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI91[26]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNIA1[27]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNIB1[28]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNIC1[29]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_RNI65[30]/LUT1_L_BUF
+LOCALBUF 		tdc_led_counter.value_s_RNO[31]/LUT1_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[31]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[30]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[29]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[28]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[27]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[26]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[25]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[24]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[23]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[22]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[21]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[20]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[19]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[18]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[17]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[16]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[15]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[14]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[13]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[12]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[11]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[10]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[9]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[8]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[7]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[6]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[5]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[4]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[3]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[2]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[1]/LUT6_L_BUF
+LOCALBUF 		tdc_led_status_e/LUT2_L_BUF
+LOCALBUF 		spec_led_red_e/LUT2_L_BUF
+LOCALBUF 		tdc_led_counter.count_done_RNO/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.pll_init_st_RNO[1]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.pll_init_st_RNO[2]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.pll_init_st_RNO[3]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.bit_index_RNO[3]/LUT5_L_BUF
+LOCALBUF 		clks_rsts_mgment.bit_index_RNO[1]/LUT5_L_BUF
+LOCALBUF 		clks_rsts_mgment.bit_index_RNO[0]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.count_done_RNO/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.pll_init_st_RNO_0[3]/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_RNI70OA[20]/LUT4_L_BUF
+LOCALBUF 		spec_led_red_counter.count_done_RNO/LUT6_L_BUF
+LOCALBUF 		clks_rsts_mgment.general_poreset.value_lm_0[0]/LUT6_L_BUF
+LUT1 		clks_rsts_mgment.general_poreset.value_s_RNO[31]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI0LL2[30]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI8PM2[29]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI7LM2[28]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI6HM2[27]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI5DM2[26]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI49M2[25]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI35M2[24]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI21M2[23]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI1TL2[22]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI0PL2[21]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIVKL2[20]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI7PM2[19]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI6LM2[18]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI5HM2[17]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI4DM2[16]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI39M2[15]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI25M2[14]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI11M2[13]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNI0TL2[12]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIVOL2[11]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIUKL2[10]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIMFO4[9]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNILFO4[8]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIKFO4[7]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIJFO4[6]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIIFO4[5]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIHFO4[4]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIGFO4[3]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIFFO4[2]
+LUT1 		clks_rsts_mgment.general_poreset.value_RNIEFO4[1]
+
+Section 6 - IOB Properties
+--------------------------
+
++---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| IOB Name                           | Type             | Direction | IO Standard          | Diff  | Drive    | Slew | Reg (s)      | Resistor | IOB      |
+|                                    |                  |           |                      | Term  | Strength | Rate |              |          | Delay    |
++---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| acam_refclk_i                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| address_o(0)                       | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| address_o(1)                       | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| address_o(2)                       | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| address_o(3)                       | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| cs_n_o                             | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| data_bus_io(0)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(1)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(2)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(3)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(4)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(5)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(6)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(7)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(8)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(9)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(10)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(11)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(12)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(13)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(14)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(15)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(16)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(17)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(18)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(19)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(20)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(21)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(22)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(23)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(24)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(25)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(26)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| data_bus_io(27)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| ef1_i                              | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| ef2_i                              | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| err_flag_i                         | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| int_flag_i                         | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| irq_p_o                            | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| l2p_clk_n_o                        | IOB              | OUTPUT    | SSTL18_II            |       |          |      |              |          |          |
+| l2p_clk_p_o                        | IOB              | OUTPUT    | SSTL18_II            |       |          |      |              |          |          |
+| l2p_data_o(0)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(1)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(2)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(3)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(4)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(5)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(6)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(7)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(8)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(9)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(10)                     | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(11)                     | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(12)                     | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(13)                     | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(14)                     | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_data_o(15)                     | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_dframe_o                       | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_edb_o                          | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l2p_rdy_i                          | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| l2p_valid_o                        | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| l_wr_rdy_i(0)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| l_wr_rdy_i(1)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| lf1_i                              | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| lf2_i                              | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| mute_inputs_o                      | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| oe_n_o                             | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| p2l_clk_n_i                        | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_clk_p_i                        | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(0)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(1)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(2)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(3)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(4)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(5)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(6)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(7)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(8)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(9)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(10)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(11)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(12)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(13)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(14)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_data_i(15)                     | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_dframe_i                       | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p2l_rdy_o                          | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| p2l_valid_i                        | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p_rd_d_rdy_i(0)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p_rd_d_rdy_i(1)                    | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p_wr_rdy_o(0)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| p_wr_rdy_o(1)                      | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| p_wr_req_i(0)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| p_wr_req_i(1)                      | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| pll_cs_o                           | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| pll_dac_sync_o                     | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| pll_ld_i                           | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| pll_refmon_i                       | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| pll_sclk_o                         | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW | OFF          |          |          |
+| pll_sdi_o                          | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| pll_sdo_i                          | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| pll_status_i                       | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| rd_n_o                             | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| rst_n_a_i                          | IOB              | INPUT     | LVCMOS18             |       |          |      |              |          |          |
+| rx_error_o                         | IOB              | OUTPUT    | SSTL18_I             |       |          |      |              |          |          |
+| spare_o                            | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| spec_aux0_i                        | IOB              | INPUT     | LVCMOS18             |       |          |      |              |          |          |
+| spec_aux1_i                        | IOB              | INPUT     | LVCMOS18             |       |          |      |              |          |          |
+| spec_aux2_o                        | IOB              | OUTPUT    | LVCMOS18             |       | 12       | SLOW |              |          |          |
+| spec_aux3_o                        | IOB              | OUTPUT    | LVCMOS18             |       | 12       | SLOW |              |          |          |
+| spec_aux4_o                        | IOB              | OUTPUT    | LVCMOS18             |       | 12       | SLOW | OFF          |          |          |
+| spec_aux5_o                        | IOB              | OUTPUT    | LVCMOS18             |       | 12       | SLOW |              |          |          |
+| spec_clk_i                         | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| spec_led_green_o                   | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| spec_led_red_o                     | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW | OFF          |          |          |
+| start_dis_o                        | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| start_from_fpga_o                  | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| stop_dis_o                         | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| tdc_clk_n_i                        | IOB              | INPUT     | DIFF_SSTL18_II       |       |          |      |              |          |          |
+| tdc_clk_p_i                        | IOB              | INPUT     | DIFF_SSTL18_II       |       |          |      |              |          |          |
+| tdc_led_status_o                   | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW | OFF          |          |          |
+| tdc_led_trig1_o                    | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW | OFF          |          |          |
+| tdc_led_trig2_o                    | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW | OFF          |          |          |
+| tdc_led_trig3_o                    | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| tdc_led_trig4_o                    | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| tdc_led_trig5_o                    | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| term_en_1_o                        | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| term_en_2_o                        | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| term_en_3_o                        | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| term_en_4_o                        | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| term_en_5_o                        | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
+| tx_error_i                         | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| vc_rdy_i(0)                        | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| vc_rdy_i(1)                        | IOB              | INPUT     | LVCMOS25             |       |          |      |              |          |          |
+| wr_n_o                             | IOB              | OUTPUT    | LVCMOS25             |       | 12       | SLOW |              |          |          |
++---------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+Section 7 - RPMs
+----------------
+
+Section 8 - Guide Report
+------------------------
+Guide not run on this design.
+
+Section 9 - Area Group and Partition Summary
+--------------------------------------------
+
+Partition Implementation Status
+-------------------------------
+
+  No Partitions were found in this design.
+
+-------------------------------
+
+Area Group Information
+----------------------
+
+  No area groups were found in this design.
+
+----------------------
+
+Section 10 - Timing Report
+--------------------------
+A logic-level (pre-route) timing report can be generated by using Xilinx static
+timing analysis tools, Timing Analyzer (GUI) or TRCE (command line), with the
+mapped NCD and PCF files. Please note that this timing report will be generated
+using estimated delay information. For accurate numbers, please generate a
+timing report with the post Place and Route NCD file.
+
+For more information about the Timing Analyzer, consult the Xilinx Timing
+Analyzer Reference Manual; for more information about TRCE, consult the Xilinx
+Command Line Tools User Guide "TRACE" chapter.
+
+Section 11 - Configuration String Details
+-----------------------------------------
+
+Section 12 - Control Set Information
+------------------------------------
++--------------------------------------------------------------------------------------------------------------+
+| Clock Signal | Reset Signal                 | Set Signal | Enable Signal | Slice Load Count | Bel Load Count |
++--------------------------------------------------------------------------------------------------------------+
+| clk          | N_39_i                       |            |               | 8                | 32             |
+| clk          | clks_rsts_mgment.inv_reset_i |            |               | 2                | 2              |
+| clk          | pll_sclk_o_c_i               |            |               | 1                | 1              |
++--------------------------------------------------------------------------------------------------------------+
+| spec_clk     |                              |            |               | 9                | 11             |
+| spec_clk     | N_188_i_iso                  |            |               | 7                | 8              |
+| spec_clk     | N_188_i_iso                  |            | N_18_i        | 20               | 32             |
++--------------------------------------------------------------------------------------------------------------+
+
+Section 13 - Utilization by Hierarchy
+-------------------------------------
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Module             | Partition | Slices*       | Slice Reg     | LUTs          | LUTRAM        | BRAM/FIFO | DSP48A1 | BUFG  | BUFIO | BUFR  | DCM   | PLL_ADV   | Full Hierarchical  |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| top_tdc/           |           | 80/80         | 86/86         | 162/162       | 0/0           | 1/1       | 1/1     | 2/2   | 0/0   | 0/0   | 0/0   | 0/0       | top_tdc            |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+* Slices can be packed with basic elements from multiple hierarchies.
+  Therefore, a slice will be counted in every hierarchical module
+  that each of its packed basic elements belong to.
+** For each column, there are two numbers reported <A>/<B>.
+   <A> is the number of elements that belong to that specific hierarchical module.
+   <B> is the total number of elements from that hierarchical module and any lower level
+   hierarchical modules below.
+*** The LUTRAM column counts all LUTs used as memory including RAM, ROM, and shift registers.

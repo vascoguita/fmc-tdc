@@ -1,0 +1,598 @@
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":29:7:29:13|Synthesizing work.top_tdc.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":353:7:353:20|Signal tdc_led_period is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":361:7:361:12|Signal pll_cs is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":366:7:366:19|Signal tdc_led_trig1 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":367:7:367:19|Signal tdc_led_trig2 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":368:7:368:19|Signal tdc_led_trig3 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":369:7:369:19|Signal tdc_led_trig4 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":370:7:370:19|Signal tdc_led_trig5 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":376:7:376:18|Signal acam_start01 is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":377:7:377:20|Signal acam_timestamp is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":378:7:378:26|Signal acam_timestamp_valid is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":385:7:385:21|Signal start_timer_reg is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":386:7:386:22|Signal utc_current_time is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":397:7:397:11|Signal irq_p is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":414:7:414:15|Signal dma_dat_o is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":415:7:415:13|Signal dma_ack is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":416:7:416:15|Signal dma_stall is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/countdown_counter.vhd":17:7:17:23|Synthesizing work.countdown_counter.rtl 
+Post processing for work.countdown_counter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/free_counter.vhd":15:7:15:18|Synthesizing work.free_counter.rtl 
+Post processing for work.free_counter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":32:7:32:20|Synthesizing work.clk_rst_managr.rtl 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":84:24:84:25|Using onehot encoding for type t_pll_init_st (start="10000")
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6077:10:6077:15|Synthesizing unisim.ibufds.syn_black_box 
+Post processing for unisim.ibufds.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6266:10:6266:14|Synthesizing unisim.ibufg.syn_black_box 
+Post processing for unisim.ibufg.syn_black_box
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":344:8:344:21|OTHERS clause is not synthesized 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":178:7:178:21|Signal acam_refclk_buf is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/incr_counter.vhd":16:7:16:18|Synthesizing work.incr_counter.rtl 
+Post processing for work.incr_counter.rtl
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":428:10:428:13|Synthesizing unisim.bufg.syn_black_box 
+Post processing for unisim.bufg.syn_black_box
+Post processing for work.clk_rst_managr.rtl
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":51:8:51:21|pll_dac_sync_o is not assigned a value (floating) - a simulation mismatch is possible 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":41:7:41:17|Synthesizing work.gn4124_core.rtl 
+@W: CD326 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":337:2:337:11|Port rx_pllout_xs of entity work.serdes_1_to_n_clk_pll_s2_diff is unconnected
+@W: CD326 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":337:2:337:11|Port rx_pll_lckd of entity work.serdes_1_to_n_clk_pll_s2_diff is unconnected
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":183:9:183:16|Signal p_wr_rdy is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_ser_s6.vhd":35:7:35:13|Synthesizing work.l2p_ser.rtl 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":72:7:72:25|Synthesizing work.serdes_n_to_1_s2_se.arch_serdes_n_to_1_s2_se 
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":10943:10:10943:13|Synthesizing unisim.obuf.syn_black_box 
+Post processing for unisim.obuf.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":14184:10:14184:17|Synthesizing unisim.oserdes2.syn_black_box 
+Post processing for unisim.oserdes2.syn_black_box
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":87:9:87:18|Signal cascade_di is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":88:9:88:18|Signal cascade_do is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":89:9:89:18|Signal cascade_ti is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":90:9:90:18|Signal cascade_to is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":91:9:91:16|Signal mdataina is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 2 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 3 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 4 of signal mdatainb is undriven 
+Post processing for work.serdes_n_to_1_s2_se.arch_serdes_n_to_1_s2_se
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":72:7:72:25|Synthesizing work.serdes_n_to_1_s2_se.arch_serdes_n_to_1_s2_se 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":87:9:87:18|Signal cascade_di is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":88:9:88:18|Signal cascade_do is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":89:9:89:18|Signal cascade_ti is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":90:9:90:18|Signal cascade_to is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":91:9:91:16|Signal mdataina is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 2 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 3 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 6 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 7 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 10 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 11 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 14 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 15 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 18 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 19 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 22 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 23 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 26 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 27 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 30 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 31 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 34 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 35 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 38 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 39 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 42 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 43 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 46 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 47 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 50 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 51 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 54 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 55 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 58 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 59 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 62 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 63 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":92:9:92:16|Bit 64 of signal mdatainb is undriven 
+Post processing for work.serdes_n_to_1_s2_se.arch_serdes_n_to_1_s2_se
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_se.vhd":197:6:197:14|Input d4 of instance oserdes_m is floating
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":72:7:72:27|Synthesizing work.serdes_n_to_1_s2_diff.arch_serdes_n_to_1_s2_diff 
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":10957:10:10957:15|Synthesizing unisim.obufds.syn_black_box 
+Post processing for unisim.obufds.syn_black_box
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":88:9:88:18|Signal cascade_di is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":89:9:89:18|Signal cascade_do is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":90:9:90:18|Signal cascade_ti is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":91:9:91:18|Signal cascade_to is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":92:9:92:16|Signal mdataina is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":93:9:93:16|Bit 2 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":93:9:93:16|Bit 3 of signal mdatainb is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":93:9:93:16|Bit 4 of signal mdatainb is undriven 
+Post processing for work.serdes_n_to_1_s2_diff.arch_serdes_n_to_1_s2_diff
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":199:6:199:14|Input d3 of instance oserdes_m is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_n_to_1_s2_diff.vhd":199:6:199:14|Input d4 of instance oserdes_m is floating
+Post processing for work.l2p_ser.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_arbiter.vhd":32:7:32:17|Synthesizing work.l2p_arbiter.rtl 
+Post processing for work.l2p_arbiter.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":34:7:34:20|Synthesizing work.p2l_dma_master.behaviour 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":172:28:172:29|Using onehot encoding for type p2l_dma_state_type (p2l_idle="10000")
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":362:8:362:21|OTHERS clause is not synthesized 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":137:9:137:24|Signal dma_length_error is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.vhd":43:7:43:17|Synthesizing work.fifo_64x512.fifo_64x512_a 
+@W: CD286 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.vhd":43:7:43:17|Creating black box for empty architecture fifo_64x512 
+Post processing for work.fifo_64x512.fifo_64x512_a
+Post processing for work.p2l_dma_master.behaviour
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":458:4:458:5|Pruning Register to_wb_fifo_byte_swap(1 downto 0)  
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":458:4:458:5|All reachable assignments to to_wb_fifo_din(62) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":458:4:458:5|All reachable assignments to to_wb_fifo_din(63) assign '0', register removed by optimization
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Optimizing register bit p2l_dma_adr_o(30) to a constant 0
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Optimizing register bit p2l_dma_adr_o(31) to a constant 0
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Pruning Register bit 31 of p2l_dma_adr_o(31 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Pruning Register bit 30 of p2l_dma_adr_o(31 downto 0)  
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":33:7:33:20|Synthesizing work.l2p_dma_master.behaviour 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":135:26:135:27|Using onehot encoding for type l2p_dma_state_type (l2p_idle="10000000")
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":472:8:472:21|OTHERS clause is not synthesized 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.vhd":43:7:43:17|Synthesizing work.fifo_32x512.fifo_32x512_a 
+@W: CD286 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.vhd":43:7:43:17|Creating black box for empty architecture fifo_32x512 
+Post processing for work.fifo_32x512.fifo_32x512_a
+Post processing for work.l2p_dma_master.behaviour
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Pruning Register l2p_byte_swap(1 downto 0)  
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":173:4:173:5|All reachable assignments to addr_fifo_din(30) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":173:4:173:5|All reachable assignments to addr_fifo_din(31) assign '0', register removed by optimization
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":173:4:173:5|Feedback mux created for signal addr_fifo_din[29:0]. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Optimizing register bit l2p_len_header(6) to a constant 0
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Optimizing register bit l2p_len_header(7) to a constant 0
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Optimizing register bit l2p_len_header(8) to a constant 0
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Optimizing register bit l2p_len_header(9) to a constant 0
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Pruning Register bit 9 of l2p_len_header(9 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Pruning Register bit 8 of l2p_len_header(9 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Pruning Register bit 7 of l2p_len_header(9 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":215:4:215:5|Pruning Register bit 6 of l2p_len_header(9 downto 0)  
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":31:7:31:20|Synthesizing work.dma_controller.behaviour 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":187:27:187:28|Using onehot encoding for type dma_ctrl_state_type (dma_idle="1000000")
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":444:8:444:21|OTHERS clause is not synthesized 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":157:9:157:16|Signal dma_stat is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":167:9:167:21|Signal dma_stat_load is undriven 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":17:7:17:29|Synthesizing work.dma_controller_wb_slave.syn 
+Post processing for work.dma_controller_wb_slave.syn
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|All reachable assignments to ack_sreg(9) assign '0', register removed by optimization
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Optimizing register bit ack_sreg(8) to a constant 0
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Pruning Register bit 8 of ack_sreg(8 downto 0)  
+Post processing for work.dma_controller.behaviour
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(3) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(4) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(5) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(6) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(7) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(8) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(9) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(10) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(11) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(12) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(13) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(14) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(15) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(16) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(17) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(18) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(19) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(20) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(21) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(22) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(23) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(24) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(25) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(26) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(27) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(28) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(29) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(30) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":251:4:251:5|All reachable assignments to dma_stat_reg(31) assign '0', register removed by optimization
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":35:7:35:16|Synthesizing work.wbmaster32.behaviour 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":133:29:133:30|Using onehot encoding for type wishbone_state_type (wb_idle="1000")
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":154:33:154:34|Using onehot encoding for type l2p_read_cpl_state_type (l2p_idle="100")
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":285:8:285:21|OTHERS clause is not synthesized 
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":403:8:403:21|OTHERS clause is not synthesized 
+Post processing for work.wbmaster32.behaviour
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <30> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <29> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <28> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <27> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <26> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <25> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <24> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <23> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <22> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <21> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <20> of wb_adr_t(30 downto 0) - not in use ... 
+@W: CL170 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning bit <19> of wb_adr_t(30 downto 0) - not in use ... 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_decode32.vhd":31:7:31:18|Synthesizing work.p2l_decode32.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_decode32.vhd":98:9:98:26|Signal p2l_packet_start_d is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_decode32.vhd":114:9:114:19|Signal p2l_d_first is undriven 
+Post processing for work.p2l_decode32.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_des_s6.vhd":34:7:34:13|Synthesizing work.p2l_des.rtl 
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":74:7:74:30|Synthesizing work.serdes_1_to_n_data_s2_se.arch_serdes_1_to_n_data_s2_se 
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":6062:10:6062:13|Synthesizing unisim.ibuf.syn_black_box 
+Post processing for unisim.ibuf.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":9014:10:9014:17|Synthesizing unisim.iodelay2.syn_black_box 
+Post processing for unisim.iodelay2.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":9185:10:9185:17|Synthesizing unisim.iserdes2.syn_black_box 
+Post processing for unisim.iserdes2.syn_black_box
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":95:9:95:14|Signal ddly_s is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":96:9:96:15|Signal cascade is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":97:9:97:13|Signal busys is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":101:9:101:13|Signal busyd is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":108:9:108:15|Signal pd_edge is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":111:9:111:18|Signal valid_data is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 0 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 1 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 2 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 3 of signal mdataout is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":119:9:119:19|Signal incdec_data is undriven 
+Post processing for work.serdes_1_to_n_data_s2_se.arch_serdes_1_to_n_data_s2_se
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":119:9:119:19|incdec_data is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":111:9:111:18|valid_data is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":97:9:97:13|busys is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.0.loop3.iodelay_m - not in use ... 
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Feedback mux created for signal inc_data_int. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Feedback mux created for signal rst_data. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Feedback mux created for signal ce_data[0:0]. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|All reachable assignments to valid_data_d assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|All reachable assignments to incdec_data_d assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|All reachable assignments to busy_data_d assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|All reachable assignments to mux(0) assign '1', register removed by optimization
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Optimizing register bit flag to a constant 0
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register flag  
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":74:7:74:30|Synthesizing work.serdes_1_to_n_data_s2_se.arch_serdes_1_to_n_data_s2_se 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":95:9:95:14|Signal ddly_s is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":96:9:96:15|Signal cascade is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":97:9:97:13|Signal busys is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":101:9:101:13|Signal busyd is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":108:9:108:15|Signal pd_edge is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":111:9:111:18|Signal valid_data is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 0 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 1 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 2 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 3 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 8 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 9 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 10 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 11 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 16 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 17 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 18 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 19 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 24 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 25 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 26 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 27 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 32 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 33 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 34 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 35 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 40 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 41 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 42 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 43 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 48 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 49 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 50 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 51 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 56 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 57 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 58 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 59 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 64 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 65 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 66 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 67 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 72 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 73 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 74 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 75 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 80 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 81 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 82 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 83 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 88 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 89 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 90 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 91 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 96 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 97 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 98 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 99 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 104 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 105 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 106 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 107 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 112 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 113 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 114 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 115 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 120 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 121 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 122 of signal mdataout is undriven 
+@W: CD639 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":114:9:114:16|Bit 123 of signal mdataout is undriven 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":119:9:119:19|Signal incdec_data is undriven 
+Post processing for work.serdes_1_to_n_data_s2_se.arch_serdes_1_to_n_data_s2_se
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.15.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.14.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.13.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.12.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.11.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.10.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.9.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.8.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.7.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.6.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.5.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.4.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.3.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.2.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.1.loop3.iodelay_m - not in use ... 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":395:6:395:14|Pruning instance loop0.0.loop3.iodelay_m - not in use ... 
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|All reachable assignments to busy_data_d assign '0', register removed by optimization
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Feedback mux created for signal inc_data_int. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Feedback mux created for signal rst_data. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Feedback mux created for signal ce_data[15:0]. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|All reachable assignments to valid_data_d assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|All reachable assignments to incdec_data_d assign '0', register removed by optimization
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Optimizing register bit flag to a constant 0
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register flag  
+Post processing for work.p2l_des.rtl
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_des_s6.vhd":136:4:136:5|Pruning Register p2l_data_bitslip(1 downto 0)  
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":69:7:69:35|Synthesizing work.serdes_1_to_n_clk_pll_s2_diff.arch_serdes_1_to_n_clk_pll_s2_diff 
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":583:10:583:15|Synthesizing unisim.bufio2.syn_black_box 
+Post processing for unisim.bufio2.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":599:10:599:17|Synthesizing unisim.bufio2fb.syn_black_box 
+Post processing for unisim.bufio2fb.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":16190:10:16190:16|Synthesizing unisim.pll_adv.syn_black_box 
+Post processing for unisim.pll_adv.syn_black_box
+@N: CD630 :"/afs/cern.ch/project/parc/elec/synplify/D-2010.03/lib/xilinx/unisim.vhd":636:10:636:15|Synthesizing unisim.bufpll.syn_black_box 
+Post processing for unisim.bufpll.syn_black_box
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":102:9:102:13|Signal busys is undriven 
+Post processing for work.serdes_1_to_n_clk_pll_s2_diff.arch_serdes_1_to_n_clk_pll_s2_diff
+@A:"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":155:4:155:5|Feedback mux created for signal count[2:0]. Did you forget the set/reset assignment for this signal? Specifying a reset value will improve timing and area
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":155:4:155:5|Optimizing register bit bslip to a constant 0
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":155:4:155:5|Pruning Register bslip  
+Post processing for work.gn4124_core.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":28:7:28:28|Synthesizing work.acam_databus_interface.rtl 
+@N: CD231 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":66:40:66:41|Using onehot encoding for type t_acam_interface (idle="1000000")
+@W: CD604 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":167:8:167:21|OTHERS clause is not synthesized 
+Post processing for work.acam_databus_interface.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":27:7:27:32|Synthesizing work.acam_timecontrol_interface.rtl 
+Post processing for work.acam_timecontrol_interface.rtl
+@N: CL177 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_timecontrol_interface.vhd":79:7:79:15|Sharing sequential element start_dis.
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":28:7:28:21|Synthesizing work.data_formatting.rtl 
+@W: CD638 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":64:7:64:14|Signal reserved is undriven 
+Post processing for work.data_formatting.rtl
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(0) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(1) assign '0', register removed by optimization
+@W: CL111 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":61:7:61:20|All reachable assignments to full_timestamp(2) assign '0', register removed by optimization
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/start_retrigger_control.vhd":31:7:31:29|Synthesizing work.start_retrigger_control.rtl 
+Post processing for work.start_retrigger_control.rtl
+@N: CD630 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/one_hz_gen.vhd":27:7:27:16|Synthesizing work.one_hz_gen.rtl 
+Post processing for work.one_hz_gen.rtl
+Post processing for work.top_tdc.rtl
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":416:7:416:15|dma_stall is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":415:7:415:13|dma_ack is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":397:7:397:11|irq_p is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":378:7:378:26|acam_timestamp_valid is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL240 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":60:8:60:14|spare_o is not assigned a value (floating) - a simulation mismatch is possible 
+@W: CL168 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":456:4:456:24|Pruning instance data_formatting_block - not in use ... 
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input irq_p_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 0 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 1 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 2 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 3 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 4 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 5 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 6 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 7 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 8 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 9 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 10 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 11 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 12 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 13 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 14 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 15 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 16 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 17 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 18 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 19 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 20 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 21 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 22 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 23 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 24 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 25 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 26 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 27 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 28 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 29 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 30 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL245 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Bit 31 of input dma_dat_i of instance gnum_interface_block is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input dma_ack_i of instance gnum_interface_block is floating
+@W: CL167 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/top_tdc.vhd":530:4:530:23|Input dma_stall_i of instance gnum_interface_block is floating
+@W: CL247 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":34:8:34:23|Input port bit 17 of acam_timestamp_i(28 downto 0) is unused 
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/data_formatting.vhd":38:8:38:24|Input port bits 31 to 24 of start_nb_offset_i(31 downto 0) are unused 
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":68:7:68:18|Trying to extract state machine for register acam_data_st
+Extracted state machine for register acam_data_st
+State machine has 7 reachable states with original encodings of:
+   0000001
+   0000010
+   0000100
+   0001000
+   0010000
+   0100000
+   1000000
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":50:8:50:12|Input port bits 19 to 4 of adr_i(19 downto 0) are unused 
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/acam_databus_interface.vhd":52:8:52:12|Input port bits 31 to 28 of dat_i(31 downto 0) are unused 
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":155:4:155:5|Trying to extract state machine for register state
+Extracted state machine for register state
+State machine has 9 reachable states with original encodings of:
+   0000
+   0001
+   0010
+   0011
+   0100
+   0101
+   0110
+   0111
+   1001
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":81:4:81:11|Input pattern1 is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_clk_pll_s2_diff.vhd":82:4:82:11|Input pattern2 is unused
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Trying to extract state machine for register state
+Extracted state machine for register state
+State machine has 2 reachable states with original encodings of:
+   0000
+   0001
+@W: CL189 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Register bit rst_data is always 0, optimizing ...
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Optimizing register bit ce_data_inta to a constant 0
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register pdcounter(4 downto 0)  
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register ce_data_inta  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 15 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 14 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 13 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 12 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 11 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 10 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 9 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 8 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 7 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 6 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 5 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 4 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 3 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 2 of ce_data(15 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register bit 1 of ce_data(15 downto 0)  
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":141:4:141:5|Trying to extract state machine for register state
+Extracted state machine for register state
+State machine has 2 reachable states with original encodings of:
+   0000
+   0001
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register pdcounter(4 downto 0)  
+@W: CL169 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/serdes_1_to_n_data_s2_se.vhd":210:4:210:5|Pruning Register ce_data_inta  
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Trying to extract state machine for register wishbone_current_state
+Extracted state machine for register wishbone_current_state
+State machine has 4 reachable states with original encodings of:
+   0001
+   0010
+   0100
+   1000
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":248:4:248:5|Trying to extract state machine for register l2p_read_cpl_current_state
+Extracted state machine for register l2p_read_cpl_current_state
+State machine has 3 reachable states with original encodings of:
+   001
+   010
+   100
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning Register bit 3 of wb_sel_t(3 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning Register bit 2 of wb_sel_t(3 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":344:4:344:5|Pruning Register bit 1 of wb_sel_t(3 downto 0)  
+@W: CL247 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":61:6:61:18|Input port bit 1 of pd_wbm_addr_i(31 downto 0) is unused 
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":54:6:54:24|Input pd_wbm_hdr_length_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":66:6:66:23|Input pd_wbm_data_last_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/wbmaster32.vhd":68:6:68:16|Input pd_wbm_be_i is unused
+@W: CL190 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Optimizing register bit ack_sreg(7) to a constant 0
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Pruning Register bit 7 of ack_sreg(7 downto 0)  
+@W: CL189 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Register bit ack_sreg(6) is always 0, optimizing ...
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":177:4:177:5|Pruning Register bit 6 of ack_sreg(6 downto 0)  
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller_wb_slave.vhd":25:4:25:11|Input wb_sel_i is unused
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/dma_controller.vhd":327:4:327:5|Trying to extract state machine for register dma_ctrl_current_state
+Extracted state machine for register dma_ctrl_current_state
+State machine has 7 reachable states with original encodings of:
+   0000001
+   0000010
+   0000100
+   0001000
+   0010000
+   0100000
+   1000000
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":544:4:544:5|Pruning Register bit 3 of l2p_dma_sel_o(3 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":544:4:544:5|Pruning Register bit 2 of l2p_dma_sel_o(3 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":544:4:544:5|Pruning Register bit 1 of l2p_dma_sel_o(3 downto 0)  
+@N: CL177 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":544:4:544:5|Sharing sequential element l2p_dma_stb_t.
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":312:4:312:5|Trying to extract state machine for register l2p_dma_current_state
+Extracted state machine for register l2p_dma_current_state
+State machine has 8 reachable states with original encodings of:
+   00000001
+   00000010
+   00000100
+   00001000
+   00010000
+   00100000
+   01000000
+   10000000
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":47:6:47:27|Input port bits 1 to 0 of dma_ctrl_target_addr_i(31 downto 0) are unused 
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":50:6:50:19|Input port bits 1 to 0 of dma_ctrl_len_i(31 downto 0) are unused 
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/l2p_dma_master.vhd":54:6:54:25|Input dma_ctrl_byte_swap_i is unused
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Pruning Register bit 3 of p2l_dma_sel_o(3 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Pruning Register bit 2 of p2l_dma_sel_o(3 downto 0)  
+@W: CL260 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Pruning Register bit 1 of p2l_dma_sel_o(3 downto 0)  
+@N: CL177 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":527:4:527:5|Sharing sequential element p2l_dma_stb_t.
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":272:4:272:5|Trying to extract state machine for register p2l_dma_current_state
+Extracted state machine for register p2l_dma_current_state
+State machine has 5 reachable states with original encodings of:
+   00001
+   00010
+   00100
+   01000
+   10000
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":48:6:48:28|Input port bits 1 to 0 of dma_ctrl_carrier_addr_i(31 downto 0) are unused 
+@W: CL246 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":51:6:51:19|Input port bits 1 to 0 of dma_ctrl_len_i(31 downto 0) are unused 
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":56:6:56:25|Input dma_ctrl_byte_swap_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":63:6:63:23|Input pd_pdm_hdr_start_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":64:6:64:24|Input pd_pdm_hdr_length_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":65:6:65:21|Input pd_pdm_hdr_cid_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":73:6:73:16|Input pd_pdm_be_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/p2l_dma_master.vhd":92:6:92:18|Input p2l_dma_dat_i is unused
+@N: CL135 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":746:4:746:5|Found seqShift p_rd_d, depth=3, width=2
+@N: CL135 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":746:4:746:5|Found seqShift l_wr, depth=3, width=2
+@N: CL135 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":746:4:746:5|Found seqShift l2p, depth=3, width=1
+@N: CL135 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":746:4:746:5|Found seqShift l2p_edb, depth=3, width=1
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":72:6:72:15|Input p_wr_req_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":75:6:75:13|Input vc_rdy_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/ip_cores/gnum_core/gn4124_core_s6.vhd":91:6:91:15|Input tx_error_i is unused
+@N: CL201 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":172:7:172:17|Trying to extract state machine for register pll_init_st
+Extracted state machine for register pll_init_st
+State machine has 5 reachable states with original encodings of:
+   00001
+   00010
+   00100
+   01000
+   10000
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":39:8:39:15|Input pll_ld_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":40:8:40:19|Input pll_refmon_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":41:8:41:16|Input pll_sdo_i is unused
+@W: CL159 :"/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/src/rtl/clk_rst_managr.vhd":42:8:42:19|Input pll_status_i is unused

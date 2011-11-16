@@ -1,0 +1,60 @@
+rm -r backup
+rm -r coreip
+rm identify.log
+rm rpt_top_tdc.areasrr rpt_top_tdc_areasrr.htm
+rm run_ise.tcl
+rm run_options.txt scratchproject.prs
+rm synplicity.ucf
+rm fifo_32x512.ngc
+rm fifo_64x512.ngc
+rm syn_tdc.edf
+rm syn_tdc.fse
+rm syn_tdc.htm
+rm syn_tdc.map
+rm syn_tdc.ncf
+rm syn_tdc_prepass.srd
+rm syn_tdc.sap
+rm syn_tdc.srd
+rm syn_tdc.srl
+rm syn_tdc.srm
+rm syn_tdc.srr
+rm syn_tdc.srs
+rm syn_tdc.szr
+rm syn_tdc.tlg
+rm -r syntmp
+rm -r xplace
+
+rm syn_tdc.bld
+rm syn_tdc.mrp
+rm syn_tdc.ncd
+rm syn_tdc.ngd
+rm syn_tdc_ngdbuild.xrpt
+rm syn_tdc.ngm
+rm syn_tdc.ngo
+rm syn_tdc.pcf
+rm syn_tdc_summary.xml
+rm syn_tdc_usage.xml
+rm top_tdc_map.xrpt
+rm top_tdc_par.xrpt
+rm -r xlnx_auto_0_xdb
+rm -r _xmsgs
+
+rm netlist.lst
+rm par_tdc.ncd
+rm par_tdc.pad
+rm par_tdc_pad.csv
+rm par_tdc_pad.txt
+rm par_tdc.par
+rm par_tdc.ptwx
+rm par_tdc.unroutes
+rm par_tdc.xpi
+rm par_usage_statistics.html
+
+rm timing_report.twr
+rm timing_report.twx
+
+rm tdc.bgn
+rm tdc.bit
+rm tdc_bitgen.xwbt
+rm tdc.drc
+rm webtalk.log
