@@ -36,7 +36,7 @@ entity start_retrigger_control is
     port(
         acam_rise_intflag_p_i   : in std_logic;
         acam_fall_intflag_p_i   : in std_logic;
-        clk_i                   : in std_logic;
+        clk                     : in std_logic;
         one_hz_p_i              : in std_logic;
         reset_i                 : in std_logic;
         retrig_period_i         : in std_logic_vector(g_width-1 downto 0);
@@ -85,7 +85,6 @@ architecture rtl of start_retrigger_control is
 signal acam_fall_intflag_p      : std_logic;
 signal acam_rise_intflag_p      : std_logic;
 signal add_roll_over            : std_logic;
-signal clk                      : std_logic;
 signal clk_cycles_offset        : std_logic_vector(g_width-1 downto 0);
 signal current_cycles           : std_logic_vector(g_width-1 downto 0);
 signal current_retrig_nb        : std_logic_vector(g_width-1 downto 0);
@@ -98,9 +97,6 @@ signal retrig_period            : std_logic_vector(g_width-1 downto 0);
 signal retrig_period_reset      : std_logic;
 signal roll_over_reset          : std_logic;
 signal roll_over_value          : std_logic_vector(g_width-1 downto 0);
-
-
-signal acam_halfcounter_gone    : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -176,7 +172,6 @@ begin
     -- inputs
     acam_fall_intflag_p         <= acam_fall_intflag_p_i;
     acam_rise_intflag_p         <= acam_rise_intflag_p_i;
-    clk                         <= clk_i;
     one_hz_p                    <= one_hz_p_i;
     reset                       <= reset_i;
     retrig_period               <= retrig_period_i;

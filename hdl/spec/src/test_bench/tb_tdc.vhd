@@ -486,7 +486,8 @@ begin
         tstop2_i                => tstop2,
         tstop3_i                => tstop3,
         tstop4_i                => tstop4,
-        tstop5_i                => dummy_tstop5,
+        tstop5_i                => tstop5,
+--        tstop5_i                => dummy_tstop5,
         startdis_i              => start_dis_o,
         stopdis_i               => stop_dis_o,
         

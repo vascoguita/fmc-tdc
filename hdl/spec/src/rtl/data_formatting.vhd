@@ -47,15 +47,15 @@ entity data_formatting is
         acam_timestamp1_valid_i : in std_logic;
         acam_timestamp2_i       : in std_logic_vector(g_width-1 downto 0);
         acam_timestamp2_valid_i : in std_logic;
-        clk_i                   : in std_logic;
-        clear_dacapo_flag_i     : in std_logic;
+        clk                     : in std_logic;
+        clear_dacapo_counter_i     : in std_logic;
         reset_i                 : in std_logic;
         clk_cycles_offset_i     : in std_logic_vector(g_width-1 downto 0);
         current_roll_over_i     : in std_logic_vector(g_width-1 downto 0);
         local_utc_i             : in std_logic_vector(g_width-1 downto 0);
         retrig_nb_offset_i      : in std_logic_vector(g_width-1 downto 0);
 
-        wr_pointer_o            : out std_logic_vector(g_width-1 downto 0)
+        wr_index_o              : out std_logic_vector(g_width-1 downto 0)
     );
 end data_formatting;
 
@@ -78,7 +78,6 @@ signal acam_fine_timestamp          : std_logic_vector(16 downto 0);
 signal acam_slope                   : std_logic;
 signal acam_start_nb                : std_logic_vector(7 downto 0);
 
-signal clk                          : std_logic;
 signal reset                        : std_logic;
 signal clk_cycles_offset            : std_logic_vector(g_width-1 downto 0);
 signal current_roll_over            : std_logic_vector(g_width-1 downto 0);
@@ -98,9 +97,10 @@ signal local_utc                    : std_logic_vector(g_width-1 downto 0);
 signal coarse_time                  : std_logic_vector(g_width-1 downto 0);
 signal fine_time                    : std_logic_vector(g_width-1 downto 0);
 
-signal clear_dacapo_flag            : std_logic;
-signal dacapo_flag                  : std_logic;
-signal wr_pointer                   : unsigned(g_width-1 downto 0);
+signal clear_dacapo_counter         : std_logic;
+signal dacapo_counter               : unsigned(g_width-13 downto 0);
+signal wr_pointer                   : unsigned(7 downto 0);
+constant address_128bit_shift       : std_logic_vector(3 downto 0):= x"0";
 
 signal mem_ack                      : std_logic;
 signal mem_data_rd                  : std_logic_vector(4*g_width-1 downto 0);
@@ -151,16 +151,17 @@ begin
         wait until clk ='1';
     end process;
     
-    -- the Da Capo flag indicates if the circular buffer has been written completely
+    -- the Da Capo counter indicates the number of times the circular buffer has been written completely
     -- it is cleared by the PCIe host.
-    dacapo_flag_update: process
+    dacapo_counter_update: process
     begin
         if reset ='1' then
-            dacapo_flag         <= '0';
-        elsif clear_dacapo_flag ='1' then
-            dacapo_flag         <= '0';
-        elsif wr_pointer = buff_size - 1 then
-            dacapo_flag         <= '1';
+            dacapo_counter         <= (others=>'0');
+        elsif clear_dacapo_counter ='1' then
+            dacapo_counter         <= (others=>'0');
+        elsif mem_cyc ='1' and mem_stb ='1' and mem_we ='1' and mem_ack ='1'
+            and wr_pointer = buff_size - 1 then
+            dacapo_counter         <= dacapo_counter + 1;
         end if;
         wait until clk ='1';
     end process;
@@ -194,7 +195,7 @@ begin
         wait until clk ='1';
     end process;
     
-    mem_adr                                 <= std_logic_vector(wr_pointer);
+    mem_adr                                 <= x"000000" & std_logic_vector(wr_pointer);
     mem_data_wr                             <= full_timestamp;
         
     -- the full timestamp is a 128-bits word divided in four 32-bits words
@@ -262,8 +263,7 @@ begin
     acam_timestamp2                     <= acam_timestamp2_i;
     acam_timestamp2_valid               <= acam_timestamp2_valid_i;
 
-    clk                                 <= clk_i;
-    clear_dacapo_flag                   <= clear_dacapo_flag_i;
+    clear_dacapo_counter                <= clear_dacapo_counter_i;
     reset                               <= reset_i;
     clk_cycles_offset                   <= clk_cycles_offset_i;
     retrig_nb_offset                    <= retrig_nb_offset_i;
@@ -273,8 +273,9 @@ begin
     mem_data_rd                         <= dat_i;
 
     -- outputs
-    wr_pointer_o                        <= dacapo_flag & std_logic_vector(wr_pointer(g_width-6 downto 0)) & x"0";
-
+--    wr_pointer_o                        <= dacapo_flag & std_logic_vector(wr_pointer(g_width-6 downto 0)) & x"0";
+    wr_index_o                          <= std_logic_vector(dacapo_counter) & std_logic_vector(wr_pointer) & address_128bit_shift;
+    
     adr_o                               <= mem_adr;
     cyc_o                               <= mem_cyc;
     dat_o                               <= mem_data_wr;

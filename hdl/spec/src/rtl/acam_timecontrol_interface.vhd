@@ -38,8 +38,8 @@ entity acam_timecontrol_interface is
         stop_dis_o              : out std_logic;
 
         -- signals internal to the chip: interface with other modules
-        acam_refclk_i           : in std_logic;
-        clk_i                   : in std_logic;
+        acam_refclk_edge_p_i    : in std_logic;
+        clk                     : in std_logic;
         start_trig_i            : in std_logic;
         reset_i                 : in std_logic;
         window_delay_i          : in std_logic_vector(g_width-1 downto 0);
@@ -87,21 +87,23 @@ architecture rtl of acam_timecontrol_interface is
     end component;
 
 constant constant_delay     : unsigned(g_width-1 downto 0):=x"00000004";
+-- the delay between the referenc clock and the start window is the Total Delay
+-- the Total delay is always obtained by adding the constant delay and the
+-- window delay configured by the PCI-e
 
-signal acam_refclk          : std_logic;
-signal clk                  : std_logic;
+-- the start_from_fpga signal is generated in the middle of the start window
+
+signal acam_refclk_edge_p   : std_logic;
 signal counter_reset        : std_logic;
 signal counter_value        : std_logic_vector(g_width-1 downto 0);
-signal refclk_edge          : std_logic;
-signal refclk_r             : unsigned(3 downto 0);
 signal reset                : std_logic;
-signal int_flag_r           : unsigned(2 downto 0);
-signal err_flag_r           : unsigned(2 downto 0);
+signal int_flag_r           : std_logic_vector(2 downto 0);
+signal err_flag_r           : std_logic_vector(2 downto 0);
 
 signal start_dis            : std_logic;
 signal start_from_fpga      : std_logic;
 signal start_trig           : std_logic;
-signal start_trig_r         : unsigned(2 downto 0);
+signal start_trig_r         : std_logic_vector(2 downto 0);
 signal start_trig_edge      : std_logic;
 signal start_trig_received  : std_logic;
 signal waitingfor_refclk    : std_logic;
@@ -116,14 +118,13 @@ signal window_start         : std_logic;
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
 begin
-
+    -- monitoring of the interrupt and error signals
     sync_err_flag: process      -- synchronisation registers for ERR external signal
     begin
         if reset ='1' then
             err_flag_r      <= (others=>'0');
         else
-            err_flag_r      <= shift_right(err_flag_r,1);
-            err_flag_r(2)   <= err_flag_i;
+            err_flag_r      <= err_flag_i & err_flag_r(2 downto 1);
         end if;
         wait until clk ='1';
     end process;
@@ -133,8 +134,7 @@ begin
         if reset ='1' then
             int_flag_r      <= (others=>'0');
         else
-            int_flag_r      <= shift_right(int_flag_r,1);
-            int_flag_r(2)   <= int_flag_i;
+            int_flag_r      <= int_flag_i & int_flag_r(2 downto 1);
         end if;
         wait until clk ='1';
     end process;
@@ -219,7 +219,7 @@ begin
                             waitingfor_refclk       <= '0';
         elsif start_trig_edge ='1' then
                             waitingfor_refclk       <= '1';
-        elsif refclk_edge ='1' then
+        elsif acam_refclk_edge_p ='1' then
                             waitingfor_refclk       <= '0';
         end if;
         wait until clk ='1';
@@ -240,36 +240,27 @@ begin
     inputs_synchronizer: process
     begin
         if reset ='1' then
-            start_trig_r          <= (others=>'0');
-            refclk_r              <= (others=>'0');
+            start_trig_r        <= (others=>'0');
         else
-            start_trig_r          <= shift_right(start_trig_r,1);
-            start_trig_r(2)       <= start_trig;
-            
-            refclk_r              <= shift_right(refclk_r,1);
-            refclk_r(3)           <= acam_refclk;
+            start_trig_r        <= start_trig & start_trig_r(2 downto 1);
         end if;
         wait until clk ='1';
     end process;
     
-    refclk_edge             <= refclk_r(3) and
-                            not(refclk_r(2)) and
-                            not(refclk_r(1)) and 
-                            refclk_r(0);
-                           
-    start_trig_edge         <= start_trig_r(2) and 
-                            not(start_trig_r(1)) and 
-                            not(start_trig_r(0));
-
-    window_prepulse         <= waitingfor_refclk and refclk_edge;
     counter_reset           <= reset or window_start;
+
+    start_trig_edge         <= start_trig_r(1) and not(start_trig_r(0));
+
+    window_prepulse         <= waitingfor_refclk and acam_refclk_edge_p;
+
     total_delay             <= std_logic_vector(unsigned(window_delay)+constant_delay);
     
+    counter_reset           <= reset or window_start;
+
     -- inputs
-    clk                     <= clk_i;
     reset                   <= reset_i;
     start_trig              <= start_trig_i;
-    acam_refclk             <= acam_refclk_i;
+    acam_refclk_edge_p      <= acam_refclk_edge_p_i;
     window_delay            <= window_delay_i;
     
     -- outputs

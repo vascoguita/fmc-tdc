@@ -46,12 +46,14 @@ entity acam_databus_interface is
 
         -- signals internal to the chip: interface with other modules
         acam_ef1_o              : out std_logic;
+        acam_ef1_meta_o         : out std_logic;
         acam_ef2_o              : out std_logic;
+        acam_ef2_meta_o         : out std_logic;
         acam_lf1_o              : out std_logic;
         acam_lf2_o              : out std_logic;
 
         -- wishbone slave signals internal to the chip: interface with other modules
-        clk_i                   : in std_logic;
+        clk                     : in std_logic;
         reset_i                 : in std_logic;
 
         adr_i                   : in std_logic_vector(g_span-1 downto 0);
@@ -70,16 +72,15 @@ end acam_databus_interface;
 ----------------------------------------------------------------------------------------------------
 architecture rtl of acam_databus_interface is
 
-type t_acam_interface                   is (idle, rd_start, read, rd_ack, wr_start, write, wr_ack);
+type t_acam_interface                   is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
 
 signal acam_data_st, nxt_acam_data_st     : t_acam_interface;
 
-signal ef1                      : std_logic;
-signal ef2                      : std_logic;
-signal lf1                      : std_logic;
-signal lf2                      : std_logic;
+signal ef1_r                    : std_logic_vector(1 downto 0);
+signal ef2_r                    : std_logic_vector(1 downto 0);
+signal lf1_r                    : std_logic_vector(1 downto 0);
+signal lf2_r                    : std_logic_vector(1 downto 0);
 
-signal clk                      : std_logic;
 signal reset                    : std_logic;
 signal adr                      : std_logic_vector(g_span-1 downto 0);
 signal cyc                      : std_logic;
@@ -105,7 +106,7 @@ begin
     databus_access_seq_fsm: process
     begin
         if reset ='1' then
-            acam_data_st        <= idle;
+            acam_data_st        <= IDLE;
         else
             acam_data_st        <= nxt_acam_data_st;
         end if;
@@ -115,7 +116,7 @@ begin
     databus_access_comb_fsm: process(acam_data_st, stb, cyc, we)
     begin
     case acam_data_st is
-        when idle =>
+        when IDLE =>
             ack                 <= '0';
             cs_extend           <= '0';
             rd_extend           <= '0';
@@ -123,67 +124,67 @@ begin
             wr_remove           <= '0';
             if stb ='1' and cyc ='1' then
                 if we = '1' then
-                    nxt_acam_data_st    <= wr_start;
+                    nxt_acam_data_st    <= WR_START;
                 else
-                    nxt_acam_data_st    <= rd_start;
+                    nxt_acam_data_st    <= RD_START;
                 end if;
             else
-                nxt_acam_data_st    <= idle;
+                nxt_acam_data_st    <= IDLE;
             end if;
             
-        when rd_start =>
+        when RD_START =>
             ack                 <= '0';
             cs_extend           <= '1';
             rd_extend           <= '1';
             wr_extend           <= '0';
             wr_remove           <= '0';
             
-            nxt_acam_data_st    <= read;
+            nxt_acam_data_st    <= RD_FETCH;
             
-        when read =>
+        when RD_FETCH =>
             ack                 <= '0';
             cs_extend           <= '1';
             rd_extend           <= '1';
             wr_extend           <= '0';
             wr_remove           <= '0';
             
-            nxt_acam_data_st    <= rd_ack;
+            nxt_acam_data_st    <= RD_ACK;
 
-        when rd_ack =>
+        when RD_ACK =>
             ack                 <= '1';
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
             wr_remove           <= '0';
 
-            nxt_acam_data_st    <= idle;
+            nxt_acam_data_st    <= IDLE;
             
-        when wr_start =>
+        when WR_START =>
             ack                 <= '0';
             cs_extend           <= '1';
             rd_extend           <= '0';
             wr_extend           <= '1';
             wr_remove           <= '0';
             
-            nxt_acam_data_st    <= write;
+            nxt_acam_data_st    <= WR_PUSH;
             
-        when write =>
+        when WR_PUSH =>
             ack                 <= '0';
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
             wr_remove           <= '1';
             
-            nxt_acam_data_st    <= wr_ack;
+            nxt_acam_data_st    <= WR_ACK;
             
-        when wr_ack =>
+        when WR_ACK =>
             ack                 <= '1';
             cs_extend           <= '0';
             rd_extend           <= '0';
             wr_extend           <= '0';
             wr_remove           <= '0';
 
-            nxt_acam_data_st    <= idle;
+            nxt_acam_data_st    <= IDLE;
             
         when others =>
             ack                 <= '0';
@@ -192,7 +193,7 @@ begin
             wr_extend           <= '0';
             wr_remove           <= '0';
 
-            nxt_acam_data_st    <= idle;
+            nxt_acam_data_st    <= IDLE;
     end case;
     end process;
     
@@ -205,7 +206,6 @@ begin
                                                                                                     -- Acam specs
     
     -- inputs from other blocks    
-    clk                         <= clk_i;
     reset                       <= reset_i;
 
     adr                         <= adr_i;
@@ -215,27 +215,31 @@ begin
     we                          <= we_i;
     
     -- outputs to other blocks
-    acam_ef1_o                  <= ef1;
-    acam_ef2_o                  <= ef2;
-    acam_lf1_o                  <= lf1;
-    acam_lf2_o                  <= lf2;
+    acam_ef1_o                  <= ef1_r(0);        -- this signal is perfectly synchronized
+    acam_ef1_meta_o             <= ef1_r(1);        -- this signal could be metastable but
+                                                    -- not when we plan to use it...    
+    acam_ef2_o                  <= ef2_r(0);
+    acam_ef2_meta_o             <= ef2_r(1);
+    
+    acam_lf1_o                  <= lf1_r(0);
+    acam_lf2_o                  <= lf2_r(0);
     ack_o                       <= ack;
-    dat_o                       <= ef1 & ef2 & lf1 & lf2 & data_bus_io;
+    dat_o                       <= ef1_r(0) & ef2_r(0) & lf1_r(0) & lf2_r(0) & data_bus_io;
 
     -- inputs from the ACAM
     
     input_registers: process
     begin
         if reset ='1' then
-            ef1                         <= '1';
-            ef2                         <= '1';
-            lf1                         <= '1';
-            lf2                         <= '1';
+            ef1_r                       <= (others =>'1');
+            ef2_r                       <= (others =>'1');
+            lf1_r                       <= (others =>'0');
+            lf2_r                       <= (others =>'0');
         else
-            ef1                         <= ef1_i;
-            ef2                         <= ef2_i;
-            lf1                         <= lf1_i;
-            lf2                         <= lf2_i;
+            ef1_r                       <= ef1_i & ef1_r(1);
+            ef2_r                       <= ef2_i & ef2_r(1);
+            lf1_r                       <= lf1_i & lf1_r(1);
+            lf2_r                       <= lf2_i & lf2_r(1);
         end if;
         wait until clk ='1';
     end process;

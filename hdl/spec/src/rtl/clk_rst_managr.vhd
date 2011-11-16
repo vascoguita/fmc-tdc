@@ -45,7 +45,7 @@ entity clk_rst_managr is
         tdc_clk_p_i             : in std_logic;
         tdc_clk_n_i             : in std_logic;
         
-        acam_refclk_o           : out std_logic;
+        acam_refclk_edge_p_o    : out std_logic;
         general_reset_o         : out std_logic;
         pll_cs_o                : out std_logic;
         pll_dac_sync_o          : out std_logic;
@@ -176,11 +176,11 @@ signal nxt_pll_init_st          : t_pll_init_st;
 signal config_reg               : t_stream;
 signal address                  : t_instr;
 
-signal acam_refclk_buf          : std_logic;
 signal spec_clk_buf             : std_logic;
 signal tdc_clk_buf              : std_logic;
         
-signal acam_refclk              : std_logic;
+signal acam_refclk_r            : std_logic_vector(2 downto 0);
+signal acam_refclk_edge_p       : std_logic;
 signal pll_sclk                 : std_logic;
 signal spec_clk                 : std_logic;
 signal tdc_clk                  : std_logic;
@@ -195,7 +195,7 @@ signal gnum_reset               : std_logic;
 signal gral_incr                : std_logic;
 signal gral_reset_duration      : std_logic_vector(31 downto 0);
 signal inv_reset                : std_logic;
-signal cs                       : std_logic;
+signal cs_n                     : std_logic;
 
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
@@ -234,19 +234,6 @@ begin
         I => spec_clk_buf
     );
 
---    acam_refclk_ibuf : IBUFG
---    port map (
---        I => acam_refclk_i,
---        O => acam_refclk_buf
---    );
---
---    acam_refclk_gbuf : BUFG
---    port map (
---        O => acam_refclk,
---        I => acam_refclk_buf
---    );
-    acam_refclk     <= acam_refclk_i;
-    
     -- The following processes generate a general internal reset signal for the whole core.
     -- This internal reset is triggered by the reset signal coming from the GNUM chip.
     -- The idea is to keep the internal reset asserted until the clock signal received
@@ -306,7 +293,7 @@ begin
     begin
         case pll_init_st is
         when start =>
-            cs                  <= '1';
+            cs_n                <= '1';
             
             if pll_sclk ='1' then
                 nxt_pll_init_st     <= sending_instruction;
@@ -315,7 +302,7 @@ begin
             end if;
         
         when sending_instruction =>
-            cs                  <= '0';
+            cs_n                <= '0';
             
             if bit_index = 0 
             and pll_sclk = '1' then
@@ -325,7 +312,7 @@ begin
             end if;
         
         when sending_data =>
-            cs                  <= '0';
+            cs_n                <= '0';
             
             if bit_index = 0 
             and pll_sclk = '1' then
@@ -335,7 +322,7 @@ begin
             end if;
 
         when rest =>
-            cs                  <= '1';
+            cs_n                <= '1';
             
             if pll_sclk = '1' then
                 if byte_index = 0 then
@@ -348,12 +335,12 @@ begin
             end if;
             
         when done =>
-            cs                  <= '1';
+            cs_n                <= '1';
             
             nxt_pll_init_st     <= done;
             
         when others =>
-            cs                  <= '1';
+            cs_n                <= '1';
             
             nxt_pll_init_st     <= start;
         end case;
@@ -363,7 +350,7 @@ begin
     begin
         if gnum_reset ='1' then
             bit_index   <= 15;
-        elsif cs ='1' then
+        elsif cs_n ='1' then
             bit_index   <= 15;
         elsif pll_sclk ='1' then
             if bit_index = 0 then
@@ -561,18 +548,31 @@ begin
 
     config_reg(66)       <= reg_230;
     config_reg(67)       <= reg_231;
+
+
+    acam_refclk_synchronizer: process
+    begin
+        if inv_reset ='0' then
+            acam_refclk_r       <= (others=>'0');
+        else
+            acam_refclk_r       <= acam_refclk_i & acam_refclk_r(2 downto 1);
+        end if;
+        wait until tdc_clk ='1';
+    end process;
+    
+    acam_refclk_edge_p      <= acam_refclk_r(1) and not(acam_refclk_r(0));
     
     -- Input and Output signals
     ---------------------------    
-    gnum_reset          <= gnum_reset_i;
+    gnum_reset              <= gnum_reset_i;
     
-    acam_refclk_o       <= acam_refclk;
-    general_reset_o     <= not(inv_reset);
-    pll_cs_o            <= cs;
-    pll_sdi_o           <= bit_being_sent;
-    pll_sclk_o          <= pll_sclk;
-    spec_clk_o          <= spec_clk;
-    tdc_clk_o           <= tdc_clk;
+    acam_refclk_edge_p_o    <= acam_refclk_edge_p;
+    general_reset_o         <= not(inv_reset);
+    pll_cs_o                <= cs_n;
+    pll_sdi_o               <= bit_being_sent;
+    pll_sclk_o              <= pll_sclk;
+    spec_clk_o              <= spec_clk;
+    tdc_clk_o               <= tdc_clk;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
