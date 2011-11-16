@@ -1,9 +1,0 @@
-rrcmd r 0:00000
-rrcmd r 0:00004
-rrcmd r 0:00008
-rrcmd r 0:0000C
-rrcmd r 0:00010
-rrcmd r 0:00014
-rrcmd r 0:00018
-rrcmd r 0:0001C
-rrcmd r 0:00020

@@ -1,7 +1,0 @@
-INFILE=/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_pll/par_tdc.ncd
-OUTFILE=/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_pll/tdc.bit
-FAMILY=Spartan6
-PART=xc6slx45t-2fgg484
-WORKINGDIR=/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/test_tdc_pll
-LICENSE=ISE
-USER_INFO=174122087_174122088_206270080_665

@@ -1,4 +1,4 @@
-probe -create -shm -waveform :dut:acam_refclk
+probe -create -shm -waveform :dut:acam_refclk_i
 probe -create -shm -waveform :spec_clk_i
 probe -create -shm -waveform :dut:clk
 probe -create -shm -waveform :dut:gnum_reset
@@ -22,64 +22,6 @@ probe -create -shm -waveform :dut:general_reset
 #probe -create -shm -waveform :tdc_led_status
 #probe -create -shm -waveform :dut:tdc_led_count_done
 #probe -create -shm -waveform :dut:spec_led_count_done
-
-#probe -create -shm -waveform :dut:one_second_block:refclk_edge
-#probe -create -shm -waveform :dut:one_second_block:onesec_counter_en
-#probe -create -shm -waveform :dut:one_second_block:clock_periods_counter:current_value
-#probe -create -shm -waveform :dut:one_second_block:total_delay
-#probe -create -shm -waveform :dut:one_second_block:pulse_delayer_counter:current_value
-#probe -create -shm -waveform :dut:one_second_block:one_hz_p_pre
-#probe -create -shm -waveform :dut:one_second_block:one_hz_p_post
-probe -create -shm -waveform :dut:one_second_block:one_hz_p_o
-probe -create -shm -waveform :dut:int_flag_i
-probe -create -shm -waveform :dut:acam_fall_intflag_p
-
-#probe -create -shm -waveform :dut:start_retrigger_block:roll_over_reset
-#probe -create -shm -waveform :dut:start_retrigger_block:add_roll_over
-probe -create -shm -waveform :dut:start_retrigger_block:roll_over_value
-#probe -create -shm -waveform :dut:start_retrigger_block:retrig_nb_reset
-probe -create -shm -waveform :dut:start_retrigger_block:current_retrig_nb
-#probe -create -shm -waveform :dut:start_retrigger_block:retrig_period_reset
-probe -create -shm -waveform :dut:start_retrigger_block:retrig_p
-probe -create -shm -waveform :dut:start_retrigger_block:current_cycles
-
-probe -create -shm -waveform :dut:start_retrigger_block:clk_cycles_offset
-probe -create -shm -waveform :dut:start_retrigger_block:retrig_nb_offset
-
-probe -create -shm -waveform :dut:start_trig
-probe -create -shm -waveform :dut:acam_timing_block:start_trig_edge
-probe -create -shm -waveform :dut:acam_timing_block:window_delay
-#probe -create -shm -waveform :dut:acam_timing_block:waitingfor_refclk
-probe -create -shm -waveform :dut:acam_timing_block:refclk_edge
-probe -create -shm -waveform :dut:acam_timing_block:window_prepulse
-#probe -create -shm -waveform :dut:acam_timing_block:start_trig_received
-#probe -create -shm -waveform :dut:acam_timing_block:counter_reset
-#probe -create -shm -waveform :dut:acam_timing_block:window_active
-#probe -create -shm -waveform :dut:acam_timing_block:counter_value
-#probe -create -shm -waveform :start_dis_o
-probe -create -shm -waveform :start_from_fpga_o
-#probe -create -shm -waveform :stop_dis_o
-
-#probe -create -shm -waveform :acam:timing_block:start01
-#probe -create -shm -waveform :acam:timing_block:start_retrig_p
-#probe -create -shm -waveform :acam:timing_block:start_retrig_nb
-
-#probe -create -shm -waveform :dut:acam_timing_block:int_flag_i
-#probe -create -shm -waveform :dut:start_retrigger_block:acam_fall_intflag_p_i
-#probe -create -shm -waveform :dut:start_retrigger_block:acam_rise_intflag_p_i
-#probe -create -shm -waveform :dut:start_retrigger_block:acam_halfcounter_gone
-#probe -create -shm -waveform :dut:start_retrigger_block:add_offset
-#probe -create -shm -waveform :dut:start_retrigger_block:start_nb_offset_o
-
-probe -create -shm -waveform :tstop1
-probe -create -shm -waveform :tstop2
-probe -create -shm -waveform :tstop3
-probe -create -shm -waveform :tstop4
-probe -create -shm -waveform :tstop5
-
-probe -create -shm -waveform :dut:data_formatting_block:local_utc
-probe -create -shm -waveform :dut:data_formatting_block:coarse_time
-probe -create -shm -waveform :dut:data_formatting_block:fine_time
 
 #probe -create -shm -waveform :RSTINn             
 #probe -create -shm -waveform :RSTOUT18n          
@@ -133,6 +75,7 @@ probe -create -shm -waveform :dut:load_acam_config
 probe -create -shm -waveform :dut:read_acam_config
 probe -create -shm -waveform :dut:read_acam_status
 probe -create -shm -waveform :dut:reset_acam
+probe -create -shm -waveform :dut:clk
 
 probe -create -shm -waveform :dut:data_engine_block:engine_st
 probe -create -shm -waveform :dut:acm_adr
@@ -146,7 +89,9 @@ probe -create -shm -waveform :dut:acm_dat_r
 #probe -create -shm -waveform :dut:acam_data_block:nxt_acam_data_st
 
 probe -create -shm -waveform :dut:ef1_i
+probe -create -shm -waveform :dut:acam_data_block:ef1_r
 probe -create -shm -waveform :dut:ef2_i
+probe -create -shm -waveform :dut:acam_data_block:ef2_r
 probe -create -shm -waveform :dut:lf1_i
 probe -create -shm -waveform :dut:lf2_i
 probe -create -shm -waveform :dut:data_bus_io
@@ -155,12 +100,68 @@ probe -create -shm -waveform :dut:cs_n_o
 probe -create -shm -waveform :dut:oe_n_o
 probe -create -shm -waveform :dut:rd_n_o
 probe -create -shm -waveform :dut:wr_n_o
-waveform format -using "Waveform 1" ":dut:rd_n_o" -color "red"
 probe -create -shm -waveform :dut:acam_data_block:acam_data_st
 #probe -create -shm -waveform :dut:acam_data_block:wr_extend
 #probe -create -shm -waveform :dut:acam_data_block:wr_remove
 #probe -create -shm -waveform :dut:acam_data_block:wr
-waveform format -using "Waveform 1" ":dut:wr_n_o" -color "magenta"
+
+#probe -create -shm -waveform :dut:clks_rsts_mgment:acam_refclk_i
+#probe -create -shm -waveform :dut:clks_rsts_mgment:acam_refclk_r
+#probe -create -shm -waveform :dut:clks_rsts_mgment:acam_refclk_edge_p
+#probe -create -shm -waveform :dut:one_second_block:acam_refclk_edge_p
+#probe -create -shm -waveform :dut:one_second_block:onesec_counter_en
+#probe -create -shm -waveform :dut:one_second_block:clock_periods_counter:current_value
+#probe -create -shm -waveform :dut:one_second_block:total_delay
+#probe -create -shm -waveform :dut:one_second_block:pulse_delayer_counter:current_value
+#probe -create -shm -waveform :dut:one_second_block:one_hz_p_pre
+#probe -create -shm -waveform :dut:one_second_block:one_hz_p_post
+probe -create -shm -waveform :dut:one_second_block:one_hz_p_o
+probe -create -shm -waveform :dut:int_flag_i
+probe -create -shm -waveform :dut:acam_fall_intflag_p
+
+#probe -create -shm -waveform :dut:start_retrigger_block:roll_over_reset
+#probe -create -shm -waveform :dut:start_retrigger_block:add_roll_over
+probe -create -shm -waveform :dut:start_retrigger_block:roll_over_value
+#probe -create -shm -waveform :dut:start_retrigger_block:retrig_nb_reset
+probe -create -shm -waveform :dut:start_retrigger_block:current_retrig_nb
+#probe -create -shm -waveform :dut:start_retrigger_block:retrig_period_reset
+probe -create -shm -waveform :dut:start_retrigger_block:retrig_p
+probe -create -shm -waveform :dut:start_retrigger_block:current_cycles
+
+probe -create -shm -waveform :dut:start_retrigger_block:clk_cycles_offset
+probe -create -shm -waveform :dut:start_retrigger_block:retrig_nb_offset
+
+probe -create -shm -waveform :dut:acam_timing_block:start_trig
+probe -create -shm -waveform :dut:acam_timing_block:start_trig_r
+probe -create -shm -waveform :dut:acam_timing_block:start_trig_edge
+probe -create -shm -waveform :dut:acam_timing_block:window_delay
+#probe -create -shm -waveform :dut:acam_timing_block:waitingfor_refclk
+probe -create -shm -waveform :dut:acam_timing_block:refclk_edge
+probe -create -shm -waveform :dut:acam_timing_block:window_prepulse
+#probe -create -shm -waveform :dut:acam_timing_block:start_trig_received
+#probe -create -shm -waveform :dut:acam_timing_block:counter_reset
+#probe -create -shm -waveform :dut:acam_timing_block:window_active
+#probe -create -shm -waveform :dut:acam_timing_block:counter_value
+#probe -create -shm -waveform :start_dis_o
+probe -create -shm -waveform :start_from_fpga_o
+#probe -create -shm -waveform :stop_dis_o
+
+#probe -create -shm -waveform :acam:timing_block:start01
+#probe -create -shm -waveform :acam:timing_block:start_retrig_p
+#probe -create -shm -waveform :acam:timing_block:start_retrig_nb
+
+#probe -create -shm -waveform :dut:acam_timing_block:int_flag_i
+#probe -create -shm -waveform :dut:start_retrigger_block:acam_fall_intflag_p_i
+#probe -create -shm -waveform :dut:start_retrigger_block:acam_rise_intflag_p_i
+#probe -create -shm -waveform :dut:start_retrigger_block:acam_halfcounter_gone
+#probe -create -shm -waveform :dut:start_retrigger_block:add_offset
+#probe -create -shm -waveform :dut:start_retrigger_block:start_nb_offset_o
+
+probe -create -shm -waveform :tstop1
+probe -create -shm -waveform :tstop2
+probe -create -shm -waveform :tstop3
+probe -create -shm -waveform :tstop4
+probe -create -shm -waveform :tstop5
 
 probe -create -shm -waveform :dut:acam_timestamp1
 probe -create -shm -waveform :dut:acam_timestamp1_valid
@@ -173,7 +174,8 @@ probe -create -shm -waveform :dut:data_formatting_block:coarse_time
 probe -create -shm -waveform :dut:data_formatting_block:fine_time
 
 probe -create -shm -waveform :dut:data_formatting_block:wr_pointer
-probe -create -shm -waveform :dut:wr_pointer
+probe -create -shm -waveform :dut:data_formatting_block:dacapo_counter
+probe -create -shm -waveform :dut:wr_index
 
 probe -create -shm -waveform :dut:mem_class_adr
 probe -create -shm -waveform :dut:mem_class_cyc
