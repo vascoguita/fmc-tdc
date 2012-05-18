@@ -1,234 +1,307 @@
-----------------------------------------------------------------------------------------------------
---  CERN-BE-CO-HT
-----------------------------------------------------------------------------------------------------
---
---  unit name   : RAM circular buffer for timestamp storage (circular_buffer)
---  author      : G. Penacoba
---  date        : Oct 2011
---  version     : Revision 1
---  description : contains the RAM block (1024 x 32) and the wishbone slave interfaces.
---                From the side of the timestamps coming from the ACAM the wishbone interface is
---                classic. On the side of the DMA access from the PCI, the wishbone interface is
---                pipelined.
---  dependencies:
---  references  :
---  modified by :
---
-----------------------------------------------------------------------------------------------------
---  last changes:
-----------------------------------------------------------------------------------------------------
---  to do:
-----------------------------------------------------------------------------------------------------
+--_________________________________________________________________________________________________
+--                                                                                                |
+--                                           |TDC core|                                           |
+--                                                                                                |
+--                                         CERN,BE/CO-HT                                          |
+--________________________________________________________________________________________________|
 
+---------------------------------------------------------------------------------------------------
+--                                                                                                |
+--                                        circular_buffer                                         |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+-- File         circular_buffer.vhd                                                               |
+--                                                                                                |
+-- Description  Dual port RAM circular buffer for timestamp storage; contains the RAM block and   |
+--              the WISHBONE slave interfaces:                                                    |
+--               o The data_formatting unit is writing 128-bit long timestamps, using a WISHBONE  |
+--                 classic interface. The unit implements a WISHBONE classic slave.               |
+--                 As figure 1 indicates, from this side the memory is of size: 255 * 128.        |
+--               o The GNUM core is reading 32-bit words. Readings take place using a pipelined   |
+--                 WISHBONE interface, allowing for Direct Memory Access from the PCI-e.          |
+--                 The unit implements a WISHBONE pipelined slave.                                |
+--                 As figure 1 indicates, from this side the memory is of size: 1024 * 32.        |
+--                                                                                                |
+--              Note also that in principle the data_formatting unit is only writing in the RAM   |
+--              and the GNUM core is only reading from it.                                        |
+--                                                                                                |
+--                                                                                                |
+--                         RAM as seen from the                             RAM as seen from the  |
+--                         data_formatting unit                                   GNUM core       |
+--     ____________________________________________________________            _______________    |
+--  0 |                          128 bits                          |        0 |    32 bits    |   |
+--    |____________________________________________________________|          |_______________|   |
+--  1 |                          128 bits                          |        1 |    32 bits    |   |
+--    |____________________________________________________________|          |_______________|   |
+--  . |                          128 bits                          |        2 |    32 bits    |   |
+--    |____________________________________________________________|  <==>    |_______________|   |
+--  . |                          128 bits                          |        3 |    32 bits    |   |
+--    |____________________________________________________________|          |_______________|   |
+--    |                          128 bits                          |        4 |    32 bits    |   |
+-- 255|____________________________________________________________|          |_______________|   |
+--                                                                          . |    32 bits    |   |
+--                                                                            |_______________|   |
+--                                                                          . |    32 bits    |   |
+--                                                                            |_______________|   |
+--                                                                          . |    32 bits    |   |
+--                                                                            |_______________|   |
+--                                                                          . |    32 bits    |   |
+--                                                                            |_______________|   |
+--                                                                       1021 |    32 bits    |   |
+--                                                                            |_______________|   |
+--                                                                       1022 |    32 bits    |   |
+--                                                                            |_______________|   |
+--                                                                       1023 |    32 bits    |   |
+--                                                                            |_______________|   |
+--                               Figuure 1: RAM configuration                                     |
+--                                                                                                |
+--                                                                                                |
+-- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
+--              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
+-- Date         04/2012                                                                           |
+-- Version      v0.11                                                                             |
+-- Depends on                                                                                     |
+--                                                                                                |
+----------------                                                                                  |
+-- Last changes                                                                                   |
+--     10/2011  v0.1  GP  First version                                                           |
+--     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+--                               GNU LESSER GENERAL PUBLIC LICENSE                                |
+--                              ------------------------------------                              |
+-- This source file is free software; you can redistribute it and/or modify it under the terms of |
+-- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
+-- version 2.1 of the License, or (at your option) any later version.                             |
+-- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
+-- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
+-- See the GNU Lesser General Public License for more details.                                    |
+-- You should have received a copy of the GNU Lesser General Public License along with this       |
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+---------------------------------------------------------------------------------------------------
+
+
+
+--=================================================================================================
+--                                       Libraries & Packages
+--=================================================================================================
+
+-- Standard library
 library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all;
+use IEEE.std_logic_1164.all; -- std_logic definitions
+use IEEE.NUMERIC_STD.all;    -- conversion functions
+-- Specific library
+library work;
+use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
-----------------------------------------------------------------------------------------------------
---  entity declaration for circular_buffer
-----------------------------------------------------------------------------------------------------
+
+--=================================================================================================
+--                            Entity declaration for circular_buffer
+--=================================================================================================
+
 entity circular_buffer is
-    generic(
-        g_span                  : integer :=32;
-        g_width                 : integer :=32
-    );
-    port(
-        -- wishbone classic slave signals to interface RAM with the internal modules providing the timestamps
-        clk                     : in std_logic;
-        class_reset_i           : in std_logic;
+  port
+  -- INPUTS
+     -- Signal from the clk_rst_manager
+    (clk_i                : in std_logic; -- 125 MHz clock; same for both ports
 
-        class_adr_i             : in std_logic_vector(g_span-1 downto 0);
-        class_cyc_i             : in std_logic;
-        class_dat_i             : in std_logic_vector(4*g_width-1 downto 0);
-        class_stb_i             : in std_logic;
-        class_we_i              : in std_logic;
+     -- Signals from the data_formatting unit (WISHBONE classic): timestamps writing
+     tstamp_wr_rst_i   : in std_logic; -- timestamp writing WISHBONE reset
+     tstamp_wr_stb_i   : in std_logic; -- timestamp writing WISHBONE strobe
+     tstamp_wr_cyc_i   : in std_logic; -- timestamp writing WISHBONE cycle
+     tstamp_wr_we_i    : in std_logic; -- timestamp writing WISHBONE write enable
+     tstamp_wr_adr_i   : in std_logic_vector(7 downto 0);   -- adr 8 bits long 2^8 = 255
+     tstamp_wr_dat_i   : in std_logic_vector(127 downto 0); -- timestamp 128 bits long
 
-        class_ack_o             : out std_logic;
-        class_dat_o             : out std_logic_vector(4*g_width-1 downto 0);
+     -- Signals from the GNUM core unit (WISHBONE pipelined): timestamps reading
+     gnum_dma_rst_i    : in std_logic; -- timestamp reading WISHBONE reset
+     gnum_dma_stb_i    : in std_logic; -- timestamp reading WISHBONE strobe
+     gnum_dma_cyc_i    : in std_logic; -- timestamp reading WISHBONE cycle
+     gnum_dma_we_i     : in std_logic; -- timestamp reading WISHBONE write enable; not used
+     gnum_dma_adr_i    : in std_logic_vector(31 downto 0);  -- adr 10 bits long 2^10 = 1024
+     gnum_dma_dat_i    : in std_logic_vector(31 downto 0);  -- not used
 
-        -- wishbone pipelined slave signals to interface RAM with gnum core for DMA access from PCI-e
-        pipe_reset_i            : in std_logic;
 
-        pipe_adr_i              : in std_logic_vector(g_span-1 downto 0);
-        pipe_cyc_i              : in std_logic;
-        pipe_dat_i              : in std_logic_vector(g_width-1 downto 0);
-        pipe_stb_i              : in std_logic;
-        pipe_we_i               : in std_logic;
+  -- OUTPUTS
+     -- Signals to the data_formatting unit (WISHBONE classic): timestamps writing
+     tstamp_wr_ack_p_o : out std_logic; -- timestamp writing WISHBONE classic acknowledge
+     tstamp_wr_dat_o   : out std_logic_vector(127 downto 0); -- not used
 
-        pipe_ack_o              : out std_logic;
-        pipe_dat_o              : out std_logic_vector(g_width-1 downto 0);
-        pipe_stall_o            : out std_logic
-    );
+     -- Signals to the GNUM core unit (WISHBONE pipelined): timestamps reading
+     gnum_dma_ack_o     : out std_logic; -- timestamp reading WISHBONE pepelined acknowledge
+     gnum_dma_dat_o     : out std_logic_vector(31 downto 0); -- 32 bit words
+     gnum_dma_stall_o   : out std_logic);-- timestamp reading WISHBONE pipelined stall
+
 end circular_buffer;
 
-----------------------------------------------------------------------------------------------------
---  architecture declaration for circular_buffer
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                    architecture declaration
+--=================================================================================================
 architecture rtl of circular_buffer is
 
-component blk_mem_circ_buff_v6_4
-    port(
-    clka    : in std_logic;
-    addra   : in std_logic_vector(7 downto 0);
-    dina    : in std_logic_vector(127 downto 0);
-    ena     : in std_logic;
-    wea     : in std_logic_vector(0 downto 0);
-    douta   : out std_logic_vector(127 downto 0);
+  type t_wb_wr is (IDLE, MEM_ACCESS, MEM_ACCESS_AND_ACKNOWLEDGE, ACKNOWLEDGE);
+  signal tstamp_rd_wb_st, nxt_tstamp_rd_wb_st : t_wb_wr;
+  signal tstamp_wr_ack_p                      : std_logic;
+  signal tstamp_rd_we, tstamp_wr_we           : std_logic_vector(0 downto 0);
 
-    clkb    : in std_logic;
-    addrb   : in std_logic_vector(9 downto 0);
-    dinb    : in std_logic_vector(31 downto 0);
-    enb     : in std_logic;
-    web     : in std_logic_vector(0 downto 0);
-    doutb   : out std_logic_vector(31 downto 0)
-    );
-end component;
 
-type t_wb_pipelined_mem_interface           is (IDLE, MEM_ACCESS, 
-                                                MEM_ACCESS_AND_ACKNOWLEDGE, ACKNOWLEDGE);
-
-signal wb_pipelined_st, nxt_wb_pipelined_st : t_wb_pipelined_mem_interface;
-
-signal class_ack                            : std_logic;
-signal class_adr                            : std_logic_vector(7 downto 0);
-signal class_cyc                            : std_logic;
-signal class_data_rd                        : std_logic_vector(4*g_width-1 downto 0);
-signal class_data_wr                        : std_logic_vector(4*g_width-1 downto 0);
-signal class_en                             : std_logic;
-signal class_reset                          : std_logic;
-signal class_stb                            : std_logic;
-signal class_we                             : std_logic_vector(0 downto 0);
-
-signal pipe_ack                             : std_logic;
-signal pipe_adr                             : std_logic_vector(9 downto 0);
-signal pipe_cyc                             : std_logic;
-signal pipe_data_rd                         : std_logic_vector(g_width-1 downto 0);
-signal pipe_data_wr                         : std_logic_vector(g_width-1 downto 0);
-signal pipe_en                              : std_logic;
-signal pipe_reset                           : std_logic;
-signal pipe_stb                             : std_logic;
-signal pipe_we                              : std_logic_vector(0 downto 0);
-
-----------------------------------------------------------------------------------------------------
---  architecture begins
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                       architecture begin
+--=================================================================================================
 begin
 
-    -- Wishbone classic interface compatible slave
-    classic_interface: process
-    begin
-        if class_reset ='1' then
-            class_ack           <= '0';
-        elsif class_stb ='1' and class_cyc ='1' and class_ack ='0' then
-            class_ack           <= '1';
-        else
-            class_ack           <= '0';
-        end if;
-        wait until clk ='1';
-    end process;
+---------------------------------------------------------------------------------------------------
+--                            TIMESTAMP WRITINGS WISHBONE CLASSIC ACK                            --
+---------------------------------------------------------------------------------------------------
+  -- WISHBONE classic interface compatible slave
+  classic_interface: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if tstamp_wr_rst_i ='1' then
+        tstamp_wr_ack_p <= '0';
 
-    -- Wishbone pipelined interfacte compatible slave
-    pipelined_seq_fsm: process
-    begin
-        if pipe_reset ='1' then
-            wb_pipelined_st        <= IDLE;
-        else
-            wb_pipelined_st        <= nxt_wb_pipelined_st;
-        end if;
-        wait until clk ='1';
-    end process;
-    
-    pipelined_comb_fsm: process(wb_pipelined_st, pipe_stb, pipe_cyc)
-    begin
-    case wb_pipelined_st is
-        when IDLE =>
-            pipe_ack            <= '0';
+      elsif tstamp_wr_stb_i = '1' and tstamp_wr_cyc_i = '1' and tstamp_wr_ack_p = '0' then
+        tstamp_wr_ack_p <= '1';                    -- a new 1 clk-wide ack is given for each stb
+      else
+        tstamp_wr_ack_p <= '0';
+      end if;
+    end if;
+  end process;
 
-            if pipe_stb ='1' and pipe_cyc ='1' then
-                nxt_wb_pipelined_st     <= MEM_ACCESS;
-            else
-                nxt_wb_pipelined_st     <= IDLE;
-            end if;
-            
-        when MEM_ACCESS =>
-            pipe_ack            <= '0';
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  tstamp_wr_ack_p_o     <= tstamp_wr_ack_p;
 
-            if pipe_stb ='1' and pipe_cyc ='1' then
-                nxt_wb_pipelined_st     <= MEM_ACCESS_AND_ACKNOWLEDGE;
-            else
-                nxt_wb_pipelined_st     <= ACKNOWLEDGE;
-            end if;
-            
-        when MEM_ACCESS_AND_ACKNOWLEDGE =>
-            pipe_ack            <= '1';
 
-            if pipe_stb ='1' and pipe_cyc ='1' then
-                nxt_wb_pipelined_st     <= MEM_ACCESS_AND_ACKNOWLEDGE;
-            else
-                nxt_wb_pipelined_st     <= ACKNOWLEDGE;
-            end if;
-            
-        when ACKNOWLEDGE =>
-            pipe_ack            <= '1';
 
-            if pipe_stb ='1' and pipe_cyc ='1' then
-                nxt_wb_pipelined_st     <= MEM_ACCESS;
-            else
-                nxt_wb_pipelined_st     <= IDLE;
-            end if;
+---------------------------------------------------------------------------------------------------
+--                            TIMESTAMP READINGS WISHBONE PIPELINE ACK                           --
+---------------------------------------------------------------------------------------------------
+-- FSM for the generation of the pipelined WISHBONE ACK signal.
+-- Note that the first output from the memory comes 2 clk cycles after the address setting.
 
-        when others =>
-            pipe_ack            <= '0';
+-- CLK : --|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__
+-- STB : _____|-----------------------------------|_________________
+-- CYC : _____|-----------------------------------|_________________
+-- ADR :      <ADR0><ADR1><ADR2><ADR3><ADR4><ADR5>
+-- ACK : _________________|-----------------------------------|_____
+-- DATO:                  <DAT0><DAT1><DAT2><DAT3><DAT4><DAT5>
 
-            nxt_wb_pipelined_st <= IDLE;
+  WB_pipe_ack_fsm_seq: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if gnum_dma_rst_i ='1' then
+        tstamp_rd_wb_st <= IDLE;
+      else
+        tstamp_rd_wb_st <= nxt_tstamp_rd_wb_st;
+      end if;
+    end if;
+  end process;
+
+---------------------------------------------------------------------------------------------------
+  WB_pipe_ack_fsm_comb: process (tstamp_rd_wb_st, gnum_dma_stb_i, gnum_dma_cyc_i)
+  begin
+    case tstamp_rd_wb_st is
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when IDLE =>
+                -----------------------------------------------
+                   gnum_dma_ack_o    <= '0';
+                -----------------------------------------------
+
+                   if gnum_dma_stb_i = '1' and gnum_dma_cyc_i = '1' then
+                     nxt_tstamp_rd_wb_st <= MEM_ACCESS;
+                   else
+                     nxt_tstamp_rd_wb_st <= IDLE;
+                   end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when MEM_ACCESS =>
+
+                -----------------------------------------------
+                   gnum_dma_ack_o    <= '0';
+                -----------------------------------------------
+
+                   if gnum_dma_stb_i = '1' and gnum_dma_cyc_i = '1' then
+                     nxt_tstamp_rd_wb_st <= MEM_ACCESS_AND_ACKNOWLEDGE;
+                   else
+                     nxt_tstamp_rd_wb_st <= ACKNOWLEDGE;
+                   end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when MEM_ACCESS_AND_ACKNOWLEDGE =>
+                -----------------------------------------------
+                   gnum_dma_ack_o    <= '1';
+                -----------------------------------------------
+
+                   if gnum_dma_stb_i = '1' and gnum_dma_cyc_i = '1' then
+                     nxt_tstamp_rd_wb_st <= MEM_ACCESS_AND_ACKNOWLEDGE;
+                   else
+                     nxt_tstamp_rd_wb_st <= ACKNOWLEDGE;
+                   end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --            
+      when ACKNOWLEDGE =>
+                -----------------------------------------------
+                   gnum_dma_ack_o    <= '1';
+                -----------------------------------------------
+
+                   if gnum_dma_stb_i = '1' and gnum_dma_cyc_i = '1' then
+                     nxt_tstamp_rd_wb_st <= MEM_ACCESS;
+                   else
+                     nxt_tstamp_rd_wb_st <= IDLE;
+                   end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when others =>
+                -----------------------------------------------
+                   gnum_dma_ack_o    <= '0';
+                -----------------------------------------------
+
+                   nxt_tstamp_rd_wb_st   <= IDLE;
     end case;
-    end process;
-    
-    memory_block: blk_mem_circ_buff_v6_4
-    port map(
-        clka        => clk,
-        addra       => class_adr,
-        dina        => class_data_wr,
-        ena         => class_en,
-        wea         => class_we,
-        douta       => class_data_rd,
-        
-        clkb        => clk,
-        addrb       => pipe_adr,
-        dinb        => pipe_data_wr,
-        enb         => pipe_en,
-        web         => pipe_we,
-        doutb       => pipe_data_rd
-    );
+  end process;
 
-    -- inputs from other blocks    
-    class_reset                 <= class_reset_i;
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  gnum_dma_stall_o <= '0';
 
-    class_adr                   <= class_adr_i(7 downto 0);
-    class_cyc                   <= class_cyc_i;
-    class_data_wr               <= class_dat_i;
-    class_en                    <= class_cyc;
-    class_stb                   <= class_stb_i;
-    class_we(0)                 <= class_we_i;
-    
-    pipe_reset                  <= pipe_reset_i;
 
-    pipe_adr                    <= pipe_adr_i(9 downto 0);
-    pipe_cyc                    <= pipe_cyc_i;
-    pipe_data_wr                <= pipe_dat_i;
-    pipe_en                     <= pipe_cyc;
-    pipe_stb                    <= pipe_stb_i;
-    pipe_we(0)                  <= pipe_we_i;
-    
-    -- outputs to other blocks
-    class_ack_o                 <= class_ack;
-    class_dat_o                 <= class_data_rd;
-    
-    pipe_ack_o                  <= pipe_ack;
-    pipe_dat_o                  <= pipe_data_rd;
-    pipe_stall_o                <= '0';
+---------------------------------------------------------------------------------------------------
+--                                      DUAL PORT BLOCK RAM                                      --
+---------------------------------------------------------------------------------------------------
+  memory_block: blk_mem_circ_buff_v6_4
+  port map(
+    -- Port A: attached to the data_formatting unit
+    clka => clk_i,
+    addra  => tstamp_wr_adr_i(7 downto 0), -- 2^8 = 256 addresses
+    dina   => tstamp_wr_dat_i,             -- 128-bit long timestamps
+    ena    => tstamp_wr_cyc_i,
+    wea    => tstamp_wr_we,
+    douta  => tstamp_wr_dat_o,             -- not used
 
-end rtl;
-----------------------------------------------------------------------------------------------------
---  architecture ends
-----------------------------------------------------------------------------------------------------
+    -- Port B: attached to the GNUM_core unit
+    clkb => clk_i,
+    addrb  => gnum_dma_adr_i(9 downto 0),  -- 2^10 = 1024 addresses
+    dinb   => gnum_dma_dat_i,              -- not used
+    enb    => gnum_dma_cyc_i,
+    web    => tstamp_rd_we,
+   --------------------------------------------------
+    doutb  => gnum_dma_dat_o);             -- 32-bit long words
+   --------------------------------------------------
+
+    tstamp_wr_we(0) <= tstamp_wr_we_i;
+    tstamp_rd_we(0) <= gnum_dma_we_i;
+
+
+end architecture rtl;
+--=================================================================================================
+--                                        architecture end
+--=================================================================================================
+---------------------------------------------------------------------------------------------------
+--                                      E N D   O F   F I L E
+---------------------------------------------------------------------------------------------------

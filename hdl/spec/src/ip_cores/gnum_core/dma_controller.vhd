@@ -19,6 +19,18 @@
 -- dependencies:
 --
 --------------------------------------------------------------------------------
+-- GNU LESSER GENERAL PUBLIC LICENSE
+--------------------------------------------------------------------------------
+-- This source file is free software; you can redistribute it and/or modify it
+-- under the terms of the GNU Lesser General Public License as published by the
+-- Free Software Foundation; either version 2.1 of the License, or (at your
+-- option) any later version. This source is distributed in the hope that it
+-- will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+-- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-- See the GNU Lesser General Public License for more details. You should have
+-- received a copy of the GNU Lesser General Public License along with this
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html
+--------------------------------------------------------------------------------
 -- last changes: 30-09-2010 (mcattin) Add status, error and abort
 --------------------------------------------------------------------------------
 
@@ -355,6 +367,7 @@ begin
 
           if (unsigned(dma_len_reg(31 downto 2)) = 0) then
             -- Requesting a DMA of 0 word length gives a error
+            dma_error_irq          <= '1';
             dma_ctrl_current_state <= DMA_ERROR;
           else
             -- Start the DMA if the length is not 0

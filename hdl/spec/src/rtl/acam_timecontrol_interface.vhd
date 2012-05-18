@@ -1,274 +1,265 @@
-----------------------------------------------------------------------------------------------------
---  CERN-BE-CO-HT
-----------------------------------------------------------------------------------------------------
---
---  unit name   : acam chip timing control interface (acam_timecontrol_interface)
---  author      : G. Penacoba
---  date        : May 2011
---  version     : Revision 1
---  description : interface with the acam chip pins for control and timing
---  dependencies:
---  references  :
---  modified by :
---
-----------------------------------------------------------------------------------------------------
---  last changes:
-----------------------------------------------------------------------------------------------------
---  to do:
-----------------------------------------------------------------------------------------------------
+--_________________________________________________________________________________________________
+--                                                                                                |
+--                                           |TDC core|                                           |
+--                                                                                                |
+--                                         CERN,BE/CO-HT                                          |
+--________________________________________________________________________________________________|
 
+---------------------------------------------------------------------------------------------------
+--                                                                                                |
+--                                    acam_timecontrol_interface                                  |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+-- File         acam_timecontrol_interface.vhd                                                    |
+--                                                                                                |
+-- Description  interface with the acam chip pins for control and timing                          |
+--                                                                                                |
+--                                                                                                |
+-- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
+--              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
+-- Date         04/2012                                                                           |
+-- Version      v0.11                                                                             |
+-- Depends on                                                                                     |
+--                                                                                                |
+----------------                                                                                  |
+-- Last changes                                                                                   |
+--     05/2011  v0.1  GP  First version                                                           |
+--     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+--                               GNU LESSER GENERAL PUBLIC LICENSE                                |
+--                              ------------------------------------                              |
+-- This source file is free software; you can redistribute it and/or modify it under the terms of |
+-- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
+-- version 2.1 of the License, or (at your option) any later version.                             |
+-- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
+-- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
+-- See the GNU Lesser General Public License for more details.                                    |
+-- You should have received a copy of the GNU Lesser General Public License along with this       |
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+---------------------------------------------------------------------------------------------------
+
+
+--=================================================================================================
+--                                       Libraries & Packages
+--=================================================================================================
+
+-- Standard library
 library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all;
+use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
+use IEEE.NUMERIC_STD.all;    -- conversion functions-- Specific library
+-- Specific library
+library work;
+use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
-----------------------------------------------------------------------------------------------------
---  entity declaration for acam_timing_interface
-----------------------------------------------------------------------------------------------------
+
+--=================================================================================================
+--                            Entity declaration for start_retrig_ctrl
+--=================================================================================================
+
 entity acam_timecontrol_interface is
-    generic(
-        g_width                 : integer :=32
-    );
-    port(
-        -- signals external to the chip: interface with acam
-        err_flag_i              : in std_logic;
-        int_flag_i              : in std_logic;
+  port
+  -- INPUTS
+    -- Signals from the clk_rst_manager unit
+    (clk_i                   : in std_logic; -- 125 MHz clock
+     rst_i                   : in std_logic; -- reset
+     acam_refclk_r_edge_p_i  : in std_logic; -- pulse upon ACAM RefClk rising edge
 
-        start_dis_o             : out std_logic;
-        start_from_fpga_o       : out std_logic;
-        stop_dis_o              : out std_logic;
+    -- Signals from the ACAM chip
+     err_flag_i              : in std_logic; -- ACAM error flag, active HIGH; through ACAM config
+                                             -- reg 11 is set to report for any HitFIFOs full flags
+     int_flag_i              : in std_logic; -- ACAM interrupt flag, active HIGH; through ACAM config
+                                             -- reg 12 it is set to the MSB of Start#
 
-        -- signals internal to the chip: interface with other modules
-        acam_refclk_edge_p_i    : in std_logic;
-        clk                     : in std_logic;
-        start_trig_i            : in std_logic;
-        reset_i                 : in std_logic;
-        window_delay_i          : in std_logic_vector(g_width-1 downto 0);
-        
-        acam_rise_errflag_p_o   : out std_logic;
-        acam_fall_errflag_p_o   : out std_logic;
-        acam_rise_intflag_p_o   : out std_logic;
-        acam_fall_intflag_p_o   : out std_logic
-    );
+    -- Signals from the reg_ctrl unit
+     activate_acq_p_i        : in std_logic; -- signal from PCIe to start following the ACAM chip
+                                             -- for tstamps aquisition
+     window_delay_i          : in std_logic_vector(31 downto 0); -- eva: don t know yet:s
+
+
+  -- OUTPUTS
+    -- Signals to the ACAM chip
+     start_dis_o             : out std_logic;
+     start_from_fpga_o       : out std_logic;
+     stop_dis_o              : out std_logic;
+
+    -- Signals to the 
+     acam_errflag_r_edge_p_o  : out std_logic; -- ACAM ErrFlag rising edge
+     acam_errflag_f_edge_p_o  : out std_logic; -- ACAM ErrFlag falling edge
+     acam_intflag_f_edge_p_o  : out std_logic);-- ACAM IntFlag falling edge
+
 end acam_timecontrol_interface;
 
-----------------------------------------------------------------------------------------------------
---  architecture declaration for acam_timecontrol_interface
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                    architecture declaration
+--=================================================================================================
 architecture rtl of acam_timecontrol_interface is
 
-    component countdown_counter
-    generic(
-        width           : integer :=32
-    );
-    port(
-        clk             : in std_logic;
-        reset           : in std_logic;
-        start           : in std_logic;
-        start_value     : in std_logic_vector(width-1 downto 0);
+  constant constant_delay : unsigned(31 downto 0) := x"00000004";
+  -- the delay between the referenc clock and the start window is the Total Delay
+  -- the Total delay is always obtained by adding the constant delay and the
+  -- window delay configured by the PCI-e
+  -- the start_from_fpga_o signal is generated in the middle of the start window
 
-        count_done      : out std_logic;
-        current_value   : out std_logic_vector(width-1 downto 0)
-    );
-    end component;
+  signal counter_reset                             : std_logic;
+  signal total_delay, counter_value                : std_logic_vector(31 downto 0);
+  signal int_flag_synch, err_flag_synch            : std_logic_vector(2 downto 0);
+  signal start_trig_received, waitingfor_refclk_i  : std_logic;
+  signal window_start, window_prepulse             : std_logic;
 
-    component incr_counter
-    generic(
-        width           : integer :=32
-    );
-    port(
-        clk             : in std_logic;
-        end_value       : in std_logic_vector(width-1 downto 0);
-        incr            : in std_logic;
-        reset           : in std_logic;
+  signal start_trig_r         : std_logic_vector(2 downto 0);
+  signal start_trig_edge      : std_logic;
 
-        count_done      : out std_logic;
-        current_value   : out std_logic_vector(width-1 downto 0)
-    );
-    end component;
 
-constant constant_delay     : unsigned(g_width-1 downto 0):=x"00000004";
--- the delay between the referenc clock and the start window is the Total Delay
--- the Total delay is always obtained by adding the constant delay and the
--- window delay configured by the PCI-e
-
--- the start_from_fpga signal is generated in the middle of the start window
-
-signal acam_refclk_edge_p   : std_logic;
-signal counter_reset        : std_logic;
-signal counter_value        : std_logic_vector(g_width-1 downto 0);
-signal reset                : std_logic;
-signal int_flag_r           : std_logic_vector(2 downto 0);
-signal err_flag_r           : std_logic_vector(2 downto 0);
-
-signal start_dis            : std_logic;
-signal start_from_fpga      : std_logic;
-signal start_trig           : std_logic;
-signal start_trig_r         : std_logic_vector(2 downto 0);
-signal start_trig_edge      : std_logic;
-signal start_trig_received  : std_logic;
-signal waitingfor_refclk    : std_logic;
-signal window_active        : std_logic;
-signal total_delay          : std_logic_vector(g_width-1 downto 0);
-signal window_delay         : std_logic_vector(g_width-1 downto 0);
-signal window_inverted      : std_logic;
-signal window_prepulse      : std_logic;
-signal window_start         : std_logic;
-
-----------------------------------------------------------------------------------------------------
---  architecture begins
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                       architecture begin
+--=================================================================================================
 begin
-    -- monitoring of the interrupt and error signals
-    sync_err_flag: process      -- synchronisation registers for ERR external signal
+
+---------------------------------------------------------------------------------------------------
+--                            IntFlag and ERRflag Input Synchronizers                            --
+---------------------------------------------------------------------------------------------------   
+
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  sync_err_flag: process (clk_i)     -- synchronisation registers for ERR external signal
+  begin
+    if rising_edge (clk_i) then
+      if rst_i ='1' then
+        err_flag_synch <= (others => '0');
+        int_flag_synch <= (others => '0');
+
+      else
+        err_flag_synch <= err_flag_i & err_flag_synch(2 downto 1);
+        int_flag_synch <= int_flag_i & int_flag_synch(2 downto 1);
+      end if;
+    end if;
+  end process;
+
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  -- 
+  acam_errflag_f_edge_p_o   <= not(err_flag_synch(1)) and err_flag_synch(0);
+  acam_errflag_r_edge_p_o   <= err_flag_synch(1) and not(err_flag_synch(0));
+
+  acam_intflag_f_edge_p_o   <= not(int_flag_synch(1)) and int_flag_synch(0);
+
+
+---------------------------------------------------------------------------------------------------
+--                                      Input Synchronizers                                      --
+---------------------------------------------------------------------------------------------------   
+-- Generation of the start pulse and the enable window:
+-- the start pulse originates from an internal signal at the same time, the StartDis is de-asserted.
+-- After many tests with the ACAM chip, the start Disable feature doesn't seem to be stable.
+-- It has therefore been decided to avoid its usage. The generation of the window is maintained
+-- to allow the control of the delay between the Start_From_FPGA pulse and the ACAM RefClk edge
+
+  window_delayer_counter: decr_counter               -- all signals are synchronized
+  generic map                                        -- to the refclk_i of the ACAM
+    (width             => 32)                        -- But their delays are configurable.
+  port map
+    (clk_i             => clk_i,
+     rst_i             => rst_i,
+     counter_top_i     => total_delay,
+     counter_load_i    => window_prepulse,
+     counter_is_zero_o => window_start,
+     counter_o         => open);
+ 
+  window_prepulse      <= waitingfor_refclk_i and acam_refclk_r_edge_p_i;   
+
+
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  -- 
+  window_active_counter: incr_counter                -- Defines the de-assertion window
+  generic map                                        -- for the StartDisable signal
+    (width             => 32)
+  port map
+    (clk_i             => clk_i,
+     rst_i             => counter_reset,
+     counter_top_i     => x"00000004",
+     counter_incr_en_i => start_trig_received,
+
+     counter_is_full_o => open,
+     counter_o         => counter_value);
+
+  counter_reset        <= rst_i or window_start;
+  total_delay          <= std_logic_vector(unsigned(window_delay_i)+constant_delay);
+
+    
+  start_pulse_from_fpga: process (clk_i)                         -- start pulse in the middle of the
+  begin                                                   -- de-assertion window of StartDisable
+    if rising_edge (clk_i) then
+      if rst_i ='1' then
+        start_from_fpga_o <= '0';
+
+      elsif counter_value >= x"00000001" and counter_value <= x"00000002" then
+        start_from_fpga_o <= '1';
+
+      else
+        start_from_fpga_o <= '0';
+      end if;
+    end if;
+  end process;
+
+
+
+  -- Synchronization of the activate_acq_p with the acam_refclk_i
+  ready_to_trigger: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i ='1' then  
+        waitingfor_refclk_i <= '0';
+
+      elsif start_trig_edge ='1' then
+        waitingfor_refclk_i <= '1';
+
+      elsif acam_refclk_r_edge_p_i ='1' then
+        waitingfor_refclk_i <= '0';
+
+      end if;
+    end if;
+  end process;
+
+
+
+  actual_trigger_received: process (clk_i)               -- signal needed to exclude the generation of
+  begin                                           -- the start_from_fpga_o after a general rst_i
+    if rising_edge (clk_i) then
+      if rst_i ='1' then  
+        start_trig_received <= '0';
+
+      elsif window_start ='1' then
+        start_trig_received <= '1';
+
+      elsif counter_value = x"00000004" then
+        start_trig_received <= '0';
+      end if;
+
+    end if;
+  end process;
+
+
+
+    inputs_synchronizer: process (clk_i)
     begin
-        if reset ='1' then
-            err_flag_r      <= (others=>'0');
+      if rising_edge (clk_i) then
+        if rst_i ='1' then
+          start_trig_r <= (others=>'0');
         else
-            err_flag_r      <= err_flag_i & err_flag_r(2 downto 1);
+          start_trig_r <= activate_acq_p_i & start_trig_r(2 downto 1);
         end if;
-        wait until clk ='1';
-    end process;
-    
-    sync_int_flag: process      -- synchronisation registers for INT external signal
-    begin
-        if reset ='1' then
-            int_flag_r      <= (others=>'0');
-        else
-            int_flag_r      <= int_flag_i & int_flag_r(2 downto 1);
-        end if;
-        wait until clk ='1';
+      end if;
     end process;
 
-    acam_fall_errflag_p_o           <= not(err_flag_r(1)) and err_flag_r(0);
-    acam_rise_errflag_p_o           <= err_flag_r(1) and not(err_flag_r(0));
+    start_trig_edge    <= start_trig_r(1) and not(start_trig_r(0));
 
-    acam_fall_intflag_p_o           <= not(int_flag_r(1)) and int_flag_r(0);
-    acam_rise_intflag_p_o           <= int_flag_r(1) and not(int_flag_r(0));
-
-
-    -- generation of the start pulse and the enable window:
-    -- the start pulse originates from an internal signal
-    -- at the same time, the StartDis is de-asserted.
-
-    window_delayer_counter: countdown_counter           -- all signals are synchronized
-    generic map(                                        -- to the refclk of the ACAM
-        width           => g_width                      -- But their delays are configurable.
-    )
-    port map(
-        clk             => clk,
-        reset           => reset,
-        start           => window_prepulse,
-        start_value     => total_delay,
-
-        count_done      => window_start,
-        current_value   => open
-    );
-    
-    window_active_counter: incr_counter                 -- Defines the de-assertion window
-    generic map(                                        -- for the StartDisable signal
-        width           => g_width
-    )
-    port map(
-        clk             => clk,
-        end_value       => x"00000004",
-        incr            => start_trig_received,
-        reset           => counter_reset,
-        
-        count_done      => window_inverted,
-        current_value   => counter_value
-    );
-    
-    window_active           <= not(window_inverted) and start_trig_received;
-
-    -- After many tests with the ACAM chip, the Start Disable feature
-    -- doesn't seem to be stable. It has therefore been decided to
-    -- avoid its usage.
-    
-    -- The generation of the window is maintained to allow the for
-    -- the control of the delay between the Start_From_FPGA pulse
-    -- and the Reference Clock edge
-
---    start_disable_control: process
---    begin
---        if reset ='1' then
---            start_dis       <='1';
---        else
---            start_dis       <= not(window_active);
---        end if;
---        wait until clk ='1';
---    end process;
-    
-    start_dis           <= '0';
-    
-    start_pulse_from_fpga: process                          -- Start pulse in the middle of the
-    begin                                                   -- de-assertion window of StartDisable
-        if reset ='1' then
-            start_from_fpga     <= '0';
-        elsif counter_value >= x"00000001" and counter_value <= x"00000002" then
-            start_from_fpga     <= '1';
-        else
-            start_from_fpga     <= '0';
-        end if;
-        wait until clk ='1';
-    end process;
-    
-    -- synchronization with refclk when the start_trig signal is received.
-    ready_to_trigger: process
-    begin
-        if reset ='1' then  
-                            waitingfor_refclk       <= '0';
-        elsif start_trig_edge ='1' then
-                            waitingfor_refclk       <= '1';
-        elsif acam_refclk_edge_p ='1' then
-                            waitingfor_refclk       <= '0';
-        end if;
-        wait until clk ='1';
-    end process;
-
-    actual_trigger_received: process                -- signal needed to exclude the generation of
-    begin                                           -- the start_from_fpga after a general reset
-        if reset ='1' then  
-                            start_trig_received     <= '0';
-        elsif window_start ='1' then
-                            start_trig_received     <= '1';
-        elsif counter_value =x"00000004" then
-                            start_trig_received     <= '0';
-        end if;
-        wait until clk ='1';
-    end process;
-
-    inputs_synchronizer: process
-    begin
-        if reset ='1' then
-            start_trig_r        <= (others=>'0');
-        else
-            start_trig_r        <= start_trig & start_trig_r(2 downto 1);
-        end if;
-        wait until clk ='1';
-    end process;
-    
-    counter_reset           <= reset or window_start;
-
-    start_trig_edge         <= start_trig_r(1) and not(start_trig_r(0));
-
-    window_prepulse         <= waitingfor_refclk and acam_refclk_edge_p;
-
-    total_delay             <= std_logic_vector(unsigned(window_delay)+constant_delay);
-    
-    counter_reset           <= reset or window_start;
-
-    -- inputs
-    reset                   <= reset_i;
-    start_trig              <= start_trig_i;
-    acam_refclk_edge_p      <= acam_refclk_edge_p_i;
-    window_delay            <= window_delay_i;
-    
+   
     -- outputs
-    start_dis_o             <= start_dis;    
-    start_from_fpga_o       <= start_from_fpga;
-    stop_dis_o              <= '0';
+    stop_dis_o          <= '0';
+    start_dis_o         <= '0';
 
-end rtl;
-----------------------------------------------------------------------------------------------------
---  architecture ends
-----------------------------------------------------------------------------------------------------
+end architecture rtl;
+--=================================================================================================
+--                                        architecture end
+--=================================================================================================
+---------------------------------------------------------------------------------------------------
+--                                      E N D   O F   F I L E
+---------------------------------------------------------------------------------------------------

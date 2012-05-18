@@ -1,5 +1,5 @@
 --==============================================================================
---! @file gn4124_core_pkg.vhd
+--! @file gn4124_core_pkg_s6.vhd
 --==============================================================================
 
 --! Standard library
@@ -14,13 +14,28 @@ use IEEE.NUMERIC_STD.all;
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --! @brief
---! Package for components declaration and core wide constants
+--! Package for components declaration and core wide constants.
+--! Spartan6 FPGAs version.
 --------------------------------------------------------------------------------
 --! @version
 --! 0.1 | mc | 01.09.2010 | File creation and Doxygen comments
 --!
 --! @author
 --! mc : Matthieu Cattin, CERN (BE-CO-HT)
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- GNU LESSER GENERAL PUBLIC LICENSE
+--------------------------------------------------------------------------------
+-- This source file is free software; you can redistribute it and/or modify it
+-- under the terms of the GNU Lesser General Public License as published by the
+-- Free Software Foundation; either version 2.1 of the License, or (at your
+-- option) any later version. This source is distributed in the hope that it
+-- will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+-- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-- See the GNU Lesser General Public License for more details. You should have
+-- received a copy of the GNU Lesser General Public License along with this
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html
 --------------------------------------------------------------------------------
 
 
@@ -52,30 +67,112 @@ package gn4124_core_pkg is
 --==============================================================================
 
 -----------------------------------------------------------------------------
+  component gn4124_core
+    port
+      (
+        ---------------------------------------------------------
+        -- Control and status
+        rst_n_a_i : in  std_logic;                      -- Asynchronous reset from GN4124
+        status_o  : out std_logic_vector(31 downto 0);  -- Core status output
+
+        ---------------------------------------------------------
+        -- P2L Direction
+        --
+        -- Source Sync DDR related signals
+        p2l_clk_p_i  : in  std_logic;                      -- Receiver Source Synchronous Clock+
+        p2l_clk_n_i  : in  std_logic;                      -- Receiver Source Synchronous Clock-
+        p2l_data_i   : in  std_logic_vector(15 downto 0);  -- Parallel receive data
+        p2l_dframe_i : in  std_logic;                      -- Receive Frame
+        p2l_valid_i  : in  std_logic;                      -- Receive Data Valid
+        -- P2L Control
+        p2l_rdy_o    : out std_logic;                      -- Rx Buffer Full Flag
+        p_wr_req_i   : in  std_logic_vector(1 downto 0);   -- PCIe Write Request
+        p_wr_rdy_o   : out std_logic_vector(1 downto 0);   -- PCIe Write Ready
+        rx_error_o   : out std_logic;                      -- Receive Error
+        vc_rdy_i     : in  std_logic_vector(1 downto 0);   -- Virtual channel ready
+
+        ---------------------------------------------------------
+        -- L2P Direction
+        --
+        -- Source Sync DDR related signals
+        l2p_clk_p_o  : out std_logic;                      -- Transmitter Source Synchronous Clock+
+        l2p_clk_n_o  : out std_logic;                      -- Transmitter Source Synchronous Clock-
+        l2p_data_o   : out std_logic_vector(15 downto 0);  -- Parallel transmit data
+        l2p_dframe_o : out std_logic;                      -- Transmit Data Frame
+        l2p_valid_o  : out std_logic;                      -- Transmit Data Valid
+        -- L2P Control
+        l2p_edb_o    : out std_logic;                      -- Packet termination and discard
+        l2p_rdy_i    : in  std_logic;                      -- Tx Buffer Full Flag
+        l_wr_rdy_i   : in  std_logic_vector(1 downto 0);   -- Local-to-PCIe Write
+        p_rd_d_rdy_i : in  std_logic_vector(1 downto 0);   -- PCIe-to-Local Read Response Data Ready
+        tx_error_i   : in  std_logic;                      -- Transmit Error
+
+        ---------------------------------------------------------
+        -- Interrupt interface
+        dma_irq_o : out std_logic_vector(1 downto 0);  -- Interrupts sources to IRQ manager
+        irq_p_i   : in  std_logic;                     -- Interrupt request pulse from IRQ manager
+        irq_p_o   : out std_logic;                     -- Interrupt request pulse to GN4124 GPIO
+
+        ---------------------------------------------------------
+        -- DMA registers wishbone interface (slave classic)
+        dma_reg_clk_i   : in  std_logic;
+        dma_reg_adr_i   : in  std_logic_vector(31 downto 0);
+        dma_reg_dat_i   : in  std_logic_vector(31 downto 0);
+        dma_reg_sel_i   : in  std_logic_vector(3 downto 0);
+        dma_reg_stb_i   : in  std_logic;
+        dma_reg_we_i    : in  std_logic;
+        dma_reg_cyc_i   : in  std_logic;
+        dma_reg_dat_o   : out std_logic_vector(31 downto 0);
+        dma_reg_ack_o   : out std_logic;
+        dma_reg_stall_o : out std_logic;
+
+        ---------------------------------------------------------
+        -- CSR wishbone interface (master pipelined)
+        csr_clk_i   : in  std_logic;
+        csr_adr_o   : out std_logic_vector(31 downto 0);
+        csr_dat_o   : out std_logic_vector(31 downto 0);
+        csr_sel_o   : out std_logic_vector(3 downto 0);
+        csr_stb_o   : out std_logic;
+        csr_we_o    : out std_logic;
+        csr_cyc_o   : out std_logic;
+        csr_dat_i   : in  std_logic_vector(31 downto 0);
+        csr_ack_i   : in  std_logic;
+        csr_stall_i : in  std_logic;
+
+        ---------------------------------------------------------
+        -- DMA wishbone interface (master pipelined)
+        dma_clk_i   : in  std_logic;
+        dma_adr_o   : out std_logic_vector(31 downto 0);
+        dma_dat_o   : out std_logic_vector(31 downto 0);
+        dma_sel_o   : out std_logic_vector(3 downto 0);
+        dma_stb_o   : out std_logic;
+        dma_we_o    : out std_logic;
+        dma_cyc_o   : out std_logic;
+        dma_dat_i   : in  std_logic_vector(31 downto 0);
+        dma_ack_i   : in  std_logic;
+        dma_stall_i : in  std_logic
+        );
+  end component gn4124_core;
+
+-----------------------------------------------------------------------------
   component p2l_des
-    generic (
-      g_IS_SPARTAN6 : boolean := false
-      );
     port
       (
         ---------------------------------------------------------
         -- Reset and clock
-        rst_n_i : in std_logic;
-        clk_p_i : in std_logic;
-        clk_n_i : in std_logic;
+        rst_n_i         : in std_logic;
+        sys_clk_i       : in std_logic;
+        io_clk_i        : in std_logic;
+        serdes_strobe_i : in std_logic;
 
         ---------------------------------------------------------
-        -- P2L Clock Domain
-        --
-        -- P2L Inputs
+        -- P2L DDR inputs
         p2l_valid_i  : in std_logic;
         p2l_dframe_i : in std_logic;
         p2l_data_i   : in std_logic_vector(15 downto 0);
 
         ---------------------------------------------------------
-        -- Core Clock Domain
-        --
-        -- DeSerialized Output
+        -- P2L SDR outputs
         p2l_valid_o  : out std_logic;
         p2l_dframe_o : out std_logic;
         p2l_data_o   : out std_logic_vector(31 downto 0)
@@ -126,23 +223,23 @@ package gn4124_core_pkg is
 
 -----------------------------------------------------------------------------
   component l2p_ser
-    generic (
-      g_IS_SPARTAN6 : boolean := false
-      );
     port
       (
         ---------------------------------------------------------
-        -- ICLK Clock Domain Inputs
-        clk_p_i : in std_logic;
-        clk_n_i : in std_logic;
-        rst_n_i : in std_logic;
+        -- Reset and clock
+        rst_n_i         : in std_logic;
+        sys_clk_i       : in std_logic;
+        io_clk_i        : in std_logic;
+        serdes_strobe_i : in std_logic;
 
+        ---------------------------------------------------------
+        -- L2P SDR inputs
         l2p_valid_i  : in std_logic;
         l2p_dframe_i : in std_logic;
         l2p_data_i   : in std_logic_vector(31 downto 0);
 
         ---------------------------------------------------------
-        -- SER Outputs
+        -- L2P DDR outputs
         l2p_clk_p_o  : out std_logic;
         l2p_clk_n_o  : out std_logic;
         l2p_valid_o  : out std_logic;
@@ -154,12 +251,6 @@ package gn4124_core_pkg is
 
 -----------------------------------------------------------------------------
   component wbmaster32
-    generic
-      (
-        g_BAR0_APERTURE : integer := 20;  -- BAR0 aperture, defined in GN4124 PCI_BAR_CONFIG register (0x80C)
-                                          -- => number of bits to address periph on the board
-        g_WB_SLAVES_NB  : integer := 2
-        );
     port
       (
         ---------------------------------------------------------
@@ -203,15 +294,16 @@ package gn4124_core_pkg is
 
         ---------------------------------------------------------
         -- CSR wishbone interface
-        wb_clk_i : in  std_logic;                                                               -- Wishbone bus clock
-        wb_adr_o : out std_logic_vector(g_BAR0_APERTURE-log2_ceil(g_WB_SLAVES_NB)-1 downto 0);  -- Address
-        wb_dat_o : out std_logic_vector(31 downto 0);                                           -- Data out
-        wb_sel_o : out std_logic_vector(3 downto 0);                                            -- Byte select
-        wb_stb_o : out std_logic;                                                               -- Strobe
-        wb_we_o  : out std_logic;                                                               -- Write
-        wb_cyc_o : out std_logic_vector(g_WB_SLAVES_NB-1 downto 0);                             -- Cycle
-        wb_dat_i : in  std_logic_vector((32*g_WB_SLAVES_NB)-1 downto 0);                        -- Data in
-        wb_ack_i : in  std_logic_vector(g_WB_SLAVES_NB-1 downto 0)                              -- Acknowledge
+        wb_clk_i   : in  std_logic;                      -- Wishbone bus clock
+        wb_adr_o   : out std_logic_vector(30 downto 0);  -- Address
+        wb_dat_o   : out std_logic_vector(31 downto 0);  -- Data out
+        wb_sel_o   : out std_logic_vector(3 downto 0);   -- Byte select
+        wb_stb_o   : out std_logic;                      -- Strobe
+        wb_we_o    : out std_logic;                      -- Write
+        wb_cyc_o   : out std_logic;                      -- Cycle
+        wb_dat_i   : in  std_logic_vector(31 downto 0);  -- Data in
+        wb_ack_i   : in  std_logic;                      -- Acknowledge
+        wb_stall_i : in  std_logic                       -- Stall
         );
   end component;  -- wbmaster32
 
@@ -317,7 +409,8 @@ package gn4124_core_pkg is
         l2p_dma_stb_o   : out std_logic;                      -- Read or write strobe
         l2p_dma_we_o    : out std_logic;                      -- Write
         l2p_dma_ack_i   : in  std_logic;                      -- Acknowledge
-        l2p_dma_stall_i : in  std_logic                       -- for pipelined Wishbone
+        l2p_dma_stall_i : in  std_logic;                      -- for pipelined Wishbone
+        p2l_dma_cyc_i   : in  std_logic                       -- P2L dma wb cycle (for bus arbitration)
         );
   end component;  -- l2p_dma_master
 
@@ -388,6 +481,7 @@ package gn4124_core_pkg is
         p2l_dma_we_o    : out std_logic;                      -- Write
         p2l_dma_ack_i   : in  std_logic;                      -- Acknowledge
         p2l_dma_stall_i : in  std_logic;                      -- for pipelined Wishbone
+        l2p_dma_cyc_i   : in  std_logic;                      -- L2P dma wb cycle (for bus arbitration)
 
         ---------------------------------------------------------
         -- From P2L DMA MASTER
@@ -531,10 +625,12 @@ package body gn4124_core_pkg is
   -----------------------------------------------------------------------------
   function log2_ceil(N : natural) return positive is
   begin
-    if N < 2 then
+    if N <= 2 then
       return 1;
-    else
+    elsif N mod 2 = 0 then
       return 1 + log2_ceil(N/2);
+    else
+      return 1 + log2_ceil((N+1)/2);
     end if;
   end;
 

@@ -16,12 +16,26 @@
 -- description: Provides a Wishbone interface for single read and write
 --              control and status registers
 --
--- dependencies: Xilinx FIFOs (fifo_32x512.xco, fifo_64x512.xco)
+-- dependencies: general-cores library (genrams package)
 --
+--------------------------------------------------------------------------------
+-- GNU LESSER GENERAL PUBLIC LICENSE
+--------------------------------------------------------------------------------
+-- This source file is free software; you can redistribute it and/or modify it
+-- under the terms of the GNU Lesser General Public License as published by the
+-- Free Software Foundation; either version 2.1 of the License, or (at your
+-- option) any later version. This source is distributed in the hope that it
+-- will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+-- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-- See the GNU Lesser General Public License for more details. You should have
+-- received a copy of the GNU Lesser General Public License along with this
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html
 --------------------------------------------------------------------------------
 -- last changes: 27-09-2010 (mcattin) Split wishbone and gn4124 clock domains
 --               All signals crossing the clock domains are now going through fifos.
 --               Dead times optimisation in packet generator.
+--               11-07-2011 (mcattin) Replaced Xilinx Coregen FIFOs with genrams
+--               library cores from ohwr.org
 --------------------------------------------------------------------------------
 -- TODO: - byte enable support.
 --------------------------------------------------------------------------------
@@ -29,16 +43,12 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
+library work;
 use work.gn4124_core_pkg.all;
+use work.genram_pkg.all;
 
 
 entity wbmaster32 is
-  generic
-    (
-      g_BAR0_APERTURE : integer := 20;  -- BAR0 aperture, defined in GN4124 PCI_BAR_CONFIG register (0x80C)
-                                        -- => number of bits to address periph on the board
-      g_WB_SLAVES_NB  : integer := 2
-      );
   port
     (
       ---------------------------------------------------------
@@ -83,15 +93,16 @@ entity wbmaster32 is
 
       ---------------------------------------------------------
       -- CSR wishbone interface
-      wb_clk_i : in  std_logic;                                                               -- Wishbone bus clock
-      wb_adr_o : out std_logic_vector(g_BAR0_APERTURE-log2_ceil(g_WB_SLAVES_NB)-1 downto 0);  -- Address
-      wb_dat_o : out std_logic_vector(31 downto 0);                                           -- Data out
-      wb_sel_o : out std_logic_vector(3 downto 0);                                            -- Byte select
-      wb_stb_o : out std_logic;                                                               -- Strobe
-      wb_we_o  : out std_logic;                                                               -- Write
-      wb_cyc_o : out std_logic_vector(g_WB_SLAVES_NB-1 downto 0);                             -- Cycle
-      wb_dat_i : in  std_logic_vector((32*g_WB_SLAVES_NB)-1 downto 0);                        -- Data in
-      wb_ack_i : in  std_logic_vector(g_WB_SLAVES_NB-1 downto 0)                              -- Acknowledge
+      wb_clk_i   : in  std_logic;                      -- Wishbone bus clock
+      wb_adr_o   : out std_logic_vector(30 downto 0);  -- Address
+      wb_dat_o   : out std_logic_vector(31 downto 0);  -- Data out
+      wb_sel_o   : out std_logic_vector(3 downto 0);   -- Byte select
+      wb_stb_o   : out std_logic;                      -- Strobe
+      wb_we_o    : out std_logic;                      -- Write
+      wb_cyc_o   : out std_logic;                      -- Cycle
+      wb_dat_i   : in  std_logic_vector(31 downto 0);  -- Data in
+      wb_ack_i   : in  std_logic;                      -- Acknowledge
+      wb_stall_i : in  std_logic                       -- Stall
       );
 end wbmaster32;
 
@@ -102,15 +113,15 @@ architecture behaviour of wbmaster32 is
   -----------------------------------------------------------------------------
   -- Constants declaration
   -----------------------------------------------------------------------------
-  constant c_TO_WB_FIFO_FULL_THRES   : std_logic_vector(8 downto 0) := std_logic_vector(to_unsigned(500, 9));
-  constant c_FROM_WB_FIFO_FULL_THRES : std_logic_vector(8 downto 0) := std_logic_vector(to_unsigned(500, 9));
+  constant c_TO_WB_FIFO_FULL_THRES   : integer := 500;
+  constant c_FROM_WB_FIFO_FULL_THRES : integer := 500;
 
   -----------------------------------------------------------------------------
   -- Signals declaration
   -----------------------------------------------------------------------------
 
   -- Sync fifos
-  signal fifo_rst : std_logic;
+  signal fifo_rst_n : std_logic;
 
   signal to_wb_fifo_empty : std_logic;
   signal to_wb_fifo_full  : std_logic;
@@ -133,22 +144,15 @@ architecture behaviour of wbmaster32 is
   type   wishbone_state_type is (WB_IDLE, WB_READ_FIFO, WB_CYCLE, WB_WAIT_ACK);
   signal wishbone_current_state : wishbone_state_type;
 
-  --signal s_wb_we : std_logic;
-
-  signal s_wb_periph_addr   : std_logic_vector(log2_ceil(g_WB_SLAVES_NB)-1 downto 0);
-  signal wb_periph_addr     : std_logic_vector(log2_ceil(g_WB_SLAVES_NB)-1 downto 0);
-  signal s_wb_periph_select : std_logic_vector((2**s_wb_periph_addr'length)-1 downto 0);
-  signal s_wb_ack_muxed     : std_logic;
-  signal wb_ack_t           : std_logic;
-  signal s_wb_dat_i_muxed   : std_logic_vector(31 downto 0);
-  signal wb_dat_i_t         : std_logic_vector(31 downto 0);
-  signal wb_cyc_t           : std_logic;
-  signal s_wb_cyc_demuxed   : std_logic_vector(g_WB_SLAVES_NB-1 downto 0);
-  signal wb_dat_o_t         : std_logic_vector(31 downto 0);
-  signal wb_stb_t           : std_logic;
-  signal wb_adr_t           : std_logic_vector(30 downto 0);
-  signal wb_we_t            : std_logic;
-  signal wb_sel_t           : std_logic_vector(3 downto 0);
+  signal wb_ack_t   : std_logic;
+  signal wb_dat_i_t : std_logic_vector(31 downto 0);
+  signal wb_cyc_t   : std_logic;
+  signal wb_dat_o_t : std_logic_vector(31 downto 0);
+  signal wb_stb_t   : std_logic;
+  signal wb_adr_t   : std_logic_vector(30 downto 0);
+  signal wb_we_t    : std_logic;
+  signal wb_sel_t   : std_logic_vector(3 downto 0);
+  signal wb_stall_t : std_logic;
 
   -- L2P packet generator
   type   l2p_read_cpl_state_type is (L2P_IDLE, L2P_HEADER, L2P_DATA);
@@ -166,11 +170,11 @@ begin
   ------------------------------------------------------------------------------
   -- Creates an active high reset for fifos regardless of c_RST_ACTIVE value
   gen_fifo_rst_n : if c_RST_ACTIVE = '0' generate
-    fifo_rst <= not(rst_n_i);
+    fifo_rst_n <= rst_n_i;
   end generate;
 
   gen_fifo_rst : if c_RST_ACTIVE = '1' generate
-    fifo_rst <= rst_n_i;
+    fifo_rst_n <= not(rst_n_i);
   end generate;
 
   ------------------------------------------------------------------------------
@@ -299,42 +303,82 @@ begin
   -----------------------------------------------------------------------------
 
   -- fifo for PCIe to WB transfer
-  cmp_fifo_to_wb : fifo_64x512
+  cmp_fifo_to_wb : generic_async_fifo
+    generic map (
+      g_data_width             => 64,
+      g_size                   => 512,
+      g_show_ahead             => false,
+      g_with_rd_empty          => true,
+      g_with_rd_full           => false,
+      g_with_rd_almost_empty   => false,
+      g_with_rd_almost_full    => false,
+      g_with_rd_count          => false,
+      g_with_wr_empty          => false,
+      g_with_wr_full           => false,
+      g_with_wr_almost_empty   => false,
+      g_with_wr_almost_full    => true,
+      g_with_wr_count          => false,
+      g_almost_empty_threshold => 0,
+      g_almost_full_threshold  => c_TO_WB_FIFO_FULL_THRES)
     port map (
-      rst                     => fifo_rst,
-      wr_clk                  => clk_i,
-      rd_clk                  => wb_clk_i,
-      din                     => to_wb_fifo_din,
-      wr_en                   => to_wb_fifo_wr,
-      rd_en                   => to_wb_fifo_rd,
-      prog_full_thresh_assert => c_TO_WB_FIFO_FULL_THRES,
-      prog_full_thresh_negate => c_TO_WB_FIFO_FULL_THRES,
-      dout                    => to_wb_fifo_dout,
-      full                    => open,
-      empty                   => to_wb_fifo_empty,
-      valid                   => open,
-      prog_full               => to_wb_fifo_full);
+      rst_n_i           => fifo_rst_n,
+      clk_wr_i          => clk_i,
+      d_i               => to_wb_fifo_din,
+      we_i              => to_wb_fifo_wr,
+      wr_empty_o        => open,
+      wr_full_o         => open,
+      wr_almost_empty_o => open,
+      wr_almost_full_o  => to_wb_fifo_full,
+      wr_count_o        => open,
+      clk_rd_i          => wb_clk_i,
+      q_o               => to_wb_fifo_dout,
+      rd_i              => to_wb_fifo_rd,
+      rd_empty_o        => to_wb_fifo_empty,
+      rd_full_o         => open,
+      rd_almost_empty_o => open,
+      rd_almost_full_o  => open,
+      rd_count_o        => open);
 
   to_wb_fifo_rw   <= to_wb_fifo_dout(63);
   to_wb_fifo_addr <= to_wb_fifo_dout(62 downto 32);  -- 31-bit
   to_wb_fifo_data <= to_wb_fifo_dout(31 downto 0);   -- 32-bit
 
   -- fifo for WB to PCIe transfer
-  cmp_from_wb_fifo : fifo_32x512
+  cmp_from_wb_fifo : generic_async_fifo
+    generic map (
+      g_data_width             => 32,
+      g_size                   => 512,
+      g_show_ahead             => false,
+      g_with_rd_empty          => true,
+      g_with_rd_full           => false,
+      g_with_rd_almost_empty   => false,
+      g_with_rd_almost_full    => false,
+      g_with_rd_count          => false,
+      g_with_wr_empty          => false,
+      g_with_wr_full           => false,
+      g_with_wr_almost_empty   => false,
+      g_with_wr_almost_full    => true,
+      g_with_wr_count          => false,
+      g_almost_empty_threshold => 0,
+      g_almost_full_threshold  => c_FROM_WB_FIFO_FULL_THRES)
     port map (
-      rst                     => fifo_rst,
-      wr_clk                  => wb_clk_i,
-      rd_clk                  => clk_i,
-      din                     => from_wb_fifo_din,
-      wr_en                   => from_wb_fifo_wr,
-      rd_en                   => from_wb_fifo_rd,
-      prog_full_thresh_assert => c_FROM_WB_FIFO_FULL_THRES,
-      prog_full_thresh_negate => c_FROM_WB_FIFO_FULL_THRES,
-      dout                    => from_wb_fifo_dout,
-      full                    => open,
-      empty                   => from_wb_fifo_empty,
-      valid                   => open,
-      prog_full               => from_wb_fifo_full);
+      rst_n_i           => fifo_rst_n,
+      clk_wr_i          => wb_clk_i,
+      d_i               => from_wb_fifo_din,
+      we_i              => from_wb_fifo_wr,
+      wr_empty_o        => open,
+      wr_full_o         => open,
+      wr_almost_empty_o => open,
+      wr_almost_full_o  => from_wb_fifo_full,
+      wr_count_o        => open,
+      clk_rd_i          => clk_i,
+      q_o               => from_wb_fifo_dout,
+      rd_i              => from_wb_fifo_rd,
+      rd_empty_o        => from_wb_fifo_empty,
+      rd_full_o         => open,
+      rd_almost_empty_o => open,
+      rd_almost_full_o  => open,
+      rd_count_o        => open);
 
   -----------------------------------------------------------------------------
   -- Wishbone master FSM
@@ -388,7 +432,9 @@ begin
           wishbone_current_state <= WB_WAIT_ACK;
 
         when WB_WAIT_ACK =>
-          wb_stb_t <= '0';
+          if wb_stall_t = '0' then
+            wb_stb_t <= '0';
+          end if;
           if (wb_ack_t = '1') then
             -- for read cycles write read data to fifo
             if (wb_we_t = '0') then
@@ -417,81 +463,15 @@ begin
     end if;
   end process p_wb_fsm;
 
-  ------------------------------------------------------------------------------
-  -- Wishbone master address decoding
-  ------------------------------------------------------------------------------
-
-  -- Take the first N bits of the address to select the active wb peripheral
-  -- g_BAR0_APERTURE represents byte address window, has to be shifted right by 2 to match wishbone 32-bit word addresses
-  s_wb_periph_addr <= wb_adr_t(g_BAR0_APERTURE-3 downto g_BAR0_APERTURE-log2_ceil(g_WB_SLAVES_NB)-2);
-
-  -----------------------------------------------------------------------------
-  -- One-hot decode function,  s_wb_periph_select <= onehot_decode(s_wb_periph_addr);
-  -----------------------------------------------------------------------------
-  onehot_decode : process(s_wb_periph_addr)
-    variable v_onehot : std_logic_vector((2**s_wb_periph_addr'length)-1 downto 0);
-    variable v_index  : integer range 0 to (2**s_wb_periph_addr'length)-1;
-  begin
-    v_onehot := (others => '0');
-    v_index  := 0;
-    for i in s_wb_periph_addr'range loop
-      if (s_wb_periph_addr(i) = '1') then
-        v_index := 2*v_index+1;
-      else
-        v_index := 2*v_index;
-      end if;
-    end loop;
-    v_onehot(v_index)  := '1';
-    s_wb_periph_select <= v_onehot;
-  end process onehot_decode;
-
-  -- Register multiplexed ack and data + periph address
-  p_wb_in_regs : process (wb_clk_i, rst_n_i)
-  begin
-    if (rst_n_i = c_RST_ACTIVE) then
-      wb_periph_addr <= (others => '0');
-      wb_dat_i_t     <= (others => '0');
-      wb_ack_t       <= '0';
-    elsif rising_edge(wb_clk_i) then
-      wb_periph_addr <= s_wb_periph_addr;
-      wb_dat_i_t     <= s_wb_dat_i_muxed;
-      wb_ack_t       <= s_wb_ack_muxed;
-    end if;
-  end process p_wb_in_regs;
-
-  -- Select ack line of the active peripheral
-  p_ack_mux : process (wb_ack_i, wb_periph_addr)
-  begin
-    if (to_integer(unsigned(wb_periph_addr)) < g_WB_SLAVES_NB) then
-      s_wb_ack_muxed <= wb_ack_i(to_integer(unsigned(wb_periph_addr)));
-    else
-      s_wb_ack_muxed <= '0';
-    end if;
-  end process p_ack_mux;
-
-  -- Select input data of the active peripheral
-  p_din_mux : process (wb_dat_i, wb_periph_addr)
-  begin
-    if (to_integer(unsigned(wb_periph_addr)) < g_WB_SLAVES_NB) then
-      s_wb_dat_i_muxed <=
-        wb_dat_i(31+(32*to_integer(unsigned(wb_periph_addr))) downto 32*to_integer(unsigned(wb_periph_addr)));
-    else
-      s_wb_dat_i_muxed <= (others => 'X');
-    end if;
-  end process p_din_mux;
-
-  -- Assert the cyc line of the selected peripheral
-  gen_cyc_demux : for i in 0 to g_WB_SLAVES_NB-1 generate
-    s_wb_cyc_demuxed(i) <= wb_cyc_t and s_wb_periph_select(i) and not(wb_ack_t);
-  end generate gen_cyc_demux;
-
-  -- Wishbone bus outputs
-  wb_dat_o <= wb_dat_o_t;
-  wb_stb_o <= wb_stb_t;
-  wb_we_o  <= wb_we_t;
-  wb_adr_o <= wb_adr_t(g_BAR0_APERTURE-log2_ceil(g_WB_SLAVES_NB)-1 downto 0);
-  wb_sel_o <= wb_sel_t;
-  wb_cyc_o <= s_wb_cyc_demuxed;
+  wb_adr_o   <= wb_adr_t;
+  wb_cyc_o   <= wb_cyc_t;
+  wb_stb_o   <= wb_stb_t;
+  wb_we_o    <= wb_we_t;
+  wb_sel_o   <= wb_sel_t;
+  wb_dat_i_t <= wb_dat_i;
+  wb_dat_o   <= wb_dat_o_t;
+  wb_ack_t   <= wb_ack_i;
+  wb_stall_t <= wb_stall_i;
 
 end behaviour;
 

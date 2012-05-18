@@ -86,18 +86,19 @@ signal acam_fall_intflag_p      : std_logic;
 signal acam_rise_intflag_p      : std_logic;
 signal add_roll_over            : std_logic;
 signal clk_cycles_offset        : std_logic_vector(g_width-1 downto 0);
-signal current_cycles           : std_logic_vector(g_width-1 downto 0);
+signal current_cycles, current_cycles_2          : std_logic_vector(g_width-1 downto 0);
+signal current_cycles_2_2       : unsigned(5 downto 0);
 signal current_retrig_nb        : std_logic_vector(g_width-1 downto 0);
 signal one_hz_p                 : std_logic;
 signal reset                    : std_logic;
 signal retrig_nb_offset         : std_logic_vector(g_width-1 downto 0);
 signal retrig_nb_reset          : std_logic;
-signal retrig_p                 : std_logic;
+signal retrig_p, retrig_p2                 : std_logic;
 signal retrig_period            : std_logic_vector(g_width-1 downto 0);
 signal retrig_period_reset      : std_logic;
 signal roll_over_reset          : std_logic;
 signal roll_over_value          : std_logic_vector(g_width-1 downto 0);
-
+signal cycles_c_restart, current_cycles_2_is_full : std_logic;
 ----------------------------------------------------------------------------------------------------
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
@@ -117,6 +118,27 @@ begin
         current_value   => current_cycles
     );
     
+-----------------------------------------------------------------
+  retrig_period_counter2: incr_counter
+    generic map
+      (width             => g_width)
+    port map
+      (clk               => clk,
+       reset             => cycles_c_restart,  
+       end_value         => retrig_period_i,
+       incr              => '1',
+     -------------------------------------------
+       count_done        => open,
+       current_value     => current_cycles_2);
+     -------------------------------------------
+
+  cycles_c_restart <= acam_fall_intflag_p or current_cycles_2_is_full;
+  current_cycles_2_is_full <= '1' when (unsigned(current_cycles_2) = (unsigned(retrig_period_i) - "1")) else '0';
+  --(current_cycles_2_2) <= unsigned(current_cycles_2) -1;
+
+-----------------------------------------------------------------	 
+	 
+	 
     retrig_nb_counter: incr_counter
     generic map(
         width           => g_width

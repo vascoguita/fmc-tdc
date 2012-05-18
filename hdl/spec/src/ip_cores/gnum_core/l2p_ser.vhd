@@ -4,7 +4,7 @@
 --                       http://www.ohwr.org/projects/gn4124-core             --
 --------------------------------------------------------------------------------
 --
--- unit name: L2P serializer (l2p_ser.vhd)
+-- unit name: L2P serializer (l2p_ser_s6.vhd)
 --
 -- authors: Simon Deprez (simon.deprez@cern.ch)
 --          Matthieu Cattin (matthieu.cattin@cern.ch)
@@ -14,11 +14,23 @@
 -- version: 1.0
 --
 -- description: Generates the DDR L2P bus from SDR that is synchronous to the
---              core clock.
+--              core clock. Spartan6 FPGAs version.
 --
 --
 -- dependencies:
 --
+--------------------------------------------------------------------------------
+-- GNU LESSER GENERAL PUBLIC LICENSE
+--------------------------------------------------------------------------------
+-- This source file is free software; you can redistribute it and/or modify it
+-- under the terms of the GNU Lesser General Public License as published by the
+-- Free Software Foundation; either version 2.1 of the License, or (at your
+-- option) any later version. This source is distributed in the hope that it
+-- will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+-- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-- See the GNU Lesser General Public License for more details. You should have
+-- received a copy of the GNU Lesser General Public License along with this
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html
 --------------------------------------------------------------------------------
 -- last changes: 23-09-2010 (mcattin) Always active high reset for FFs.
 --------------------------------------------------------------------------------
@@ -33,19 +45,17 @@ use UNISIM.vcomponents.all;
 
 
 entity l2p_ser is
-  generic (
-    g_IS_SPARTAN6 : boolean := false
-    );
   port
     (
       ---------------------------------------------------------
       -- Reset and clock
-      clk_p_i : in std_logic;
-      clk_n_i : in std_logic;
-      rst_n_i : in std_logic;
+      rst_n_i         : in std_logic;
+      sys_clk_i       : in std_logic;
+      io_clk_i        : in std_logic;
+      serdes_strobe_i : in std_logic;
 
       ---------------------------------------------------------
-      -- Serializer inputs
+      -- L2P SDR inputs
       l2p_valid_i  : in std_logic;
       l2p_dframe_i : in std_logic;
       l2p_data_i   : in std_logic_vector(31 downto 0);
@@ -65,17 +75,56 @@ architecture rtl of l2p_ser is
 
 
   -----------------------------------------------------------------------------
+  -- Components declaration
+  -----------------------------------------------------------------------------
+  component serdes_n_to_1_s2_se
+    generic (
+      S : integer := 2;                                         -- Parameter to set the serdes factor 1..8
+      D : integer := 16) ;                                      -- Set the number of inputs and outputs
+    port (
+      txioclk        : in  std_logic;                           -- IO Clock network
+      txserdesstrobe : in  std_logic;                           -- Parallel data capture strobe
+      reset          : in  std_logic;                           -- Reset
+      gclk           : in  std_logic;                           -- Global clock
+      datain         : in  std_logic_vector((D*S)-1 downto 0);  -- Data for output
+      dataout        : out std_logic_vector(D-1 downto 0)) ;    -- output
+  end component serdes_n_to_1_s2_se;
+
+  component serdes_n_to_1_s2_diff
+    generic (
+      S : integer := 2;                                         -- Parameter to set the serdes factor 1..8
+      D : integer := 1) ;                                       -- Set the number of inputs and outputs
+    port (
+      txioclk        : in  std_logic;                           -- IO Clock network
+      txserdesstrobe : in  std_logic;                           -- Parallel data capture strobe
+      reset          : in  std_logic;                           -- Reset
+      gclk           : in  std_logic;                           -- Global clock
+      datain         : in  std_logic_vector((D*S)-1 downto 0);  -- Data for output
+      dataout_p      : out std_logic_vector(D-1 downto 0);      -- output
+      dataout_n      : out std_logic_vector(D-1 downto 0)) ;    -- output
+  end component serdes_n_to_1_s2_diff;
+
+  -----------------------------------------------------------------------------
+  -- Comnstants declaration
+  -----------------------------------------------------------------------------
+  constant S        : integer                      := 2;   -- Set the serdes factor to 2
+  constant D        : integer                      := 16;  -- Set the number of outputs
+  constant c_TX_CLK : std_logic_vector(1 downto 0) := "01";
+
+  -----------------------------------------------------------------------------
   -- Signals declaration
   -----------------------------------------------------------------------------
 
-  -- DDR FF reset
-  signal ff_rst : std_logic;
+  -- Serdes reset
+  signal rst : std_logic;
 
-  -- SDR to DDR signals
-  signal dframe_d    : std_logic;
-  signal valid_d     : std_logic;
-  signal data_d      : std_logic_vector(l2p_data_i'range);
-  signal l2p_clk_sdr : std_logic;
+  -- SDR signals
+  signal l2p_dframe_t : std_logic_vector(1 downto 0);
+  signal l2p_valid_t  : std_logic_vector(1 downto 0);
+  signal l2p_dframe_v : std_logic_vector(0 downto 0);
+  signal l2p_valid_v  : std_logic_vector(0 downto 0);
+  signal l2p_clk_p_v  : std_logic_vector(0 downto 0);
+  signal l2p_clk_n_v  : std_logic_vector(0 downto 0);
 
 
 begin
@@ -85,123 +134,89 @@ begin
   -- Active high reset for DDR FF
   ------------------------------------------------------------------------------
   gen_fifo_rst_n : if c_RST_ACTIVE = '0' generate
-    ff_rst <= not(rst_n_i);
+    rst <= not(rst_n_i);
   end generate;
 
   gen_fifo_rst : if c_RST_ACTIVE = '1' generate
-    ff_rst <= rst_n_i;
+    rst <= rst_n_i;
   end generate;
 
-  -----------------------------------------------------------------------------
-  -- Re-allign data tightly for the positive clock edge
-  -----------------------------------------------------------------------------
-  process (clk_p_i, rst_n_i)
-  begin
-    if(rst_n_i = c_RST_ACTIVE) then
-      dframe_d <= '0';
-      valid_d  <= '0';
-      data_d   <= (others => '0');
-    elsif rising_edge(clk_p_i) then
-      dframe_d <= l2p_dframe_i;
-      valid_d  <= l2p_valid_i;
-      data_d   <= l2p_data_i;
-    end if;
-  end process;
+  ------------------------------------------------------------------------------
+  -- Instantiate serialiser to generate forwarded clock
+  ------------------------------------------------------------------------------
+  cmp_clk_out : serdes_n_to_1_s2_diff
+    generic map(
+      S => S,
+      D => 1)
+    port map (
+      txioclk       => io_clk_i,
+      txserdesstrobe => serdes_strobe_i,
+      gclk           => sys_clk_i,
+      reset          => rst,
+      datain         => c_TX_CLK,       -- Transmit a constant to make the clock
+      dataout_p      => l2p_clk_p_v,
+      dataout_n      => l2p_clk_n_v);
+
+  -- Type conversion, std_logic_vector to std_logic
+  l2p_clk_p_o <= l2p_clk_p_v(0);
+  l2p_clk_n_o <= l2p_clk_n_v(0);
 
   ------------------------------------------------------------------------------
-  -- Align control signals to the negative clock edge
+  -- Instantiate serialisers for output data lines
   ------------------------------------------------------------------------------
-  process (clk_n_i, rst_n_i)
-  begin
-    if(rst_n_i = c_RST_ACTIVE) then
-      l2p_valid_o  <= '0';
-      l2p_dframe_o <= '0';
-    elsif rising_edge(clk_n_i) then
-      l2p_valid_o  <= valid_d;
-      l2p_dframe_o <= dframe_d;
-    end if;
-  end process;
-
-  ------------------------------------------------------------------------------
-  -- DDR FF instanciation for data
-  ------------------------------------------------------------------------------
-
-  -- Spartan3 primitives instanciation
-  gen_out_ddr_ff : if g_IS_SPARTAN6 = false generate
-    -- Data
-    DDROUT : for i in 0 to 15 generate
-      U : OFDDRRSE
-        port map
-        (
-          Q  => l2p_data_o(i),
-          C0 => clk_n_i,
-          C1 => clk_p_i,
-          CE => '1',
-          D0 => data_d(i),
-          D1 => data_d(i+16),
-          R  => ff_rst,
-          S  => '0'
-          );
-    end generate;
-  end generate gen_out_ddr_ff;
-
-  -- Spartan6 primitives instanciation
-  gen_out_ddr_ff_s6 : if g_IS_SPARTAN6 = true generate
-    -- Data
-    DDROUT : for i in 0 to 15 generate
-      U : ODDR2
-        port map
-        (
-          Q  => l2p_data_o(i),
-          C0 => clk_n_i,
-          C1 => clk_p_i,
-          CE => '1',
-          D0 => data_d(i),
-          D1 => data_d(i+16),
-          R  => ff_rst,
-          S  => '0'
-          );
-    end generate;
-  end generate gen_out_ddr_ff_s6;
+  cmp_data_out : serdes_n_to_1_s2_se
+    generic map(
+      S => S,
+      D => D)
+    port map (
+      txioclk       => io_clk_i,
+      txserdesstrobe => serdes_strobe_i,
+      gclk           => sys_clk_i,
+      reset          => rst,
+      datain         => l2p_data_i,
+      dataout        => l2p_data_o);
 
   ------------------------------------------------------------------------------
-  -- DDR source synchronous clock generation
+  -- Instantiate serialisers for dframe
   ------------------------------------------------------------------------------
-  L2P_CLK_BUF : OBUFDS
-    port map(
-      O  => l2p_clk_p_o,
-      OB => l2p_clk_n_o,
-      I  => l2p_clk_sdr);
+  cmp_dframe_out : serdes_n_to_1_s2_se
+    generic map(
+      S => S,
+      D => 1)
+    port map (
+      txioclk       => io_clk_i,
+      txserdesstrobe => serdes_strobe_i,
+      gclk           => sys_clk_i,
+      reset          => rst,
+      datain         => l2p_dframe_t,
+      dataout        => l2p_dframe_v);
 
-  -- Spartan3 primitives instanciation
-  gen_l2p_clk_ddr_ff : if g_IS_SPARTAN6 = false generate
-    -- L2P clock
-    L2P_CLK_int : FDDRRSE
-      port map(
-        Q  => l2p_clk_sdr,
-        C0 => clk_n_i,
-        C1 => clk_p_i,
-        CE => '1',
-        D0 => '1',
-        D1 => '0',
-        R  => '0',
-        S  => '0');
-  end generate gen_l2p_clk_ddr_ff;
+  -- Serialize two times the same value
+  l2p_dframe_t <= l2p_dframe_i & l2p_dframe_i;
 
-  -- Spartan6 primitives instanciation
-  gen_l2p_clk_ddr_ff_s6 : if g_IS_SPARTAN6 = true generate
-    -- L2P clock
-    L2P_CLK_int : ODDR2
-      port map(
-        Q  => l2p_clk_sdr,
-        C0 => clk_n_i,
-        C1 => clk_p_i,
-        CE => '1',
-        D0 => '1',
-        D1 => '0',
-        R  => '0',
-        S  => '0');
-  end generate gen_l2p_clk_ddr_ff_s6;
+  -- Type conversion, std_logic_vector to std_logic
+  l2p_dframe_o <= l2p_dframe_v(0);
+
+  ------------------------------------------------------------------------------
+  -- Instantiate serialisers for valid
+  ------------------------------------------------------------------------------
+  cmp_valid_out : serdes_n_to_1_s2_se
+    generic map(
+      S => S,
+      D => 1)
+    port map (
+      txioclk       => io_clk_i,
+      txserdesstrobe => serdes_strobe_i,
+      gclk           => sys_clk_i,
+      reset          => rst,
+      datain         => l2p_valid_t,
+      dataout        => l2p_valid_v);
+
+  -- Serialize two times the same value
+  l2p_valid_t <= l2p_valid_i & l2p_valid_i;
+
+  -- Type conversion, std_logic_vector to std_logic
+  l2p_valid_o <= l2p_valid_v(0);
 
 end rtl;
 

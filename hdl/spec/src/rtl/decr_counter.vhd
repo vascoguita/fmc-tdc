@@ -7,14 +7,15 @@
 
 ---------------------------------------------------------------------------------------------------
 --                                                                                                |
---                                         free_counter                                           |
+--                                       decr_counter                                             |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
--- File         free_counter.vhd                                                                  |
+-- File         decr_counter.vhd                                                                  |
 --                                                                                                |
--- Description  Free running counter. Configurable counter_top_i and width.                       |
---				Current count counter and done signal available.                                  |
+-- Description  Stop counter. Configurable counter_top_i and width.                               |
+--       		Current count counter and done signal available.                                  |
 --				Done signal asserted simultaneous to counter=0.                                   |
+--              Countdown is launched each time counter_load_i is asserted for one clock tick.    |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -56,10 +57,11 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 
 
 --=================================================================================================
---                            Entity declaration for free_counter
+--                            Entity declaration for decr_counter
 --=================================================================================================
 
-entity free_counter is
+entity decr_counter is
+
   generic
     (width             : integer := 32); -- default size
   port
@@ -69,25 +71,28 @@ entity free_counter is
      rst_i             : in std_logic;
 
      -- Signals from any unit
-     counter_en_i      : in std_logic;  -- enables counting
-     counter_top_i     : in std_logic_vector(width-1 downto 0); -- start value;
-                                                                -- when zero is reached counter reloads
-                                                                -- start value and restarts counting
+     counter_load_i    : in std_logic;       -- loads counter with counter_top_i value
+     counter_top_i     : in std_logic_vector(width-1 downto 0); -- counter start value
+
+
   -- OUTPUTS
      -- Signals to any unit
      counter_o         : out std_logic_vector(width-1 downto 0);
-     counter_is_zero_o : out std_logic); -- empty counter indication
+     counter_is_zero_o : out std_logic); -- counter empty indication
 
-end free_counter;
+end decr_counter;
 
 
 --=================================================================================================
 --                                    architecture declaration
 --=================================================================================================
-architecture rtl of free_counter is
+
+architecture rtl of decr_counter is
 
   constant zeroes : unsigned(width-1 downto 0):=(others=>'0');
-  signal counter  : unsigned(width-1 downto 0):=(others=>'0'); -- init to avoid sim warnings
+  signal one      : unsigned(width-1 downto 0);
+  signal counter  : unsigned(width-1 downto 0) := (others=>'0'); -- init to avoid sim warnings
+
 
 --=================================================================================================
 --                                       architecture begin
@@ -97,28 +102,32 @@ begin
   decr_counting: process (clk_i)
   begin
     if rising_edge (clk_i) then
+
       if rst_i = '1' then
-        counter_is_zero_o   <= '0';
-        counter             <= unsigned(counter_top_i) - "1";
+        counter_is_zero_o <= '0';
+        counter           <= zeroes;
+
+      elsif counter_load_i = '1' then
+        counter_is_zero_o <= '0';
+        counter           <= unsigned(counter_top_i) - "1";
 
       elsif counter = zeroes then
-        counter_is_zero_o   <= '0';
-        counter             <= unsigned(counter_top_i) - "1";
+        counter_is_zero_o <= '0';
+        counter           <= zeroes;
 
-      elsif counter_en_i = '1' then
-        if counter = zeroes + "1" then
-          counter_is_zero_o <= '1';
-          counter           <= counter - "1";
-        else
-          counter_is_zero_o <= '0';
-          counter           <= counter - "1";
-        end if;
+      elsif counter = one then
+        counter_is_zero_o <= '1';
+        counter           <= counter - "1";
 
+      else
+        counter_is_zero_o <= '0';
+        counter           <= counter - "1";
       end if;
     end if;
   end process;
 
-  counter_o                 <= std_logic_vector(counter);
+  counter_o   <= std_logic_vector(counter);
+  one         <= zeroes + "1";
 
 end architecture rtl;
 --=================================================================================================

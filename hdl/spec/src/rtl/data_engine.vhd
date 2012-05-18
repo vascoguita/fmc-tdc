@@ -1,520 +1,720 @@
-----------------------------------------------------------------------------------------------------
---  CERN-BE-CO-HT
-----------------------------------------------------------------------------------------------------
---
---  unit name   : data managing engine (data_engine)
---  author      : G. Penacoba
---  date        : June 2011
---  version     : Revision 1
---  description : engine managing the configuration and acquisition modes of operation for the ACAM.
---                  in acquisition mode: monitors permanently the Empty Flags of the ACAM iFIFOs
---                  and reads timestamps accordingly.
---                  when acquisition mode is inactive: allows the configuration and readback of ACAM
---                  registers.
---                  Acts as a wishbone master to fetch  the data from the ACAM interface
---  dependencies:
---  references  :
---  modified by :
---
-----------------------------------------------------------------------------------------------------
---  last changes:
-----------------------------------------------------------------------------------------------------
---  to do: 
-----------------------------------------------------------------------------------------------------
+--_________________________________________________________________________________________________
+--                                                                                                |
+--                                           |TDC core|                                           |
+--                                                                                                |
+--                                         CERN,BE/CO-HT                                          |
+--________________________________________________________________________________________________|
 
+---------------------------------------------------------------------------------------------------
+--                                                                                                |
+--                                          data_engine                                           |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+-- File         data_engine.vhd                                                                   |
+--                                                                                                |
+-- Description  The unit is managing:                                                             |
+--               o the timestamps' acquisition from the ACAM,                                     |
+--               o the writing of the ACAM configuration,                                         |
+--               o the reading back of the ACAM configuration.                                    |
+--                                                                                                |
+--              The signals: activate_acq, deactivate_acq,                                        |
+--                           acam_wr_config, acam_rst                                             |
+--                           acam_rdbk_config, acam_rdbk_status, acam_rdbk_ififo1,                |
+--                           acam_rdbk_ififo2, acam_rdbk_start01                                  |
+--              coming from the reg_ctrl unit determine the actions of this unit.                 |
+--                                                                                                |
+--               o In acquisition mode (activate_acq = 1) the unit monitors permanently the empty |
+--                 flags (ef1, ef2) of the ACAM iFIFOs, reads timestamps accordingly and then     |
+--                 sends them to the data_formatting unit for them to endup in the circular_buffer|
+--               o To configure the ACAM or read back its configuration registers, the unit should|
+--                 be in inactive mode (deactivate_acq = 1).                                      |
+--                                                                                                |
+--              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE     |
+--              master fetching/ sending data from/ to the ACAM interface.                        |
+--                                                                                                |
+--                                                                                                |
+-- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
+--              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
+-- Date         04/2012                                                                           |
+-- Version      v0.11                                                                             |
+-- Depends on                                                                                     |
+--                                                                                                |
+----------------                                                                                  |
+-- Last changes                                                                                   |
+--     06/2011  v0.1  GP  First version                                                           |
+--     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+--                               GNU LESSER GENERAL PUBLIC LICENSE                                |
+--                              ------------------------------------                              |
+-- This source file is free software; you can redistribute it and/or modify it under the terms of |
+-- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
+-- version 2.1 of the License, or (at your option) any later version.                             |
+-- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
+-- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
+-- See the GNU Lesser General Public License for more details.                                    |
+-- You should have received a copy of the GNU Lesser General Public License along with this       |
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+---------------------------------------------------------------------------------------------------
+
+
+
+--=================================================================================================
+--                                       Libraries & Packages
+--=================================================================================================
+
+-- Standard library
 library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all;
-use work.tdc_core_pkg.all;
+use IEEE.std_logic_1164.all; -- std_logic definitions
+use IEEE.NUMERIC_STD.all;    -- conversion functions
+-- Specific library
+library work;
+use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
-----------------------------------------------------------------------------------------------------
---  entity declaration for data_engine
-----------------------------------------------------------------------------------------------------
+
+--=================================================================================================
+--                            Entity declaration for data_engine
+--=================================================================================================
+
 entity data_engine is
-    generic(
-        g_span                  : integer :=32;
-        g_width                 : integer :=32
-    );
-    port(
-        -- wishbone master signals internal to the chip: interface with the ACAM data core
-        ack_i                   : in std_logic;
-        dat_i                   : in std_logic_vector(g_width-1 downto 0);
+  port
+  -- INPUTS
+     -- Signals from the clk_rst_manager
+    (clk_i                : in std_logic; -- 125 MHz
+     rst_i                : in std_logic; -- global reset
 
-        adr_o                   : out std_logic_vector(g_span-1 downto 0);
-        cyc_o                   : out std_logic;
-        dat_o                   : out std_logic_vector(g_width-1 downto 0);
-        stb_o                   : out std_logic;
-        we_o                    : out std_logic;
-        
-        -- signals internal to the chip: interface with other modules
-        clk                     : in std_logic;
-        reset_i                 : in std_logic;
-        acam_ef1_i              : in std_logic;
-        acam_ef1_meta_i         : in std_logic;
-        acam_ef2_i              : in std_logic;
-        acam_ef2_meta_i         : in std_logic;
+     -- Signals from the reg_ctrl unit
+     activate_acq_p_i     : in std_logic; -- activates tstamps aquisition 
+     deactivate_acq_p_i   : in std_logic; -- activates configuration readings/ writings
+     acam_wr_config_p_i   : in std_logic; -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
+     acam_rst_p_i         : in std_logic; -- enables writing c_RESET_WORD         to ACAM reg 4
+     acam_rdbk_config_p_i : in std_logic; -- enables reading of ACAM regs 0-7, 11, 12, 14 
+     acam_rdbk_status_p_i : in std_logic; -- enables reading of ACAM reg  12
+     acam_rdbk_ififo1_p_i : in std_logic; -- enables reading of ACAM reg  8
+     acam_rdbk_ififo2_p_i : in std_logic; -- enables reading of ACAM reg  9
+     acam_rdbk_start01_p_i: in std_logic; -- enables reading of ACAM reg  10
 
-        activate_acq_i          : in std_logic;
-        deactivate_acq_i        : in std_logic;
-        load_acam_config_i      : in std_logic;
-        read_acam_config_i      : in std_logic;
-        read_acam_status_i      : in std_logic;
-        read_ififo1_i           : in std_logic;
-        read_ififo2_i           : in std_logic;
-        read_start01_i          : in std_logic;
-        reset_acam_i            : in std_logic;
-        acam_config_i           : in config_vector;
-        
-        acam_config_rdbk_o      : out config_vector;
-        acam_status_o           : out std_logic_vector(g_width-1 downto 0);
-        acam_ififo1_o           : out std_logic_vector(g_width-1 downto 0);
-        acam_ififo2_o           : out std_logic_vector(g_width-1 downto 0);
-        acam_start01_o          : out std_logic_vector(g_width-1 downto 0);
-        acam_timestamp1_o       : out std_logic_vector(g_width-1 downto 0);
-        acam_timestamp1_valid_o : out std_logic;
-        acam_timestamp2_o       : out std_logic_vector(g_width-1 downto 0);
-        acam_timestamp2_valid_o : out std_logic
-    );
+     acam_config_i        : in config_vector; -- array keeping values for ACAM regs 0-7, 11, 12, 14
+                                              -- as received from the PCIe interface
+
+     -- Signals from the acam_databus_interface unit: empty FIFO flags
+     acam_ef1_i           : in std_logic; -- emply fifo 1 (fully synched signal; ef1 after 2 DFFs)
+     acam_ef1_synch1_i    : in std_logic; -- emply fifo 1 (possibly metestable;  ef1 after 1 DFF)
+     acam_ef2_i           : in std_logic; -- emply fifo 2 (fully synched signal; ef2 after 2 DFFs)
+     acam_ef2_synch1_i    : in std_logic; -- emply fifo 2 (possibly metestable;  ef2 after 1 DFF)
+
+     -- Signals from the acam_databus_interface unit: WISHBONE master
+     acam_ack_i           : in std_logic; -- WISHBONE ack
+     acam_dat_i           : in std_logic_vector(31 downto 0); -- tstamps or rdbk regs
+                                                              -- includes ef1 & ef2 & lf1 & lf2 & 28 bits acam data_bus_io
+
+
+  -- OUTPUTS
+     -- Signals to the acam_databus_interface unit: WISHBONE master
+     acam_adr_o           : out std_logic_vector(7 downto 0); -- address of reg/ FIFO to write/ read
+     acam_cyc_o           : out std_logic;                    -- WISHBONE cycle
+     acam_stb_o           : out std_logic;                    -- WISHBONE strobe
+     acam_dat_o           : out std_logic_vector(31 downto 0);-- values to write to ACAM regs
+     acam_we_o            : out std_logic;                    -- WISHBONE write (enabled only for reg writings)
+
+     -- Signals to the reg_ctrl unit
+     acam_config_rdbk_o   : out config_vector;                -- array keeping values read from ACAM regs 0-7, 11, 12, 14
+     acam_status_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 12
+     acam_ififo1_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 8
+     acam_ififo2_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 9
+     acam_start01_o       : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 10
+
+     -- Signals to the data_formatting unit:
+     acam_tstamp1_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO1
+     acam_tstamp2_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO2
+     acam_tstamp1_ok_p_o  : out std_logic; -- indication of a valid tstamp1
+     acam_tstamp2_ok_p_o  : out std_logic);-- indication of a valid tstamp2
+
 end data_engine;
 
-----------------------------------------------------------------------------------------------------
---  architecture declaration for data_engine
-----------------------------------------------------------------------------------------------------
+
+--=================================================================================================
+--                                    architecture declaration
+--=================================================================================================
+
 architecture rtl of data_engine is
 
-type engine_state_ty                is (ACTIVE, INACTIVE, GET_STAMP1, GET_STAMP2,
-                                        WR_CONFIG, RDBK_CONFIG, RD_STATUS, RD_IFIFO1, 
-                                        RD_IFIFO2, RD_START01, WR_RESET);
-signal engine_st, nxt_engine_st     : engine_state_ty;
+type engine_state_ty is (ACTIVE, INACTIVE, GET_STAMP1, GET_STAMP2, WR_CONFIG, RDBK_CONFIG,
+                         RD_STATUS, RD_IFIFO1, RD_IFIFO2, RD_START01, WR_RESET);
+signal engine_st, nxt_engine_st : engine_state_ty;
 
-signal acam_ef1                     : std_logic;
-signal acam_ef1_meta                : std_logic;
-signal acam_ef2                     : std_logic;
-signal acam_ef2_meta                : std_logic;
+signal acam_cyc, acam_stb, acam_we : std_logic;
+signal acam_adr           : std_logic_vector(7 downto 0);
+signal config_adr_c       : unsigned(7 downto 0);
+signal acam_config_rdbk   : config_vector;
+signal reset_word         : std_logic_vector(31 downto 0);
+signal acam_config_reg4   : std_logic_vector(31 downto 0);
 
-signal acam_ack                     : std_logic;
-signal acam_adr                     : std_logic_vector(7 downto 0);
-signal acam_cyc                     : std_logic;
-signal acam_stb                     : std_logic;
-signal acam_we                      : std_logic;
-signal acam_data_rd                 : std_logic_vector(g_width-1 downto 0);
-signal acam_data_wr                 : std_logic_vector(g_width-1 downto 0);
 
-signal reset                        : std_logic;
-
-signal activate_acq                 : std_logic;
-signal deactivate_acq               : std_logic;
-signal load_acam_config             : std_logic;
-signal read_acam_config             : std_logic;
-signal read_acam_status             : std_logic;
-signal read_ififo1                  : std_logic;
-signal read_ififo2                  : std_logic;
-signal read_start01                 : std_logic;
-signal reset_acam                   : std_logic;
-
-signal config_adr_counter           : unsigned(7 downto 0);
-
-signal acam_config                  : config_vector;
-signal acam_config_rdbk             : config_vector;
-
-signal acam_status                  : std_logic_vector(g_width-1 downto 0);
-signal acam_ififo1                  : std_logic_vector(g_width-1 downto 0);
-signal acam_ififo2                  : std_logic_vector(g_width-1 downto 0);
-signal acam_start01                 : std_logic_vector(g_width-1 downto 0);
-
-signal acam_timestamp1              : std_logic_vector(g_width-1 downto 0);
-signal acam_timestamp1_valid        : std_logic;
-signal acam_timestamp2              : std_logic_vector(g_width-1 downto 0);
-signal acam_timestamp2_valid        : std_logic;
-
-signal reset_word                   : std_logic_vector(g_width-1 downto 0);
-signal reg4                         : std_logic_vector(g_width-1 downto 0);
-
-----------------------------------------------------------------------------------------------------
---  architecture begins
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                       architecture begin
+--=================================================================================================
 begin
 
-    data_engine_seq_fsm: process
-    begin
-        if reset ='1' then
-            engine_st           <= inactive;
-        else
-            engine_st           <= nxt_engine_st;
-        end if;
-        wait until clk ='1';
-    end process;
+
+---------------------------------------------------------------------------------------------------
+--                                             FSM                                               --
+---------------------------------------------------------------------------------------------------
+
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- data_engine_fsm_seq FSM: the state machine is divided in three parts (a clocked process
+-- to store the current state, a combinatorial process to manage state transitions and finally a
+-- combinatorial process to manage the output signals), which are the three processes that follow.
+
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- Synchronous process: storage of the current state of the FSM
+
+  data_engine_fsm_seq: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i ='1' then
+        engine_st <= INACTIVE;
+      else
+        engine_st <= nxt_engine_st;
+      end if;
+    end if;
+  end process;
     
-    data_engine_comb_fsm: process(engine_st, activate_acq, deactivate_acq, acam_ef1, acam_ef2,
-                                    load_acam_config, read_acam_config, read_acam_status, 
-                                    read_ififo1, read_ififo2, read_start01, reset_acam, 
-                                    acam_ack, acam_adr)
-    begin
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- Combinatorial process
+  data_engine_fsm_comb: process (engine_st, activate_acq_p_i, deactivate_acq_p_i, acam_ef1_i, acam_adr,
+                                 acam_ef2_i, acam_ef1_synch1_i, acam_ef2_synch1_i, acam_wr_config_p_i,
+                                 acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
+                                 acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i)
+  begin
     case engine_st is
-        when INACTIVE =>                        -- the FSM acquisition needs to be inactive to
-            acam_cyc                <= '0';     -- modify or read the ACAM config
-            acam_stb                <= '0';
-            acam_we                 <= '0';
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      -- from the INACTIVE state modifications/ readings of the ACAM configuration can be initiated
+      -- all interactions refer to transfers from the ACAM, locally and vice versa; the transfering
+      -- from/ to the PCIe needs....
+      when INACTIVE =>
+                  -----------------------------------------------
+                        acam_cyc        <= '0';
+                        acam_stb        <= '0';
+                        acam_we         <= '0';
+                  -----------------------------------------------
             
-            if activate_acq ='1'        then
-                nxt_engine_st               <= ACTIVE;
-            elsif load_acam_config ='1' then
-                nxt_engine_st               <= WR_CONFIG;
-            elsif read_acam_config ='1' then
-                nxt_engine_st               <= RDBK_CONFIG;
-            elsif read_acam_status ='1' then
-                nxt_engine_st               <= RD_STATUS;
-            elsif read_ififo1 ='1'      then
-                nxt_engine_st               <= RD_IFIFO1;
-            elsif read_ififo2 ='1'      then
-                nxt_engine_st               <= RD_IFIFO2;
-            elsif read_start01 ='1'     then
-                nxt_engine_st               <= RD_START01;
-            elsif reset_acam ='1'       then
-                nxt_engine_st               <= WR_RESET;
-            else
-                nxt_engine_st               <= INACTIVE;
-            end if;
+                        if activate_acq_p_i = '1' then     -- activation of timestamps aquisition
+                          nxt_engine_st   <= ACTIVE;
 
-        when ACTIVE =>                          -- when ACTIVE, the acquisition is intensive
-            acam_cyc                <= '0';     -- the iFIFO of the ACAM is kept permanently
-            acam_stb                <= '0';     -- empty
-            acam_we                 <= '0';     -- the core performs as fast as the ACAM
-                                                -- allows: one timestamp per refclk period
-            if deactivate_acq ='1'      then
-                nxt_engine_st               <= INACTIVE;
-            elsif acam_ef1 ='0'         then
-                nxt_engine_st               <= GET_STAMP1;
-            elsif acam_ef2 ='0'         then
-                nxt_engine_st               <= GET_STAMP2;
-            else
-                nxt_engine_st               <= ACTIVE;
-            end if;
+                        elsif acam_wr_config_p_i = '1' then
+                          nxt_engine_st   <= WR_CONFIG;  -- loading of ACAM config (local-> ACAM)
 
-        when GET_STAMP1 =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
+                        elsif acam_rdbk_config_p_i = '1' then
+                          nxt_engine_st   <= RDBK_CONFIG;-- readback of ACAM config (ACAM->local acam_config_rdbk( downto ))
 
-            if acam_ack ='1' then               -- the usage of a potentially metastable
-                if acam_ef2 ='0' then           -- signal is allowed if to stay on the same
-                    nxt_engine_st   <= GET_STAMP2;  -- state. Under those circumstances
-                elsif acam_ef1_meta ='0' then       -- the arrival time of the rising edge
-                    nxt_engine_st   <= GET_STAMP1;  -- would not be totally random, since
-                else                                -- it depends on the READ signal.
-                    nxt_engine_st   <= ACTIVE;
-                end if;
-            else
-                nxt_engine_st       <= GET_STAMP1;
-            end if;
-        
-        when GET_STAMP2 =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
+                        elsif acam_rdbk_status_p_i = '1' then
+                          nxt_engine_st   <= RD_STATUS;  -- reading of ACAM status reg (ACAM->local acam_config_rdbk(9))
 
-            if acam_ack ='1' then                   -- idem.
-                if acam_ef1 ='0' then
-                    nxt_engine_st   <= GET_STAMP1;
-                elsif acam_ef2_meta ='0' then
-                    nxt_engine_st   <= GET_STAMP2;
-                else
-                    nxt_engine_st   <= ACTIVE;
-                end if;
-            else
-                nxt_engine_st       <= GET_STAMP2;
-            end if;
-        
-        when WR_CONFIG =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '1';
-            
-            if acam_ack ='1' and acam_adr =x"0E" then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= WR_CONFIG;
-            end if;
-        
-        when RDBK_CONFIG =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
+                        elsif acam_rdbk_ififo1_p_i = '1' then
+                          nxt_engine_st   <= RD_IFIFO1;  -- reading of ACAM last iFIFO1 timestamp (ACAM->local acam_ififo1)
+                                                         -- this option is available for debugging purposes only
 
-            if acam_ack ='1' and acam_adr =x"0E" then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= RDBK_CONFIG;
-            end if;
-        
-        when RD_STATUS =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
+                        elsif acam_rdbk_ififo2_p_i = '1' then
+                          nxt_engine_st   <= RD_IFIFO2;  -- reading of ACAM last iFIFO2 timestamp (ACAM->local acam_ififo2)
+                                                         -- this option is available for debugging purposes only
 
-            if acam_ack ='1' then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= RD_STATUS;
-            end if;
-            
-        when RD_IFIFO1 =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
+                        elsif acam_rdbk_start01_p_i = '1' then
+                          nxt_engine_st   <= RD_START01; -- reading of ACAM Start01 reg (ACAM->local acam_start01)
+                                                         -- this option is available for debugging purposes only
 
-            if acam_ack ='1' then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= RD_IFIFO1;
-            end if;
-        
-        when RD_IFIFO2 =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
+                        elsif acam_rst_p_i = '1' then
+                          nxt_engine_st   <= WR_RESET;   -- loading of ACAM config reg 4 with rst word (local reset_word ->ACAM DAT_o)
+                        else
+                          nxt_engine_st   <= INACTIVE;
+                        end if;
 
-            if acam_ack ='1' then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= RD_IFIFO2;
-            end if;
-        
-        when RD_START01 =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '0';
 
-            if acam_ack ='1' then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= RD_START01;
-            end if;
-        
-        when WR_RESET =>
-            acam_cyc                <= '1';
-            acam_stb                <= '1';
-            acam_we                 <= '1';
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      -- ACTIVE, GET_STAMP1, GET_STAMP2: intensive acquisition of timestamps from ACAM.
+      -- ACAM can receive and tag pulses with an overall rate up to 31.25 MHz;
+      -- therefore locally, running with a 125 MHz clk, in order to be able to receive timestamps
+      -- as fast as they arrive, it is needed to use up to 4 clk cycles to retreive each of them.
+      -- Timestamps are received as soon as the ef1, ef2 flags are at zero (indicating that the
+      -- iFIFOs are not empty!). In order to avoid metastabilities locally, the ef signals are
+      -- synchronized using a set of two registers.
+      --    _______             ___________________________________________________
+      --           |           |       ____                 ____
+      --           |_____ef____|______|    |___ef_synch1___|    |_____ef_synch2
+      --      ACAM |           |      |DFF1|               |DFF2|
+      --           |           |      |\   |               |\   |
+      --           |           |      |/___|               |/___|  
+      --    _______|           |___________________________________________________
+      --
+      -- In the beginning the output of the second synchronizer flip-flop (ef_synch2) is used,
+      -- as falling edges in the ef signals can arrive randomly at any moment and metastabilities
+      -- could occur in the first flip-flop. On the other hand, after this first falling edge, the
+      -- output ef_synch1 of the first flip-flop could be used since ef rising edges are not
+      -- random any more and depend on the rdn signal generated locally by the
+      -- acam_databus_interface unit. Following ACAM documentation (pg 7, Figure 2) 2 clk cycles
+      -- = 16 ns after an rdn falling edge the ef_synch1 should be stable.
+      -- 
+      -- Using the ef_synch1 signal instead of the ef_synch2 makes it possible to realise
+      -- timestamps' aquisitions from ACAM in just 4 clk cycles.
+      -- clk           --|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__
+      -- ef            ------|_______________________________________________________|--------------
+      -- ef_synch1     -----------|_____________________________________________________|-----------
+      -- ef_synch2     -----------------|_____________________________________________________|-----
+      -- stb           _______________________|-----------------------------------------------|_____
+      -- adr           _______________________| iFIFO adr set
+      -- rdn           -----------------------------|_________________|-----|_______________________
+      -- data valid                                             ^                       ^                    
+      -- ack           _________________________________________|-----|_________________|-----|_____
+      -- data retrieval                                               ^                       ^
+      -- ef check                                                                             ^
 
-            if acam_ack ='1' then
-                nxt_engine_st       <= INACTIVE;
-            else
-                nxt_engine_st       <= WR_RESET;
-            end if;
-        
-        when others =>
-            acam_cyc                <= '0';
-            acam_stb                <= '0';
-            acam_we                 <= '0';
-            
-            nxt_engine_st           <= INACTIVE;
+      -- It is first checked if iFIFO1 is not empty, and if so a timestamp is retreived from it.
+      -- Then iFIFO2 is checked and if it not empty a timestamp is retreived from it.
+      -- The alternation between the two FIFOs takes place until they are both empty.
+      -- The retreival of a timestamp from any of the FIFOs takes place
+
+      when ACTIVE =>
+                  -----------------------------------------------
+                        acam_cyc        <= '0';
+                        acam_stb        <= '0';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if deactivate_acq_p_i = '1' then
+                          nxt_engine_st   <= INACTIVE;
+
+                        elsif acam_ef1_i = '0' then -- new tstamp in iFIFO1
+                          nxt_engine_st   <= GET_STAMP1;
+
+                        elsif acam_ef2_i = '0' then -- new tstamp in iFIFO2
+                          nxt_engine_st   <= GET_STAMP2;
+
+                        else
+                          nxt_engine_st   <= ACTIVE;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when GET_STAMP1 =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+
+                          if acam_ef2_i = '0' then
+                            nxt_engine_st <= GET_STAMP2;
+  
+                          elsif acam_ef1_synch1_i ='0' then 
+                            nxt_engine_st <= GET_STAMP1;
+                          else
+                            nxt_engine_st <= ACTIVE;
+                          end if;
+
+                        else
+                          nxt_engine_st   <= GET_STAMP1;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when GET_STAMP2 =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then                   -- idem.
+
+                          if acam_ef1_i ='0' then
+                            nxt_engine_st <= GET_STAMP1;
+
+                          elsif acam_ef2_synch1_i ='0' then
+                            nxt_engine_st <= GET_STAMP2;
+                          else
+                            nxt_engine_st <= ACTIVE;
+                          end if;
+
+                        else
+                          nxt_engine_st   <= GET_STAMP2;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when WR_CONFIG =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '1';
+                  -----------------------------------------------
+
+                        if acam_ack_i = '1' and acam_adr = x"0E" then -- last address
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= WR_CONFIG;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RDBK_CONFIG =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= RDBK_CONFIG;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RD_STATUS =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= RD_STATUS;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --      
+      when RD_IFIFO1 =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= RD_IFIFO1;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RD_IFIFO2 =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= RD_IFIFO2;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RD_START01 =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= RD_START01;
+                        end if;
+
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when WR_RESET =>
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '1';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+                          nxt_engine_st   <= INACTIVE;
+                        else
+                          nxt_engine_st   <= WR_RESET;
+                        end if;
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when others =>
+                  -----------------------------------------------
+                        acam_cyc        <= '0';
+                        acam_stb        <= '0';
+                        acam_we         <= '0';
+                  -----------------------------------------------
+
+                        nxt_engine_st     <= INACTIVE;
         end case;
     end process;
-    
-    address_generation: process(engine_st, config_adr_counter)
-    begin
-        case engine_st is
-        when INACTIVE =>
-                        acam_adr    <= x"00";
-        when ACTIVE =>
-                        acam_adr    <= x"00";
-        when GET_STAMP1 =>
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg8);
-        when GET_STAMP2 =>
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg9);
-        when WR_CONFIG =>
-                        acam_adr    <= std_logic_vector(config_adr_counter);    -- sweeps through
-        when RDBK_CONFIG =>                                                     -- the addresses
-                        acam_adr    <= std_logic_vector(config_adr_counter);    -- of the ACAM
-        when RD_STATUS =>                                                       -- config registers
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg12);
-        when RD_IFIFO1 =>
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg8);
-        when RD_IFIFO2 =>
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg9);
-        when RD_START01 =>
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg10);
-        when WR_RESET =>
-                        acam_adr    <= std_logic_vector(c_acam_adr_reg4);
-        when others =>
-                        acam_adr    <= x"00";
-        end case;
-    end process;
-    
-    config_adr: process             -- process to generate the valid addresses 
-    begin                           -- for the ACAM config registers
-        if reset ='1' then
-            config_adr_counter      <= unsigned(c_acam_adr_reg0);
 
-        elsif load_acam_config ='1' or read_acam_config ='1' then
-            config_adr_counter      <= unsigned(c_acam_adr_reg0);
+
+  acam_cyc_o <= acam_cyc;
+  acam_stb_o <= acam_stb;
+  acam_we_o  <= acam_we;
+
+---------------------------------------------------------------------------------------------------
+--                  Address generation (acam_adr_o) for ACAM readings/ writings                  --
+---------------------------------------------------------------------------------------------------
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- adr_generation: according to the state of the FSM this process generates the acam_adr_o output
+-- that specifies the ACAM register or FIFO to write to or to read from.
+
+  adr_generation: process (engine_st, config_adr_c)
+  begin
+    case engine_st is
+      when INACTIVE   =>
+                        acam_adr  <= x"00";
+
+      when ACTIVE     =>
+                        acam_adr  <= x"00";
+
+      when GET_STAMP1 =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG8_ADR);  -- FIFO1: ACAM reg 8
+
+      when GET_STAMP2 =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG9_ADR);  -- FIFO2: ACAM reg 9
+
+      when WR_CONFIG  =>
+                        acam_adr  <= std_logic_vector(config_adr_c); -- sweeps through ACAM reg 0-7, 11, 12, 14
+
+      when RDBK_CONFIG=>
+                        acam_adr  <= std_logic_vector(config_adr_c); -- sweeps through ACAM reg 0-7, 11, 12, 14
+
+      when RD_STATUS  =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG12_ADR); -- status: ACAM reg 12
+
+      when RD_IFIFO1  =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG8_ADR);  -- FIFO1: ACAM reg 8
+
+      when RD_IFIFO2  =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG9_ADR);  -- FIFO2: ACAM reg 9
+
+      when RD_START01 =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG10_ADR); -- START01: ACAM reg 10
+
+      when WR_RESET   =>
+                        acam_adr  <= std_logic_vector(c_ACAM_REG4_ADR);  -- reset: ACAM reg 4
+
+      when others     =>
+                        acam_adr  <= x"00";
+    end case;
+  end process;
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --
+  acam_adr_o          <= acam_adr; -- x"000000" & acam_adr; --reduce size!!
+
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- config_adr_c: counter used for the sweeping though the ACAM configuration addresses.
+  -- counter counting: 0-> 1-> 2-> 3-> 4-> 5-> 6-> 7-> 11-> 12-> 14
+  config_adr_counter: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i = '1' or acam_wr_config_p_i = '1' or acam_rdbk_config_p_i = '1' then
+        config_adr_c   <= unsigned (c_ACAM_REG0_ADR);
         
-        elsif acam_ack ='1' then
-            if config_adr_counter= unsigned(c_acam_adr_reg14) then
-                config_adr_counter      <= unsigned(c_acam_adr_reg14);
-            elsif config_adr_counter= unsigned(c_acam_adr_reg12) then
-                config_adr_counter      <= unsigned(c_acam_adr_reg14);
-            elsif config_adr_counter= unsigned(c_acam_adr_reg7) then
-                config_adr_counter      <= unsigned(c_acam_adr_reg11);
-            else
-                config_adr_counter      <= config_adr_counter + 1;
-            end if;
+      elsif acam_ack_i ='1' then
+        if config_adr_c = unsigned (c_ACAM_REG14_ADR) then
+          config_adr_c <= unsigned (c_ACAM_REG14_ADR);
+
+        elsif config_adr_c = unsigned (c_ACAM_REG12_ADR) then
+          config_adr_c <= unsigned (c_ACAM_REG14_ADR);
+
+        elsif config_adr_c = unsigned (c_ACAM_REG7_ADR) then
+          config_adr_c <= unsigned (c_ACAM_REG11_ADR);
+
+        else
+          config_adr_c <= config_adr_c + 1;
         end if;
-        wait until clk ='1';
-    end process;
+      end if;
 
-    data_config_decoding: process(acam_adr, engine_st, acam_config, reset_word)
-    begin
-        case acam_adr is            -- the values for the ACAM config registers are multiplexed
-        when c_acam_adr_reg0 =>     -- into the data bus according to the register addresses
-            acam_data_wr             <= acam_config(0);
-        when c_acam_adr_reg1 =>
-            acam_data_wr             <= acam_config(1);
-        when c_acam_adr_reg2 =>
-            acam_data_wr             <= acam_config(2);
-        when c_acam_adr_reg3 =>
-            acam_data_wr             <= acam_config(3);
-        when c_acam_adr_reg4 =>
-            if engine_st = wr_reset then
-                acam_data_wr             <= reset_word;
-            else
-                acam_data_wr             <= acam_config(4);
-            end if;
-        when c_acam_adr_reg5 =>
-            acam_data_wr             <= acam_config(5);
-        when c_acam_adr_reg6 =>
-            acam_data_wr             <= acam_config(6);
-        when c_acam_adr_reg7 =>
-            acam_data_wr             <= acam_config(7);
-        when c_acam_adr_reg11 =>
-            acam_data_wr             <= acam_config(8);
-        when c_acam_adr_reg12 =>
-            acam_data_wr             <= acam_config(9);
-        when c_acam_adr_reg14 =>
-            acam_data_wr             <= acam_config(10);
-        when others =>
-            acam_data_wr             <= (others =>'0');
-        end case;
-    end process;
+    end if;
+  end process;
 
-    data_readback_decoding: process     -- the values from the ACAM config registers are demultiplexed
-    begin                               -- from the data bus into dedicated registers according
-        if reset ='1' then              -- the register addresses
-            acam_config_rdbk(0)      <= (others =>'0');
-            acam_config_rdbk(1)      <= (others =>'0');
-            acam_config_rdbk(2)      <= (others =>'0');
-            acam_config_rdbk(3)      <= (others =>'0');
-            acam_config_rdbk(4)      <= (others =>'0');
-            acam_config_rdbk(5)      <= (others =>'0');
-            acam_config_rdbk(6)      <= (others =>'0');
-            acam_config_rdbk(7)      <= (others =>'0');
-            acam_config_rdbk(8)      <= (others =>'0');
-            acam_config_rdbk(9)      <= (others =>'0');
-            acam_config_rdbk(10)     <= (others =>'0');
 
-            acam_ififo1              <= (others =>'0');
-            acam_ififo2              <= (others =>'0');
-            acam_start01             <= (others =>'0');
-        elsif acam_cyc ='1' and acam_stb ='1' and acam_ack ='1' and acam_we ='0' then
-            if acam_adr= c_acam_adr_reg0 then
-                acam_config_rdbk(0)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg1 then
-                acam_config_rdbk(1)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg2 then
-                acam_config_rdbk(2)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg3 then
-                acam_config_rdbk(3)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg4 then
-                acam_config_rdbk(4)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg5 then
-                acam_config_rdbk(5)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg6 then
-                acam_config_rdbk(6)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg7 then
-                acam_config_rdbk(7)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg11 then
-                acam_config_rdbk(8)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg12 then
-                acam_config_rdbk(9)         <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg14 then
-                acam_config_rdbk(10)        <= acam_data_rd;
-            end if;
 
-            if acam_adr= c_acam_adr_reg8 then
-                acam_ififo1                 <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg9 then
-                acam_ififo2                 <= acam_data_rd;
-            end if;
-            if acam_adr= c_acam_adr_reg10 then
-                acam_start01                <= acam_data_rd;
-            end if;
+---------------------------------------------------------------------------------------------------
+--                          Values (acam_dat_o) for ACAM config writings                         --
+---------------------------------------------------------------------------------------------------
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- data_config_decoder: according to the acam_adr this process generates the acam_dat_o output
+-- with the new value to be loaded to the corresponding ACAM reg. The values come from the
+-- acam_config_i vector that keeps what has been loaded from the PCIe interface.
+  data_config_decoder: process(acam_adr, engine_st, acam_config_i, reset_word)
+  begin
+    case acam_adr is
+
+      when c_ACAM_REG0_ADR  =>
+        acam_dat_o   <= acam_config_i(0);
+
+      when c_ACAM_REG1_ADR  =>
+        acam_dat_o   <= acam_config_i(1);
+
+      when c_ACAM_REG2_ADR  =>
+        acam_dat_o   <= acam_config_i(2);
+
+      when c_ACAM_REG3_ADR  =>
+        acam_dat_o   <= acam_config_i(3);
+
+      when c_ACAM_REG4_ADR  =>       -- in reg 4 there are bits (0-21, 24-27) defining normal config settings
+                                     -- and there are also bits (22&23) initiating ACAM resets
+        if engine_st = WR_RESET then
+          acam_dat_o <= reset_word;
+
+        else
+          acam_dat_o <= acam_config_i(4);
         end if;
-        wait until clk ='1';
+
+      when c_ACAM_REG5_ADR  =>
+        acam_dat_o   <= acam_config_i(5);
+
+      when c_ACAM_REG6_ADR  =>
+        acam_dat_o   <= acam_config_i(6);
+
+      when c_ACAM_REG7_ADR  =>
+        acam_dat_o   <= acam_config_i(7);
+
+      when c_ACAM_REG11_ADR =>
+        acam_dat_o   <= acam_config_i(8);
+
+      when c_ACAM_REG12_ADR =>
+        acam_dat_o   <= acam_config_i(9);
+
+      when c_ACAM_REG14_ADR =>
+        acam_dat_o   <= acam_config_i(10);
+
+      when others =>
+        acam_dat_o   <= (others =>'0');
+      end case;
     end process;
-    
-    acam_timestamp1             <= acam_data_rd;        -- timestamps can come from iFIFO1
-    acam_timestamp2             <= acam_data_rd;        -- or iFIFO2
 
-    acam_timestamp1_valid       <= '1' when (acam_ack ='1' and engine_st = get_stamp1)
-                                    else '0';
-    acam_timestamp2_valid       <= '1' when (acam_ack ='1' and engine_st = get_stamp2)
-                                    else '0';
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  acam_config_reg4   <= acam_config_i(4);
+  reset_word         <= acam_config_reg4(31 downto 24) & "01" & acam_config_reg4(21 downto 0);
+                     -- reg 4 bit 22: MasterReset :'1' = general reset excluding config regs 
+                     -- reg 4 bit 23: PartialReset: would initiate a general reset excluding
+                     --                             config regs&FIFOs, but this option is not used
 
-    acam_status                 <= acam_config_rdbk(9);
-    reg4                        <= acam_config(4);
-    reset_word                  <= reg4(31 downto 24) & "01" & reg4(21 downto 0);
 
-    -- inputs
-    reset                       <= reset_i;
-    acam_ack                    <= ack_i;
-    acam_data_rd                <= dat_i;
-    acam_ef1                    <= acam_ef1_i;
-    acam_ef1_meta               <= acam_ef1_meta_i;
-    acam_ef2                    <= acam_ef2_i;
-    acam_ef2_meta               <= acam_ef2_meta_i;
-    
-    activate_acq                <= activate_acq_i;
-    deactivate_acq              <= deactivate_acq_i;
-    load_acam_config            <= load_acam_config_i;
-    read_acam_config            <= read_acam_config_i;
-    read_acam_status            <= read_acam_status_i;
-    read_ififo1                 <= read_ififo1_i;
-    read_ififo2                 <= read_ififo2_i;
-    read_start01                <= read_start01_i;
-    reset_acam                  <= reset_acam_i;
-    acam_config                 <= acam_config_i;
-    
-    --outputs
-    adr_o                       <= x"000000" & acam_adr;
-    cyc_o                       <= acam_cyc;
-    dat_o                       <= acam_data_wr;
-    stb_o                       <= acam_stb;
-    we_o                        <= acam_we;
-    
-    acam_config_rdbk_o          <= acam_config_rdbk;
-    acam_status_o               <= acam_status;
-    acam_ififo1_o               <= acam_ififo1;
-    acam_ififo2_o               <= acam_ififo2;
-    acam_start01_o              <= acam_start01;
-    
-    acam_timestamp1_o           <= acam_timestamp1;
-    acam_timestamp2_o           <= acam_timestamp2;
 
-    acam_timestamp1_valid_o     <= acam_timestamp1_valid;
-    acam_timestamp2_valid_o     <= acam_timestamp2_valid;
+---------------------------------------------------------------------------------------------------
+--                      Aquisition of ACAM Timestamps or Reedback Registers                      --
+---------------------------------------------------------------------------------------------------
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- data_readback_decoder: after reading accesses to the ACAM (acam_we=0), the process recuperates
+-- the ACAM data and according to the acam_adr_o stores them to the corresponding registers.
+-- In the case of timestamps aquisition, we generate the pulses acam_tstamp1_ok_p_o,
+-- acam_tstamp2_ok_p_o that when active, indicate a valid timestamp. Note that for timing reasons
+-- the signals acam_tstamp1_o, acam_tstamp2_o are not the outputs of flip-flops.
 
-end rtl;
-----------------------------------------------------------------------------------------------------
---  architecture ends
-----------------------------------------------------------------------------------------------------
+  data_readback_decoder: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i ='1' then
+        acam_config_rdbk(0)    <= (others => '0');
+        acam_config_rdbk(1)    <= (others => '0');
+        acam_config_rdbk(2)    <= (others => '0');
+        acam_config_rdbk(3)    <= (others => '0');
+        acam_config_rdbk(4)    <= (others => '0');
+        acam_config_rdbk(5)    <= (others => '0');
+        acam_config_rdbk(6)    <= (others => '0');
+        acam_config_rdbk(7)    <= (others => '0');
+        acam_config_rdbk(8)    <= (others => '0');
+        acam_config_rdbk(9)    <= (others => '0');
+        acam_config_rdbk(10)   <= (others => '0');
+        acam_ififo1_o          <= (others => '0');
+        acam_ififo2_o          <= (others => '0');
+        acam_start01_o         <= (others => '0');
+
+      elsif acam_cyc = '1' and acam_stb = '1' and acam_ack_i = '1' and acam_we = '0' then
+
+        if acam_adr = c_ACAM_REG0_ADR then
+          acam_config_rdbk(0)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG1_ADR then
+          acam_config_rdbk(1)  <= acam_dat_i;
+        end if;
+        if acam_adr = c_ACAM_REG2_ADR then
+          acam_config_rdbk(2)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG3_ADR then
+          acam_config_rdbk(3)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG4_ADR then
+          acam_config_rdbk(4)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG5_ADR then
+          acam_config_rdbk(5)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG6_ADR then
+          acam_config_rdbk(6)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG7_ADR then
+          acam_config_rdbk(7)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG11_ADR then
+          acam_config_rdbk(8)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG12_ADR then
+          acam_config_rdbk(9)  <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG14_ADR then
+          acam_config_rdbk(10) <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG8_ADR then
+          acam_ififo1_o        <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG9_ADR then
+          acam_ififo2_o        <= acam_dat_i;
+        end if;
+
+        if acam_adr = c_ACAM_REG10_ADR then
+          acam_start01_o       <= acam_dat_i;
+        end if;
+
+      end if;
+    end if;
+  end process;
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  acam_tstamp1_o               <= acam_dat_i;
+  acam_tstamp1_ok_p_o          <= '1' when (acam_ack_i ='1' and engine_st = GET_STAMP1) else '0';
+
+  acam_tstamp2_o               <= acam_dat_i;
+  acam_tstamp2_ok_p_o          <= '1' when (acam_ack_i ='1' and engine_st = GET_STAMP2) else '0';
+
+  acam_config_rdbk_o           <= acam_config_rdbk;
+  acam_status_o                <= acam_config_rdbk(9);
+
+
+end architecture rtl;
+--=================================================================================================
+--                                        architecture end
+--=================================================================================================
+---------------------------------------------------------------------------------------------------
+--                                      E N D   O F   F I L E
+---------------------------------------------------------------------------------------------------
