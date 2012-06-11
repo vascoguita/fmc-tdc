@@ -64,49 +64,53 @@ entity data_formatting is
   port
   -- INPUTS
      -- Signal from the clk_rst_manager
-    (clk_i                 : in std_logic; -- 125 MHz clk
-     rst_i                 : in std_logic; -- general reset
+    (clk_i                   : in std_logic; -- 125 MHz clk
+     rst_i                   : in std_logic; -- general reset
 
      -- Signals from the circular_buffer unit: WISHBONE classic
-     tstamp_wr_wb_ack_i    : in std_logic; -- tstamp writing WISHBONE acknowledge
-     tstamp_wr_dat_i       : in std_logic_vector(127 downto 0); -- not used
+     tstamp_wr_wb_ack_i      : in std_logic; -- tstamp writing WISHBONE acknowledge
+     tstamp_wr_dat_i         : in std_logic_vector(127 downto 0); -- not used
 
      -- Signals from the data_engine unit
-     acam_tstamp1_i        : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
+     acam_tstamp1_i          : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
                                                                  -- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO1
-     acam_tstamp1_ok_p_i   : in std_logic; -- tstamp2 valid indicator
-     acam_tstamp2_i        : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
+     acam_tstamp1_ok_p_i     : in std_logic; -- tstamp2 valid indicator
+     acam_tstamp2_i          : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
                                                                  -- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO2
-     acam_tstamp2_ok_p_i   : in std_logic; -- tstamp2 valid indicator
+     acam_tstamp2_ok_p_i     : in std_logic; -- tstamp2 valid indicator
 
      -- Signals from the reg_ctrl unit
-     dacapo_c_rst_p_i      : in std_logic; -- instruction from PCIe to clear dacapo flag
+     dacapo_c_rst_p_i        : in std_logic; -- instruction from PCIe to clear dacapo flag
 
      -- Signals from the one_hz_gen unit
-     local_utc_i           : in std_logic_vector(31 downto 0);   -- local UTC time
+     local_utc_i             : in std_logic_vector(31 downto 0);   -- local UTC time
 
      -- Signals from the start_retrig_ctrl unit
-     clk_i_cycles_offset_i : in std_logic_vector(31 downto 0);   -- eva: don t know yet
-     current_roll_over_i   : in std_logic_vector(31 downto 0);   -- eva: don t know yet
-     retrig_nb_offset_i    : in std_logic_vector(31 downto 0);   -- eva: don t know yet
+     roll_over_incr_recent_i : in std_logic;
+     clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
+     roll_over_nb_i          : in std_logic_vector(31 downto 0);
+     retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
+
+     -- Signal from the one_hz_generator unit
+     one_hz_p_i              : in std_logic;
 
 
   -- OUTPUTS
      -- Signals to the circular_buffer unit: WISHBONE classic
-     tstamp_wr_wb_cyc_o    : out std_logic;                      -- tstamp writing WISHBONE cycle
-     tstamp_wr_wb_stb_o    : out std_logic;                      -- tstamp writing WISHBONE strobe
-     tstamp_wr_wb_we_o     : out std_logic;                      -- tstamp writing WISHBONE write enable
-     tstamp_wr_wb_adr_o    : out std_logic_vector(7 downto 0);   -- WISHBONE adr to write to
-     tstamp_wr_dat_o       : out std_logic_vector(127 downto 0); -- tstamp to write
+     tstamp_wr_wb_cyc_o      : out std_logic;                      -- tstamp writing WISHBONE cycle
+     tstamp_wr_wb_stb_o      : out std_logic;                      -- tstamp writing WISHBONE strobe
+     tstamp_wr_wb_we_o       : out std_logic;                      -- tstamp writing WISHBONE write enable
+     tstamp_wr_wb_adr_o      : out std_logic_vector(7 downto 0);   -- WISHBONE adr to write to
+     tstamp_wr_dat_o         : out std_logic_vector(127 downto 0); -- tstamp to write
 
      -- Signal to the irq_generator unit
-     tstamp_wr_p_o         : out std_logic;                      -- pulse upon storage of a new tstamp
+     tstamp_wr_p_o           : out std_logic;                      -- pulse upon storage of a new tstamp
 
      -- Signal to the reg_ctrl unit
-     wr_index_o            : out std_logic_vector(31 downto 0)); -- index of last byte written
-                                                                 -- note that the index is provided
-                                                                 -- #bytes, as the PCIe expects
-                                                                 -- (not in #128-bits-words)
+     wr_index_o              : out std_logic_vector(31 downto 0)); -- index of last byte written
+                                                                   -- note that the index is provided
+                                                                   -- #bytes, as the PCIe expects
+                                                                   -- (not in #128-bits-words)
 
 end data_formatting;
 
@@ -134,6 +138,9 @@ architecture rtl of data_formatting is
   -- circular buffer counters
   signal dacapo_counter                                       : unsigned(19 downto 0);
   signal wr_index                                             : unsigned(7 downto 0);
+
+  -- signal previous_clk_i_cycles_offset                         : std_logic_vector(31 downto 0);
+  -- signal previous_retrig_nb_offset, previous_roll_over_nb     : std_logic_vector(31 downto 0);
 
 
 --=================================================================================================
@@ -252,7 +259,7 @@ begin
 --                                          each bit represents 81.03 ps
 
 --   [63:32]  Coarse time within the current second, caclulated from the: Start number,
---            clk_i_cycles_offset_i, retrig_nb_offset_i, current_roll_over_i 
+--            clk_i_cycles_offset_i, retrig_nb_offset_i, roll_over_nb_i 
 --                                          each bit represents 8 ns
 
 --   [95:64]  Local UTC time coming from the one_hz_generator;
@@ -291,11 +298,49 @@ begin
   end process;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- reg_info_of_previous_sec: process (clk_i)
+  -- begin   
+    -- if rising_edge (clk_i) then
+      -- if rst_i = '1' then
+        -- previous_clk_i_cycles_offset <= (others => '0');
+        -- previous_retrig_nb_offset    <= (others => '0');
+        -- previous_roll_over_nb        <= (others => '0');
+
+      -- elsif one_hz_p_i = '1' then
+        -- previous_clk_i_cycles_offset <= clk_i_cycles_offset_i;
+        -- previous_retrig_nb_offset    <= retrig_nb_offset_i;
+        -- previous_roll_over_nb        <= roll_over_nb_i;
+      -- end if;
+    -- end if;
+  -- end process;
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   full_timestamp(31 downto 0)   <= fine_time;
   full_timestamp(63 downto 32)  <= coarse_time;
   full_timestamp(95 downto 64)  <= local_utc;
   full_timestamp(127 downto 96) <= metadata;
   tstamp_wr_dat_o               <= full_timestamp;
+
+  --un_clk_i_cycles_offset        <= unsigned(previous_clk_i_cycles_offset) when retrig_nb_offset_i = acam_start_nb_32  
+  --                                 else unsigned(clk_i_cycles_offset_i);
+  --un_retrig_nb_offset           <= unsigned(previous_retrig_nb_offset) when retrig_nb_offset_i = acam_start_nb_32 
+  --                                 else unsigned(retrig_nb_offset_i);
+  --un_roll_over                  <= unsigned(previous_roll_over_nb) when retrig_nb_offset_i = acam_start_nb_32  
+  --                                 else unsigned(roll_over_nb_i);
+
+  -- all the values needed for the calculations have to be converted to unsigned
+  acam_start_nb_32              <= x"000000" & acam_start_nb;
+  un_acam_start_nb              <= unsigned(acam_start_nb_32);
+  un_clk_i_cycles_offset        <= unsigned(clk_i_cycles_offset_i);
+  un_retrig_nb_offset           <= unsigned(retrig_nb_offset_i);
+  un_roll_over                  <= unsigned(roll_over_nb_i);
+
+  -- the number of roll-overs of the ACAM internal start retrigger counter is converted to a number
+  -- of internal start retriggers.
+  -- shifted left to multiply by 256
+  un_retrig_from_roll_over      <= shift_left(un_roll_over-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
+                                   else shift_left(un_roll_over, 8);
+
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- fine time: directly provided by ACAM as a number of BINs since the last internal retrigger
@@ -311,39 +356,30 @@ begin
   -- and will cancel when substracting timestamps.
   coarse_time                   <= std_logic_vector(un_nb_of_cycles);
     
-  -- all the values needed for the calculations have to be converted to unsigned
-  acam_start_nb_32              <= x"000000" & acam_start_nb;
-  un_acam_start_nb              <= unsigned(acam_start_nb_32);
-  un_clk_i_cycles_offset        <= unsigned(clk_i_cycles_offset_i);
-  un_retrig_nb_offset           <= unsigned(retrig_nb_offset_i);
-  un_roll_over                  <= unsigned(current_roll_over_i);
-
-  -- the number of roll-overs of the ACAM internal start retrigger counter is converted to a number
-  -- of internal start retriggers.
-  un_retrig_from_roll_over      <= shift_left(un_roll_over,8); -- shifted left to multiply by 256
-    
-  -- the actual number of internal start retriggers actually occurred is calculated by subtracting the offset number
+  -- the number of internal start retriggers actually occurred is calculated by subtracting the offset number
   -- already present when the one_hz_pulse arrives, and adding the start nb provided by the ACAM.
-  un_nb_of_retrig              <=  un_retrig_from_roll_over - un_retrig_nb_offset + (un_acam_start_nb);
+  un_nb_of_retrig               <=  un_retrig_from_roll_over - un_retrig_nb_offset + un_acam_start_nb;
 
   -- finally, the coarse time is obtained by multiplying by the number of clk_i cycles in an internal
   -- start retrigger period and adding the number of clk_i cycles still to be discounted when the
   -- one_hz_pulse arrives.
-  un_nb_of_cycles              <= shift_left(un_nb_of_retrig-1, c_ACAM_RETRIG_PERIOD_SHIFT) + un_clk_i_cycles_offset;
+  un_nb_of_cycles               <= shift_left(un_nb_of_retrig-1, c_ACAM_RETRIG_PERIOD_SHIFT) + un_clk_i_cycles_offset;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata                      <= x"0000"              & -- 16 bits         (MSB)
-                                   "000" & acam_fifo_ef & -- 4 bits in total
-                                   "000" & acam_fifo_lf & -- 4 bits in total
+  metadata                      <= acam_start_nb &
+                                   roll_over_nb_i(15 downto 0) &
+                                   -- x"0000"              & -- 16 bits         (MSB)
+                                   -- "000" & acam_fifo_ef & -- 4 bits in total
+                                   -- "000" & acam_fifo_lf & -- 4 bits in total
                                    "000" & acam_slope   & -- 4 bits in total
                                    "0"   & acam_channel;  -- 4 bits in total (LSB)
+
 
 
 ---------------------------------------------------------------------------------------------------
 --                                            Outputs                                            --
 ---------------------------------------------------------------------------------------------------   
-
 -- wr_pointer_o <= dacapo_flag & std_logic_vector(wr_index(g_width-6 downto 0)) & x"0";
 
    tstamp_wr_wb_cyc_o      <= tstamp_wr_cyc;

@@ -136,6 +136,10 @@ entity reg_ctrl is
      -- Signal to the data_formatting unit
      dacapo_c_rst_p_o      : out std_logic; -- clears the dacapo counter
 
+     -- Signals to the clks_resets_manager ubit
+     send_dac_word_p_o     : out std_logic; -- starts spi_dac_
+     dac_word_o            : out std_logic_vector(23 downto 0);
+
      -- Signal to the one_hz_gen unit
      load_utc_p_o          : out std_logic;
      starting_utc_o        : out std_logic_vector(g_width-1 downto 0);
@@ -157,11 +161,15 @@ end reg_ctrl;
 --=================================================================================================
 architecture rtl of reg_ctrl is
 
-  signal acam_config                                            : config_vector;
-  signal reg_adr                                                : std_logic_vector(7 downto 0);
-  signal starting_utc, acam_inputs_en, start_phase, ctrl_reg    : std_logic_vector(g_width-1 downto 0);
-  signal one_hz_phase, irq_tstamp_threshold, irq_time_threshold : std_logic_vector(g_width-1 downto 0);
-  signal clear_ctrl_reg                                         : std_logic;
+  signal acam_config                                  : config_vector;
+  signal reg_adr                                      : std_logic_vector(7 downto 0);
+  signal starting_utc, acam_inputs_en, start_phase    : std_logic_vector(g_width-1 downto 0);
+  signal ctrl_reg, one_hz_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
+  signal irq_time_threshold                           : std_logic_vector(g_width-1 downto 0);
+  signal clear_ctrl_reg, send_dac_word_p          : std_logic;
+  signal dac_word                                 : std_logic_vector(23 downto 0);
+  signal pulse_extender_en                            : std_logic;
+  signal pulse_extender_c                             : std_logic_vector(2 downto 0);
 
 --=================================================================================================
 --                                       architecture begin
@@ -275,7 +283,7 @@ begin
 -- to be loaded locally.
 -- The following information is received:
 --   o acam_inputs_en: for the activation of the stop signals arriving to the ACAM
---   o starting_utc  : think not useful......
+--   o starting_utc
 --   o one_hz_phase  : think not useful......
 --   o start_phase   : think not useful......
   TDCcore_config_reg_reception: process (clk_i)
@@ -286,8 +294,10 @@ begin
         starting_utc           <= (others =>'0');
         start_phase            <= (others =>'0');
         one_hz_phase           <= (others =>'0');
-        irq_tstamp_threshold   <= (others =>'0');
-        irq_time_threshold     <= (others =>'0');
+        irq_tstamp_threshold   <= x"00000100";   -- default 256 timestamps: full memory
+        irq_time_threshold     <= x"00000078";   -- default 2 minutes 
+        dac_word           <= c_DEFAULT_DAC_WORD; -- for DAC Vout = 1.65
+
 
       elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then
 
@@ -307,13 +317,18 @@ begin
           one_hz_phase         <= gnum_csr_dat_i;
         end if;
 
-        if reg_adr = c_IRQ_TSTAMP_THRESHOLD then
+        if reg_adr = c_IRQ_TSTAMP_THRESH_ADR then
           irq_tstamp_threshold <= gnum_csr_dat_i;
         end if;
 
-        if reg_adr = c_IRQ_TIME_THRESHOLD then
+        if reg_adr = c_IRQ_TIME_THRESH_ADR then
           irq_time_threshold   <= gnum_csr_dat_i;
         end if;
+
+        if reg_adr = c_DAC_WORD_ADR then
+          dac_word         <= gnum_csr_dat_i(23 downto 0);
+        end if;
+
       end if;
     end if;
   end process;
@@ -325,6 +340,7 @@ begin
   one_hz_phase_o         <= one_hz_phase;
   irq_tstamp_threshold_o <= irq_tstamp_threshold;
   irq_time_threshold_o   <= irq_time_threshold;
+  dac_word_o             <= dac_word;
 
 
 
@@ -370,9 +386,26 @@ begin
   acam_rst_p_o           <= ctrl_reg(8);
   load_utc_p_o           <= ctrl_reg(9);
   dacapo_c_rst_p_o       <= ctrl_reg(10);
--- ctrl_reg bits 11 to 31 not used for the moment!
+  send_dac_word_p    <= ctrl_reg(11);
+-- ctrl_reg bits 12 to 31 not used for the moment!
 
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+-- Pulse_stretcher: Increases the width of the send_dac_word_p pulse so that it can be sampled
+-- by the 20 MHz clock of the clks_rsts_manager that is communication with the DAC.
 
+  Pulse_stretcher: incr_counter
+  generic map
+    (width             => 3)
+  port map
+    (clk_i             => clk_i,
+     rst_i             => send_dac_word_p,
+     counter_top_i     => "111",
+     counter_incr_en_i => pulse_extender_en,
+     counter_is_full_o => open,
+     counter_o         => pulse_extender_c);
+
+  pulse_extender_en     <= '1' when pulse_extender_c < "111" else '0';
+  send_dac_word_p_o <= pulse_extender_en;
 
 ---------------------------------------------------------------------------------------------------
 --                        Delivery of ACAM and TDC core Readback Registers                       --
@@ -420,8 +453,9 @@ begin
       acam_inputs_en         when c_ACAM_INPUTS_EN_ADR,
       start_phase            when c_START_PHASE_ADR,
       one_hz_phase           when c_ONE_HZ_PHASE_ADR,
-      irq_tstamp_threshold   when c_IRQ_TSTAMP_THRESHOLD,
-      irq_time_threshold     when c_IRQ_TIME_THRESHOLD,
+      irq_tstamp_threshold   when c_IRQ_TSTAMP_THRESH_ADR,
+      irq_time_threshold     when c_IRQ_TIME_THRESH_ADR,
+      x"00" & dac_word       when c_DAC_WORD_ADR,
 
       ----------------------------------------------------
       -- regs written locally by the TDC core units

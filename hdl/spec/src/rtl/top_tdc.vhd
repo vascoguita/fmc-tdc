@@ -1,20 +1,78 @@
-----------------------------------------------------------------------------------------------------
---  CERN-BE-CO-HT
-----------------------------------------------------------------------------------------------------
---
---  unit name   : TDC top level (top_tdc.vhd)
---  author      : G. Penacoba
---  date        : May 2011
---  version     : Revision 1
---  description : top level of tdc project
---  dependencies:
---  references  :
---  modified by :
+--_________________________________________________________________________________________________
+--                                                                                                |
+--                                           |TDC core|                                           |
+--                                                                                                |
+--                                         CERN,BE/CO-HT                                          |
+--________________________________________________________________________________________________|
+
+---------------------------------------------------------------------------------------------------
+--                                                                                                |
+--                                            top_tdc                                             |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+-- File         top_tdc.vhd                                                                       |
+--                                                                                                |
+-- Description  TDC top level                                                                     |
+--                                                                                                |
+-- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
+--              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
+-- Date         06/2012                                                                           |
+-- Version      v2                                                                                |
+-- Depends on                                                                                     |
+--                                                                                                |
+----------------                                                                                  |
+-- Last changes                                                                                   |
+--     05/2011  v1  GP  First version                                                             |
+--     06/2012  v2  EG  Revamping; Comments added, signals renamed                                |
+--                      removed LEDs from top level                                               |
+--                      new gnum core integrated                                                  |
+--                      carrier 1 wire master added                                               |
+--                      mezzanine I2C master added                                                |
+--                      mezzanine 1 wire master added                                             |
+--                      interrupts generator added                                                |
+--                      changed generation of general_rst                                         | 
+--                      DAC reconfiguration+needed regs added                                     |
+
+----------------------------------------------/!\-------------------------------------------------|
+-- TODO!!                                                                                         |
+-- Data formatting unit, line 341: If a new tstamp has arrived from the ACAM when the roll_over   |
+-- has just been increased, there are chances the tstamp belongs to the previous roll-over value. |
+-- This is because the moment the IrFlag is taken into account in the FPGA is different from the  |
+-- moment the tstamp has arrived to the ACAM. So if in a timestamp the start_nb from the ACAM is  |
+-- close to the upper end (close to 255) and on the moment the timestamp is being treated in the  |
+-- FPGA the IrFlag has recently been tripped it means that for the formatting of the tstamp the   |
+-- previous value of the roll_over_c should be considered (before the IrFlag tripping).           |
+-- Have to calculate the amount of tstamps that could have been accumulated before the rollover   |
+-- changes; the current value we put "192" is not well studied for all cases!!                    |
+--                                                                                                |
+-- Data formatting unit, lines 300-315: for the case that in line 365:                            |
+-- un_retrig_from_roll_over - un_retrig_nb_offset + un_acam_start_nb = 0 for the data_formatting  |
+-- we should consider the values (offsets and value of roll_over_c just before the arrival of     |
+-- the new sec) that characterize the previous second!!                                           |
+-- Commented lines have not been tested at aaaaaall                                               |
+--                                                                                                |
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+--                               GNU LESSER GENERAL PUBLIC LICENSE                                |
+--                              ------------------------------------                              |
+-- This source file is free software; you can redistribute it and/or modify it under the terms of |
+-- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
+-- version 2.1 of the License, or (at your option) any later version.                             |
+-- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
+-- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
+-- See the GNU Lesser General Public License for more details.                                    |
+-- You should have received a copy of the GNU Lesser General Public License along with this       |
+-- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+---------------------------------------------------------------------------------------------------
+
+
+
 --
 ----------------------------------------------------------------------------------------------------
 --  last changes:
 -- revamping, comments, renamings etc
--- new gnum core integrated
+-- 
 -- clks_rsts_mnger modified
 ----------------------------------------------------------------------------------------------------
 --  to do:
@@ -35,8 +93,8 @@ entity top_tdc is
   generic
     (g_span                  : integer :=32;                     -- address span in bus interfaces
      g_width                 : integer :=32;                     -- data width in bus interfaces
-     values_for_simulation   : boolean :=FALSE);                   -- this generic is set to TRUE
-                                                                  -- when instantiated in a test-bench
+     values_for_simulation   : boolean :=FALSE);                 -- this generic is set to TRUE
+                                                                 -- when instantiated in a test-bench
   port
     (-- interface with GNUM
      rst_n_a_i               : in  std_logic;
@@ -143,19 +201,15 @@ architecture rtl of top_tdc is
 
 
 
-  signal clk, spec_clk : std_logic;
+  signal clk, spec_clk, pll_ld : std_logic;
 
 -- LEDs
-  signal spec_led_blink_done, spec_led_period_done, tdc_led_blink_done      : std_logic;
-  signal spec_led_period          : std_logic_vector(g_width-1 downto 0);
-  signal visible_blink_length                                               : std_logic_vector(g_width-1 downto 0);
-  signal spec_led_green, spec_led_red, tdc_led_status                       : std_logic;
 
   signal pulse_delay, window_delay, clk_period : std_logic_vector(g_width-1 downto 0);
 
-  signal gnum_rst, gnum_rst_synch               : std_logic;
+  signal gnum_rst              : std_logic;
 
-
+  signal irq_code, core_status            : std_logic_vector(g_width-1 downto 0);
 
   signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta                 : std_logic;
 
@@ -164,7 +218,7 @@ architecture rtl of top_tdc is
   signal acam_tstamp1, acam_tstamp2          : std_logic_vector(g_width-1 downto 0);
   signal acam_tstamp1_ok_p, acam_tstamp2_ok_p    : std_logic;
 
-  signal clk_i_cycles_offset, current_roll_over, retrig_nb_offset : std_logic_vector(g_width-1 downto 0);
+  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset : std_logic_vector(g_width-1 downto 0);
   signal general_rst, general_rst_n            : std_logic;
   signal one_hz_p               : std_logic;
 
@@ -200,7 +254,7 @@ architecture rtl of top_tdc is
 
   signal activate_acq_p, deactivate_acq_p, load_acam_config, read_acam_config     : std_logic;
   signal read_acam_status, read_ififo1, read_ififo2, read_start01, reset_acam : std_logic;
-  signal load_utc, clear_dacapo_counter                 : std_logic;
+  signal load_utc, clear_dacapo_counter, roll_over_incr_recent                 : std_logic;
 
   signal starting_utc             : std_logic_vector(g_width-1 downto 0);
   signal acam_inputs_en, irq_tstamp_threshold, irq_time_threshold               : std_logic_vector(g_width-1 downto 0);
@@ -208,7 +262,7 @@ architecture rtl of top_tdc is
   signal acam_config_rdbk         : config_vector;
   signal acam_status, acam_ififo1, acam_ififo2, acam_start01 : std_logic_vector(g_width-1 downto 0);
 
-  signal local_utc, irq_code, wr_index, core_status          : std_logic_vector(g_width-1 downto 0);
+  signal local_utc, wr_index        : std_logic_vector(g_width-1 downto 0);
   signal irq_sources       : std_logic_vector(g_width-1 downto 0);
 
 
@@ -233,7 +287,8 @@ architecture rtl of top_tdc is
   signal sys_scl_in, sys_scl_out, sys_scl_oe_n  : std_logic;
   signal sys_sda_in, sys_sda_out, sys_sda_oe_n  : std_logic;
 
-  signal tstamp_wr_p, irq_tstamp_p, irq_time_p               : std_logic;
+  signal tstamp_wr_p, irq_tstamp_p, irq_time_p, send_dac_word_p  : std_logic;
+  signal pll_dac_word : std_logic_vector(23 downto 0);
 
 -- <acam_status_i<31:0>> is never used.
 -- <adr_i<7:4>> is never used.
@@ -251,7 +306,8 @@ architecture rtl of top_tdc is
 --  architecture begins
 ----------------------------------------------------------------------------------------------------
 begin
- 
+
+  general_rst_n <= not (general_rst);
 ---------------------------------------------------------------------------------------------------
 --                                        WISHBONE CSR DECODER                                   --
 ---------------------------------------------------------------------------------------------------
@@ -536,11 +592,34 @@ begin
        start_phase_o         => window_delay,
        irq_tstamp_threshold_o=> irq_tstamp_threshold,
        irq_time_threshold_o  => irq_time_threshold,
+       send_dac_word_p_o     => send_dac_word_p,
+       dac_word_o            => pll_dac_word,
        one_hz_phase_o        => pulse_delay);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   wb_all_csr_stall(c_CSR_WB_TDC_CORE) <= '0';
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  term_enable_regs: process (clk)
+  begin
+    if rising_edge (clk) then
+      if general_rst = '1' then
+        mute_inputs_o <= '0';
+        term_en_5_o   <= '0';
+        term_en_4_o   <= '0';
+        term_en_3_o   <= '0';
+        term_en_2_o   <= '0';
+        term_en_1_o   <= '0';
+      else
+        mute_inputs_o <= acam_inputs_en(7);
+        term_en_5_o   <= acam_inputs_en(4);
+        term_en_4_o   <= acam_inputs_en(3);
+        term_en_3_o   <= acam_inputs_en(2);
+        term_en_2_o   <= acam_inputs_en(1);
+        term_en_1_o   <= acam_inputs_en(0);
+      end if;
+    end if;
+  end process;
 
 ---------------------------------------------------------------------------------------------------
 --                                       ONE HZ GENERATOR                                        --
@@ -558,7 +637,8 @@ begin
        starting_utc_i         => starting_utc,
        local_utc_o            => local_utc,
        one_hz_p_o             => one_hz_p);
-
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+    clk_period           <= c_SIM_CLK_PERIOD when values_for_simulation else c_SYN_CLK_PERIOD;
 
 ---------------------------------------------------------------------------------------------------
 --                                   ACAM TIMECONTROL INTERFACE                                  --
@@ -615,15 +695,16 @@ begin
 ---------------------------------------------------------------------------------------------------
   start_retrigger_block: start_retrig_ctrl
     generic map
-      (g_width                => g_width)
+      (g_width                 => g_width)
     port map
-      (acam_intflag_f_edge_p_i=> acam_intflag_f_edge_p,
-       clk_i                  => clk,
-       one_hz_p_i             => one_hz_p,
-       rst_i                  => general_rst,
-       clk_i_cycles_offset_o  => clk_i_cycles_offset,
-       current_roll_over_o    => current_roll_over,
-       retrig_nb_offset_o     => retrig_nb_offset);
+      (acam_intflag_f_edge_p_i => acam_intflag_f_edge_p,
+       clk_i                   => clk,
+       one_hz_p_i              => one_hz_p,
+       rst_i                   => general_rst,
+       roll_over_incr_recent_o => roll_over_incr_recent,
+       clk_i_cycles_offset_o   => clk_i_cycles_offset,
+       roll_over_nb_o          => roll_over_nb,
+       retrig_nb_offset_o      => retrig_nb_offset);
 
 
 ---------------------------------------------------------------------------------------------------
@@ -670,26 +751,28 @@ begin
 ---------------------------------------------------------------------------------------------------
   data_formatting_block: data_formatting
     port map
-      (clk_i                 => clk,
-       rst_i                 => general_rst,
-       tstamp_wr_wb_ack_i    => mem_class_ack,
-       tstamp_wr_dat_i       => mem_class_data_rd,
-       tstamp_wr_wb_adr_o    => mem_class_adr,
-       tstamp_wr_wb_cyc_o    => mem_class_cyc,
-       tstamp_wr_dat_o       => mem_class_data_wr,
-       tstamp_wr_wb_stb_o    => mem_class_stb,
-       tstamp_wr_wb_we_o     => mem_class_we,
-       acam_tstamp1_i        => acam_tstamp1,
-       acam_tstamp1_ok_p_i   => acam_tstamp1_ok_p,
-       acam_tstamp2_i        => acam_tstamp2,
-       acam_tstamp2_ok_p_i   => acam_tstamp2_ok_p,
-       dacapo_c_rst_p_i      => clear_dacapo_counter,
-       clk_i_cycles_offset_i => clk_i_cycles_offset,
-       current_roll_over_i   => current_roll_over,
-       retrig_nb_offset_i    => retrig_nb_offset,
-       local_utc_i           => local_utc,
-       tstamp_wr_p_o         => tstamp_wr_p,
-       wr_index_o            => wr_index);
+      (clk_i                   => clk,
+       rst_i                   => general_rst,
+       tstamp_wr_wb_ack_i      => mem_class_ack,
+       tstamp_wr_dat_i         => mem_class_data_rd,
+       tstamp_wr_wb_adr_o      => mem_class_adr,
+       tstamp_wr_wb_cyc_o      => mem_class_cyc,
+       tstamp_wr_dat_o         => mem_class_data_wr,
+       tstamp_wr_wb_stb_o      => mem_class_stb,
+       tstamp_wr_wb_we_o       => mem_class_we,
+       acam_tstamp1_i          => acam_tstamp1,
+       acam_tstamp1_ok_p_i     => acam_tstamp1_ok_p,
+       acam_tstamp2_i          => acam_tstamp2,
+       acam_tstamp2_ok_p_i     => acam_tstamp2_ok_p,
+       dacapo_c_rst_p_i        => clear_dacapo_counter,
+       roll_over_incr_recent_i => roll_over_incr_recent,
+       clk_i_cycles_offset_i   => clk_i_cycles_offset,
+       roll_over_nb_i          => roll_over_nb,
+       retrig_nb_offset_i      => retrig_nb_offset,
+       one_hz_p_i              => one_hz_p,
+       local_utc_i             => local_utc,
+       tstamp_wr_p_o           => tstamp_wr_p,
+       wr_index_o              => wr_index);
 
 
 ---------------------------------------------------------------------------------------------------
@@ -741,18 +824,19 @@ begin
 ---------------------------------------------------------------------------------------------------
   clks_rsts_mgment: clks_rsts_manager
     generic map
-      (nb_of_reg             => 68,
-       values_for_simulation => values_for_simulation)
+      (nb_of_reg             => 68)
     port map
-      (acam_refclk_i          => acam_refclk_i,
+      (spec_clk_i             => spec_clk_i,
+       acam_refclk_i          => acam_refclk_i,
+       tdc_clk_p_i            => tdc_clk_p_i,
+       tdc_clk_n_i            => tdc_clk_n_i,
+       rst_n_a_i              => rst_n_a_i,
        pll_ld_i               => pll_ld_i,
        pll_refmon_i           => pll_refmon_i,
        pll_sdo_i              => pll_sdo_i,
        pll_status_i           => pll_status_i,
-       gnum_rst_i             => gnum_rst,
-       spec_clk_i             => spec_clk_i,
-       tdc_clk_p_i            => tdc_clk_p_i,
-       tdc_clk_n_i            => tdc_clk_n_i,
+       send_dac_word_p_i      => send_dac_word_p,
+       dac_word_i             => pll_dac_word,
        acam_refclk_r_edge_p_o => acam_refclk_r_edge_p,
        internal_rst_o         => general_rst,
        pll_cs_o               => pll_cs_o,
@@ -760,114 +844,41 @@ begin
        pll_sdi_o              => pll_sdi_o,
        pll_sclk_o             => pll_sclk_o,
        spec_clk_o             => spec_clk,
-       tdc_clk_o              => clk);
+       tdc_clk_o              => clk,
+       gnum_rst_o             => gnum_rst,
+       pll_ld_o               => pll_ld);
 
 
 ---------------------------------------------------------------------------------------------------
---                                          LEDs & more                                          --
+--                                        LEDs & BUTTONS                                         --
 ---------------------------------------------------------------------------------------------------  
+  leds_and_buttons: leds_manager
+  generic map
+    (g_width               => 32,
+     values_for_simulation => values_for_simulation)
+  port map
+    (clk_20mhz_i       => spec_clk,
+     clk_125mhz_i      => clk,
+     gnum_rst_i        => gnum_rst,
+     internal_rst_i    => general_rst,
+     pll_ld_i          => pll_ld,
+     spec_aux_butt_1_i => spec_aux0_i,
+     spec_aux_butt_2_i => spec_aux1_i,
+     one_hz_p_i        => one_hz_p,
+     acam_inputs_en_i  => acam_inputs_en,
+     tdc_led_status_o  => tdc_led_status_o,
+     tdc_led_trig1_o   => tdc_led_trig1_o,
+     tdc_led_trig2_o   => tdc_led_trig2_o,
+     tdc_led_trig3_o   => tdc_led_trig3_o,
+     tdc_led_trig4_o   => tdc_led_trig4_o,
+     tdc_led_trig5_o   => tdc_led_trig5_o,
+     spec_led_green_o  => spec_led_green_o,
+     spec_led_red_o    => spec_led_red_o,
+     spec_aux_led_1_o  => spec_aux2_o, 
+     spec_aux_led_2_o  => spec_aux3_o,
+     spec_aux_led_3_o  => spec_aux4_o,
+     spec_aux_led_4_o  => spec_aux5_o);
 
-  spec_led_period_counter: free_counter
-    port map
-      (clk_i              => spec_clk,
-       counter_en_i       => '1',
-       rst_i              => gnum_rst,
-       counter_top_i      => spec_led_period,
-       counter_is_zero_o  => spec_led_period_done,
-      counter_o           => open);
-    
-  spec_led_blink_counter: decr_counter
-    port map
-      (clk_i             => spec_clk,
-       rst_i             => gnum_rst,
-       counter_load_i    => spec_led_period_done,
-       counter_top_i     => visible_blink_length,
-       counter_is_zero_o => spec_led_blink_done,
-       counter_o         => open);
-
-  tdc_led_blink_counter: decr_counter
-    port map
-      (clk_i             => clk,
-       rst_i             => general_rst,
-       counter_load_i    => one_hz_p,
-       counter_top_i     => visible_blink_length,
-       counter_is_zero_o => tdc_led_blink_done,
-       counter_o         => open);
-
-  spec_led: process
-    begin
-      if gnum_rst ='1' then
-        spec_led_red <= '0';
-      elsif spec_led_period_done ='1' then
-        spec_led_red <= '1';
-      elsif spec_led_blink_done ='1' then
-        spec_led_red <= '0';
-      end if;
-    wait until spec_clk ='1';
-  end process;
-    
-  tdc_led: process
-    begin
-      if general_rst ='1' then
-        tdc_led_status <= '0';
-      elsif one_hz_p ='1' then
-        tdc_led_status <= '1';
-      elsif tdc_led_blink_done = '1' then
-        tdc_led_status <= '0';
-      end if;
-    wait until clk ='1';
-  end process;
-    
-  spec_led_period      <= c_SPEC_LED_PERIOD_SIM when values_for_simulation else c_SPEC_LED_PERIOD_SYN;
-  visible_blink_length <= c_BLINK_LGTH_SIM when values_for_simulation else c_BLINK_LGTH_SYN;
-  clk_period           <= c_SIM_CLK_PERIOD when values_for_simulation else c_SYN_CLK_PERIOD;
-
-  spec_led_green       <= pll_ld_i;
-
-  -- inputs
-  sync_gnum_reset: process
-    begin
-      gnum_rst_synch <= not(rst_n_a_i);
-      gnum_rst       <= gnum_rst_synch;
-    wait until spec_clk ='1';
-  end process;
-
-  general_rst_n <= not general_rst;
-
-  -- outputs
-  process
-    begin
-      mute_inputs_o    <= acam_inputs_en(7);
-      term_en_5_o      <= acam_inputs_en(4);
-      term_en_4_o      <= acam_inputs_en(3);
-      term_en_3_o      <= acam_inputs_en(2);
-      term_en_2_o      <= acam_inputs_en(1);
-      term_en_1_o      <= acam_inputs_en(0);
-      spec_led_green_o <= spec_led_green;
-      spec_led_red_o   <= spec_led_red;
-      tdc_led_status_o <= tdc_led_status;
-      tdc_led_trig5_o  <= acam_inputs_en(4) and acam_inputs_en(7);
-      tdc_led_trig4_o  <= acam_inputs_en(3) and acam_inputs_en(7);
-      tdc_led_trig3_o  <= acam_inputs_en(2) and acam_inputs_en(7);
-      tdc_led_trig2_o  <= acam_inputs_en(1) and acam_inputs_en(7);
-      tdc_led_trig1_o  <= acam_inputs_en(0) and acam_inputs_en(7);
-    wait until clk ='1';
-  end process;
-
-  -- note: all spec_aux signals are active low
-  button_with_spec_clk_i: process
-    begin
-      spec_aux3_o             <= spec_aux0_i;
-      spec_aux2_o             <= spec_aux0_i;
-    wait until spec_clk ='1';
-  end process;
-
-  button_with_tdc_clk_i: process
-    begin
-      spec_aux4_o             <= spec_aux1_i;
-      spec_aux5_o             <= spec_aux1_i;
-    wait until clk ='1';
-  end process;
     
 end rtl;
 ----------------------------------------------------------------------------------------------------

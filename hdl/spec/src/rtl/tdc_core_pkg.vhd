@@ -72,6 +72,13 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
+--                      Constant regarding the Mezzanine DAC configuration                       --
+---------------------------------------------------------------------------------------------------
+  -- Vout = Vref (DAC_WORD/ 65536); for Vout = 1.65V, with Vref = 2.5V the DAC_WORD = xA8F5
+  constant c_DEFAULT_DAC_WORD : std_logic_vector(23 downto 0) := x"00A8F5";
+
+
+---------------------------------------------------------------------------------------------------
 --                     Constants regarding TDC core and GNUM core addressing                     --
 ---------------------------------------------------------------------------------------------------
   constant c_BAR0_APERTURE           : integer := 18;  -- nb of bits for 32-bit word address (= byte aperture - 2)
@@ -151,9 +158,10 @@ package tdc_core_pkg is
   constant c_START_PHASE_ADR      : std_logic_vector(7 downto 0) := x"22"; -- address 20088 of gnum BAR 0
   constant c_ONE_HZ_PHASE_ADR     : std_logic_vector(7 downto 0) := x"23"; -- address 2008C of gnum BAR 0
 
-  constant c_IRQ_TSTAMP_THRESHOLD : std_logic_vector(7 downto 0) := x"24"; -- address 20090 of gnum BAR 0
-  constant c_IRQ_TIME_THRESHOLD   : std_logic_vector(7 downto 0) := x"25"; -- address 20090 of gnum BAR 0
---  constant c_RESERVED0          : std_logic_vector(7 downto 0) := x"26"; -- address 20098 of gnum BAR 0
+  constant c_IRQ_TSTAMP_THRESH_ADR: std_logic_vector(7 downto 0) := x"24"; -- address 20090 of gnum BAR 0
+  constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 20090 of gnum BAR 0
+  constant c_DAC_WORD_ADR         : std_logic_vector(7 downto 0) := x"26"; -- address 20098 of gnum BAR 0
+
 --  constant c_RESERVED1          : std_logic_vector(7 downto 0) := x"27"; -- address 2009C of gnum BAR 0
 
 ---------------------------------------------------------------------------------------------------
@@ -266,8 +274,9 @@ package tdc_core_pkg is
        acam_intflag_f_edge_p_i : in std_logic;
        one_hz_p_i              : in std_logic;
       ----------------------------------------------------------------------
+       roll_over_incr_recent_o : out std_logic;
        clk_i_cycles_offset_o   : out std_logic_vector(g_width-1 downto 0);
-       current_roll_over_o     : out std_logic_vector(g_width-1 downto 0);
+       roll_over_nb_o          : out std_logic_vector(g_width-1 downto 0);
        retrig_nb_offset_o      : out std_logic_vector(g_width-1 downto 0));
       ----------------------------------------------------------------------
   end component;
@@ -370,6 +379,8 @@ package tdc_core_pkg is
        load_utc_p_o           : out std_logic;
        irq_tstamp_threshold_o : out std_logic_vector(g_width-1 downto 0);
        irq_time_threshold_o   : out std_logic_vector(g_width-1 downto 0);
+       send_dac_word_p_o  : out std_logic; 
+       dac_word_o         : out std_logic_vector(23 downto 0);
        dacapo_c_rst_p_o       : out std_logic;
        acam_config_o          : out config_vector;
        starting_utc_o         : out std_logic_vector(g_width-1 downto 0);
@@ -404,27 +415,29 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component data_formatting
     port
-      (tstamp_wr_wb_ack_i    : in std_logic;
-       tstamp_wr_dat_i       : in std_logic_vector(127 downto 0);
-       acam_tstamp1_i        : in std_logic_vector(31 downto 0);
-       acam_tstamp1_ok_p_i   : in std_logic;
-       acam_tstamp2_i        : in std_logic_vector(31 downto 0);
-       acam_tstamp2_ok_p_i   : in std_logic;
-       clk_i                 : in std_logic;
-       dacapo_c_rst_p_i      : in std_logic;
-       rst_i                 : in std_logic;
-       clk_i_cycles_offset_i : in std_logic_vector(31 downto 0);
-       current_roll_over_i   : in std_logic_vector(31 downto 0);
-       local_utc_i           : in std_logic_vector(31 downto 0);
-       retrig_nb_offset_i    : in std_logic_vector(31 downto 0);
+      (tstamp_wr_wb_ack_i      : in std_logic;
+       tstamp_wr_dat_i         : in std_logic_vector(127 downto 0);
+       acam_tstamp1_i          : in std_logic_vector(31 downto 0);
+       acam_tstamp1_ok_p_i     : in std_logic;
+       acam_tstamp2_i          : in std_logic_vector(31 downto 0);
+       acam_tstamp2_ok_p_i     : in std_logic;
+       clk_i                   : in std_logic;
+       dacapo_c_rst_p_i        : in std_logic;
+       rst_i                   : in std_logic;
+       roll_over_incr_recent_i : in std_logic;
+       clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
+       roll_over_nb_i          : in std_logic_vector(31 downto 0);
+       local_utc_i             : in std_logic_vector(31 downto 0);
+       retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
+       one_hz_p_i              : in std_logic;
       ----------------------------------------------------------------------
-       tstamp_wr_wb_adr_o    : out std_logic_vector(7 downto 0);
-       tstamp_wr_wb_cyc_o    : out std_logic;
-       tstamp_wr_dat_o       : out std_logic_vector(127 downto 0);
-       tstamp_wr_wb_stb_o    : out std_logic;
-       tstamp_wr_wb_we_o     : out std_logic;
-       tstamp_wr_p_o         : out std_logic;
-       wr_index_o            : out std_logic_vector(31 downto 0));
+       tstamp_wr_wb_adr_o      : out std_logic_vector(7 downto 0);
+       tstamp_wr_wb_cyc_o      : out std_logic;
+       tstamp_wr_dat_o         : out std_logic_vector(127 downto 0);
+       tstamp_wr_wb_stb_o      : out std_logic;
+       tstamp_wr_wb_we_o       : out std_logic;
+       tstamp_wr_p_o           : out std_logic;
+       wr_index_o              : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
 
@@ -467,30 +480,66 @@ package tdc_core_pkg is
        irq_p_o     : out std_logic);
   end component irq_controller;
 
+
 ---------------------------------------------------------------------------------------------------
   component clks_rsts_manager
     generic
-      (nb_of_reg              : integer := 68;
-       values_for_simulation  : boolean := FALSE);
+      (nb_of_reg              : integer := 68);
     port
-      (acam_refclk_i        : in std_logic;
-       pll_ld_i             : in std_logic;
-       pll_refmon_i         : in std_logic;
-       pll_sdo_i            : in std_logic;
-       pll_status_i         : in std_logic;
-       gnum_rst_i           : in std_logic;
-       spec_clk_i           : in std_logic;
-       tdc_clk_p_i          : in std_logic;
-       tdc_clk_n_i          : in std_logic;
+      (spec_clk_i             : in std_logic;
+       acam_refclk_i          : in std_logic;
+       tdc_clk_p_i            : in std_logic;
+       tdc_clk_n_i            : in std_logic;
+       rst_n_a_i              : in std_logic;
+       pll_ld_i               : in std_logic;
+       pll_refmon_i           : in std_logic;
+       pll_sdo_i              : in std_logic;
+       pll_status_i           : in std_logic;
+       send_dac_word_p_i      : in std_logic;
+       dac_word_i             : in std_logic_vector(23 downto 0);
       ----------------------------------------------------------------------
+       tdc_clk_o              : out std_logic;
+       internal_rst_o         : out std_logic;
+       spec_clk_o             : out std_logic;
+       gnum_rst_o             : out std_logic;
        acam_refclk_r_edge_p_o : out std_logic;
-       internal_rst_o       : out std_logic;
-       pll_cs_o             : out std_logic;
-       pll_dac_sync_o       : out std_logic;
-       pll_sdi_o            : out std_logic;
-       pll_sclk_o           : out std_logic;
-       spec_clk_o           : out std_logic;
-       tdc_clk_o            : out std_logic);
+       pll_cs_o               : out std_logic;
+       pll_dac_sync_o         : out std_logic;
+       pll_sdi_o              : out std_logic;
+       pll_sclk_o             : out std_logic;
+       pll_ld_o               : out std_logic);
+      ----------------------------------------------------------------------
+  end component;
+
+
+---------------------------------------------------------------------------------------------------
+  component leds_manager is
+    generic
+      (g_width               : integer := 32;
+       values_for_simulation : boolean := FALSE);
+    port
+      (clk_20mhz_i       : in std_logic;
+       clk_125mhz_i      : in std_logic;
+       gnum_rst_i        : in std_logic;
+       internal_rst_i    : in std_logic;
+       pll_ld_i          : in std_logic;
+       spec_aux_butt_1_i : in std_logic;
+       spec_aux_butt_2_i : in std_logic;
+       one_hz_p_i        : in std_logic;
+       acam_inputs_en_i  : in std_logic_vector(g_width-1 downto 0);
+      ----------------------------------------------------------------------
+       tdc_led_status_o  : out std_logic;
+       tdc_led_trig1_o   : out std_logic;
+       tdc_led_trig2_o   : out std_logic;
+       tdc_led_trig3_o   : out std_logic;
+       tdc_led_trig4_o   : out std_logic;
+       tdc_led_trig5_o   : out std_logic;
+       spec_led_green_o  : out std_logic;
+       spec_led_red_o    : out std_logic;
+       spec_aux_led_1_o  : out std_logic;
+       spec_aux_led_2_o  : out std_logic;
+       spec_aux_led_3_o  : out std_logic;
+       spec_aux_led_4_o  : out std_logic);
       ----------------------------------------------------------------------
   end component;
 

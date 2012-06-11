@@ -56,7 +56,7 @@ use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
 
 --=================================================================================================
---                            Entity declaration for start_retrig_ctrl
+--                       Entity declaration for acam_timecontrol_interface
 --=================================================================================================
 
 entity acam_timecontrol_interface is

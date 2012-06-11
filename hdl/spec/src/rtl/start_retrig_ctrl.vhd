@@ -151,8 +151,9 @@ entity start_retrig_ctrl is
 
   -- OUTPUTS
      -- Signals to the data_formatting unit
+     roll_over_incr_recent_o : out std_logic;
      clk_i_cycles_offset_o   : out std_logic_vector(g_width-1 downto 0);
-     current_roll_over_o     : out std_logic_vector(g_width-1 downto 0);
+     roll_over_nb_o          : out std_logic_vector(g_width-1 downto 0);
      retrig_nb_offset_o      : out std_logic_vector(g_width-1 downto 0));
 
 end start_retrig_ctrl;
@@ -286,7 +287,7 @@ begin
         clk_i_cycles_offset <= (others=>'0');
         retrig_nb_offset    <= (others=>'0');
 
-      elsif one_hz_p_i ='1' then
+      elsif one_hz_p_i = '1' then
         clk_i_cycles_offset <= current_cycles;
         retrig_nb_offset    <= current_retrig_nb;
       end if;
@@ -297,9 +298,11 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --    
     
   -- outputs
-  clk_i_cycles_offset_o     <= clk_i_cycles_offset;
-  retrig_nb_offset_o        <= retrig_nb_offset;
-  current_roll_over_o       <= roll_over_c;
+  roll_over_incr_recent_o <= '1' when unsigned(current_retrig_nb) < 64 else '0';
+  clk_i_cycles_offset_o   <= clk_i_cycles_offset;
+  retrig_nb_offset_o      <= retrig_nb_offset;
+  roll_over_nb_o          <= roll_over_c;
+
 
 
 end architecture rtl;
