@@ -24,7 +24,7 @@
 --             |           |___CSn_______|            |___cyc______|           |                  |
 --             |   ACAM    |___OEn_______|  acam_     |___we_______|  data_    |                  |
 --             |           |___EF________|  databus_  |___ack______|  engine   |                  |
---             |           |___LF________|  interface |___adr______|           |                  |
+--             |           |             |  interface |___adr______|           |                  |
 --             |           |___ADR_______|            |___datI_____|           |                  |
 --             |           |___DatabusIO_|            |___datO_____|           |                  |
 --             |___________|             |____________|            |___________|                  |
@@ -85,8 +85,6 @@ entity acam_databus_interface is
      -- Signals from the ACAM chip
      ef1_i        : in std_logic; -- FIFO1 empty flag
      ef2_i        : in std_logic; -- FIFO1 empty flag
-     lf1_i        : in std_logic; -- load flag, not used
-     lf2_i        : in std_logic; -- load flag, not used
 
      data_bus_io   : inout std_logic_vector(27 downto 0);
 
@@ -114,7 +112,7 @@ entity acam_databus_interface is
 
      -- Signals to the data_engine unit
      ack_o        : out std_logic;                      -- WISHBONE ack 
-     dat_o        : out std_logic_vector(31 downto 0)); -- ef1 & ef2 & lf1 & lf2 & 28 bits acam data_bus_io
+     dat_o        : out std_logic_vector(31 downto 0)); -- ef1 & ef2 & 0 & 0 & 28 bits acam data_bus_io
 
 end acam_databus_interface;
 
@@ -128,7 +126,7 @@ architecture rtl of acam_databus_interface is
   type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
   signal acam_data_st, nxt_acam_data_st                              : t_acam_interface;
 
-  signal ef1_synch, ef2_synch, lf1_synch, lf2_synch                  : std_logic_vector(1 downto 0);
+  signal ef1_synch, ef2_synch                                        : std_logic_vector(1 downto 0);
   signal ack, cs, cs_extend, rd, rd_extend, wr, wr_extend, wr_remove : std_logic;
 
 
@@ -148,13 +146,9 @@ begin
       if rst_i ='1' then
         ef1_synch <= (others =>'1');
         ef2_synch <= (others =>'1');
-        lf1_synch <= (others =>'0');
-        lf2_synch <= (others =>'0');
       else
         ef1_synch <= ef1_i & ef1_synch(1);
         ef2_synch <= ef2_i & ef2_synch(1);
-        lf1_synch <= lf1_i & lf1_synch(1);
-        lf2_synch <= lf2_i & lf2_synch(1);
       end if;
     end if;
   end process;
@@ -298,8 +292,8 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   ack_o  <= ack;
 
-  -- to the 28 bits databus output we add the ef and lf flags to arrive to a 32 bits word
-  dat_o  <= ef1_synch(0) & ef2_synch(0) & lf1_synch(0) & lf2_synch(0) & data_bus_io; 
+  -- to the 28 bits databus output we add the ef flags to arrive to a 32 bits word
+  dat_o  <= ef1_synch(0) & ef2_synch(0) & "00" & data_bus_io; 
 
 
 

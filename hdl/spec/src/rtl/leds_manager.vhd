@@ -33,7 +33,7 @@
 --              TDC LED  4 orange: Channel 3 terminatio enable                                    |
 --              TDC LED  5 orange: Channel 4 terminatio enable                                    |
 --              TDC LED  6 orange: Channel 5 terminatio enable                                    |
---              SPEC LED 1 green : PLL lock detect                                                |
+--              SPEC LED 1 green : PLL status (DLD)                                               |
 --              SPEC LED 2 red   : division of the 20 MHz clock                                   |
 --                                                                                                |
 --              There are also 4 LEDs and 2 buttons on the PCB of the SPEC carrier:               |
@@ -98,7 +98,7 @@ entity leds_manager is
      internal_rst_i    : in std_logic;  -- core internal reset, synched with 125 MHz clk
 
      -- Signal from the PLL
-     pll_ld_i          : in std_logic;  -- PLL lock detect
+     pll_status_i          : in std_logic;  -- PLL lock detect
 
      -- Signals from the buttons on the SPEC PCB
      spec_aux_butt_1_i : in std_logic;  -- SPEC PCB button 1 (PB1)
@@ -192,7 +192,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                     SPEC FRONT PANEL LED 1                                    --
 --------------------------------------------------------------------------------------------------- 
-  spec_led_green_o     <= pll_ld_i;
+  spec_led_green_o     <= pll_status_i;
 
 
 ---------------------------------------------------------------------------------------------------

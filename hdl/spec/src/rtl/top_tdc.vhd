@@ -17,7 +17,7 @@
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
 -- Date         06/2012                                                                           |
--- Version      v2                                                                                |
+-- Version      v3                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -32,7 +32,11 @@
 --                      interrupts generator added                                                |
 --                      changed generation of general_rst                                         | 
 --                      DAC reconfiguration+needed regs added                                     |
-
+--     06/2012  v3  EG  Changes for v2 of TDC mezzanine                                           |
+--                      Several pinout changes,                                                   |
+--                      acam_ref_clk LVDS instead of CMOS,                                        |
+--                      no PLL_LD only PLL_STATUS                                                 |
+--                                                                                                |
 ----------------------------------------------/!\-------------------------------------------------|
 -- TODO!!                                                                                         |
 -- Data formatting unit, line 341: If a new tstamp has arrived from the ACAM when the roll_over   |
@@ -51,6 +55,13 @@
 -- the new sec) that characterize the previous second!!                                           |
 -- Commented lines have not been tested at aaaaaall                                               |
 --                                                                                                |
+-- Interrupts generator unit, add interrupt "If N timestamps are available before a minimal time  |
+-- threshold occurs,no interrupt is raised and a flag is set indicating this condition"David's doc|
+--                                                                                                |
+-- Clocks Resets Manager unit, check again PLL regs for acam_ref_clk (was CMOS in v1, now LVDS)   |
+--                                                                                                |
+-- Add logic for TDC_ERR??                                                                        |
+-- Add logic for TDC_in_FPGA??                                                                    |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -66,18 +77,9 @@
 -- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
 ---------------------------------------------------------------------------------------------------
 
-
-
---
-----------------------------------------------------------------------------------------------------
---  last changes:
--- revamping, comments, renamings etc
--- 
--- clks_rsts_mnger modified
-----------------------------------------------------------------------------------------------------
---  to do:
-----------------------------------------------------------------------------------------------------
-
+--=================================================================================================
+--                                       Libraries & Packages
+--=================================================================================================
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -86,9 +88,9 @@ use work.gn4124_core_pkg.all;
 use work.gencores_pkg.all;
 use work.wishbone_pkg.all;
 
-----------------------------------------------------------------------------------------------------
---  entity declaration for top_tdc
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                   Entity declaration for top_tdc
+--=================================================================================================
 entity top_tdc is
   generic
     (g_span                  : integer :=32;                     -- address span in bus interfaces
@@ -96,7 +98,7 @@ entity top_tdc is
      values_for_simulation   : boolean :=FALSE);                 -- this generic is set to TRUE
                                                                  -- when instantiated in a test-bench
   port
-    (-- interface with GNUM
+    (-- Signals for the GNUM interface
      rst_n_a_i               : in  std_logic;
      -- P2L Direction
      p2l_clk_p_i             : in  std_logic;                    -- Receiver Source Synchronous Clock+
@@ -122,173 +124,134 @@ entity top_tdc is
      tx_error_i              : in  std_logic;                    -- Transmit Error
      irq_p_o                 : out std_logic;                    -- Interrupt request pulse to GN4124 GPIO
      spare_o                 : out std_logic;
-
-     -- interface signals with PLL circuit on TDC mezzanine
-     acam_refclk_i           : in std_logic;                     -- 31.25 MHz clock that is also received by ACAM
-     pll_ld_i                : in std_logic;                     -- PLL AD9516 interface signals
-     pll_refmon_i            : in std_logic;                     --
-     pll_sdo_i               : in std_logic;                     --
-     pll_status_i            : in std_logic;                     --
+     -- Signal from the SPEC carrier
+     spec_clk_i              : in std_logic ;                    -- 20 MHz clock from VCXO on SPEC
+     -- Signals for the SPI interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
+     pll_sclk_o              : out std_logic;                    -- SPI clock
+     pll_sdi_o               : out std_logic;                    -- data line for PLL and DAC
+     pll_cs_o                : out std_logic;                    -- PLL chip select
+     pll_dac_sync_o          : out std_logic;                    -- DAC chip select
+     pll_sdo_i               : in std_logic;                     -- not used for the moment
+     pll_status_i            : in std_logic;                     -- PLL Digital Lock Detect, active high
      tdc_clk_p_i             : in std_logic;                     -- 125 MHz differential clock : system clock
-     tdc_clk_n_i             : in std_logic;                     --
-
-     pll_cs_o                : out std_logic;                     -- PLL AD9516 interface signals
-     pll_dac_sync_o          : out std_logic;                     --
-     pll_sdi_o               : out std_logic;                     --
-     pll_sclk_o              : out std_logic;                     --
-     -- interface signals with acam (timing) on TDC mezzanine
-     err_flag_i              : in std_logic;                     -- error flag   signal coming from ACAM
-     int_flag_i              : in std_logic;                     -- interrupt flag   signal coming from ACAM
-     start_dis_o             : out std_logic;                    -- start disable   signal for ACAM
-     start_from_fpga_o       : out std_logic;                    -- start   signal for ACAM
-     stop_dis_o              : out std_logic;                    -- stop disable   signal for ACAM
-     -- interface signals with acam (data) on TDC mezzanine
+     tdc_clk_n_i             : in std_logic;
+     acam_refclk_p_i         : in std_logic;                     -- 31.25 MHz differential clock, ACAM ref clock
+     acam_refclk_n_i         : in std_logic;                     -- 31.25 MHz differential clock, ACAM ref clock
+     -- Signals for the timing interface with the ACAM on TDC mezzanine
+     err_flag_i              : in std_logic;                     -- error flag
+     int_flag_i              : in std_logic;                     -- interrupt flag
+     start_dis_o             : out std_logic;                    -- start disable
+     start_from_fpga_o       : out std_logic;                    -- start signal
+     stop_dis_o              : out std_logic;                    -- stop disable
+     -- Signals for the data interface with the ACAM on TDC mezzanine
      data_bus_io             : inout std_logic_vector(27 downto 0);
-     ef1_i                   : in std_logic;                     -- empty flag iFIFO1   signal from ACAM
-     ef2_i                   : in std_logic;                     -- empty flag iFIFO2   signal from ACAM
-     lf1_i                   : in std_logic;                     -- load flag iFIFO1   signal from ACAM
-     lf2_i                   : in std_logic;                     -- load flag iFIFO2   signal from ACAM
-
      address_o               : out std_logic_vector(3 downto 0);
      cs_n_o                  : out std_logic;                    -- chip select for ACAM
      oe_n_o                  : out std_logic;                    -- output enable for ACAM
      rd_n_o                  : out std_logic;                    -- read   signal for ACAM
      wr_n_o                  : out std_logic;                    -- write   signal for ACAM
-
+     ef1_i                   : in std_logic;                     -- empty flag iFIFO1
+     ef2_i                   : in std_logic;                     -- empty flag iFIFO2
      -- other signals on the TDC mezzanine
-     tdc_in_fpga_5_i         : in std_logic;                     -- input 5 for ACAM is also received by FPGA
-                                                                 -- all 4 other stop inputs are miss-routed on PCB 
-     mute_inputs_o           : out std_logic;                    -- controls all 5 inputs (actual function: ENABLE)
-     tdc_led_status_o        : out std_logic;                    -- amber led on front pannel
-     tdc_led_trig1_o         : out std_logic;                    -- amber leds on front pannel
-     tdc_led_trig2_o         : out std_logic;                    --
-     tdc_led_trig3_o         : out std_logic;                    --
-     tdc_led_trig4_o         : out std_logic;                    --
-     tdc_led_trig5_o         : out std_logic;                    --
-     term_en_1_o             : out std_logic;                    -- enable of 50 Ohm termination inputs
-     term_en_2_o             : out std_logic;                    --
-     term_en_3_o             : out std_logic;                    --
-     term_en_4_o             : out std_logic;                    --
-     term_en_5_o             : out std_logic;                    --
-
-    -- Carrier 1-wire interface (DS18B20 thermometer + unique ID)
+     --tdc_in_fpga_1_i         : in std_logic;                   -- Ch.1 ACAM input also received by the FPGA, not used for the moment
+     --tdc_in_fpga_2_i         : in std_logic;                   -- Ch.2 ACAM input also received by the FPGA, not used for the moment
+     --tdc_in_fpga_3_i         : in std_logic;                   -- Ch.3 ACAM input also received by the FPGA, not used for the moment
+     --tdc_in_fpga_4_i         : in std_logic;                   -- Ch.4 ACAM input also received by the FPGA, not used for the moment
+     --tdc_in_fpga_5_i         : in std_logic;                   -- Ch.5 ACAM input also received by the FPGA, not used for the moment
+     -- Signals for the Input Logic on TDC mezzanine
+     enable_inputs_o         : out std_logic;                    -- controls all 5 inputs
+     term_en_1_o             : out std_logic;                    -- Ch.1 enable of 50 Ohm termination
+     term_en_2_o             : out std_logic;                    -- Ch.2 enable of 50 Ohm termination
+     term_en_3_o             : out std_logic;                    -- Ch.3 enable of 50 Ohm termination
+     term_en_4_o             : out std_logic;                    -- Ch.4 enable of 50 Ohm termination
+     term_en_5_o             : out std_logic;                    -- Ch.5 enable of 50 Ohm termination
+     -- LEDs on TDC mezzanine
+     tdc_led_status_o        : out std_logic;                    -- amber led on front pannel, 
+     tdc_led_trig1_o         : out std_logic;                    -- amber led on front pannel, Ch.1 enable
+     tdc_led_trig2_o         : out std_logic;                    -- amber led on front pannel, Ch.2 enable
+     tdc_led_trig3_o         : out std_logic;                    -- amber led on front pannel, Ch.3 enable
+     tdc_led_trig4_o         : out std_logic;                    -- amber led on front pannel, Ch.4 enable
+     tdc_led_trig5_o         : out std_logic;                    -- amber led on front pannel, Ch.5 enable
+     -- Signal for the 1-wire interface (DS18B20 thermometer + unique ID) on SPEC carrier
      carrier_one_wire_b      : inout std_logic;
-
-    -- Mezzanine system I2C EEPROM
+     -- Signals for the I2C EEPROM interface on TDC mezzanine
      sys_scl_b               : inout std_logic;                  -- Mezzanine system I2C clock (EEPROM)
      sys_sda_b               : inout std_logic;                  -- Mezzanine system I2C data (EEPROM)
-
-    -- Mezzanine 1-wire interface (DS18B20 thermometer + unique ID)
+     -- Signal for the 1-wire interface (DS18B20 thermometer + unique ID) on TDC mezzanine
      mezz_one_wire_b         : inout std_logic;
-
-     -- other signals on the SPEC carrier
+     -- Signals for the LEDs and Buttons on SPEC carrier
+     spec_led_green_o        : out std_logic;                    -- green led on spec front pannel, PLL status
+     spec_led_red_o          : out std_logic;                    -- red led on spec front pannel
      spec_aux0_i             : in std_logic;                     -- buttons on spec card
      spec_aux1_i             : in std_logic;                     --
      spec_aux2_o             : out std_logic;                    -- red leds on spec PCB
      spec_aux3_o             : out std_logic;                    --
      spec_aux4_o             : out std_logic;                    --
-     spec_aux5_o             : out std_logic;                    --
-     spec_led_green_o        : out std_logic;                    -- green led on spec front pannel
-     spec_led_red_o          : out std_logic;                    -- red led on spec front pannel
-     spec_clk_i              : in std_logic);                    -- 20 MHz clock from VCXO on spec card
+     spec_aux5_o             : out std_logic);                   --
 
 end top_tdc;
 
-----------------------------------------------------------------------------------------------------
---  architecture declaration for top_tdc
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                    architecture declaration
+--=================================================================================================
 architecture rtl of top_tdc is
 
-
-
-  signal clk, spec_clk, pll_ld : std_logic;
-
--- LEDs
-
-  signal pulse_delay, window_delay, clk_period : std_logic_vector(g_width-1 downto 0);
-
-  signal gnum_rst              : std_logic;
-
-  signal irq_code, core_status            : std_logic_vector(g_width-1 downto 0);
-
-  signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta                 : std_logic;
-
-  signal acam_errflag_f_edge_p, acam_errflag_r_edge_p, acam_intflag_f_edge_p, acam_refclk_r_edge_p  : std_logic;
-
-  signal acam_tstamp1, acam_tstamp2          : std_logic_vector(g_width-1 downto 0);
-  signal acam_tstamp1_ok_p, acam_tstamp2_ok_p    : std_logic;
-
-  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset : std_logic_vector(g_width-1 downto 0);
-  signal general_rst, general_rst_n            : std_logic;
-  signal one_hz_p               : std_logic;
-
-  signal acm_adr                  : std_logic_vector(7 downto 0);
+  -- clocks and resets
+  signal clk, spec_clk, pll_status                          : std_logic;
+  signal general_rst, general_rst_n, gnum_rst               : std_logic;
+  -- TDC core signals
+  signal pulse_delay, window_delay, clk_period              : std_logic_vector(g_width-1 downto 0);
+  signal irq_code, core_status                              : std_logic_vector(g_width-1 downto 0);
+  signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta   : std_logic;
+  signal acam_errflag_f_edge_p, acam_errflag_r_edge_p       : std_logic;
+  signal acam_intflag_f_edge_p, acam_refclk_r_edge_p        : std_logic;
+  signal acam_tstamp1, acam_tstamp2                         : std_logic_vector(g_width-1 downto 0);
+  signal acam_tstamp1_ok_p, acam_tstamp2_ok_p               : std_logic;
+  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset: std_logic_vector(g_width-1 downto 0);
+  signal one_hz_p                                           : std_logic;
+  signal acm_adr                                            : std_logic_vector(7 downto 0);
   signal acm_cyc, acm_stb, acm_we, acm_ack                  : std_logic;
-  signal acm_dat_r, acm_dat_w                : std_logic_vector(g_width-1 downto 0);
-
-  signal dma_irq                  : std_logic_vector(1 downto 0); 
-  signal irq_to_gn4124                    : std_logic;                    
-
-
-  signal wbm_csr_sel                  : std_logic_vector(3 downto 0);
-  signal wbm_csr_stb, wbm_csr_we                  : std_logic;
-
-
-  signal wbm_csr_dat_wr, wbm_csr_dat_rd, dma_dat_rd, dma_dat_wr : std_logic_vector(31 downto 0);
-
-
-  signal dma_stb, dma_cyc, dma_we, dma_ack, dma_stall : std_logic;
-  signal dma_adr                  : std_logic_vector(31 downto 0);
-  signal dma_sel                  : std_logic_vector(3 downto 0);
-
-
-  signal mem_class_adr            : std_logic_vector(7 downto 0);
-  signal mem_class_stb, mem_class_cyc, mem_class_we, mem_class_ack : std_logic;
-  signal mem_class_data_wr, mem_class_data_rd        : std_logic_vector(4*g_width-1 downto 0);
-
-  signal wb_csr_adr_decoded                  : std_logic_vector(g_span-1 downto 0);
-  signal wb_csr_dat_wr_decoded              : std_logic_vector(g_width-1 downto 0);
-  signal wb_csr_stb_decoded                  : std_logic;
-  signal wb_csr_we_decoded                   : std_logic;
-
-
-  signal activate_acq_p, deactivate_acq_p, load_acam_config, read_acam_config     : std_logic;
-  signal read_acam_status, read_ififo1, read_ififo2, read_start01, reset_acam : std_logic;
-  signal load_utc, clear_dacapo_counter, roll_over_incr_recent                 : std_logic;
-
-  signal starting_utc             : std_logic_vector(g_width-1 downto 0);
-  signal acam_inputs_en, irq_tstamp_threshold, irq_time_threshold               : std_logic_vector(g_width-1 downto 0);
-  signal acam_config              : config_vector;
-  signal acam_config_rdbk         : config_vector;
-  signal acam_status, acam_ififo1, acam_ififo2, acam_start01 : std_logic_vector(g_width-1 downto 0);
-
-  signal local_utc, wr_index        : std_logic_vector(g_width-1 downto 0);
-  signal irq_sources       : std_logic_vector(g_width-1 downto 0);
-
-
+  signal acm_dat_r, acm_dat_w                               : std_logic_vector(g_width-1 downto 0);
+  signal activate_acq_p, deactivate_acq_p, load_acam_config : std_logic;
+  signal read_acam_config, read_acam_status, read_ififo1    : std_logic;
+  signal read_ififo2, read_start01, reset_acam, load_utc    : std_logic;
+  signal clear_dacapo_counter, roll_over_incr_recent        : std_logic;
+  signal starting_utc, acam_status, acam_inputs_en          : std_logic_vector(g_width-1 downto 0);
+  signal acam_ififo1, acam_ififo2, acam_start01             : std_logic_vector(g_width-1 downto 0);
+  signal irq_tstamp_threshold, irq_time_threshold           : std_logic_vector(g_width-1 downto 0);
+  signal local_utc, wr_index                                : std_logic_vector(g_width-1 downto 0);
+  signal acam_config, acam_config_rdbk                      : config_vector;
+  signal tstamp_wr_p, irq_tstamp_p, irq_time_p, send_dac_word_p : std_logic;
+  signal pll_dac_word                                       : std_logic_vector(23 downto 0);
+  -- GNUM core WISHBONE signals 
+  signal wbm_csr_adr                                        : std_logic_vector (31 downto 0);
+  signal wbm_csr_cyc, wbm_csr_ack_decoded, wbm_stall        : std_logic;
   signal wb_csr_cyc_decoded, wb_all_csr_ack, wb_all_csr_stall : std_logic_vector(c_CSR_WB_SLAVES_NB-1 downto 0);
-  signal wb_all_csr_dat_rd : std_logic_vector((32*c_CSR_WB_SLAVES_NB)-1 downto 0);
-
-  signal wb_csr_sel_decoded : std_logic_vector (3 downto 0);
-
-  signal wbm_csr_adr              : std_logic_vector (31 downto 0);
-  signal wbm_csr_cyc, wbm_csr_ack_decoded, wbm_stall : std_logic;
-
+  signal wb_all_csr_dat_rd                                  : std_logic_vector((32*c_CSR_WB_SLAVES_NB)-1 downto 0);
+  signal wb_csr_sel_decoded, wbm_csr_sel                    : std_logic_vector (3 downto 0);
+  signal wbm_csr_stb, wbm_csr_we                            : std_logic;
+  signal wbm_csr_dat_wr, wbm_csr_dat_rd, dma_dat_rd, dma_dat_wr : std_logic_vector(31 downto 0);
+  signal dma_stb, dma_cyc, dma_we, dma_ack, dma_stall       : std_logic;
+  signal dma_adr                                            : std_logic_vector(31 downto 0);
+  signal dma_sel                                            : std_logic_vector(3 downto 0);
+  signal wb_csr_adr_decoded                                 : std_logic_vector(g_span-1 downto 0);
+  signal wb_csr_dat_wr_decoded                              : std_logic_vector(g_width-1 downto 0);
+  signal wb_csr_stb_decoded, wb_csr_we_decoded              : std_logic;
+  signal mem_class_adr                                      : std_logic_vector(7 downto 0);
+  signal mem_class_stb, mem_class_cyc, mem_class_we, mem_class_ack : std_logic;
+  signal mem_class_data_wr, mem_class_data_rd               : std_logic_vector(4*g_width-1 downto 0);
+  -- Interrupts
+  signal dma_irq                                            : std_logic_vector(1 downto 0); 
+  signal irq_to_gn4124                                      : std_logic;  
+  signal irq_sources                                        : std_logic_vector(g_width-1 downto 0);
   -- Mezzanine 1-wire
-  signal mezz_owr_pwren : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
-  signal mezz_owr_en    : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
-  signal mezz_owr_i     : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
-
+  signal mezz_owr_pwren, mezz_owr_en, mezz_owr_i            : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
   -- Carrier 1-wire
-  signal carrier_owr_en    : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
-  signal carrier_owr_i     : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
-
+  signal carrier_owr_en, carrier_owr_i                      : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
   -- Mezzanine system I2C for EEPROM
-  signal sys_scl_in, sys_scl_out, sys_scl_oe_n  : std_logic;
-  signal sys_sda_in, sys_sda_out, sys_sda_oe_n  : std_logic;
+  signal sys_scl_in, sys_scl_out, sys_scl_oe_n              : std_logic;
+  signal sys_sda_in, sys_sda_out, sys_sda_oe_n              : std_logic;
 
-  signal tstamp_wr_p, irq_tstamp_p, irq_time_p, send_dac_word_p  : std_logic;
-  signal pll_dac_word : std_logic_vector(23 downto 0);
 
 -- <acam_status_i<31:0>> is never used.
 -- <adr_i<7:4>> is never used.
@@ -302,12 +265,12 @@ architecture rtl of top_tdc is
 -- <wbm_adr_i<31:18> never used
 -- gnum_csr_adr_i<31:8> is never used
 
-----------------------------------------------------------------------------------------------------
---  architecture begins
-----------------------------------------------------------------------------------------------------
+--=================================================================================================
+--                                       architecture begin
+--=================================================================================================
 begin
 
-  general_rst_n <= not (general_rst);
+
 ---------------------------------------------------------------------------------------------------
 --                                        WISHBONE CSR DECODER                                   --
 ---------------------------------------------------------------------------------------------------
@@ -604,14 +567,14 @@ begin
   begin
     if rising_edge (clk) then
       if general_rst = '1' then
-        mute_inputs_o <= '0';
+        enable_inputs_o <= '0';
         term_en_5_o   <= '0';
         term_en_4_o   <= '0';
         term_en_3_o   <= '0';
         term_en_2_o   <= '0';
         term_en_1_o   <= '0';
       else
-        mute_inputs_o <= acam_inputs_en(7);
+        enable_inputs_o <= acam_inputs_en(7);
         term_en_5_o   <= acam_inputs_en(4);
         term_en_4_o   <= acam_inputs_en(3);
         term_en_3_o   <= acam_inputs_en(2);
@@ -667,8 +630,6 @@ begin
     port map
       (ef1_i        => ef1_i,
        ef2_i        => ef2_i,
-       lf1_i        => lf1_i,
-       lf2_i        => lf2_i,
        data_bus_io  => data_bus_io,
        adr_o        => address_o,
        cs_n_o       => cs_n_o,
@@ -824,15 +785,14 @@ begin
 ---------------------------------------------------------------------------------------------------
   clks_rsts_mgment: clks_rsts_manager
     generic map
-      (nb_of_reg             => 68)
+      (nb_of_reg              => 68)
     port map
       (spec_clk_i             => spec_clk_i,
-       acam_refclk_i          => acam_refclk_i,
+       acam_refclk_p_i        => acam_refclk_p_i,
+       acam_refclk_n_i        => acam_refclk_n_i,
        tdc_clk_p_i            => tdc_clk_p_i,
        tdc_clk_n_i            => tdc_clk_n_i,
        rst_n_a_i              => rst_n_a_i,
-       pll_ld_i               => pll_ld_i,
-       pll_refmon_i           => pll_refmon_i,
        pll_sdo_i              => pll_sdo_i,
        pll_status_i           => pll_status_i,
        send_dac_word_p_i      => send_dac_word_p,
@@ -846,7 +806,9 @@ begin
        spec_clk_o             => spec_clk,
        tdc_clk_o              => clk,
        gnum_rst_o             => gnum_rst,
-       pll_ld_o               => pll_ld);
+       pll_status_o           => pll_status);
+    --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+    general_rst_n <= not (general_rst);
 
 
 ---------------------------------------------------------------------------------------------------
@@ -861,7 +823,7 @@ begin
      clk_125mhz_i      => clk,
      gnum_rst_i        => gnum_rst,
      internal_rst_i    => general_rst,
-     pll_ld_i          => pll_ld,
+     pll_status_i          => pll_status,
      spec_aux_butt_1_i => spec_aux0_i,
      spec_aux_butt_2_i => spec_aux1_i,
      one_hz_p_i        => one_hz_p,

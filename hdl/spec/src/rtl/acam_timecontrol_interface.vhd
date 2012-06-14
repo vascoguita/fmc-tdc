@@ -184,7 +184,7 @@ begin
   total_delay          <= std_logic_vector(unsigned(window_delay_i)+constant_delay);
 
     
-  start_pulse_from_fpga: process (clk_i)                         -- start pulse in the middle of the
+  start_pulse_from_fpga: process (clk_i)                  -- start pulse in the middle of the
   begin                                                   -- de-assertion window of StartDisable
     if rising_edge (clk_i) then
       if rst_i ='1' then
@@ -201,7 +201,7 @@ begin
 
 
 
-  -- Synchronization of the activate_acq_p with the acam_refclk_i
+  -- Synchronization of the activate_acq_p with the acam_refclk_p_i
   ready_to_trigger: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -220,7 +220,7 @@ begin
 
 
 
-  actual_trigger_received: process (clk_i)               -- signal needed to exclude the generation of
+  actual_trigger_received: process (clk_i)        -- signal needed to exclude the generation of
   begin                                           -- the start_from_fpga_o after a general rst_i
     if rising_edge (clk_i) then
       if rst_i ='1' then  

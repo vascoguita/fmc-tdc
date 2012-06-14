@@ -108,7 +108,7 @@ entity data_engine is
      -- Signals from the acam_databus_interface unit: WISHBONE master
      acam_ack_i           : in std_logic; -- WISHBONE ack
      acam_dat_i           : in std_logic_vector(31 downto 0); -- tstamps or rdbk regs
-                                                              -- includes ef1 & ef2 & lf1 & lf2 & 28 bits acam data_bus_io
+                                                              -- includes ef1 & ef2 & 0 & 0 & 28 bits acam data_bus_io
 
 
   -- OUTPUTS
@@ -127,8 +127,8 @@ entity data_engine is
      acam_start01_o       : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 10
 
      -- Signals to the data_formatting unit:
-     acam_tstamp1_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO1
-     acam_tstamp2_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO2
+     acam_tstamp1_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO1
+     acam_tstamp2_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
      acam_tstamp1_ok_p_o  : out std_logic; -- indication of a valid tstamp1
      acam_tstamp2_ok_p_o  : out std_logic);-- indication of a valid tstamp2
 

@@ -73,10 +73,10 @@ entity data_formatting is
 
      -- Signals from the data_engine unit
      acam_tstamp1_i          : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
-                                                                 -- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO1
+                                                                 -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO1
      acam_tstamp1_ok_p_i     : in std_logic; -- tstamp2 valid indicator
      acam_tstamp2_i          : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
-                                                                 -- includes ef1 & ef2 & lf1 & lf2 & 28 bits tstamp from FIFO2
+                                                                 -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
      acam_tstamp2_ok_p_i     : in std_logic; -- tstamp2 valid indicator
 
      -- Signals from the reg_ctrl unit
@@ -122,7 +122,7 @@ architecture rtl of data_formatting is
   constant c_MULTIPLY_BY_SIXTEEN                              : std_logic_vector(3 downto 0) := x"0";
   -- ACAM timestamp fields
   signal acam_channel                                         : std_logic_vector(2 downto 0);
-  signal acam_slope, acam_fifo_ef, acam_fifo_lf               : std_logic;
+  signal acam_slope, acam_fifo_ef                             : std_logic;
   signal acam_fine_timestamp                                  : std_logic_vector(16 downto 0);
   signal acam_start_nb                                        : std_logic_vector(7 downto 0);
   -- timestamp manipulations
@@ -248,8 +248,8 @@ begin
 --   [25:18]  Start number   /
 --   [27:26]  Channel Code  /
 
---   [28]     lf2           \
---   [29]     lf1            \ empty and load flags (added by the acam_databus_interface unit)
+--   [28]      0            \
+--   [29]      0             \ empty and load flags (added by the acam_databus_interface unit)
 --   [30]     ef2            /
 --   [31]     ef1           /
 
@@ -265,7 +265,7 @@ begin
 --   [95:64]  Local UTC time coming from the one_hz_generator;
 --                                          each bit represents 1s
 
---   [127:96] Metadata for each timestamp: "00..00" & lf & ef & Slope & Channel
+--   [127:96] Metadata for each timestamp: "00..00" & 0 & ef & Slope & Channel
 
   tstamp_formatting: process (clk_i)
   begin   
@@ -273,7 +273,6 @@ begin
       if rst_i ='1' then  
         acam_channel        <= (others => '0');
         acam_fifo_ef        <= '0';
-        acam_fifo_lf        <= '0';
         acam_fine_timestamp <= (others => '0');
         acam_slope          <= '0';
         acam_start_nb       <= (others => '0');
@@ -281,7 +280,6 @@ begin
       elsif acam_tstamp1_ok_p_i = '1' then
         acam_channel        <= "0" & acam_tstamp1_i(27 downto 26);
         acam_fifo_ef        <= acam_tstamp1_i(31);
-        acam_fifo_lf        <= acam_tstamp1_i(29);
         acam_fine_timestamp <= acam_tstamp1_i(16 downto 0);
         acam_slope          <= acam_tstamp1_i(17);
         acam_start_nb       <= acam_tstamp1_i(25 downto 18);
@@ -289,7 +287,6 @@ begin
       elsif acam_tstamp2_ok_p_i ='1' then
         acam_channel        <= "1" & acam_tstamp2_i(27 downto 26);
         acam_fifo_ef        <= acam_tstamp2_i(30);
-        acam_fifo_lf        <= acam_tstamp2_i(28);
         acam_fine_timestamp <= acam_tstamp2_i(16 downto 0);
         acam_slope          <= acam_tstamp2_i(17);
         acam_start_nb       <= acam_tstamp2_i(25 downto 18);

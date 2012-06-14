@@ -487,14 +487,13 @@ package tdc_core_pkg is
       (nb_of_reg              : integer := 68);
     port
       (spec_clk_i             : in std_logic;
-       acam_refclk_i          : in std_logic;
+       acam_refclk_p_i        : in std_logic;
+       acam_refclk_n_i        : in std_logic;
        tdc_clk_p_i            : in std_logic;
        tdc_clk_n_i            : in std_logic;
        rst_n_a_i              : in std_logic;
-       pll_ld_i               : in std_logic;
-       pll_refmon_i           : in std_logic;
-       pll_sdo_i              : in std_logic;
        pll_status_i           : in std_logic;
+       pll_sdo_i              : in std_logic;
        send_dac_word_p_i      : in std_logic;
        dac_word_i             : in std_logic_vector(23 downto 0);
       ----------------------------------------------------------------------
@@ -507,7 +506,7 @@ package tdc_core_pkg is
        pll_dac_sync_o         : out std_logic;
        pll_sdi_o              : out std_logic;
        pll_sclk_o             : out std_logic;
-       pll_ld_o               : out std_logic);
+       pll_status_o               : out std_logic);
       ----------------------------------------------------------------------
   end component;
 
@@ -522,7 +521,7 @@ package tdc_core_pkg is
        clk_125mhz_i      : in std_logic;
        gnum_rst_i        : in std_logic;
        internal_rst_i    : in std_logic;
-       pll_ld_i          : in std_logic;
+       pll_status_i          : in std_logic;
        spec_aux_butt_1_i : in std_logic;
        spec_aux_butt_2_i : in std_logic;
        one_hz_p_i        : in std_logic;
@@ -549,8 +548,6 @@ package tdc_core_pkg is
     port
       (ef1_i        : in std_logic;
        ef2_i        : in std_logic;
-       lf1_i        : in std_logic; -- not used i think
-       lf2_i        : in std_logic; -- not used i think
        data_bus_io  : inout std_logic_vector(27 downto 0);
        clk_i        : in std_logic;
        rst_i        : in std_logic;
