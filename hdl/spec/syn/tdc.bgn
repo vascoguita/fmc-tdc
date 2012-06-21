@@ -1,12 +1,12 @@
-Release 13.3 - Bitgen O.76xd (lin64)
+Release 13.4 - Bitgen O.87xd (nt)
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 Loading device for application Rf_Device from file '6slx45t.nph' in environment
-/afs/cern.ch/project/parc/elec/xilinx/xilinx133/ISE_DS/ISE/.
+C:\EDA\Xilinx\v13_4\ISE_DS\ISE\.
    "top_tdc" is an NCD, version 3.2, device xc6slx45t, package fgg484, speed -3
 
-Wed Nov 16 18:06:54 2011
+Tue Jun 12 19:12:24 2012
 
-/afs/cern.ch/project/parc/elec/xilinx/xilinx133/ISE_DS/ISE/bin/lin64/unwrapped/bitgen par_tdc.ncd tdc 
+C:\EDA\Xilinx\v13_4\ISE_DS\ISE\bin\nt\unwrapped\bitgen.exe -w par_tdc.ncd tdc 
 
 INFO:Bitgen:341 - This design is using one or more 9K Block RAMs (RAMB8BWER). 
    9K Block RAM initialization data, both user defined and default, requires a
@@ -107,6 +107,8 @@ Summary of Bitgen Options:
 | next_config_boot_mode | 001*                 |
 +----------------------+----------------------+
 | next_config_register_write | Enable*              |
++----------------------+----------------------+
+| next_config_reboot   | Enable*              |
 +----------------------+----------------------+
 | golden_config_addr   | 0x00000000*          |
 +----------------------+----------------------+

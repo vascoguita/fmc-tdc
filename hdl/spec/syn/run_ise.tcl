@@ -1,40 +1,107 @@
-#########################
-###  DEFINE VARIABLES ###
-#########################
-set DesignName	"syn_tdc"
-set FamilyName	"SPARTAN6"
-set DeviceName	"XC6SLX45T"
-set PackageName	"FGG484"
-set SpeedGrade	"-3"
-set TopModule	"top_tdc"
-set EdifFile	"syn_tdc.edf"
-if {![file exists $DesignName.ise]} {
+#################################################
+###  SET DESIGN VARIABLES                     ###
+#################################################
+set DesignName  	"syn_tdc"
+set FamilyName  	"SPARTAN6"
+set DeviceName  	"XC6SLX45T"
+set PackageName 	"FGG484"
+set SpeedGrade  	"-3"
+set TopModule   	"top_tdc"
+set EdifFile    	"C:/FMC_TDC/evas_fmc_tdc/syn/syn_tdc.edf"
 
-project new $DesignName.ise
+#################################################
+###  SET FLOW                                 ###
+#################################################
+set Flow 	"Standard"
 
-project set family $FamilyName
-project set device $DeviceName
-project set package $PackageName
-project set speed $SpeedGrade
+#################################################
+###  SET POWER OPTION                         ###
+#################################################
+set Power 	"0"
 
-xfile add $EdifFile
-if {[file exists synplicity.ucf]} {
-    xfile add synplicity.ucf
+#################################################
+###  PROJECT SETUP                            ###
+#################################################
+if {![file exists $DesignName.xise]} { 
+
+	project new 			$DesignName.xise
+	project set family 		$FamilyName
+	project set device 		$DeviceName
+	project set package 		$PackageName
+	project set speed 		$SpeedGrade
+	xfile 	add 			$EdifFile
+
+	if {[file exists synplicity.ucf]} { xfile add synplicity.ucf }
+
+} else {
+
+	project open $DesignName.xise
+
 }
 
-project set "Netlist Translation Type" "Timestamp"
-project set "Other NGDBuild Command Line Options" "-verbose"
-project set "Generate Detailed MAP Report" TRUE
+#################################################
+###  STANDARD                                 ###
+#################################################
+if { $Flow == "Standard" } {
 
-project close
+	project set 	"Netlist Translation Type" 		"Timestamp"
+	project set 	"Other NGDBuild Command Line Options" 	"-verbose"
+	project set 	"Generate Detailed MAP Report" 		TRUE
+	project set 	{Place & Route Effort Level (Overall)} 	"High"
+}
+
+#################################################
+###  FAST                                     ###
+#################################################
+if { $Flow == "Fast" } {
+
+	project set 	"Netlist Translation Type" 		"Timestamp"
+	project set 	"Other NGDBuild Command Line Options" 	"-verbose"
+	project set 	"Generate Detailed MAP Report" 		TRUE
+	project set 	{Place & Route Effort Level (Overall)} 	"Standard"
+}
+
+#################################################
+###  SMARTGUIDE                               ###
+#################################################
+if { $Flow == "SmartGuide" } {
+
+	project set 	"Use Smartguide" 			TRUE  
+	project set 	"SmartGuide Filename" 			$DesignName\_guide.ncd  
+	project set 	"Netlist Translation Type" 		"Timestamp"
+	project set 	"Other NGDBuild Command Line Options" 	"-verbose"
+	project set 	"Generate Detailed MAP Report" 		TRUE
+	project set 	{Place & Route Effort Level (Overall)} 	"High"
+}
+
+#################################################
+###  SMARTGUIDE FAST                          ###
+#################################################
+if { $Flow == "SmartGuideFast" } {
+
+	project set 	"Use Smartguide" 			TRUE  
+	project set 	"SmartGuide Filename" 			$DesignName\_guide.ncd  
+	project set 	"Netlist Translation Type" 		"Timestamp"
+	project set 	"Other NGDBuild Command Line Options" 	"-verbose"
+	project set 	"Generate Detailed MAP Report" 		TRUE
+	project set 	{Place & Route Effort Level (Overall)} 	"Standard"
 }
 
 
-file delete -force $DesignName\_xdb
+#################################################
+###  EXECUTE ISE PLACE & ROUTE                ###
+#################################################
+file 	delete -force 	$DesignName\_xdb
+project open 		$DesignName.xise
+process run 		"Implement Design" -force rerun_all
+## process run      "Generate Programming File"
 
-project open $DesignName.ise
+#################################################
+###  EXECUTE POWER OPTION                     ###
+#################################################
+if { $Power == "1" } {
 
-process run "Implement Design" -force rerun_all
+        exec xpwr -v $DesignName.ncd $DesignName.pcf
+}
 
 project close
-

@@ -1,7 +1,7 @@
-Release 13.3 Drc O.76xd (lin64)
+Release 13.4 Drc O.87xd (nt)
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 
-Wed Nov 16 18:06:54 2011
+Tue Jun 12 19:12:24 2012
 
 drc -z par_tdc.ncd
 

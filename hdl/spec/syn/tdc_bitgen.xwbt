@@ -1,7 +1,7 @@
-INFILE=/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/par_tdc.ncd
-OUTFILE=/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn/tdc.bit
+INFILE=C:\FMC_TDC\evas_fmc_tdc\syn\par_tdc.ncd
+OUTFILE=C:\FMC_TDC\evas_fmc_tdc\syn\tdc.bit
 FAMILY=Spartan6
 PART=xc6slx45t-3fgg484
-WORKINGDIR=/afs/cern.ch/eng/eda/cds_users/gfernand/projects/tdc/syn
+WORKINGDIR=C:\FMC_TDC\evas_fmc_tdc\syn
 LICENSE=ISE
-USER_INFO=174122087_174122088_206270080_700
+USER_INFO=No user information available.

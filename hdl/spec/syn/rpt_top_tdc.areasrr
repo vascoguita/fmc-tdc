@@ -11,10 +11,10 @@ SEQUENTIAL ELEMENTS
 
 Name          Total elements     Utilization     Notes
 ------------------------------------------------------
-REGISTERS     4175               100 %                
-LATCHES       22                 100 %                
+REGISTERS     5527               100 %                
+LATCHES       0                  0.0 %                
 ======================================================
-Total SEQUENTIAL ELEMENTS in the block top_tdc:	4197 (42.37 % Utilization)
+Total SEQUENTIAL ELEMENTS in the block top_tdc:	5527 (42.47 % Utilization)
 
 
 COMBINATIONAL LOGIC
@@ -22,13 +22,13 @@ COMBINATIONAL LOGIC
 
 Name                     Total elements     Utilization     Notes
 -----------------------------------------------------------------
-LUTS                     3462               100 %                
-MUXCY                    892                100 %                
-XORCY                    873                100 %                
-MULT18x18/MULT18x18S     3                  100 %                
-SRL16                    0                  0 %                  
+LUTS                     4509               100 %                
+MUXCY                    1278               100 %                
+XORCY                    1090               100 %                
+MULT18x18/MULT18x18S     1                  100 %                
+SRL16                    0                  0.0 %                
 =================================================================
-Total COMBINATIONAL LOGIC in the block top_tdc:	5230 (52.80 % Utilization)
+Total COMBINATIONAL LOGIC in the block top_tdc:	6878 (52.85 % Utilization)
 
 
 MEMORY ELEMENTS
@@ -36,9 +36,9 @@ MEMORY ELEMENTS
 
 Name          Total elements     Utilization     Notes
 ------------------------------------------------------
-SYNC RAMS     1                  100 %                
+SYNC RAMS     12                 100 %                
 ======================================================
-Total MEMORY ELEMENTS in the block top_tdc:	1 (0.01 % Utilization)
+Total MEMORY ELEMENTS in the block top_tdc:	12 (0.09 % Utilization)
 
 
 
@@ -47,7 +47,7 @@ Total MEMORY ELEMENTS in the block top_tdc:	1 (0.01 % Utilization)
 Name     Total elements     Number of bits     Utilization     Notes
 --------------------------------------------------------------------
                                                                     
-ROMS     0                  0                  0 %                  
+ROMS     0                  0                  0.0 %                
 ====================================================================
 Total  in the block top_tdc:	0 (0.00 % Utilization)
 
@@ -57,7 +57,7 @@ Distributed RAM
 
 Name                Total elements     Number of LUTs     Utilization     Notes
 -------------------------------------------------------------------------------
-DISTRIBUTED RAM     0                  0                  0 %                  
+DISTRIBUTED RAM     0                  0                  0.0 %                
 ===============================================================================
 Total Distributed RAM in the block top_tdc:	0 (0.00 % Utilization)
 
@@ -67,16 +67,126 @@ IO PADS
 
 Name     Total elements     Utilization     Notes
 -------------------------------------------------
-PADS     123                100 %                
+PADS     132                100 %                
 =================================================
-Total IO PADS in the block top_tdc:	123 (1.24 % Utilization)
+Total IO PADS in the block top_tdc:	132 (1.01 % Utilization)
 
 #### START OF Block RAM DETAILED REPORT ####
 
-Total Block RAMs: 1
+Total Block RAMs: 12
 
-clks_rsts_mgment.un7_word_being_sent_0_0
+clks_rsts_mgment.un6_pll_word_being_sent_0_0
 ----------------------------
+----------------------------
+
+circular_buffer_block.memory_block.U0.xst_blk_mem_generator.gnativebmg.native_blk_mem_gen.valid.cstr.ramloop[0].ram.r.s6_noinit.ram.TRUE_DP.PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					1
+----------------------------
+
+circular_buffer_block.memory_block.U0.xst_blk_mem_generator.gnativebmg.native_blk_mem_gen.valid.cstr.ramloop[1].ram.r.s6_noinit.ram.TRUE_DP.PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					1
+----------------------------
+
+circular_buffer_block.memory_block.U0.xst_blk_mem_generator.gnativebmg.native_blk_mem_gen.valid.cstr.ramloop[2].ram.r.s6_noinit.ram.TRUE_DP.PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					1
+----------------------------
+
+circular_buffer_block.memory_block.U0.xst_blk_mem_generator.gnativebmg.native_blk_mem_gen.valid.cstr.ramloop[3].ram.r.s6_noinit.ram.TRUE_DP.PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					1
+----------------------------
+
+gnum_interface_block.cmp_p2l_dma_master.cmp_to_wb_fifo.gen_fifo_64bit.cmp_fifo_64x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[0].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
+----------------------------
+
+gnum_interface_block.cmp_p2l_dma_master.cmp_to_wb_fifo.gen_fifo_64bit.cmp_fifo_64x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[1].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
+----------------------------
+
+gnum_interface_block.cmp_l2p_dma_master.cmp_data_fifo.gen_fifo_32bit.cmp_fifo_32x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[0].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
+----------------------------
+
+gnum_interface_block.cmp_l2p_dma_master.cmp_addr_fifo.gen_fifo_32bit.cmp_fifo_32x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[0].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
+----------------------------
+
+gnum_interface_block.cmp_wbmaster32.cmp_from_wb_fifo.gen_fifo_32bit.cmp_fifo_32x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[0].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
+----------------------------
+
+gnum_interface_block.cmp_wbmaster32.cmp_fifo_to_wb.gen_fifo_64bit.cmp_fifo_64x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[0].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
+----------------------------
+
+gnum_interface_block.cmp_wbmaster32.cmp_fifo_to_wb.gen_fifo_64bit.cmp_fifo_64x512.BU2.U0.grf.rf.mem.gbm.gbmg.gbmga.ngecc.bmg.blk_mem_generator.valid.cstr.ramloop[1].ram.r.s6_noinit.ram.SDP.SIMPLE_PRIM18.ram
+----------------------------
+WRITE_MODE_A			WRITE_FIRST
+WRITE_MODE_B			WRITE_FIRST
+SRVAL_A					000000000
+SRVAL_B					000000000
+DOA_REG					0
+DOB_REG					0
 ----------------------------
 
 #### END OF  Block RAM DETAILED REPORT ####
