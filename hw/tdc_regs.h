@@ -78,10 +78,16 @@
 #define TDC_CTRL_CLEAR_DACAPO_FLAG	BIT(10)
 #define TDC_CTRL_CONFIG_DAC		BIT(11)
 
-/* IRQ bits register*/
+/* IRQ register*/
+#define TDC_IRQ_REG			0xA0000
 #define TDC_IRQ_GNUM_CORE_0		BIT(0)
 #define TDC_IRQ_GNUM_CORE_1		BIT(1)
 #define TDC_IRQ_TDC_TSTAMP		BIT(2)
 #define TDC_IRQ_TDC_TIME_THRESH		BIT(3)
+
+/* Other registers */
+#define TDC_CARRIER_1WIRE		0x40000
+#define TDC_MEZZANINE_I2C		0x60000
+#define TDC_MEZZANINE_1WIRE		0x80000
 
 #endif /* __TDC_REGISTERS_H */
