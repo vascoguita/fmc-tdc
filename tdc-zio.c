@@ -22,10 +22,17 @@
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
+#define _RW_ (S_IRUGO | S_IWUGO) /* I want 80-col lines so this lazy thing */
 
 /* The sample size. Mandatory, device-wide */
 DEFINE_ZATTR_STD(ZDEV, tdc_zattr_dev_std) = {
 	ZATTR_REG(zdev, ZATTR_NBITS, S_IRUGO, 0, 32), /* FIXME: 32 bits. Really? */
+};
+
+static struct zio_attribute tdc_zattr_dev[] = {
+	ZATTR_EXT_REG("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
+	ZATTR_EXT_REG("tstamps-thresh", _RW_, TDC_ATTR_DEV_TSTAMPS_THRESH, 100),
+	ZATTR_EXT_REG("time-thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
 };
 
 static struct zio_cset tdc_cset[] = {
@@ -55,7 +62,8 @@ static struct zio_device tdc_tmpl = {
 	.n_cset = ARRAY_SIZE(tdc_cset),
 	.zattr_set = {
 		.std_zattr = tdc_zattr_dev_std,
-		.ext_zattr = NULL,	/* TODO: */
+		.ext_zattr = tdc_zattr_dev,
+		.n_ext_attr = ARRAY_SIZE(tdc_zattr_dev),
 	},
 };
 
