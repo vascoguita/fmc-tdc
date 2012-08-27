@@ -11,4 +11,8 @@ struct spec_tdc {
 };
 
 
+extern int tdc_zio_register_device(struct spec_tdc *tdc);
+extern void tdc_zio_remove(struct spec_tdc *tdc);
+extern int tdc_zio_init(void);
+extern void tdc_zio_exit(void);
 #endif

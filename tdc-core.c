@@ -14,72 +14,9 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-#include <linux/zio.h>
-#include <linux/zio-buffer.h>
-#include <linux/zio-trigger.h>
-
 #include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
-
-
-/* The sample size. Mandatory, device-wide */
-DEFINE_ZATTR_STD(ZDEV, tdc_zattr_dev_std) = {
-	ZATTR_REG(zdev, ZATTR_NBITS, S_IRUGO, 0, 32), /* FIXME: 32 bits. Really? */
-};
-
-static struct zio_cset tdc_cset[] = {
-	{
-		SET_OBJECT_NAME("tdc-test"), /* TODO: change name and complete */
-		.raw_io =	NULL,
-		.n_chan =	1,
-		.ssize =	4, /* FIXME: 0? */
-		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
-		.zattr_set = {
-			.ext_zattr = NULL,
-			.n_ext_attr = 0,
-		},
-	},
-};
-
-static const struct zio_sysfs_operations tdc_zio_s_op = {
-	.conf_set = NULL,	/* TODO: */
-	.info_get = NULL,	/* TODO: */
-};
-
-static struct zio_device tdc_tmpl = {
-	.owner = THIS_MODULE,
-	.preferred_trigger = "user", /* FIXME: put other trigger */
-	.s_op = &tdc_zio_s_op,
-	.cset = tdc_cset,
-	.n_cset = ARRAY_SIZE(tdc_cset),
-	.zattr_set = {
-		.std_zattr = tdc_zattr_dev_std,
-		.ext_zattr = NULL,	/* TODO: */
-	},
-};
-
-static const struct zio_device_id tdc_table[] = {
-	{"tdc", &tdc_tmpl},
-	{},
-};
-
-static int tdc_zio_probe(struct zio_device *zdev)
-{
-	/* TODO */
-	pr_err("%s: register new device\n", __func__);
-	return 0;
-
-}
-
-static struct zio_driver tdc_zdrv = {
-	.driver = {
-		.name = "tdc",
-		.owner = THIS_MODULE,
-	},
-	.id_table = tdc_table,
-	.probe = tdc_zio_probe,	/* TODO: */
-};
 
 static int tdc_is_valid(int bus, int devfn)
 {
@@ -88,18 +25,9 @@ static int tdc_is_valid(int bus, int devfn)
 	return 1;
 }
 
-void tdc_zio_exit(struct spec_tdc *tdc)
-{
-	zio_unregister_device(tdc->hwzdev);
-	zio_free_device(tdc->hwzdev);
-}
-
 int tdc_probe(struct spec_dev *dev)
 {
-	int err = 0;
-	struct pci_dev *pdev;
 	struct spec_tdc *tdc;
-	int dev_id;
 
 	/* FIXME: create a new function to do this... */
 	int freq = 160;
@@ -127,27 +55,24 @@ int tdc_probe(struct spec_dev *dev)
 	writel(data, dev->remap[2] + 0x808);
 
 	msleep(100);
-	/* Reset */
-	writel(readl(dev->remap[2] + 0x800) & ~(1<<14 || 1 << 15), dev->remap[2] + 0x800);
-	msleep(100);
+	/* Reset FPGA */
+	writel(0x00021040, dev->remap[2] + 0x800);
+	msleep(1);
+	writel(0x00025000, dev->remap[2] + 0x800);
+	msleep(600);
 
-	tdc->hwzdev = zio_allocate_device();
-	if (IS_ERR(tdc->hwzdev))
-		return PTR_ERR(tdc->hwzdev);
+	writel(0x33, tdc->base + TDC_MEZZANINE_1WIRE);
+	pr_err("SIG: termometro family code value ->  0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
+	pr_err("SIG: termometro serial number value 0 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
 
-	/* Mandatory fields */
-	tdc->hwzdev->owner = THIS_MODULE;
-	tdc->hwzdev->private_data = tdc;
+	pr_err("SIG: termometro serial number value 1 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
+	pr_err("SIG: termometro serial number value 2 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
+	pr_err("SIG: termometro serial number value 3 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
+	pr_err("SIG: termometro serial number value 4 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
 
-	/* Our dev_id is bus+devfn */
-	pdev = tdc->spec->pdev;
-	dev_id = (pdev->bus->number << 8) | pdev->devfn;
+	pr_err("SIG: termometro serial number value 5 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
 
-	err = zio_register_device(tdc->hwzdev, "tdc", dev_id);
-	if (err) {
-		zio_free_device(tdc->hwzdev);
-		return err;
-	}
+	tdc_zio_register_device(tdc);
 
 	/* TODO: */
 	return 0;
@@ -157,7 +82,7 @@ void tdc_remove(struct spec_dev *dev)
 {
 	struct spec_tdc *tdc = dev->sub_priv;
 
-	tdc_zio_exit(tdc);
+	tdc_zio_remove(tdc);
 
 	/* TODO: */
 }
@@ -212,13 +137,13 @@ static int tdc_init(void)
 {
 	int err;
 
-	err = zio_register_driver(&tdc_zdrv);
+	err = tdc_zio_init();
 	if (err < 0)
 		return err;
 
 	err = tdc_spec_init();
 	if (err < 0) {
-		zio_unregister_driver(&tdc_zdrv);
+		tdc_zio_exit();
 		return err;
 	}
 	
@@ -228,7 +153,7 @@ static int tdc_init(void)
 static void tdc_exit(void)
 {
 	tdc_spec_exit();
-	zio_unregister_driver(&tdc_zdrv);
+	tdc_zio_exit();
 }
 
 module_init(tdc_init);

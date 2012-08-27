@@ -13,7 +13,7 @@ subdirs-ccflags-y = $(ccflags-y)
 
 obj-m := spec-tdc.o
 
-spec-tdc-objs	=  tdc-core.o
+spec-tdc-objs	=  tdc-core.o tdc-zio.o
 
 all: modules
 
