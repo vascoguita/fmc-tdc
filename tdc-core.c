@@ -9,6 +9,8 @@
  * version 2 as published by the Free Software Foundation.
  */
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 
@@ -17,6 +19,7 @@
 #include <linux/zio-trigger.h>
 
 #include "spec.h"
+#include "tdc.h"
 #include "hw/tdc_regs.h"
 
 
@@ -40,8 +43,8 @@ static struct zio_cset tdc_cset[] = {
 };
 
 static const struct zio_sysfs_operations tdc_zio_s_op = {
-	.conf_set = NULL,	/* TODO */
-	.info_get = NULL,	/* TODO */
+	.conf_set = NULL,	/* TODO: */
+	.info_get = NULL,	/* TODO: */
 };
 
 static struct zio_device tdc_tmpl = {
@@ -51,8 +54,8 @@ static struct zio_device tdc_tmpl = {
 	.cset = tdc_cset,
 	.n_cset = ARRAY_SIZE(tdc_cset),
 	.zattr_set = {
-		.std_zattr = tdc_zattr_dev_std, /* TODO */
-		.ext_zattr = NULL,	/* TODO */
+		.std_zattr = tdc_zattr_dev_std,
+		.ext_zattr = NULL,	/* TODO: */
 	},
 };
 
@@ -75,27 +78,73 @@ static struct zio_driver tdc_zdrv = {
 		.owner = THIS_MODULE,
 	},
 	.id_table = tdc_table,
-	.probe = tdc_zio_probe,	/* TODO */
+	.probe = tdc_zio_probe,	/* TODO: */
 };
 
 static int tdc_is_valid(int bus, int devfn)
 {
 	/* FIXME: restrict to some of the spec devices with moduleparam */
+	/* TODO: */
 	return 1;
+}
+
+void tdc_zio_exit(struct spec_tdc *tdc)
+{
+	zio_unregister_device(tdc->hwzdev);
+	zio_free_device(tdc->hwzdev);
 }
 
 int tdc_probe(struct spec_dev *dev)
 {
-	/* TODO */
+	int err = 0;
+	struct pci_dev *pdev;
+	struct spec_tdc *tdc;
+	int dev_id;
+
+	tdc = kzalloc(sizeof(struct spec_tdc), GFP_KERNEL);
+	if (!tdc) {
+		pr_err("%s: can't allocate device\n", __func__);
+		return -ENOMEM;
+	}
+
+	dev->sub_priv = tdc;
+	tdc->spec = dev;
+	tdc->base = dev->remap[0];
+	tdc->regs = tdc->base; 	/* FIXME: */
+	tdc->ow_regs = tdc->base; /* FIXME:  */
+	
+	tdc->hwzdev = zio_allocate_device();
+	if (IS_ERR(tdc->hwzdev))
+		return PTR_ERR(tdc->hwzdev);
+
+	/* Mandatory fields */
+	tdc->hwzdev->owner = THIS_MODULE;
+	tdc->hwzdev->private_data = tdc;
+
+	/* Our dev_id is bus+devfn */
+	pdev = tdc->spec->pdev;
+	dev_id = (pdev->bus->number << 8) | pdev->devfn;
+
+	err = zio_register_device(tdc->hwzdev, "tdc", dev_id);
+	if (err) {
+		zio_free_device(tdc->hwzdev);
+		return err;
+	}
+
+	/* TODO: */
 	return 0;
 }
 
 void tdc_remove(struct spec_dev *dev)
 {
-	/* TODO */
+	struct spec_tdc *tdc = dev->sub_priv;
+
+	tdc_zio_exit(tdc);
+
+	/* TODO: */
 }
 
-int tdc_spec_init (void)
+int tdc_spec_init(void)
 {
 	struct spec_dev *dev;
 	int ret, success = 0, retsave = 0, err = 0;
