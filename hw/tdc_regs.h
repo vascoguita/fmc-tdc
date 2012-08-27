@@ -11,6 +11,11 @@
 
 #ifndef __TDC_REGISTERS_H
 
+/* Gennum chip register */
+
+#define TDC_PCI_SYS_CFG_SYSTEM 	0x800
+
+
 /* Gennum core registers for DMA transactions */
 #define TDC_DMA_CTRL_R		0x0
 #define TDC_DMA_STAT_R		0x4
