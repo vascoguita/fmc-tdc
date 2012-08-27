@@ -101,6 +101,11 @@ int tdc_probe(struct spec_dev *dev)
 	struct spec_tdc *tdc;
 	int dev_id;
 
+	/* FIXME: create a new function to do this... */
+	int freq = 160;
+	int divot;
+	int data;
+
 	tdc = kzalloc(sizeof(struct spec_tdc), GFP_KERNEL);
 	if (!tdc) {
 		pr_err("%s: can't allocate device\n", __func__);
@@ -113,6 +118,19 @@ int tdc_probe(struct spec_dev *dev)
 	tdc->regs = tdc->base; 	/* FIXME: */
 	tdc->ow_regs = tdc->base; /* FIXME:  */
 	
+	/* FIXME:  */
+
+	/* Setup local clock */
+
+	divot = 800/freq - 1;
+        data = 0xe001f00c + (divot << 4);
+	writel(data, dev->remap[2] + 0x808);
+
+	msleep(100);
+	/* Reset */
+	writel(readl(dev->remap[2] + 0x800) & ~(1<<14 || 1 << 15), dev->remap[2] + 0x800);
+	msleep(100);
+
 	tdc->hwzdev = zio_allocate_device();
 	if (IS_ERR(tdc->hwzdev))
 		return PTR_ERR(tdc->hwzdev);
