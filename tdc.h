@@ -27,6 +27,9 @@ extern void tdc_zio_exit(void);
 extern int tdc_spec_init(void);
 extern void tdc_spec_exit(void);
 
+void tdc_acam_reset(struct spec_tdc *tdc);
+void tdc_acam_load_config(struct spec_tdc *tdc);
+
 int tdc_probe(struct spec_dev *dev);
 void tdc_remove(struct spec_dev *dev);
 #endif

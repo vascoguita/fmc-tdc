@@ -13,6 +13,7 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <asm/io.h>
 
 #include "spec.h"
 #include "tdc.h"
@@ -35,18 +36,9 @@ static void tdc_fw_reset(struct spec_dev *dev)
 	writel(0x00021040, dev->remap[2] + TDC_PCI_SYS_CFG_SYSTEM);
 	msleep(10);
 	writel(0x00025000, dev->remap[2] + TDC_PCI_SYS_CFG_SYSTEM);
-	msleep(3000);
+	msleep(600);
 }
 
-static void tdc_acam_reset(struct spec_tdc *tdc)
-{
-	writel(TDC_CTRL_RESET_ACAM, tdc->base + TDC_CTRL_REG);
-}
-
-static void tdc_acam_load_config(struct spec_tdc *tdc)
-{
-	writel(TDC_CTRL_LOAD_ACAM_CFG, tdc->base + TDC_CTRL_REG);
-}
 
 int tdc_probe(struct spec_dev *dev)
 {
@@ -70,28 +62,22 @@ int tdc_probe(struct spec_dev *dev)
 	/* Reset FPGA to load the firmware */
 	tdc_fw_reset(dev);
 
+#if 0
 	/* Load ACAM configuration */
 	tdc_acam_load_config(tdc);
 
 	/* Reset ACAM configuration */
 	tdc_acam_reset(tdc);
 
+#endif
+
+#if 1
 	/* XXX: Delete this part as it is for testing the FW */
-	writel(0x33, tdc->base + TDC_MEZZANINE_1WIRE);
-	pr_err("SIG: termometro family code value ->  0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-	pr_err("SIG: termometro serial number value 0 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-
-	pr_err("SIG: termometro serial number value 1 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-	pr_err("SIG: termometro serial number value 2 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-	pr_err("SIG: termometro serial number value 3 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-	pr_err("SIG: termometro serial number value 4 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-
-	pr_err("SIG: termometro serial number value 5 -> 0x%x\n", readl(tdc->base + TDC_MEZZANINE_1WIRE));
-
+	pr_err("SIG: tdc->base 0x%p\n", tdc->base);
+	pr_err("SIG: current UTC 0x%x\n", readl(tdc->base + TDC_CURRENT_UTC));
+#endif
 	/* TODO: */
-	tdc_zio_register_device(tdc);
-
-	return 0;
+	return tdc_zio_register_device(tdc);
 }
 
 void tdc_remove(struct spec_dev *dev)
