@@ -60,4 +60,16 @@ u32 tdc_acam_read_start01(struct spec_tdc *tdc);
 /* Core functions */
 int tdc_probe(struct spec_dev *dev);
 void tdc_remove(struct spec_dev *dev);
+
+int tdc_set_utc_time(struct spec_tdc *tdc);
+u32 tdc_get_utc_time(struct spec_tdc *tdc);
+void tdc_set_irq_tstamp_thresh(struct spec_tdc *tdc, u32 val);
+void tdc_set_irq_time_thresh(struct spec_tdc *tdc, u32 val);
+u32 tdc_get_irq_time_thresh(struct spec_tdc *tdc);
+void tdc_set_dac_word(struct spec_tdc *tdc, u32 val);
+void tdc_clear_da_capo_flag(struct spec_tdc *tdc);
+void tdc_activate_adquisition(struct spec_tdc *tdc);
+void tdc_deactivate_adquisition(struct spec_tdc *tdc);
+
+
 #endif

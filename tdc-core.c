@@ -40,16 +40,16 @@ static void tdc_fw_reset(struct spec_dev *dev)
 }
 
 /* XXX: Check that the value is properly written? */
-static int tdc_set_utc_time(struct spec_tdc *tdc)
+int tdc_set_utc_time(struct spec_tdc *tdc)
 {
-	u32 utc_time;	/* TODO: fill the variable with a proper value */	
+	u32 utc_time = 0;	/* TODO: fill the variable with a proper value */	
 
 	writel(utc_time, tdc->base + TDC_START_UTC);
 	writel(TDC_CTRL_LOAD_UTC, tdc->base + TDC_CTRL_REG);
 	return 0;
 }
 
-static u32 tdc_get_utc_time(struct spec_tdc *tdc)
+u32 tdc_get_utc_time(struct spec_tdc *tdc)
 {
 	return readl(tdc->base + TDC_CURRENT_UTC);
 }
