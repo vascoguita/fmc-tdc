@@ -32,6 +32,35 @@ static void __tdc_acam_do_read_config(struct spec_tdc *tdc)
 	writel(TDC_CTRL_READ_ACAM_CFG, tdc->base + TDC_CTRL_REG);
 }
 
+u32 tdc_acam_status(struct spec_tdc *tdc)
+{
+	/* Send the command to read acam status */
+	writel(TDC_CTRL_READ_ACAM_STAT, tdc->base + TDC_CTRL_REG);
+
+	/* TODO: Where to read it? */
+	return 0;
+}
+
+u32 tdc_acam_read_ififo1(struct spec_tdc *tdc)
+{
+	/* Send the command to read acam status */
+	writel(TDC_CTRL_READ_ACAM_IFIFO1, tdc->base + TDC_CTRL_REG);
+	return readl(tdc->base + TDC_ACAM_RDBACK_REG_8);
+}
+
+u32 tdc_acam_read_ififo2(struct spec_tdc *tdc)
+{
+	/* Send the command to read acam status */
+	writel(TDC_CTRL_READ_ACAM_IFIFO2, tdc->base + TDC_CTRL_REG);
+	return readl(tdc->base + TDC_ACAM_RDBACK_REG_9);
+}
+
+u32 tdc_acam_read_start01(struct spec_tdc *tdc)
+{
+	/* Send the command to read acam status */
+	writel(TDC_CTRL_READ_ACAM_START01_R, tdc->base + TDC_CTRL_REG);
+	return readl(tdc->base + TDC_ACAM_RDBACK_REG_10);
+}
 
 int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 {
@@ -68,9 +97,6 @@ int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 	cfg->start_retrigger = readl(tdc->base + TDC_ACAM_RDBACK_REG_5);
 	cfg->lf_flags_level = readl(tdc->base + TDC_ACAM_RDBACK_REG_6);
 	cfg->pll = readl(tdc->base + TDC_ACAM_RDBACK_REG_7);
-	cfg->ififo1 = readl(tdc->base + TDC_ACAM_RDBACK_REG_8);
-	cfg->ififo2 = readl(tdc->base + TDC_ACAM_RDBACK_REG_9);
-	cfg->start01 = readl(tdc->base + TDC_ACAM_RDBACK_REG_10);
 	cfg->err_flag_cfg = readl(tdc->base + TDC_ACAM_RDBACK_REG_11);
 	cfg->int_flag_cfg = readl(tdc->base + TDC_ACAM_RDBACK_REG_12);
 	cfg->ctrl_16_bit_mode = readl(tdc->base + TDC_ACAM_RDBACK_REG_14);

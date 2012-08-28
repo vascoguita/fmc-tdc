@@ -20,9 +20,6 @@ struct tdc_acam_cfg {
 	u32 start_retrigger;	/* ACAM reg. 5 */
 	u32 lf_flags_level;	/* ACAM reg. 6 */
 	u32 pll;		/* ACAM reg. 7 */
-	u32 ififo1;		/* ACAM reg. 8 */
-	u32 ififo2;		/* ACAM reg. 9 */
-	u32 start01;		/* ACAM reg. 10 */
 	u32 err_flag_cfg;	/* ACAM reg. 11 */
 	u32 int_flag_cfg;	/* ACAM reg. 12 */
 	u32 ctrl_16_bit_mode;	/* ACAM reg. 14 */

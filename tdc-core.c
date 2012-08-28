@@ -27,16 +27,16 @@ static void tdc_gennum_setup_local_clock(struct spec_dev *dev, int freq)
 	/* Setup local clock */
 	divot = 800/freq - 1;
         data = 0xe001f00c + (divot << 4);
-	writel(data, dev->remap[2] + 0x808);
+	writel(0x0001F04C, dev->remap[2] + 0x808);
 }
 
 static void tdc_fw_reset(struct spec_dev *dev)
 {
 	/* Reset FPGA. Assert ~RSTOUT33 and de-assert it. BAR 4.*/
 	writel(0x00021040, dev->remap[2] + TDC_PCI_SYS_CFG_SYSTEM);
-	msleep(10);
+	mdelay(10);
 	writel(0x00025000, dev->remap[2] + TDC_PCI_SYS_CFG_SYSTEM);
-	msleep(600);
+	mdelay(5000);
 }
 
 
@@ -71,7 +71,7 @@ int tdc_probe(struct spec_dev *dev)
 
 #endif
 
-#if 1
+#if 0
 	/* XXX: Delete this part as it is for testing the FW */
 	pr_err("SIG: tdc->base 0x%p\n", tdc->base);
 	pr_err("SIG: current UTC 0x%x\n", readl(tdc->base + TDC_CURRENT_UTC));
