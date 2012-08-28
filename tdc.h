@@ -33,11 +33,16 @@ enum tdc_zattr_dev_idx {
 	TDC_ATTR_DEV__LAST,
 };
 
-/* ZIO helper functions */
-int tdc_zio_register_device(struct spec_tdc *tdc);
-void tdc_zio_remove(struct spec_tdc *tdc);
-int tdc_zio_init(void);
-void tdc_zio_exit(void);
+/* Channel ZIO attributes */
+enum tdc_zattr_chan_idx {
+	TDC_ATTR_CHAN_ENABLED = TDC_ATTR_DEV__LAST,
+	TDC_ATTR_CHAN__LAST,
+};
+
+extern int tdc_zio_register_device(struct spec_tdc *tdc);
+extern void tdc_zio_remove(struct spec_tdc *tdc);
+extern int tdc_zio_init(void);
+extern void tdc_zio_exit(void);
 
 /* SPEC helper functions */
 int tdc_spec_init(void);
