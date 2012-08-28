@@ -104,3 +104,22 @@ int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 	return 0;
 }
 
+int tdc_acam_set_default_config(struct spec_tdc *tdc)
+{
+	struct tdc_acam_cfg cfg;
+
+	/* Default setup as indicated in the datasheet */
+	cfg->edge_config = 0x01F0FC81;
+	cfg->channel_adj = 0x0;
+	cfg->mode_enable = 0xE02;
+	cfg->resolution = 0x0;
+	cfg->start_timer_set = 0x0200000F;
+	cfg->start_retrigger = 0x07D0;
+	cfg->lf_flags_level = 0x03;
+	cfg->pll = 0x001FEA;
+	cfg->err_flag_cfg = 0x00FF0000;
+	cfg->int_flag_cfg = 0x04000000;
+	cfg->ctrl_16_bit_mode = 0x0;
+
+	return tdc_acam_load_config(tdc, cfg);
+}
