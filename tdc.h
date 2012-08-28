@@ -33,18 +33,26 @@ enum tdc_zattr_dev_idx {
 	TDC_ATTR_DEV__LAST,
 };
 
-extern int tdc_zio_register_device(struct spec_tdc *tdc);
-extern void tdc_zio_remove(struct spec_tdc *tdc);
-extern int tdc_zio_init(void);
-extern void tdc_zio_exit(void);
+/* ZIO helper functions */
+int tdc_zio_register_device(struct spec_tdc *tdc);
+void tdc_zio_remove(struct spec_tdc *tdc);
+int tdc_zio_init(void);
+void tdc_zio_exit(void);
 
-extern int tdc_spec_init(void);
-extern void tdc_spec_exit(void);
+/* SPEC helper functions */
+int tdc_spec_init(void);
+void tdc_spec_exit(void);
 
+/* ACAM helper functions */
 void tdc_acam_reset(struct spec_tdc *tdc);
 int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
-int tdc_acam_read_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
+int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
+u32 tdc_acam_status(struct spec_tdc *tdc);
+u32 tdc_acam_read_ififo1(struct spec_tdc *tdc);
+u32 tdc_acam_read_ififo2(struct spec_tdc *tdc);
+u32 tdc_acam_read_start01(struct spec_tdc *tdc);
 
+/* Core functions */
 int tdc_probe(struct spec_dev *dev);
 void tdc_remove(struct spec_dev *dev);
 #endif
