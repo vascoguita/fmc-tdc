@@ -42,9 +42,11 @@ static void tdc_fw_reset(struct spec_dev *dev)
 /* XXX: Check that the value is properly written? */
 int tdc_set_utc_time(struct spec_tdc *tdc)
 {
-	u32 utc_time = 0;	/* TODO: fill the variable with a proper value */	
-
-	writel(utc_time, tdc->base + TDC_START_UTC);
+	struct timeval utc_time;	
+	
+	do_gettimeofday(&utc_time);
+	
+	writel(utc_time.tv_sec, tdc->base + TDC_START_UTC);
 	writel(TDC_CTRL_LOAD_UTC, tdc->base + TDC_CTRL_REG);
 	return 0;
 }
