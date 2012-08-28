@@ -35,64 +35,64 @@ static struct zio_attribute tdc_zattr_dev[] = {
 	ZATTR_EXT_REG("time-thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
 };
 
-static struct zio_attribute tdc_zattr_chan[] = {
+static struct zio_attribute tdc_zattr_cset[] = {
 	ZATTR_EXT_REG("enabled", _RW_, TDC_ATTR_CHAN_ENABLED, 1),
 };
 
 static struct zio_cset tdc_cset[] = {
 	{
-		SET_OBJECT_NAME("tdc-ch1"), /* TODO: change name and complete */
+		SET_OBJECT_NAME("tdc-cset0"),
 		.raw_io =	NULL,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_chan,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_chan),
+			.ext_zattr = tdc_zattr_cset,
+			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-ch2"), /* TODO: change name and complete */
+		SET_OBJECT_NAME("tdc-cset1"),
 		.raw_io =	NULL,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_chan,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_chan),
+			.ext_zattr = tdc_zattr_cset,
+			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-ch3"), /* TODO: change name and complete */
+		SET_OBJECT_NAME("tdc-cset2"),
 		.raw_io =	NULL,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_chan,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_chan),
+			.ext_zattr = tdc_zattr_cset,
+			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-ch4"), /* TODO: change name and complete */
+		SET_OBJECT_NAME("tdc-cset3"),
 		.raw_io =	NULL,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_chan,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_chan),
+			.ext_zattr = tdc_zattr_cset,
+			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-ch5"), /* TODO: change name and complete */
+		SET_OBJECT_NAME("tdc-cset4"),
 		.raw_io =	NULL,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_chan,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_chan),
+			.ext_zattr = tdc_zattr_cset,
+			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
 		},
 	},
 };
@@ -114,15 +114,15 @@ static int tdc_zio_conf_set(struct device *dev,
 	switch (zattr->priv.addr) {
 	case TDC_ATTR_DEV_TSTAMPS_THRESH:
 		/* TODO: set value in the device */
-		pr_err("New value for timestamps threshold: %i", usr_val);
+		pr_err("New value for timestamps threshold: %i\n", usr_val);
 		break;
 	case TDC_ATTR_DEV_TIME_THRESH:
 		/* TODO: set value in the device */
-		pr_err("New value for time threshold: %i", usr_val);
+		pr_err("New value for time threshold: %i\n", usr_val);
 		break;
 	case TDC_ATTR_CHAN_ENABLED:
 		/* TODO: set value in the device */
-		pr_err("New value for enabled in channel %i: %i",
+		pr_err("New value for enabled in channel %i: %i\n",
 		       chan, usr_val);
 		break;
 	default:
@@ -139,29 +139,27 @@ static int tdc_zio_info_get(struct device *dev,
 	struct zio_device *zdev;
 	struct zio_cset *cset;
 	struct zio_attribute *attr;
-	int chan;
 
 	cset = to_zio_cset(dev);
-	chan = cset->index - 1;
 	zdev = to_zio_dev(dev);
 	attr = zdev->zattr_set.ext_zattr;
 
 	switch (zattr->priv.addr) {
 	case TDC_ATTR_DEV_TSTAMPS_THRESH:
 		/* TODO: get value from device */
-		pr_err("Value for timestamps threshold: %i", 100);
+		pr_err("Value for timestamps threshold: %i\n", 100);
 		*usr_val = 100;
 		break;
 	case TDC_ATTR_DEV_TIME_THRESH:
 		/* TODO: get value from device */
-		pr_err("Value for time threshold: %i", 100);
+		pr_err("Value for time threshold: %i\n", 100);
 		*usr_val = 100;
 		break;
 	case TDC_ATTR_CHAN_ENABLED:
 		/* TODO: get value from device */
 		*usr_val = 1;
-		pr_err("Value for enabled in channel %i: %i",
-		       chan, 1);
+		pr_err("Value for enabled in channel %i: %i\n",
+		       cset->index, 1);
 		break;
 	default:
 		return -EINVAL;
