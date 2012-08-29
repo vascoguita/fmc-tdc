@@ -26,7 +26,7 @@ static void tdc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 
 	/* Setup local clock */
 	divot = 800/freq - 1;
-        data = 0xe001f00c + (divot << 4);
+        data = 0xE001F00C + (divot << 4);
 	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
 
@@ -133,9 +133,11 @@ int tdc_probe(struct spec_dev *dev)
 
 #endif
 
-#if 0
+#if 1
 	/* XXX: Delete this part as it is for testing the FW */
 	pr_err("SIG: tdc->base 0x%p\n", tdc->base);
+	tdc_set_utc_time(tdc);
+	mdelay(20);
 	pr_err("SIG: current UTC 0x%x\n", readl(tdc->base + TDC_CURRENT_UTC));
 #endif
 	/* TODO: */
