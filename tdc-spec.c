@@ -12,6 +12,7 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
 
 #include <linux/delay.h>
+
 #include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
@@ -42,10 +43,16 @@ int tdc_probe(struct fmc_device *dev)
 {
 	struct spec_tdc *tdc;
 	struct spec_dev *spec;
-
+	int ret;
 
 	if(strcmp(dev->carrier_name, "SPEC") != 0)
 		return -ENODEV;
+
+	ret = dev->op->reprogram(dev, &tdc_fmc_driver, "eva_tdc_for_v2.bin");
+	if (ret < 0) {
+		pr_err("%s: error reprogramming the FPGA\n", __func__);
+		return -ENODEV;
+	}
 
 	tdc = kzalloc(sizeof(struct spec_tdc), GFP_KERNEL);
 	if (!tdc) {
@@ -94,6 +101,7 @@ int tdc_remove(struct fmc_device *dev)
 
 	tdc = spec->sub_priv;
 	tdc_zio_remove(tdc);
+	kfree(tdc);
 	return 0;
 }
 
