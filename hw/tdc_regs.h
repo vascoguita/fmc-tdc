@@ -14,6 +14,7 @@
 /* Gennum chip register */
 
 #define TDC_PCI_SYS_CFG_SYSTEM 	0x800
+#define TDC_PCI_CLK_CSR 	0x808
 
 
 /* Gennum core registers for DMA transactions */

@@ -19,7 +19,7 @@
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
-static void tdc_gennum_setup_local_clock(struct spec_dev *dev, int freq)
+static void tdc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 {	
 	unsigned int divot;
 	unsigned int data;
@@ -27,15 +27,15 @@ static void tdc_gennum_setup_local_clock(struct spec_dev *dev, int freq)
 	/* Setup local clock */
 	divot = 800/freq - 1;
         data = 0xe001f00c + (divot << 4);
-	writel(0x0001F04C, dev->remap[2] + 0x808);
+	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
 
-static void tdc_fw_reset(struct spec_dev *dev)
+static void tdc_fw_reset(struct spec_tdc *tdc)
 {
 	/* Reset FPGA. Assert ~RSTOUT33 and de-assert it. BAR 4.*/
-	writel(0x00021040, dev->remap[2] + TDC_PCI_SYS_CFG_SYSTEM);
+	writel(0x00021040, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
 	mdelay(10);
-	writel(0x00025000, dev->remap[2] + TDC_PCI_SYS_CFG_SYSTEM);
+	writel(0x00025000, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
 	mdelay(5000);
 }
 
@@ -119,10 +119,10 @@ int tdc_probe(struct spec_dev *dev)
 	tdc->gn412x_regs = dev->remap[2]; 	/* BAR 4  */
 	
 	/* Setup the Gennum 412x local clock frequency */
-	tdc_gennum_setup_local_clock(dev, 160);
+	tdc_gennum_setup_local_clock(tdc, 160);
 
 	/* Reset FPGA to load the firmware */
-	tdc_fw_reset(dev);
+	tdc_fw_reset(tdc);
 
 #if 0
 	/* Load ACAM configuration */
