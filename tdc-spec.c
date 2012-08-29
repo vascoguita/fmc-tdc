@@ -48,7 +48,7 @@ int tdc_probe(struct fmc_device *dev)
 	if(strcmp(dev->carrier_name, "SPEC") != 0)
 		return -ENODEV;
 
-	ret = dev->op->reprogram(dev, &tdc_fmc_driver, "eva_tdc_for_v2.bin");
+	ret = dev->op->reprogram(dev, &tdc_fmc_driver, "fmc/eva_tdc_for_v2.bin");
 	if (ret < 0) {
 		pr_err("%s: error reprogramming the FPGA\n", __func__);
 		return -ENODEV;
