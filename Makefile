@@ -1,5 +1,5 @@
-#LINUX ?= /lib/modules/$(shell uname -r)/build
-LINUX ?= ../
+LINUX ?= /lib/modules/$(shell uname -r)/build
+#LINUX ?= ../
 ZIO ?= $(HOME)/devel/cern/zio
 SPEC_SW ?= $(HOME)/devel/cern/spec-sw
 
