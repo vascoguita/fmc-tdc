@@ -11,61 +11,104 @@
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
 
+#include <linux/delay.h>
 #include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
-static int tdc_is_valid(int bus, int devfn)
-{
-	/* FIXME: restrict to some of the spec devices with moduleparam */
-	/* TODO: */
-	return 1;
+static struct fmc_driver tdc_fmc_driver;
+
+static void tdc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
+{	
+	unsigned int divot;
+	unsigned int data;
+
+	/* Setup local clock */
+	divot = 800/freq - 1;
+        data = 0xE001F00C + (divot << 4);
+	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
+
+static void tdc_fw_reset(struct spec_tdc *tdc)
+{
+	/* Reset FPGA. Assert ~RSTOUT33 and de-assert it. BAR 4.*/
+	writel(0x00021040, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
+	mdelay(10);
+	writel(0x00025000, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
+	mdelay(5000);
+}
+
+int tdc_probe(struct fmc_device *dev)
+{
+	struct spec_tdc *tdc;
+	struct spec_dev *spec;
+
+
+	if(strcmp(dev->carrier_name, "SPEC") != 0)
+		return -ENODEV;
+
+	tdc = kzalloc(sizeof(struct spec_tdc), GFP_KERNEL);
+	if (!tdc) {
+		pr_err("%s: can't allocate device\n", __func__);
+		return -ENOMEM;
+	}
+
+	spec = dev->carrier_data;
+	tdc->spec = spec;
+	spec->sub_priv = tdc;
+	tdc->fmc = dev;
+	tdc->base = spec->remap[0]; // or fmc->base ?? 		/* BAR 0 */
+	tdc->regs = tdc->base; 			/* BAR 0 */
+	tdc->gn412x_regs = spec->remap[2]; 	/* BAR 4  */
+	
+	/* Setup the Gennum 412x local clock frequency */
+	tdc_gennum_setup_local_clock(tdc, 160);
+
+	/* Reset FPGA to load the firmware */
+	tdc_fw_reset(tdc);
+
+#if 0
+	/* Load ACAM configuration */
+	tdc_acam_load_config(tdc);
+
+	/* Reset ACAM configuration */
+	tdc_acam_reset(tdc);
+
+#endif
+
+#if 1
+	/* XXX: Delete this part as it is for testing the FW */
+	pr_err("SIG: tdc->base 0x%p\n", tdc->base);
+	tdc_set_utc_time(tdc);
+	mdelay(20);
+	pr_err("SIG: current UTC 0x%x\n", readl(tdc->base + TDC_CURRENT_UTC));
+#endif
+	/* TODO: */
+	return tdc_zio_register_device(tdc);
+}
+
+int tdc_remove(struct fmc_device *dev)
+{
+	struct spec_dev *spec = dev->carrier_data;
+	struct spec_tdc *tdc;
+
+	tdc = spec->sub_priv;
+	tdc_zio_remove(tdc);
+	return 0;
+}
+
 
 int tdc_spec_init(void)
 {
-	struct spec_dev *dev;
-	int ret, success = 0, retsave = 0, err = 0;
-
-	/* Scan the list and see what is there. Take hold of everything */
-	list_for_each_entry(dev, &spec_list, list) {
-		if (!tdc_is_valid(dev->pdev->bus->number, dev->pdev->devfn))
-			continue;
-		pr_debug("%s: init %04x:%04x (%pR - %p)\n", __func__,
-		       dev->pdev->bus->number, dev->pdev->devfn,
-		       dev->area[0], dev->remap[0]);
-		ret = tdc_probe(dev);
-		if (ret < 0) {
-			retsave = ret;
-			err++;
-		} else {
-			success++;
-		}
-	}
-	if (err) {
-		pr_err("%s: Setup of %i boards failed (%i succeeded)\n",
-		       KBUILD_MODNAME, err, success);
-		pr_err("%s: last error: %i\n", KBUILD_MODNAME, retsave);
-	}
-	if (success) {
-		/* At least one board has been successfully initialized */
-		return 0;
-	}
-	return retsave; /* last error code */
+	tdc_fmc_driver.probe = tdc_probe;
+	tdc_fmc_driver.remove = tdc_remove;
+	fmc_driver_register(&tdc_fmc_driver);
+	return 0;
 }
 
 void tdc_spec_exit(void)
 {
-	struct spec_dev *dev;
-
-	list_for_each_entry(dev, &spec_list, list) {
-		if (!tdc_is_valid(dev->pdev->bus->number, dev->pdev->devfn))
-			continue;
-		pr_debug("%s: release %04x:%04x (%pR - %p)\n", __func__,
-		       dev->pdev->bus->number, dev->pdev->devfn,
-		       dev->area[0], dev->remap[0]);
-		tdc_remove(dev);
-	}
+	fmc_driver_unregister(&tdc_fmc_driver);
 }
 
 

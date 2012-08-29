@@ -4,6 +4,7 @@
 #define TDC_VERSION	1
 
 struct spec_tdc {
+	struct fmc_device *fmc;
 	struct spec_dev *spec;
 	struct zio_device *zdev, *hwzdev;
 	unsigned char __iomem *base;	/* regs files are byte-oriented */
@@ -58,8 +59,8 @@ u32 tdc_acam_read_ififo2(struct spec_tdc *tdc);
 u32 tdc_acam_read_start01(struct spec_tdc *tdc);
 
 /* Core functions */
-int tdc_probe(struct spec_dev *dev);
-void tdc_remove(struct spec_dev *dev);
+int tdc_probe(struct fmc_device *dev);
+int tdc_remove(struct fmc_device *dev);
 
 int tdc_set_utc_time(struct spec_tdc *tdc);
 u32 tdc_get_utc_time(struct spec_tdc *tdc);

@@ -13,32 +13,12 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/delay.h>
 #include <asm/io.h>
 
 #include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
-static void tdc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
-{	
-	unsigned int divot;
-	unsigned int data;
-
-	/* Setup local clock */
-	divot = 800/freq - 1;
-        data = 0xE001F00C + (divot << 4);
-	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
-}
-
-static void tdc_fw_reset(struct spec_tdc *tdc)
-{
-	/* Reset FPGA. Assert ~RSTOUT33 and de-assert it. BAR 4.*/
-	writel(0x00021040, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
-	mdelay(10);
-	writel(0x00025000, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
-	mdelay(5000);
-}
 
 /* XXX: Check that the value is properly written? */
 int tdc_set_utc_time(struct spec_tdc *tdc)
@@ -103,54 +83,6 @@ void tdc_deactivate_adquisition(struct spec_tdc *tdc)
 	writel(TDC_CTRL_DIS_ACQ, tdc->base + TDC_CTRL_REG);
 }
 
-int tdc_probe(struct spec_dev *dev)
-{
-	struct spec_tdc *tdc;
-
-	tdc = kzalloc(sizeof(struct spec_tdc), GFP_KERNEL);
-	if (!tdc) {
-		pr_err("%s: can't allocate device\n", __func__);
-		return -ENOMEM;
-	}
-
-	dev->sub_priv = tdc;
-	tdc->spec = dev;
-	tdc->base = dev->remap[0]; 		/* BAR 0 */
-	tdc->regs = tdc->base; 			/* BAR 0 */
-	tdc->gn412x_regs = dev->remap[2]; 	/* BAR 4  */
-	
-	/* Setup the Gennum 412x local clock frequency */
-	tdc_gennum_setup_local_clock(tdc, 160);
-
-	/* Reset FPGA to load the firmware */
-	tdc_fw_reset(tdc);
-
-#if 0
-	/* Load ACAM configuration */
-	tdc_acam_load_config(tdc);
-
-	/* Reset ACAM configuration */
-	tdc_acam_reset(tdc);
-
-#endif
-
-#if 1
-	/* XXX: Delete this part as it is for testing the FW */
-	pr_err("SIG: tdc->base 0x%p\n", tdc->base);
-	tdc_set_utc_time(tdc);
-	mdelay(20);
-	pr_err("SIG: current UTC 0x%x\n", readl(tdc->base + TDC_CURRENT_UTC));
-#endif
-	/* TODO: */
-	return tdc_zio_register_device(tdc);
-}
-
-void tdc_remove(struct spec_dev *dev)
-{
-	struct spec_tdc *tdc = dev->sub_priv;
-
-	tdc_zio_remove(tdc);
-}
 
 static int tdc_init(void)
 {

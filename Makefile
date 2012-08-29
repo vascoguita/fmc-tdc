@@ -1,11 +1,11 @@
-LINUX ?= /lib/modules/$(shell uname -r)/build
-#LINUX ?= ../
-ZIO ?= $(HOME)/dependencies/zio
-SPEC_SW ?= $(HOME)/dependencies/spec-sw
+#LINUX ?= /lib/modules/$(shell uname -r)/build
+LINUX ?= ../kernel-3.5
+ZIO ?= $(HOME)/devel/cern/zio
+SPEC_SW ?= $(HOME)/devel/cern/spec-sw
 
 KBUILD_EXTRA_SYMBOLS := $(ZIO)/Module.symvers $(SPEC_SW)/kernel/Module.symvers
 
-ccflags-y = -I$(ZIO)/include -I$(SPEC_SW)/kernel -I$M
+ccflags-y = -I$(ZIO)/include -I$(SPEC_SW)/kernel -I$M -I$(SPEC_SW)/kernel/include
 
 #ccflags-y += -DDEBUG
 
