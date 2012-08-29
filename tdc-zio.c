@@ -220,7 +220,7 @@ int tdc_zio_register_device(struct spec_tdc *tdc)
 
 	/* Mandatory fields */
 	tdc->hwzdev->owner = THIS_MODULE;
-	tdc->hwzdev->private_data = tdc;
+	tdc->hwzdev->priv_d = tdc;
 
 	/* Our dev_id is bus+devfn */
 	pdev = tdc->spec->pdev;
