@@ -68,6 +68,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc->base = spec->remap[0]; // XXX: or fmc->base ?? 		/* BAR 0 */
 	tdc->regs = tdc->base; 			/* BAR 0 */
 	tdc->gn412x_regs = spec->remap[2]; 	/* BAR 4  */
+	tdc->wr_pointer = 0;
 	
 	/* Setup the Gennum 412x local clock frequency */
 	tdc_fmc_gennum_setup_local_clock(tdc, 160);

@@ -12,6 +12,9 @@ struct spec_tdc {
 	unsigned char __iomem *base;	/* regs files are byte-oriented */
 	unsigned char __iomem *regs;
 	unsigned char __iomem *gn412x_regs;
+	u32 wr_pointer;		/* XXX: Used to save the previous value of the wr_pointer
+				 * XXX: Watch out the Da Capo Flag! It may confuse us!
+				 */
 };
 
 struct tdc_acam_cfg {
@@ -42,44 +45,49 @@ enum tdc_zattr_chan_idx {
 	TDC_ATTR_CHAN__LAST,
 };
 
+/* ZIO helper functions */
 extern int tdc_zio_register_device(struct spec_tdc *tdc);
 extern void tdc_zio_remove(struct spec_tdc *tdc);
 extern int tdc_zio_init(void);
 extern void tdc_zio_exit(void);
 
 /* FMC helper functions */
-int tdc_fmc_init(void);
-void tdc_fmc_exit(void);
+extern int tdc_fmc_init(void);
+extern void tdc_fmc_exit(void);
 
 /* ACAM helper functions */
-void tdc_acam_reset(struct spec_tdc *tdc);
-int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
-int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
-int tdc_acam_set_default_config(struct spec_tdc *tdc);
-u32 tdc_acam_status(struct spec_tdc *tdc);
-u32 tdc_acam_read_ififo1(struct spec_tdc *tdc);
-u32 tdc_acam_read_ififo2(struct spec_tdc *tdc);
-u32 tdc_acam_read_start01(struct spec_tdc *tdc);
+extern void tdc_acam_reset(struct spec_tdc *tdc);
+extern int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
+extern int tdc_acam_set_default_config(struct spec_tdc *tdc);
+
+extern int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
+extern u32 tdc_acam_status(struct spec_tdc *tdc);
+extern u32 tdc_acam_read_ififo1(struct spec_tdc *tdc);
+extern u32 tdc_acam_read_ififo2(struct spec_tdc *tdc);
+extern u32 tdc_acam_read_start01(struct spec_tdc *tdc);
 
 /* DMA helper functions */
-
-int tdc_dma_setup(struct spec_tdc *tdc, unsigned long src, unsigned long dst, int size);
-int tdc_dma_start(struct spec_tdc *tdc);
-
+extern int tdc_dma_setup(struct spec_tdc *tdc, unsigned long src, unsigned long dst, int size);
+extern int tdc_dma_start(struct spec_tdc *tdc);
 
 /* Core functions */
-int tdc_fmc_probe(struct fmc_device *dev);
-int tdc_fmc_remove(struct fmc_device *dev);
+extern int tdc_fmc_probe(struct fmc_device *dev);
+extern int tdc_fmc_remove(struct fmc_device *dev);
 
-int tdc_set_utc_time(struct spec_tdc *tdc);
-u32 tdc_get_utc_time(struct spec_tdc *tdc);
-void tdc_set_irq_tstamp_thresh(struct spec_tdc *tdc, u32 val);
-void tdc_set_irq_time_thresh(struct spec_tdc *tdc, u32 val);
-u32 tdc_get_irq_time_thresh(struct spec_tdc *tdc);
-void tdc_set_dac_word(struct spec_tdc *tdc, u32 val);
-void tdc_clear_da_capo_flag(struct spec_tdc *tdc);
-void tdc_activate_adquisition(struct spec_tdc *tdc);
-void tdc_deactivate_adquisition(struct spec_tdc *tdc);
+extern void tdc_set_utc_time(struct spec_tdc *tdc);
+extern void tdc_set_input_enable(struct spec_tdc *tdc, u32 value);
+extern void tdc_set_irq_tstamp_thresh(struct spec_tdc *tdc, u32 val);
+extern void tdc_set_irq_time_thresh(struct spec_tdc *tdc, u32 val);
+extern void tdc_set_dac_word(struct spec_tdc *tdc, u32 val);
 
+extern u32 tdc_get_input_enable(struct spec_tdc *tdc);
+extern u32 tdc_get_irq_tstamp_thresh(struct spec_tdc *tdc);
+extern u32 tdc_get_irq_time_thresh(struct spec_tdc *tdc);
+extern u32 tdc_get_current_utc_time(struct spec_tdc *tdc);
+extern u32 tdc_get_circular_buffer_wr_pointer(struct spec_tdc *tdc);
+
+extern void tdc_clear_da_capo_flag(struct spec_tdc *tdc);
+extern void tdc_activate_adquisition(struct spec_tdc *tdc);
+extern void tdc_deactivate_adquisition(struct spec_tdc *tdc);
 
 #endif
