@@ -12,6 +12,7 @@ struct spec_tdc {
 	unsigned char __iomem *base;	/* regs files are byte-oriented */
 	unsigned char __iomem *regs;
 	unsigned char __iomem *gn412x_regs;
+	struct work_struct      irq_work;
 	u32 wr_pointer;		/* XXX: Used to save the previous value of the wr_pointer
 				 * XXX: Watch out the Da Capo Flag! It may confuse us!
 				 */

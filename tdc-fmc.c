@@ -12,12 +12,14 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
 
 #include <linux/delay.h>
+#include <linux/workqueue.h>
 
 #include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
 static struct fmc_driver tdc_fmc_driver;
+static struct workqueue_struct *tdc_workqueue;
 
 static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 {	
@@ -40,6 +42,12 @@ static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 	mdelay(600);
 }
 
+static void tdc_fmc_irq_work(struct work_struct *work)
+{
+	struct spec_tdc *tdc = container_of(work, struct spec_tdc, irq_work);
+	/* TODO: fill with DMA transfer and so on */
+}
+
 irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
@@ -48,7 +56,7 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 
 	/* TODO: fill with everything  */
 	pr_err("tdc: IRQ is coming\n");
-	
+	queue_work(tdc_workqueue, &tdc->irq_work);
 	/* Acknowledge the IRQ and exit */
 	fmc->op->irq_ack(fmc);
 	return IRQ_HANDLED;
@@ -92,6 +100,8 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc_acam_set_default_config(tdc);
 	/* Reset ACAM chip */
 	tdc_acam_reset(tdc);
+	/* Prepare the irq work */
+	INIT_WORK(&tdc->irq_work, tdc_fmc_irq_work);
 	/* Request the IRQ */
 	dev->op->irq_request(dev, tdc_fmc_irq_handler, "spec-tdc", IRQF_SHARED);
 
@@ -103,6 +113,8 @@ int tdc_fmc_remove(struct fmc_device *dev)
 	struct spec_dev *spec = dev->carrier_data;
 	struct spec_tdc *tdc = spec->sub_priv;
 
+	cancel_work_sync(&tdc->irq_work);
+	flush_workqueue(tdc_workqueue);
 	tdc->fmc->op->irq_free(tdc->fmc);
 	tdc_zio_remove(tdc);
 	kfree(tdc);
@@ -112,6 +124,7 @@ int tdc_fmc_remove(struct fmc_device *dev)
 
 int tdc_fmc_init(void)
 {
+	tdc_workqueue = create_singlethread_workqueue(KBUILD_MODNAME);
 	tdc_fmc_driver.probe = tdc_fmc_probe;
 	tdc_fmc_driver.remove = tdc_fmc_remove;
 	fmc_driver_register(&tdc_fmc_driver);
@@ -120,6 +133,7 @@ int tdc_fmc_init(void)
 
 void tdc_fmc_exit(void)
 {
+	destroy_workqueue(tdc_workqueue);
 	fmc_driver_unregister(&tdc_fmc_driver);
 }
 
