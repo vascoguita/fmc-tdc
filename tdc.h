@@ -4,6 +4,7 @@
 #define TDC_VERSION	1
 
 #include <linux/types.h>
+#include <linux/workqueue.h>
 
 struct spec_tdc {
 	struct fmc_device *fmc;
