@@ -31,18 +31,15 @@ DEFINE_ZATTR_STD(ZDEV, tdc_zattr_dev_std) = {
 
 static struct zio_attribute tdc_zattr_dev[] = {
 	ZATTR_EXT_REG("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
-	ZATTR_EXT_REG("tstamps-thresh", _RW_, TDC_ATTR_DEV_TSTAMPS_THRESH, 100),
+	ZATTR_EXT_REG("tstamp-thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, 100),
 	ZATTR_EXT_REG("time-thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
-	ZATTR_EXT_REG("current_utc_time", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
-	ZATTR_EXT_REG("set_utc_time", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
-	ZATTR_EXT_REG("input_enable", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100), /* XXX: Needed ?? */
-	ZATTR_EXT_REG("dac_word", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
-	ZATTR_EXT_REG("activate_adquisition", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("current_utc_time", S_IRUGO, TDC_ATTR_DEV_CURRENT_UTC, 0),
+	ZATTR_EXT_REG("set_utc_time", S_IWUGO, TDC_ATTR_DEV_SET_UTC, 0),
+	ZATTR_EXT_REG("input_enable", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0x1F),
+	ZATTR_EXT_REG("dac_word", _RW_, TDC_ATTR_DEV_DAC_WORD, 0),
+	ZATTR_EXT_REG("activate_acquisition", _RW_,
+		      TDC_ATTR_DEV_ACTIVATE_ACQUISITION, 0),
 
-};
-
-static struct zio_attribute tdc_zattr_cset[] = {
-	ZATTR_EXT_REG("enabled", _RW_, TDC_ATTR_CHAN_ENABLED, 1),
 };
 
 static struct zio_cset tdc_cset[] = {
@@ -53,8 +50,8 @@ static struct zio_cset tdc_cset[] = {
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_cset,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
+			.ext_zattr = NULL,
+			.n_ext_attr = 0,
 		},
 	},
 	{
@@ -64,8 +61,8 @@ static struct zio_cset tdc_cset[] = {
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_cset,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
+			.ext_zattr = NULL,
+			.n_ext_attr = 0,
 		},
 	},
 	{
@@ -75,8 +72,8 @@ static struct zio_cset tdc_cset[] = {
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_cset,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
+			.ext_zattr = NULL,
+			.n_ext_attr = 0,
 		},
 	},
 	{
@@ -86,8 +83,8 @@ static struct zio_cset tdc_cset[] = {
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_cset,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
+			.ext_zattr = NULL,
+			.n_ext_attr = 0,
 		},
 	},
 	{
@@ -97,39 +94,50 @@ static struct zio_cset tdc_cset[] = {
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
 		.zattr_set = {
-			.ext_zattr = tdc_zattr_cset,
-			.n_ext_attr = ARRAY_SIZE(tdc_zattr_cset),
+			.ext_zattr = NULL,
+			.n_ext_attr = 0,
 		},
 	},
 };
 
 static int tdc_zio_conf_set(struct device *dev,
 			    struct zio_attribute *zattr,
-			    uint32_t  usr_val)
+			    uint32_t usr_val)
 {
 	struct zio_device *zdev;
-	struct zio_cset *cset;
 	struct zio_attribute *attr;
-	int chan;
+	struct spec_tdc *tdc;
 
-	cset = to_zio_cset(dev);
-	chan = cset->index - 1;
 	zdev = to_zio_dev(dev);
 	attr = zdev->zattr_set.ext_zattr;
+	tdc = zdev->priv_d;
 
 	switch (zattr->priv.addr) {
-	case TDC_ATTR_DEV_TSTAMPS_THRESH:
-		/* TODO: set value in the device */
-		pr_err("New value for timestamps threshold: %i\n", usr_val);
+	case TDC_ATTR_DEV_TSTAMP_THRESH:
+		tdc_set_irq_tstamp_thresh(tdc, usr_val);
 		break;
 	case TDC_ATTR_DEV_TIME_THRESH:
-		/* TODO: set value in the device */
-		pr_err("New value for time threshold: %i\n", usr_val);
+		tdc_set_irq_time_thresh(tdc, usr_val);
 		break;
-	case TDC_ATTR_CHAN_ENABLED:
-		/* TODO: set value in the device */
-		pr_err("New value for enabled in channel %i: %i\n",
-		       chan, usr_val);
+	case TDC_ATTR_DEV_CURRENT_UTC:
+		break;
+	case TDC_ATTR_DEV_SET_UTC:
+		tdc_set_utc_time(tdc);
+		break;
+	case TDC_ATTR_DEV_INPUT_ENABLED:
+		tdc_set_input_enable(tdc, usr_val);
+		break;
+	case TDC_ATTR_DEV_DAC_WORD:
+		tdc_set_dac_word(tdc, usr_val);
+		break;
+	case TDC_ATTR_DEV_ACTIVATE_ACQUISITION:
+		if (usr_val) {
+			atomic_set(&tdc->busy, 1);
+			tdc_activate_acquisition(tdc);
+		} else {
+			atomic_set(&tdc->busy, 0);
+			tdc_deactivate_acquisition(tdc);
+		}
 		break;
 	default:
 		return -EINVAL;
@@ -143,29 +151,33 @@ static int tdc_zio_info_get(struct device *dev,
 			    uint32_t *usr_val)
 {
 	struct zio_device *zdev;
-	struct zio_cset *cset;
 	struct zio_attribute *attr;
+	struct spec_tdc *tdc;
 
-	cset = to_zio_cset(dev);
 	zdev = to_zio_dev(dev);
 	attr = zdev->zattr_set.ext_zattr;
+	tdc = zdev->priv_d;
 
 	switch (zattr->priv.addr) {
-	case TDC_ATTR_DEV_TSTAMPS_THRESH:
-		/* TODO: get value from device */
-		pr_err("Value for timestamps threshold: %i\n", 100);
-		*usr_val = 100;
+	case TDC_ATTR_DEV_TSTAMP_THRESH:
+		*usr_val = tdc_get_irq_tstamp_thresh(tdc);
 		break;
 	case TDC_ATTR_DEV_TIME_THRESH:
-		/* TODO: get value from device */
-		pr_err("Value for time threshold: %i\n", 100);
-		*usr_val = 100;
+		*usr_val = tdc_get_irq_time_thresh(tdc);
 		break;
-	case TDC_ATTR_CHAN_ENABLED:
-		/* TODO: get value from device */
-		*usr_val = 1;
-		pr_err("Value for enabled in channel %i: %i\n",
-		       cset->index, 1);
+	case TDC_ATTR_DEV_CURRENT_UTC:
+		*usr_val = tdc_get_current_utc_time(tdc);
+		break;
+	case TDC_ATTR_DEV_SET_UTC:
+		break;
+	case TDC_ATTR_DEV_INPUT_ENABLED:
+		*usr_val = tdc_get_input_enable(tdc);
+		break;
+	case TDC_ATTR_DEV_DAC_WORD:
+		*usr_val = tdc_get_dac_word(tdc);
+		break;
+	case TDC_ATTR_DEV_ACTIVATE_ACQUISITION:
+		*usr_val = atomic_read(&tdc->busy);
 		break;
 	default:
 		return -EINVAL;

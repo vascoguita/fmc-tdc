@@ -65,19 +65,24 @@ void tdc_set_dac_word(struct spec_tdc *tdc, u32 val)
 	writel(TDC_CTRL_CONFIG_DAC, tdc->base + TDC_CTRL_REG);
 }
 
+u32 tdc_get_dac_word(struct spec_tdc *tdc)
+{
+	return readl(tdc->base + TDC_DAC_WORD_R);
+}
+
 void tdc_clear_da_capo_flag(struct spec_tdc *tdc)
 {
 	writel(TDC_CTRL_CLEAR_DACAPO_FLAG, tdc->base + TDC_CTRL_REG);
 }
 
-void tdc_activate_adquisition(struct spec_tdc *tdc)
+void tdc_activate_acquisition(struct spec_tdc *tdc)
 {
 	/* Before activate the adquisition is required to reset the ACAM chip */
 	tdc_acam_reset(tdc);
 	writel(TDC_CTRL_EN_ACQ, tdc->base + TDC_CTRL_REG);
 }
 
-void tdc_deactivate_adquisition(struct spec_tdc *tdc)
+void tdc_deactivate_acquisition(struct spec_tdc *tdc)
 {
 	writel(TDC_CTRL_DIS_ACQ, tdc->base + TDC_CTRL_REG);
 }

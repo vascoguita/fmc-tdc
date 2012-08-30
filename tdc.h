@@ -14,6 +14,7 @@ struct spec_tdc {
 	unsigned char __iomem *regs;
 	unsigned char __iomem *gn412x_regs;
 	struct work_struct      irq_work;
+	atomic_t busy;		/* whether the device is acquiring data */
 	u32 wr_pointer;		/* XXX: Used to save the previous value of the wr_pointer
 				 * XXX: Watch out the Da Capo Flag! It may confuse us!
 				 */
@@ -36,15 +37,14 @@ struct tdc_acam_cfg {
 /* Device-wide ZIO attributes */
 enum tdc_zattr_dev_idx {
 	TDC_ATTR_DEV_VERSION = 0,
-	TDC_ATTR_DEV_TSTAMPS_THRESH,
+	TDC_ATTR_DEV_TSTAMP_THRESH,
 	TDC_ATTR_DEV_TIME_THRESH,
+	TDC_ATTR_DEV_CURRENT_UTC,
+	TDC_ATTR_DEV_SET_UTC,
+	TDC_ATTR_DEV_INPUT_ENABLED,
+	TDC_ATTR_DEV_DAC_WORD,
+	TDC_ATTR_DEV_ACTIVATE_ACQUISITION,
 	TDC_ATTR_DEV__LAST,
-};
-
-/* Channel ZIO attributes */
-enum tdc_zattr_chan_idx {
-	TDC_ATTR_CHAN_ENABLED = TDC_ATTR_DEV__LAST,
-	TDC_ATTR_CHAN__LAST,
 };
 
 /* ZIO helper functions */
@@ -87,9 +87,10 @@ extern u32 tdc_get_irq_tstamp_thresh(struct spec_tdc *tdc);
 extern u32 tdc_get_irq_time_thresh(struct spec_tdc *tdc);
 extern u32 tdc_get_current_utc_time(struct spec_tdc *tdc);
 extern u32 tdc_get_circular_buffer_wr_pointer(struct spec_tdc *tdc);
+extern u32 tdc_get_dac_word(struct spec_tdc *tdc);
 
 extern void tdc_clear_da_capo_flag(struct spec_tdc *tdc);
-extern void tdc_activate_adquisition(struct spec_tdc *tdc);
-extern void tdc_deactivate_adquisition(struct spec_tdc *tdc);
+extern void tdc_activate_acquisition(struct spec_tdc *tdc);
+extern void tdc_deactivate_acquisition(struct spec_tdc *tdc);
 
 #endif
