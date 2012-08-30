@@ -96,8 +96,8 @@ int tdc_fmc_remove(struct fmc_device *dev)
 
 int tdc_fmc_init(void)
 {
-	tdc_fmc_driver.probe = tdc_probe;
-	tdc_fmc_driver.remove = tdc_remove;
+	tdc_fmc_driver.probe = tdc_fmc_probe;
+	tdc_fmc_driver.remove = tdc_fmc_remove;
 	fmc_driver_register(&tdc_fmc_driver);
 	return 0;
 }

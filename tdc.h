@@ -3,6 +3,8 @@
 
 #define TDC_VERSION	1
 
+#include <linux/types.h>
+
 struct spec_tdc {
 	struct fmc_device *fmc;
 	struct spec_dev *spec;
@@ -53,14 +55,21 @@ void tdc_fmc_exit(void);
 void tdc_acam_reset(struct spec_tdc *tdc);
 int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
 int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg);
+int tdc_acam_set_default_config(struct spec_tdc *tdc);
 u32 tdc_acam_status(struct spec_tdc *tdc);
 u32 tdc_acam_read_ififo1(struct spec_tdc *tdc);
 u32 tdc_acam_read_ififo2(struct spec_tdc *tdc);
 u32 tdc_acam_read_start01(struct spec_tdc *tdc);
 
+/* DMA helper functions */
+
+int tdc_dma_setup(struct spec_tdc *tdc, unsigned long src, unsigned long dst, int size);
+int tdc_dma_start(struct spec_tdc *tdc);
+
+
 /* Core functions */
-int tdc_probe(struct fmc_device *dev);
-int tdc_remove(struct fmc_device *dev);
+int tdc_fmc_probe(struct fmc_device *dev);
+int tdc_fmc_remove(struct fmc_device *dev);
 
 int tdc_set_utc_time(struct spec_tdc *tdc);
 u32 tdc_get_utc_time(struct spec_tdc *tdc);
