@@ -33,6 +33,13 @@ static struct zio_attribute tdc_zattr_dev[] = {
 	ZATTR_EXT_REG("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
 	ZATTR_EXT_REG("tstamps-thresh", _RW_, TDC_ATTR_DEV_TSTAMPS_THRESH, 100),
 	ZATTR_EXT_REG("time-thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("time-thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("current_utc_time", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("set_utc_time", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("input_enable", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100), /* XXX: Needed ?? */
+	ZATTR_EXT_REG("dac_word", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("activate_adquisition", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+
 };
 
 static struct zio_attribute tdc_zattr_cset[] = {
