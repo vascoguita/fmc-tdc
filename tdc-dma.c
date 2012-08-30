@@ -29,7 +29,7 @@ int tdc_dma_setup(struct spec_tdc *tdc, unsigned long src, unsigned long dst, in
 	/* Write the source and destination addresses */
 	writel(src, tdc->base + TDC_DMA_C_START_R);
 	writel(dst & 0x00ffffffff, tdc->base + TDC_DMA_H_START_L_R);
-	writel(dst >> 32, tdc->base + TDC_DMA_H_START_H_R);
+	//writel(dst >> 32, tdc->base + TDC_DMA_H_START_H_R);
 	/* Write the DMA length */
 	writel(size, tdc->base + TDC_DMA_LEN_R);
 
