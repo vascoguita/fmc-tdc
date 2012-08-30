@@ -1,5 +1,5 @@
 /*
- * SPEC support for tdc driver 
+ * FMC support for tdc driver 
  *
  * Copyright (C) 2012 CERN (http://www.cern.ch)
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
@@ -65,15 +65,18 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc->spec = spec;
 	spec->sub_priv = tdc;
 	tdc->fmc = dev;
-	tdc->base = spec->remap[0]; // or fmc->base ?? 		/* BAR 0 */
+	tdc->base = spec->remap[0]; // XXX: or fmc->base ?? 		/* BAR 0 */
 	tdc->regs = tdc->base; 			/* BAR 0 */
 	tdc->gn412x_regs = spec->remap[2]; 	/* BAR 4  */
 	
 	/* Setup the Gennum 412x local clock frequency */
 	tdc_fmc_gennum_setup_local_clock(tdc, 160);
-
 	/* Reset FPGA to load the firmware */
 	tdc_fmc_fw_reset(tdc);
+	/* Setup default config to ACAM chip */
+	tdc_acam_set_default_config(tdc);
+	/* Reset ACAM chip */
+	tdc_acam_reset(tdc);
 
 	/* TODO: */
 	return tdc_zio_register_device(tdc);
