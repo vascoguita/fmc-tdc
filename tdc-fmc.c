@@ -40,6 +40,20 @@ static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 	mdelay(600);
 }
 
+irq_handler_t tdc_fmc_irq_handler(int irq, void *dev_id)
+{
+	struct fmc_device *fmc = dev_id;
+	struct spec_dev *spec = fmc->carrier_data;
+	struct spec_tdc *tdc = spec->sub_priv;
+
+	/* TODO: fill with everything  */
+	pr_err("tdc: IRQ is coming\n");
+	
+	/* Acknowledge the IRQ and exit */
+	fmc->op->irq_ack(fmc);
+	return IRQ_HANDLED;
+}
+
 int tdc_fmc_probe(struct fmc_device *dev)
 {
 	struct spec_tdc *tdc;
@@ -78,17 +92,18 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc_acam_set_default_config(tdc);
 	/* Reset ACAM chip */
 	tdc_acam_reset(tdc);
+	/* Request the IRQ */
+	dev->op->irq_request(dev, tdc_fmc_irq_handler, "spec-tdc", IRQF_SHARED);
 
-	/* TODO: */
 	return tdc_zio_register_device(tdc);
 }
 
 int tdc_fmc_remove(struct fmc_device *dev)
 {
 	struct spec_dev *spec = dev->carrier_data;
-	struct spec_tdc *tdc;
+	struct spec_tdc *tdc = spec->sub_priv;
 
-	tdc = spec->sub_priv;
+	tdc->fmc->op->irq_free(tdc->fmc);
 	tdc_zio_remove(tdc);
 	kfree(tdc);
 	return 0;
