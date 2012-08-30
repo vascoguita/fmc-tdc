@@ -40,7 +40,7 @@ static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 	mdelay(600);
 }
 
-irq_handler_t tdc_fmc_irq_handler(int irq, void *dev_id)
+irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct spec_dev *spec = fmc->carrier_data;
