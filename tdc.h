@@ -45,9 +45,9 @@ extern void tdc_zio_remove(struct spec_tdc *tdc);
 extern int tdc_zio_init(void);
 extern void tdc_zio_exit(void);
 
-/* SPEC helper functions */
-int tdc_spec_init(void);
-void tdc_spec_exit(void);
+/* FMC helper functions */
+int tdc_fmc_init(void);
+void tdc_fmc_exit(void);
 
 /* ACAM helper functions */
 void tdc_acam_reset(struct spec_tdc *tdc);

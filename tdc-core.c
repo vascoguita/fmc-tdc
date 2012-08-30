@@ -92,7 +92,7 @@ static int tdc_init(void)
 	if (err < 0)
 		return err;
 
-	err = tdc_spec_init();
+	err = tdc_fmc_init();
 	if (err < 0) {
 		tdc_zio_exit();
 		return err;
@@ -103,7 +103,7 @@ static int tdc_init(void)
 
 static void tdc_exit(void)
 {
-	tdc_spec_exit();
+	tdc_fmc_exit();
 	tdc_zio_exit();
 }
 

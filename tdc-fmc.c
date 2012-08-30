@@ -19,7 +19,7 @@
 
 static struct fmc_driver tdc_fmc_driver;
 
-static void tdc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
+static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 {	
 	unsigned int divot;
 	unsigned int data;
@@ -30,16 +30,16 @@ static void tdc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
 
-static void tdc_fw_reset(struct spec_tdc *tdc)
+static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 {
 	/* Reset FPGA. Assert ~RSTOUT33 and de-assert it. BAR 4.*/
 	writel(0x00021040, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
 	mdelay(10);
 	writel(0x00025000, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
-	mdelay(5000);
+	mdelay(600);
 }
 
-int tdc_probe(struct fmc_device *dev)
+int tdc_fmc_probe(struct fmc_device *dev)
 {
 	struct spec_tdc *tdc;
 	struct spec_dev *spec;
@@ -69,32 +69,16 @@ int tdc_probe(struct fmc_device *dev)
 	tdc->gn412x_regs = spec->remap[2]; 	/* BAR 4  */
 	
 	/* Setup the Gennum 412x local clock frequency */
-	tdc_gennum_setup_local_clock(tdc, 160);
+	tdc_fmc_gennum_setup_local_clock(tdc, 160);
 
 	/* Reset FPGA to load the firmware */
-	tdc_fw_reset(tdc);
+	tdc_fmc_fw_reset(tdc);
 
-#if 0
-	/* Load ACAM configuration */
-	tdc_acam_load_config(tdc);
-
-	/* Reset ACAM configuration */
-	tdc_acam_reset(tdc);
-
-#endif
-
-#if 1
-	/* XXX: Delete this part as it is for testing the FW */
-	pr_err("SIG: tdc->base 0x%p\n", tdc->base);
-	tdc_set_utc_time(tdc);
-	mdelay(20);
-	pr_err("SIG: current UTC 0x%x\n", readl(tdc->base + TDC_CURRENT_UTC));
-#endif
 	/* TODO: */
 	return tdc_zio_register_device(tdc);
 }
 
-int tdc_remove(struct fmc_device *dev)
+int tdc_fmc_remove(struct fmc_device *dev)
 {
 	struct spec_dev *spec = dev->carrier_data;
 	struct spec_tdc *tdc;
@@ -106,7 +90,7 @@ int tdc_remove(struct fmc_device *dev)
 }
 
 
-int tdc_spec_init(void)
+int tdc_fmc_init(void)
 {
 	tdc_fmc_driver.probe = tdc_probe;
 	tdc_fmc_driver.remove = tdc_remove;
@@ -114,7 +98,7 @@ int tdc_spec_init(void)
 	return 0;
 }
 
-void tdc_spec_exit(void)
+void tdc_fmc_exit(void)
 {
 	fmc_driver_unregister(&tdc_fmc_driver);
 }
