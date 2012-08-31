@@ -210,7 +210,8 @@ int tdc_fmc_remove(struct fmc_device *dev)
 	struct spec_tdc *tdc = spec->sub_priv;
 
 	cancel_work_sync(&tdc->irq_work);
-	flush_workqueue(tdc_workqueue);
+	/* XXX: It gives a kernel oops if I enabled it. Check it out */
+	//flush_workqueue(tdc_workqueue);
 	tdc->fmc->op->irq_free(tdc->fmc);
 	tdc_zio_remove(tdc);
 	kfree(tdc);
