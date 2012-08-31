@@ -13,12 +13,19 @@ struct spec_tdc {
 	unsigned char __iomem *base;	/* regs files are byte-oriented */
 	unsigned char __iomem *regs;
 	unsigned char __iomem *gn412x_regs;
-	struct work_struct      irq_work;
 	atomic_t busy;		/* whether the device is acquiring data */
 	u32 wr_pointer;		/* XXX: Used to save the previous value of the wr_pointer
 				 * XXX: Watch out the Da Capo Flag! It may confuse us!
 				 */
+	struct work_struct      irq_work;
 };
+
+struct tdc_event {
+	u32 fine_time;		/* In BIN (81 ps resolution) */
+	u32 coarse_time;	/* 8 ns resolution */
+	u32 local_utc;		/* 1 second resolution */
+	u32 metadata;
+}  __packed;
 
 struct tdc_acam_cfg {
 	u32 edge_config;	/* ACAM reg. 0 */
