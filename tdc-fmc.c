@@ -17,6 +17,7 @@
 #include <linux/wait.h>
 #include <linux/sched.h>
 #include <linux/atomic.h>
+#include <linux/semaphore.h>
 
 #include "spec.h"
 #include "tdc.h"
@@ -49,7 +50,7 @@ static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 	mdelay(600);
 }
 
-static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr)
+static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *count)
 {
 	u32 dacapo_prev, dacapo_curr, dacapo_diff;
 	
@@ -62,14 +63,19 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr)
 	switch(dacapo_diff) {
 
 	case 1:
-		if ((curr_wr_ptr - prev_wr_ptr) > 0)
+		if ((curr_wr_ptr - prev_wr_ptr) > 0) {
+			*count = TDC_EVENT_BUFFER_SIZE;
 			return 1; /* We lost data */
+		}
+		*count = curr_wr_ptr - prev_wr_ptr + TDC_EVENT_BUFFER_SIZE;
 		break;
 	case 0:
 		/* We didn't lose data */
+		*count = curr_wr_ptr - prev_wr_ptr;
 		break;
 	default:
 		/* We lost data for sure. Notify to the user */
+		*count = TDC_EVENT_BUFFER_SIZE; 
 		return 1;
 	}
        
@@ -80,11 +86,11 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 {
 	struct spec_tdc *tdc = container_of(work, struct spec_tdc, irq_work);
 	u32 curr_wr_ptr, prev_wr_ptr;
-	int ret;
-	struct tdc_event *events;
+	int ret, dacapo_flag, count, rd_ptr, chan;
+	struct tdc_event *events, *tmp_data;
 
 	/* TODO: change the size of the tdc buffer for a constant with a proper value */
-	events = kzalloc(1024*sizeof(struct tdc_event), GFP_KERNEL);
+	events = kzalloc(TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event), GFP_KERNEL);
 	if(!events) {
 		pr_err("error allocating memory for the events\n");
 		return;
@@ -94,17 +100,14 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	mutex_lock(&fmc_dma_lock);
 	curr_wr_ptr = tdc_get_circular_buffer_wr_pointer(tdc);
 
-	if(curr_wr_ptr == tdc->wr_pointer) {
-		mutex_unlock(&fmc_dma_lock);
-		return; 	/* No new events happened */
-	}
+	if(curr_wr_ptr == tdc->wr_pointer)
+		goto dma_out; 	/* No new events happened */
+
 	prev_wr_ptr = tdc->wr_pointer;
 	ret = tdc_dma_setup(tdc, 0, (unsigned long)events, 1024*sizeof(struct tdc_event));
-	if (ret) {
-		mutex_unlock(&fmc_dma_lock);
-		kfree(events);
-		return;
-	}
+	if (ret)
+		goto dma_out;
+
 	/* Start DMA transfer and wait for it */
 	tdc_dma_start(tdc);
 
@@ -113,19 +116,43 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	/* TODO: Check DMASTATR register to see if there was an error */
 	atomic_set(&fmc_dma_end, 0);
 	tdc->wr_pointer = curr_wr_ptr;
-	mutex_unlock(&fmc_dma_lock);
 
 	/* Process the data */
-	ret = tdc_fmc_check_lost_events(curr_wr_ptr, prev_wr_ptr);
-	if (ret) {
+	dacapo_flag = tdc_fmc_check_lost_events(curr_wr_ptr, prev_wr_ptr, &count);
+	if (dacapo_flag) {
 		pr_err("We have lost data\n");
 		/* TODO: Notify it in some way to the user. Flag in ctrl block? */
 	}
 
-	/* TODO: now we have the samples... what to do with them?? */
-	/* TODO: I put a kfree meanwhile */
-	kfree(events);
+	/* Start reading in the oldest event */
+	if(count == TDC_EVENT_BUFFER_SIZE)
+		rd_ptr = curr_wr_ptr; /* The oldest is curr_wr_ptr */
+	else
+		rd_ptr = prev_wr_ptr; /* The oldest is prev_wr_ptr */
+	
+	for ( ; count > 0; count--) {
+		tmp_data = &events[rd_ptr];
+		/* Check which channel to deliver the data */
+		chan = tmp_data->metadata & TDC_EVENT_CHANNEL_MASK; /* FIXME: mask to know the channel number */
+		/* Add the DaCapo flag to notify the user */
+		tdc->event[chan].dacapo_flag = dacapo_flag;
 
+		/* Copy the data and notify the readers (ZIO trigger) */
+		tdc->event[chan].data = *tmp_data;
+		/* XXX: Flag to avoid the ZIO trigger to read always the same element
+		 * Until we change to a mutex or a data buffer bigger than one.
+		 */
+		tdc->event[chan].read = 0;
+		/* XXX: as it has only one element of data, maybe is better a mutex 
+		 * instead of semaphore! 
+		 */
+		up(&tdc->event[chan].lock);
+		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
+	}
+
+dma_out:
+	mutex_unlock(&fmc_dma_lock);
+	kfree(events);
 }
 
 irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
@@ -162,7 +189,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 {
 	struct spec_tdc *tdc;
 	struct spec_dev *spec;
-	int ret;
+	int ret, i;
 
 	if(strcmp(dev->carrier_name, "SPEC") != 0)
 		return -ENODEV;
@@ -179,6 +206,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 		return -ENOMEM;
 	}
 
+	/* Initialize structures */
 	spec = dev->carrier_data;
 	tdc->spec = spec;
 	spec->sub_priv = tdc;
@@ -187,6 +215,9 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc->regs = tdc->base; 			/* BAR 0 */
 	tdc->gn412x_regs = spec->remap[2]; 	/* BAR 4  */
 	tdc->wr_pointer = 0;
+
+	for(i = 0; i < TDC_CHAN_NUMBER; i++)
+		sema_init(&tdc->event[i].lock, 0);
 	
 	/* Setup the Gennum 412x local clock frequency */
 	tdc_fmc_gennum_setup_local_clock(tdc, 160);

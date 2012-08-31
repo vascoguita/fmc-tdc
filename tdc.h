@@ -5,20 +5,8 @@
 
 #include <linux/types.h>
 #include <linux/workqueue.h>
-
-struct spec_tdc {
-	struct fmc_device *fmc;
-	struct spec_dev *spec;
-	struct zio_device *zdev, *hwzdev;
-	unsigned char __iomem *base;	/* regs files are byte-oriented */
-	unsigned char __iomem *regs;
-	unsigned char __iomem *gn412x_regs;
-	atomic_t busy;		/* whether the device is acquiring data */
-	u32 wr_pointer;		/* XXX: Used to save the previous value of the wr_pointer
-				 * XXX: Watch out the Da Capo Flag! It may confuse us!
-				 */
-	struct work_struct      irq_work;
-};
+#include <linux/semaphore.h>
+#include "hw/tdc_regs.h"
 
 struct tdc_event {
 	u32 fine_time;		/* In BIN (81 ps resolution) */
@@ -26,6 +14,13 @@ struct tdc_event {
 	u32 local_utc;		/* 1 second resolution */
 	u32 metadata;
 }  __packed;
+
+struct tdc_event_buffer {
+	struct tdc_event data;
+	struct semaphore lock;
+	int dacapo_flag;
+	int read;
+};
 
 struct tdc_acam_cfg {
 	u32 edge_config;	/* ACAM reg. 0 */
@@ -52,6 +47,19 @@ enum tdc_zattr_dev_idx {
 	TDC_ATTR_DEV_DAC_WORD,
 	TDC_ATTR_DEV_ACTIVATE_ACQUISITION,
 	TDC_ATTR_DEV__LAST,
+};
+
+struct spec_tdc {
+	struct fmc_device *fmc;
+	struct spec_dev *spec;
+	struct zio_device *zdev, *hwzdev;
+	unsigned char __iomem *base;	/* regs files are byte-oriented */
+	unsigned char __iomem *regs;
+	unsigned char __iomem *gn412x_regs;
+	atomic_t busy;		/* whether the device is acquiring data */
+	u32 wr_pointer;
+	struct work_struct irq_work;
+	struct tdc_event_buffer event[TDC_CHAN_NUMBER];
 };
 
 /* ZIO helper functions */

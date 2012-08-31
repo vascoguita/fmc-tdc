@@ -24,6 +24,8 @@
 
 #define _RW_ (S_IRUGO | S_IWUGO) /* I want 80-col lines so this lazy thing */
 
+static int tdc_zio_raw_io(struct zio_cset *cset);
+
 /* The sample size. Mandatory, device-wide */
 DEFINE_ZATTR_STD(ZDEV, tdc_zattr_dev_std) = {
 	ZATTR_REG(zdev, ZATTR_NBITS, S_IRUGO, 0, 32), /* FIXME: 32 bits. Really? */
@@ -45,7 +47,7 @@ static struct zio_attribute tdc_zattr_dev[] = {
 static struct zio_cset tdc_cset[] = {
 	{
 		SET_OBJECT_NAME("tdc-cset0"),
-		.raw_io =	NULL,
+		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
@@ -56,7 +58,7 @@ static struct zio_cset tdc_cset[] = {
 	},
 	{
 		SET_OBJECT_NAME("tdc-cset1"),
-		.raw_io =	NULL,
+		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
@@ -67,7 +69,7 @@ static struct zio_cset tdc_cset[] = {
 	},
 	{
 		SET_OBJECT_NAME("tdc-cset2"),
-		.raw_io =	NULL,
+		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
@@ -78,7 +80,7 @@ static struct zio_cset tdc_cset[] = {
 	},
 	{
 		SET_OBJECT_NAME("tdc-cset3"),
-		.raw_io =	NULL,
+		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
@@ -89,7 +91,7 @@ static struct zio_cset tdc_cset[] = {
 	},
 	{
 		SET_OBJECT_NAME("tdc-cset4"),
-		.raw_io =	NULL,
+		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
 		.ssize =	4, /* FIXME: 0? */
 		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
@@ -193,7 +195,7 @@ static const struct zio_sysfs_operations tdc_zio_s_op = {
 
 static struct zio_device tdc_tmpl = {
 	.owner = THIS_MODULE,
-	.preferred_trigger = "user", /* FIXME: put other trigger */
+	.preferred_trigger = "user",
 	.s_op = &tdc_zio_s_op,
 	.cset = tdc_cset,
 	.n_cset = ARRAY_SIZE(tdc_cset),
@@ -208,6 +210,40 @@ static const struct zio_device_id tdc_table[] = {
 	{"tdc", &tdc_tmpl},
 	{},
 };
+
+static int tdc_zio_raw_io(struct zio_cset *cset)
+{
+	struct spec_tdc *tdc;
+	struct zio_channel *zio_chan;
+	struct zio_control *ctrl;
+	struct zio_device *zdev = cset->zdev;
+	int chan;
+
+	zio_chan = cset->chan;
+	tdc = zdev->priv_d;
+	chan = cset->index - 1;
+
+	/* Wait for data */
+	down(&tdc->event[chan].lock);
+
+	/* Check if we have read this data before */
+	/* XXX: change it if we have more data or use a mutex */
+	if (tdc->event[chan].read)
+		return -EAGAIN;
+	tdc->event[chan].read = 1;
+
+	/* Process the data */
+	ctrl = zio_get_ctrl(zio_chan->active_block);
+	ctrl->ssize = 1;		/* one event */
+	ctrl->nbits = 0;		/* no sample data. Only metadata */
+	ctrl->tstamp.secs = tdc->event[chan].data.local_utc;
+	ctrl->tstamp.ticks = tdc->event[chan].data.coarse_time;
+	ctrl->tstamp.bins = tdc->event[chan].data.fine_time;
+	ctrl->flags = tdc->event[chan].dacapo_flag; /* XXX: Is it OK here? */
+	ctrl->reserved = tdc->event[chan].data.metadata;
+
+	return 0;
+}
 
 static int tdc_zio_probe(struct zio_device *zdev)
 {
