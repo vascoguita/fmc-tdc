@@ -37,6 +37,7 @@ static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 	/* Setup local clock */
 	divot = 800/freq - 1;
         data = 0xE001F00C + (divot << 4);
+	/* FIXME: Now setup for 160 MHz directly. */
 	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
 
@@ -89,7 +90,6 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	int ret, dacapo_flag, count, rd_ptr, chan;
 	struct tdc_event *events, *tmp_data;
 
-	/* TODO: change the size of the tdc buffer for a constant with a proper value */
 	events = kzalloc(TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event), GFP_KERNEL);
 	if(!events) {
 		pr_err("error allocating memory for the events\n");
@@ -115,7 +115,6 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	wait_event(fmc_wait_dma, atomic_read(&fmc_dma_end));
 	/* DMA happened */
 	atomic_set(&fmc_dma_end, 0);
-
 	/* Check the status of the DMA */
 	if(readl(tdc->base + TDC_DMA_STAT_R) & (TDC_DMA_STAT_ERR | TDC_DMA_STAT_ABORT))
 		goto dma_out;
