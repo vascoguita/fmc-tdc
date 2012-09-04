@@ -114,8 +114,12 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 
 	wait_event(fmc_wait_dma, atomic_read(&fmc_dma_end));
 	/* DMA happened */
-	/* TODO: Check DMASTATR register to see if there was an error */
 	atomic_set(&fmc_dma_end, 0);
+
+	/* Check the status of the DMA */
+	if(readl(tdc->base + TDC_DMA_STAT_R) & (TDC_DMA_STAT_ERR | TDC_DMA_STAT_ABORT))
+		goto dma_out;
+
 	tdc->wr_pointer = curr_wr_ptr;
 
 	/* Process the data */
@@ -223,9 +227,9 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* XXX: Not implemented yet. Do we needed it? */
 #if 0
 	/* Check if the device is DMA capable on 32 bits. */
-	if (pci_set_dma_mask(spec->pdev, DMA_BIT_MASK(32)) < 0 ||
-	    pci_set_consistent_dma_mask(spec->pdev, DMA_BIT_MASK(32)) < 0) {
-                pr_err("error setting 32-bit DMA mask.\n");
+	if (pci_set_dma_mask(spec->pdev, DMA_BIT_MASK(64)) < 0) {
+                pr_err("error setting 64-bit DMA mask.\n");
+		kfree(tdc);
 		return -ENXIO;
         }
 #endif
