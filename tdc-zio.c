@@ -224,7 +224,8 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 	chan = cset->index - 1;
 
 	/* Wait for data */
-	down(&tdc->event[chan].lock);
+	if(down_interruptible(&tdc->event[chan].lock))
+		return -ERESTARTSYS;
 
 	/* Check if we have read this data before */
 	/* XXX: change it if we have more data or use a mutex */
