@@ -58,6 +58,7 @@ struct spec_tdc {
 	unsigned char __iomem *gn412x_regs;
 	atomic_t busy;		/* whether the device is acquiring data */
 	u32 wr_pointer;
+	dma_addr_t rx_dma;
 	struct work_struct irq_work;
 	struct tdc_event_buffer event[TDC_CHAN_NUMBER];
 };

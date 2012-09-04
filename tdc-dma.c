@@ -10,7 +10,9 @@
  */
 
 #include <asm/io.h>
+#include <linux/dma-mapping.h>
 
+#include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
@@ -25,6 +27,11 @@
  */
 int tdc_dma_setup(struct spec_tdc *tdc, unsigned long src, unsigned long dst, int size)
 {
+	dma_addr_t mapping;
+
+	mapping = dma_map_single(&tdc->spec->pdev->dev, (char *)src, size,
+				 DMA_FROM_DEVICE);
+	tdc->rx_dma = mapping;
 
 	/* Write the source and destination addresses */
 	writel(src, tdc->base + TDC_DMA_C_START_R);

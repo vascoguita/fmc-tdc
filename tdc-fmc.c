@@ -104,7 +104,8 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		goto dma_out; 	/* No new events happened */
 
 	prev_wr_ptr = tdc->wr_pointer;
-	ret = tdc_dma_setup(tdc, 0, (unsigned long)events, 1024*sizeof(struct tdc_event));
+	ret = tdc_dma_setup(tdc, 0, (unsigned long)events,
+			    TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event));
 	if (ret)
 		goto dma_out;
 
@@ -162,9 +163,6 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 	struct spec_tdc *tdc = spec->sub_priv;
 	u32 irq_code;
 
-	/* TODO: fill with everything  */
-	pr_err("tdc: IRQ is coming\n");
-
 	/* Check the source of the interrupt */
 	irq_code = readl(fmc->base + TDC_IRQ_CODE_R);
 	
@@ -176,6 +174,12 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 	/* DMA interrupt */
 	if((irq_code & TDC_IRQ_GNUM_CORE_0) ||
 	   (irq_code & TDC_IRQ_GNUM_CORE_1)) {
+		dma_sync_single_for_cpu(&spec->pdev->dev, tdc->rx_dma,
+					TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event),
+					DMA_FROM_DEVICE);
+		dma_unmap_single(&spec->pdev->dev, tdc->rx_dma,
+				 TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event),
+				 DMA_FROM_DEVICE);
 		/* Wake up the threads waiting for the DMA transfer */
 		atomic_set(&fmc_dma_end, 1);
 		wake_up(&fmc_wait_dma);
@@ -216,6 +220,15 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc->gn412x_regs = spec->remap[2]; 	/* BAR 4  */
 	tdc->wr_pointer = 0;
 
+	/* XXX: Not implemented yet. Do we needed it? */
+#if 0
+	/* Check if the device is DMA capable on 32 bits. */
+	if (pci_set_dma_mask(spec->pdev, DMA_BIT_MASK(32)) < 0 ||
+	    pci_set_consistent_dma_mask(spec->pdev, DMA_BIT_MASK(32)) < 0) {
+                pr_err("error setting 32-bit DMA mask.\n");
+		return -ENXIO;
+        }
+#endif
 	for(i = 0; i < TDC_CHAN_NUMBER; i++)
 		sema_init(&tdc->event[i].lock, 0);
 	

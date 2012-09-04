@@ -248,7 +248,7 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 
 static int tdc_zio_probe(struct zio_device *zdev)
 {
-	/* TODO */
+	/* TODO: implement something if needed. If not, delete this function */
 	pr_err("%s: register new device\n", __func__);
 	return 0;
 
@@ -260,7 +260,7 @@ static struct zio_driver tdc_zdrv = {
 		.owner = THIS_MODULE,
 	},
 	.id_table = tdc_table,
-	.probe = tdc_zio_probe,	/* TODO: */
+	.probe = tdc_zio_probe,
 };
 
 int tdc_zio_register_device(struct spec_tdc *tdc)
