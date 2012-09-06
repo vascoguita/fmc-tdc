@@ -5,12 +5,57 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <fcntl.h>
 #include "libtdc.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static int tdc_nboards;
 static struct tdc_board *tdc_boards;
+
+static inline int fdelay_sysfs_get(struct tdc_board *b,  char *name,
+				   uint32_t *resp)
+{
+	char path[128];
+	FILE *f;
+
+	sprintf(path, "%s/%s", b->sysbase, name);
+	f = fopen(path, "r");
+
+	if (!f)
+		return -1;
+	errno = 0;
+	if (fscanf(f, "%i", resp) != 1) {
+		fclose(f);
+		if (!errno)
+			errno = EINVAL;
+		return -1;
+	}
+	fclose(f);
+	return 0;
+}
+
+static inline int fdelay_sysfs_set(struct tdc_board *b, char *name,
+				   uint32_t *value)
+{
+	char path[128];
+	char s[16];
+	int fd, ret, len;
+
+	sprintf(path, "%s/%s", b->sysbase, name);
+	len = sprintf(s, "%i\n", *value);
+	fd = open(path, O_WRONLY);
+	if (fd < 0)
+		return -1;
+	ret = write(fd, s, len);
+	close(fd);
+	if (ret < 0)
+		return -1;
+	if (ret == len)
+		return 0;
+	errno = EINVAL;
+	return -1;
+}
 
 int tdc_init(void)
 {
