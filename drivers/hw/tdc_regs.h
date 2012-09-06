@@ -90,6 +90,7 @@
 #define TDC_CTRL_CLEAR_DACAPO_FLAG	BIT(10)
 #define TDC_CTRL_CONFIG_DAC		BIT(11)
 
+#define TDC_INPUT_ENABLE_FLAG BIT(7)
 /* IRQ register*/
 #define TDC_IRQ_REG			0xA0000
 #define TDC_IRQ_GNUM_CORE_0		BIT(0)

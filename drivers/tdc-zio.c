@@ -127,6 +127,7 @@ static int tdc_zio_conf_set(struct device *dev,
 		tdc_set_utc_time(tdc);
 		break;
 	case TDC_ATTR_DEV_INPUT_ENABLED:
+		usr_val |= TDC_INPUT_ENABLE_FLAG;
 		tdc_set_input_enable(tdc, usr_val);
 		break;
 	case TDC_ATTR_DEV_DAC_WORD:
