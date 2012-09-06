@@ -54,7 +54,6 @@ struct spec_tdc {
 	struct spec_dev *spec;
 	struct zio_device *zdev, *hwzdev;
 	unsigned char __iomem *base;	/* regs files are byte-oriented */
-	unsigned char __iomem *regs;
 	unsigned char __iomem *gn412x_regs;
 	atomic_t busy;		/* whether the device is acquiring data */
 	u32 wr_pointer;
