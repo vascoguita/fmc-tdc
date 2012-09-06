@@ -33,8 +33,8 @@ DEFINE_ZATTR_STD(ZDEV, tdc_zattr_dev_std) = {
 
 static struct zio_attribute tdc_zattr_dev[] = {
 	ZATTR_EXT_REG("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
-	ZATTR_EXT_REG("tstamp-thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, 100),
-	ZATTR_EXT_REG("time-thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZATTR_EXT_REG("tstamp_thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, 100),
+	ZATTR_EXT_REG("time_thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
 	ZATTR_EXT_REG("current_utc_time", S_IRUGO, TDC_ATTR_DEV_CURRENT_UTC, 0),
 	ZATTR_EXT_REG("set_utc_time", S_IWUGO, TDC_ATTR_DEV_SET_UTC, 0),
 	ZATTR_EXT_REG("input_enable", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0x1F),
