@@ -137,10 +137,9 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	for ( ; count > 0; count--) {
 		tmp_data = &events[rd_ptr];
 		/* Check which channel to deliver the data */
-		chan = tmp_data->metadata & TDC_EVENT_CHANNEL_MASK; /* FIXME: mask to know the channel number */
+		chan = tmp_data->metadata & TDC_EVENT_CHANNEL_MASK;
 		/* Add the DaCapo flag to notify the user */
 		tdc->event[chan].dacapo_flag = dacapo_flag;
-
 		/* Copy the data and notify the readers (ZIO trigger) */
 		tdc->event[chan].data = *tmp_data;
 		/* XXX: Flag to avoid the ZIO trigger to read always the same element
