@@ -124,7 +124,10 @@ static int tdc_zio_conf_set(struct device *dev,
 	case TDC_ATTR_DEV_CURRENT_UTC:
 		break;
 	case TDC_ATTR_DEV_SET_UTC:
-		tdc_set_utc_time(tdc);
+		if (usr_val == -1)
+			tdc_set_local_utc_time(tdc);
+		else
+			tdc_set_utc_time(tdc, usr_val);
 		break;
 	case TDC_ATTR_DEV_INPUT_ENABLED:
 		usr_val |= TDC_INPUT_ENABLE_FLAG;

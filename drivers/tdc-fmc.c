@@ -243,7 +243,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Reset ACAM chip */
 	tdc_acam_reset(tdc);
 	/* Initialice UTC time */
-	tdc_set_utc_time(tdc);
+	tdc_set_local_utc_time(tdc);
 	/* Prepare the irq work */
 	INIT_WORK(&tdc->irq_work, tdc_fmc_irq_work);
 	/* Request the IRQ */

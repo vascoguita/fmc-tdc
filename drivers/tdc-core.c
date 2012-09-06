@@ -20,15 +20,18 @@
 #include "hw/tdc_regs.h"
 
 
-/* XXX: Check that the value is properly written? */
-void tdc_set_utc_time(struct spec_tdc *tdc)
+void tdc_set_utc_time(struct spec_tdc *tdc, u32 value)
+{
+	writel(value, tdc->base + TDC_START_UTC_R);
+	writel(TDC_CTRL_LOAD_UTC, tdc->base + TDC_CTRL_REG);
+}
+
+void tdc_set_local_utc_time(struct spec_tdc *tdc)
 {
 	struct timeval utc_time;	
 	
 	do_gettimeofday(&utc_time);
-	
-	writel(utc_time.tv_sec, tdc->base + TDC_START_UTC_R);
-	writel(TDC_CTRL_LOAD_UTC, tdc->base + TDC_CTRL_REG);
+	tdc_set_utc_time(tdc, utc_time.tv_sec);
 }
 
 u32 tdc_get_current_utc_time(struct spec_tdc *tdc)
@@ -36,7 +39,6 @@ u32 tdc_get_current_utc_time(struct spec_tdc *tdc)
 	return readl(tdc->base + TDC_CURRENT_UTC_R);
 }
 
-/* XXX: void-function or I should check that the value is properly written? */
 void tdc_set_irq_tstamp_thresh(struct spec_tdc *tdc, u32 val)
 {
 	writel(val, tdc->base + TDC_IRQ_TSTAMP_THRESH_R);
@@ -47,7 +49,6 @@ u32 tdc_get_irq_tstamp_thresh(struct spec_tdc *tdc)
 	return readl(tdc->base + TDC_IRQ_TSTAMP_THRESH_R);
 }
 
-/* XXX: void-function or I should check that the value is properly written? */
 void tdc_set_irq_time_thresh(struct spec_tdc *tdc, u32 val)
 {
 	writel(val, tdc->base + TDC_IRQ_TIME_THRESH_R);
@@ -58,7 +59,6 @@ u32 tdc_get_irq_time_thresh(struct spec_tdc *tdc)
 	return readl(tdc->base + TDC_IRQ_TIME_THRESH_R);
 }
 
-/* XXX: void-function or I should check that the value is properly written? */
 void tdc_set_dac_word(struct spec_tdc *tdc, u32 val)
 {
 	writel(val, tdc->base + TDC_DAC_WORD_R);

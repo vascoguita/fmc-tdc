@@ -92,7 +92,8 @@ extern int tdc_dma_start(struct spec_tdc *tdc);
 extern int tdc_fmc_probe(struct fmc_device *dev);
 extern int tdc_fmc_remove(struct fmc_device *dev);
 
-extern void tdc_set_utc_time(struct spec_tdc *tdc);
+extern void tdc_set_local_utc_time(struct spec_tdc *tdc);
+extern void tdc_set_utc_time(struct spec_tdc *tdc, u32 value);
 extern void tdc_set_input_enable(struct spec_tdc *tdc, u32 value);
 extern void tdc_set_irq_tstamp_thresh(struct spec_tdc *tdc, u32 val);
 extern void tdc_set_irq_time_thresh(struct spec_tdc *tdc, u32 val);
