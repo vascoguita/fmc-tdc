@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "libtdc.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -49,7 +50,7 @@ int tdc_init(void)
 			b->ctrl[j] = -1;
 			b->data[j] = -1;
 		}
-		printf("Initialized device %s", b->sysbase);
+		printf("Found device %s\n", b->sysbase);
 	}
 	globfree(&glob_dev);
 	globfree(&glob_sys);
@@ -87,10 +88,53 @@ void tdc_exit(void)
 
 struct tdc_board *tdc_open(int offset, int dev_id)
 {
+	struct tdc_board *b = NULL;
+	int i;
+
+	/* If we are given an offset, select the dev there */
+	/* If we are given an id, loop until we find it in the list */
+	/* If we are given an offset and an id, the id in pos offset must match */
+
+	if (offset >= tdc_nboards) {
+		errno = ENODEV;
+		return NULL;
+	}
+
+	if (offset >= 0) {
+		b = tdc_boards + offset;
+		if (dev_id >= 0 && dev_id != b->dev_id) {
+			errno = EINVAL;
+			return NULL;
+		}
+		goto found;
+	}
+	if (dev_id < 0) {
+		errno = EINVAL;
+		return NULL;
+	}
+	for (i = 0, b = tdc_boards; i < tdc_nboards; i++, b++)
+		if (b->dev_id == dev_id)
+			goto found;
+
+	errno = ENODEV;
 	return NULL;
+
+found:
+	printf("Opened device %s\n", b->sysbase);
+	return b;
 }
 
 extern int tdc_close(struct tdc_board *b)
 {
+	int j;
+
+	for (j = 0; j < ARRAY_SIZE(b->ctrl); j++) {
+		if (b->ctrl[j] >= 0)
+			close(b->ctrl[j]);
+		b->ctrl[j] = -1;
+		if (b->data[j] >= 0)
+			close(b->data[j]);
+		b->data[j] = -1;
+	}
 	return 0;
 }
