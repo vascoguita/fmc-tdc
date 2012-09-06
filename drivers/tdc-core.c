@@ -97,8 +97,7 @@ u32 tdc_get_input_enable(struct spec_tdc *tdc)
 	return readl(tdc->base + TDC_INPUT_ENABLE_R);
 }
 
-/* FIXME: This functions is likely to be inline! */
-u32 tdc_get_circular_buffer_wr_pointer(struct spec_tdc *tdc)
+inline u32 tdc_get_circular_buffer_wr_pointer(struct spec_tdc *tdc)
 {
 	return readl(tdc->base + TDC_CIRCULAR_BUF_PTR_R);
 }
