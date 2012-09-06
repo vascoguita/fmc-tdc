@@ -1,6 +1,20 @@
-all:
+LIB = libtdc.a
+LOBJ := libtdc.o
 
-.PHONY: all
+CFLAGS = -Wall -ggdb -O2 -I..
+LDFLAGS = -L. -ltdc
+
+modules all: lib test
+
+lib: $(LIB)
+
+%: %.c $(LIB)
+	$(CC) $(CFLAGS) $*.c $(LDFLAGS) -o $@
+
+$(LIB): $(LOBJ)
+	ar r $@ $^
+
+test: test.o
 
 clean:
-	$(RM) *.a *.o
+	rm -f $(LIB) *.o *~ test
