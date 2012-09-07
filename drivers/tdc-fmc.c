@@ -48,7 +48,7 @@ static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 	mdelay(10);
 	writel(0x00025000, tdc->gn412x_regs + TDC_PCI_SYS_CFG_SYSTEM);
 	/* Allow the FW to initialize the PLLs */
-	mdelay(600);
+	mdelay(3000);
 }
 
 static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *count)
