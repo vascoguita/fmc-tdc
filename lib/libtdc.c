@@ -196,13 +196,14 @@ int tdc_stop_acquisition(struct tdc_board *b)
 
 int tdc_set_host_utc_time(struct tdc_board *b)
 {
-	return tdc_sysfs_set(b, "set_utc_time", 1);
+	/* -1 means that the driver will load the host time */
+	return tdc_sysfs_set(b, "set_utc_time", -1);
 }
 
 int tdc_set_utc_time(struct tdc_board *b, uint32_t utc)
 {
-	/* FIXME: we need a new ZIO attribute to put the user UTC */
-	return 0;
+	/* a value different from -1 is an UTC */
+	return tdc_sysfs_set(b, "set_utc_time", utc);
 }
 
 int tdc_get_utc_time(struct tdc_board *b, uint32_t *utc)
