@@ -77,8 +77,17 @@ void tdc_clear_da_capo_flag(struct spec_tdc *tdc)
 
 void tdc_activate_acquisition(struct spec_tdc *tdc)
 {
+	u32 acam_status_test;
 	/* Before activate the adquisition is required to reset the ACAM chip */
 	tdc_acam_reset(tdc);
+
+	acam_status_test = tdc_acam_status(tdc)-0xC4000800;
+	if (acam_status_test == 0)
+        	pr_err( "ACAM status OK! 0x%x\n", acam_status_test);
+	else	
+        	pr_err( "ACAM status Not OK! 0x%x\n", acam_status_test + 0xC4000800);
+
+
 	/* Enable IRQ */
 	writel(0xC, tdc->base + TDC_IRQ_REG + 0x8);
 	writel(TDC_CTRL_EN_ACQ, tdc->base + TDC_CTRL_REG);
