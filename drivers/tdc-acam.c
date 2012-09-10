@@ -36,9 +36,7 @@ u32 tdc_acam_status(struct spec_tdc *tdc)
 {
 	/* Send the command to read acam status */
 	writel(TDC_CTRL_READ_ACAM_STAT, tdc->base + TDC_CTRL_REG);
-
-	/* TODO: Where to read it? */
-	return 0;
+	return readl(tdc->base + TDC_ACAM_RDBACK_REG_12);
 }
 
 u32 tdc_acam_read_ififo1(struct spec_tdc *tdc)
