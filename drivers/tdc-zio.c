@@ -139,7 +139,7 @@ static int tdc_zio_conf_set(struct device *dev,
 	case TDC_ATTR_DEV_ACTIVATE_ACQUISITION:
 		if (usr_val) {
 			atomic_set(&tdc->busy, 1);
-			tdc_activate_acquisition(tdc);
+			return tdc_activate_acquisition(tdc);
 		} else {
 			atomic_set(&tdc->busy, 0);
 			tdc_deactivate_acquisition(tdc);

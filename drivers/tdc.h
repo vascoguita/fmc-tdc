@@ -106,7 +106,7 @@ extern u32 tdc_get_circular_buffer_wr_pointer(struct spec_tdc *tdc);
 extern u32 tdc_get_dac_word(struct spec_tdc *tdc);
 
 extern void tdc_clear_da_capo_flag(struct spec_tdc *tdc);
-extern void tdc_activate_acquisition(struct spec_tdc *tdc);
+extern int tdc_activate_acquisition(struct spec_tdc *tdc);
 extern void tdc_deactivate_acquisition(struct spec_tdc *tdc);
 
 #endif
