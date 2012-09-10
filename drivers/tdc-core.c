@@ -137,4 +137,4 @@ static void tdc_exit(void)
 module_init(tdc_init);
 module_exit(tdc_exit);
 
-MODULE_LICENSE("GPL"); 		/* FIXME? Fine delay driver has LGPL (GPL and additional rights) */
+MODULE_LICENSE("GPL");

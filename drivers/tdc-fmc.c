@@ -37,8 +37,7 @@ static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 	/* Setup local clock */
 	divot = 800/freq - 1;
         data = 0xE001F00C + (divot << 4);
-	/* FIXME: Now setup for 160 MHz directly. */
-	writel(0x0001F04C, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
+	writel(data, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
 
 static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
@@ -187,6 +186,7 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 		wake_up(&fmc_wait_dma);
 	}
 	/* Acknowledge the IRQ and exit */
+	writel(irq_code, fmc->base + TDC_IRQ_STATUS_REG);
 	fmc->op->irq_ack(fmc);
 	return IRQ_HANDLED;
 }
@@ -222,15 +222,6 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc->gn412x_regs = spec->remap[2]; /* BAR 4  */
 	tdc->wr_pointer = 0;
 
-	/* XXX: Not implemented yet. Do we needed it? */
-#if 0
-	/* Check if the device is DMA capable on 32 bits. */
-	if (pci_set_dma_mask(spec->pdev, DMA_BIT_MASK(64)) < 0) {
-                pr_err("error setting 64-bit DMA mask.\n");
-		kfree(tdc);
-		return -ENXIO;
-        }
-#endif
 	for(i = 0; i < TDC_CHAN_NUMBER; i++)
 		sema_init(&tdc->event[i].lock, 0);
 	/* Setup the Gennum 412x local clock frequency */
@@ -246,17 +237,19 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Initialize DAC */
 	tdc_set_dac_word(tdc, 0xA8F5);
 	/* Initialize timestamp threshold */
-	tdc_set_irq_tstamp_thresh(tdc, 255);
+	tdc_set_irq_tstamp_thresh(tdc, 0x100);
 	/* Initialize time threshold */
-	tdc_set_irq_time_thresh(tdc, 256);
+	tdc_set_irq_time_thresh(tdc, 0x10);
 	/* Prepare the irq work */
 	INIT_WORK(&tdc->irq_work, tdc_fmc_irq_work);
+
+	/* Clear IRQ */
+	writel(0xF, tdc->base + TDC_IRQ_STATUS_REG); 
 	/* Request the IRQ */
 	dev->op->irq_request(dev, tdc_fmc_irq_handler, "spec-tdc", IRQF_SHARED);
 	/* Enable IRQ */
-	writel(0xC, tdc->base + TDC_IRQ_ENABLE_REG); /* FIXME: define constant 0xC */
-
-
+	writel(0xC, tdc->base + TDC_IRQ_ENABLE_REG);
+ 
 	return tdc_zio_register_device(tdc);
 }
 
@@ -266,8 +259,6 @@ int tdc_fmc_remove(struct fmc_device *dev)
 	struct spec_tdc *tdc = spec->sub_priv;
 
 	cancel_work_sync(&tdc->irq_work);
-	/* XXX: It gives a kernel oops if I enabled it. Check it out */
-	//flush_workqueue(tdc_workqueue);
 	tdc->fmc->op->irq_free(tdc->fmc);
 	tdc_zio_remove(tdc);
 	kfree(tdc);
@@ -290,5 +281,3 @@ void tdc_fmc_exit(void)
 	destroy_workqueue(tdc_workqueue);
 	fmc_driver_unregister(&tdc_fmc_driver);
 }
-
-

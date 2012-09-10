@@ -13,6 +13,7 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/delay.h>
 #include <asm/io.h>
 
 #include "tdc.h"
@@ -69,6 +70,7 @@ int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 	writel(cfg->edge_config, tdc->base + TDC_ACAM_CFG_REG_0);
 	writel(cfg->channel_adj, tdc->base + TDC_ACAM_CFG_REG_1);
 	writel(cfg->mode_enable, tdc->base + TDC_ACAM_CFG_REG_2);
+	mdelay(1000);
 	writel(cfg->resolution, tdc->base + TDC_ACAM_CFG_REG_3);
 	writel(cfg->start_timer_set, tdc->base + TDC_ACAM_CFG_REG_4);
 	writel(cfg->start_retrigger, tdc->base + TDC_ACAM_CFG_REG_5);
@@ -80,6 +82,7 @@ int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 
 	/* Send the load command to the firmware */
 	__tdc_acam_do_load_config(tdc);
+	mdelay(1000);
 	return 0;
 }
 
@@ -107,8 +110,6 @@ int tdc_acam_get_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 int tdc_acam_set_default_config(struct spec_tdc *tdc)
 {
 	struct tdc_acam_cfg cfg;
-	struct tdc_acam_cfg tmp;
-	int ret;
 
 	/* Default setup as indicated in the datasheet */
 	cfg.edge_config = 0x01F0FC81;
@@ -123,19 +124,5 @@ int tdc_acam_set_default_config(struct spec_tdc *tdc)
 	cfg.int_flag_cfg = 0x04000000;
 	cfg.ctrl_16_bit_mode = 0x0;
 
-	ret = tdc_acam_load_config(tdc, &cfg);
-	tdc_acam_get_config(tdc, &tmp);
-	pr_err("tdc: cfg.edge_config = 0x%x/0x%x\n", tmp.edge_config, cfg.edge_config);
-	pr_err("tdc: cfg.channel_adj = 0x%x/0x%x\n", tmp.channel_adj, cfg.channel_adj);
-	pr_err("tdc: cfg.mode_enable = 0x%x/0x%x\n", tmp.mode_enable, cfg.mode_enable);
-	pr_err("tdc: cfg.resolution = 0x%x/0x%x\n", tmp.resolution, cfg.resolution);
-	pr_err("tdc: cfg.start_timer_set = 0x%x/0x%x\n", tmp.start_timer_set, cfg.start_timer_set);
-	pr_err("tdc: cfg.start_retrigger = 0x%x/0x%x\n", tmp.start_retrigger, cfg.start_retrigger);
-	pr_err("tdc: cfg.lf_flags_level = 0x%x/0x%x\n", tmp.lf_flags_level, cfg.lf_flags_level);
-	pr_err("tdc: cfg.pll = 0x%x/0x%x\n", tmp.pll, cfg.pll);
-	pr_err("tdc: cfg.err_flag_cfg = 0x%x/0x%x\n", tmp.err_flag_cfg, cfg.err_flag_cfg);
-	pr_err("tdc: cfg.int_flag_cfg = 0x%x/0x%x\n", tmp.int_flag_cfg, cfg.int_flag_cfg);
-	pr_err("tdc: cfg.ctrl_16_bit_mode = 0x%x/0x%x\n", tmp.ctrl_16_bit_mode, cfg.ctrl_16_bit_mode);
-	
-	return ret;
+	return tdc_acam_load_config(tdc, &cfg);
 }
