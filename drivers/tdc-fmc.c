@@ -166,7 +166,7 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 	u32 irq_code;
 
 	/* Check the source of the interrupt */
-	irq_code = readl(fmc->base + TDC_IRQ_REG);
+	irq_code = readl(fmc->base + TDC_IRQ_REG + 0x4);
 	
 	/* Tstamp threshold or time threshold */
 	if((irq_code & TDC_IRQ_TDC_TSTAMP) ||

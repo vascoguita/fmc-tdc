@@ -79,6 +79,8 @@ void tdc_activate_acquisition(struct spec_tdc *tdc)
 {
 	/* Before activate the adquisition is required to reset the ACAM chip */
 	tdc_acam_reset(tdc);
+	/* Enable IRQ */
+	writel(0xC, tdc->base + TDC_IRQ_REG + 0x8);
 	writel(TDC_CTRL_EN_ACQ, tdc->base + TDC_CTRL_REG);
 }
 
