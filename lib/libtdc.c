@@ -13,7 +13,7 @@
 static int tdc_nboards;
 static struct tdc_board *tdc_boards;
 
-static inline int tdc_sysfs_get(struct tdc_board *b,  char *name,
+static inline int __tdc_sysfs_get(struct tdc_board *b,  char *name,
 				uint32_t *resp)
 {
 	char path[128];
@@ -35,7 +35,7 @@ static inline int tdc_sysfs_get(struct tdc_board *b,  char *name,
 	return 0;
 }
 
-static inline int tdc_sysfs_set(struct tdc_board *b, char *name,
+static inline int __tdc_sysfs_set(struct tdc_board *b, char *name,
 				uint32_t value)
 {
 	char path[128];
@@ -189,59 +189,59 @@ int tdc_close(struct tdc_board *b)
 
 int tdc_start_acquisition(struct tdc_board *b)
 {
-	return tdc_sysfs_set(b, "activate_acquisition", 1);
+	return __tdc_sysfs_set(b, "activate_acquisition", 1);
 }
 
 int tdc_stop_acquisition(struct tdc_board *b)
 {
-	return tdc_sysfs_set(b, "activate_acquisition", 0);
+	return __tdc_sysfs_set(b, "activate_acquisition", 0);
 }
 
 int tdc_set_host_utc_time(struct tdc_board *b)
 {
 	/* -1 means that the driver will load the host time */
-	return tdc_sysfs_set(b, "set_utc_time", -1);
+	return __tdc_sysfs_set(b, "set_utc_time", -1);
 }
 
 int tdc_set_utc_time(struct tdc_board *b, uint32_t utc)
 {
 	/* a value different from -1 is an UTC */
-	return tdc_sysfs_set(b, "set_utc_time", utc);
+	return __tdc_sysfs_set(b, "set_utc_time", utc);
 }
 
 int tdc_get_utc_time(struct tdc_board *b, uint32_t *utc)
 {
-	return tdc_sysfs_get(b, "current_utc_time", utc);
+	return __tdc_sysfs_get(b, "current_utc_time", utc);
 }
 
 int tdc_set_dac_word(struct tdc_board *b, uint32_t dw)
 {
-	return tdc_sysfs_set(b, "dac_word", dw);
+	return __tdc_sysfs_set(b, "dac_word", dw);
 }
 
 int tdc_get_dac_word(struct tdc_board *b, uint32_t *dw)
 {
-	return tdc_sysfs_get(b, "dac_word", dw);
+	return __tdc_sysfs_get(b, "dac_word", dw);
 }
 
 int tdc_set_time_threshold(struct tdc_board *b, uint32_t thres)
 {
-	return tdc_sysfs_set(b, "time_thresh", thres);
+	return __tdc_sysfs_set(b, "time_thresh", thres);
 }
 
 int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres)
 {
-	return tdc_sysfs_get(b, "time_thresh", thres);
+	return __tdc_sysfs_get(b, "time_thresh", thres);
 }
 
 int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres)
 {
-	return tdc_sysfs_set(b, "tstamp_thresh", thres);
+	return __tdc_sysfs_set(b, "tstamp_thresh", thres);
 }
 
 int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres)
 {
-	return tdc_sysfs_get(b, "tstamp_thresh", thres);
+	return __tdc_sysfs_get(b, "tstamp_thresh", thres);
 }
 
 int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
@@ -250,7 +250,7 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 	int i;
 
 	/* Hardware deactivation */
-	res = tdc_sysfs_set(b, "input_enable", config);
+	res = __tdc_sysfs_set(b, "input_enable", config);
 	if (res) {
 		printf("Error setting chan config in hardware\n");
 		return res;
@@ -261,10 +261,10 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 		char file[20];
 		sprintf(file, "tdc-cset%i/enable", i);
 		if (config & (1 << i)) {
-			res = tdc_sysfs_set(b, file, 1);
+			res = __tdc_sysfs_set(b, file, 1);
 			b->enabled[i] = 1;
 		} else {
-			res = tdc_sysfs_set(b, file, 0);
+			res = __tdc_sysfs_set(b, file, 0);
 			b->enabled[i] = 0;
 		}
 		if (res) {
@@ -278,5 +278,5 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 
 int tdc_get_active_channels(struct tdc_board *b, uint32_t *config)
 {
-	return tdc_sysfs_get(b, "input_enable", config);
+	return __tdc_sysfs_get(b, "input_enable", config);
 }
