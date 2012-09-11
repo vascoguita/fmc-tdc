@@ -1,7 +1,7 @@
 LIB = libtdc.a
 LOBJ := libtdc.o
 
-CFLAGS = -Wall -ggdb -O2 -I..
+CFLAGS = -Wall -ggdb -O2 -I.. -I$(ZIO)/include
 LDFLAGS = -L. -ltdc
 
 modules all: lib test

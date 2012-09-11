@@ -14,9 +14,8 @@ struct tdc_board {
 
 struct tdc_time {
 	uint64_t utc;
-	uint32_t coarse;
-	uint32_t frac;
-	uint32_t channel;
+	uint64_t ticks;
+	uint64_t bins;
 };
 
 
@@ -44,5 +43,8 @@ extern int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres);
 
 extern int tdc_set_active_channels(struct tdc_board *b, uint32_t config);
 extern int tdc_get_active_channels(struct tdc_board *b, uint32_t *config);
+
+extern int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
+		    int n, int flags);
 
 #endif

@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <sys/select.h>
+#include <linux/zio.h>
+#include <linux/zio-user.h>
 #include "libtdc.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -279,4 +283,95 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 int tdc_get_active_channels(struct tdc_board *b, uint32_t *config)
 {
 	return __tdc_sysfs_get(b, "input_enable", config);
+}
+
+static int __tdc_valid_channel(struct tdc_board *b, int chan)
+{
+	if (chan < 0 || chan > 4) {
+		fprintf(stderr, "%s: Invalid channel: %i\n",
+			__func__, chan);
+		errno = EINVAL;
+		return  0;
+	}
+
+	if (!b->enabled[chan]) {
+		fprintf(stderr, "%s: Channel not enabled: %i\n",
+			__func__, chan);
+		errno = EINVAL; 
+		return  0;
+	}
+
+	return 1;
+}
+
+static int __tdc_open_file(struct tdc_board *b, int chan)
+{
+	char fname[128];
+
+	/* open file */
+	if (b->ctrl[chan] <= 0) {
+		sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan);
+		b->ctrl[chan] = open(fname, O_RDONLY | O_NONBLOCK);
+	}
+
+	if (b->ctrl[chan] < 0)
+		fprintf(stderr, "%s: Error opening file: %s\n",
+			__func__, fname);
+
+	return b->ctrl[chan];
+}
+
+int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
+	     int n, int flags)
+{
+	struct zio_control ctrl;
+	int fd, i, j;
+	fd_set set;
+
+	if (!__tdc_valid_channel(b, chan))
+		return -1;
+
+	fd = __tdc_open_file(b, chan);
+	if (fd < 0)
+		return -1;
+
+	for (i = 0; i < n; ) {
+		j = read(fd, &ctrl, sizeof(ctrl));
+
+		if (j < 0 && errno != EAGAIN)
+			return -1;
+
+		if (j == sizeof(ctrl)) {
+			/* one sample: pick it */
+			t->utc = ctrl.tstamp.secs;
+			t->ticks = ctrl.tstamp.ticks;
+			t->bins = ctrl.tstamp.bins;
+
+			i++;
+			continue;
+		}
+
+		if (j > 0) {
+			/* some bytes read but not complete structure */
+			errno = EIO;
+			return -1;
+		}
+
+		/* so, it's EAGAIN: if we already got something, we are done */
+		if (i)
+			return i;
+
+		/* EAGAIN at first sample */
+		if (j < 0 && flags == O_NONBLOCK)
+			return -1;
+
+		/* So, first sample and blocking read. Wait.. */
+		FD_ZERO(&set);
+		FD_SET(fd, &set);
+		if (select(fd+1, &set, NULL, NULL, NULL) < 0)
+			return -1;
+		continue;
+	}
+
+	return i;
 }
