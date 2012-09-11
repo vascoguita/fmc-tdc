@@ -9,6 +9,7 @@ struct tdc_board {
 	char *sysbase;
 	int ctrl[5]; /* The 5 control channels */
 	int data[5]; /* The 5 data channels */
+	int enabled[5]; /* channel activation */
 };
 
 struct tdc_time {

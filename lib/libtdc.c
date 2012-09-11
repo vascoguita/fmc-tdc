@@ -94,9 +94,11 @@ int tdc_init(void)
 		for (j = 0; j < ARRAY_SIZE(b->ctrl); j++) {
 			b->ctrl[j] = -1;
 			b->data[j] = -1;
+			b->enabled[j] = 0;
 		}
 		printf("Found device %s\n", b->sysbase);
 	}
+
 	globfree(&glob_dev);
 	globfree(&glob_sys);
 
@@ -120,6 +122,7 @@ void tdc_exit(void)
 				b->data[j] = -1;
 				err++;
 			}
+			b->enabled[j] = 0;
 		}
 		if (err)
 			fprintf(stderr, "%s: device %s was still open\n",
@@ -259,8 +262,10 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 		sprintf(file, "tdc-cset%i/enable", i);
 		if (config & (1 << i)) {
 			res = tdc_sysfs_set(b, file, 1);
+			b->enabled[i] = 1;
 		} else {
 			res = tdc_sysfs_set(b, file, 0);
+			b->enabled[i] = 0;
 		}
 		if (res) {
 			printf("Error setting ZIO chan config in cset %i\n", i);
