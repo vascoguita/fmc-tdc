@@ -342,7 +342,7 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		if (j == sizeof(ctrl)) {
 			t[i].utc = ctrl.tstamp.secs;
 			t[i].ticks = ctrl.tstamp.ticks;
-			t[i]. bins = ctrl.tstamp.bins;
+			t[i].bins = ctrl.tstamp.bins;
 
 			i++;
 			continue;
@@ -384,7 +384,7 @@ int tdc_fread(struct tdc_board *b, int chan, struct tdc_time *t, int n)
 	int i, loop;
 
 	for (i = 0; i < n; ) {
-		loop = tdc_read(b, chan, t + i, n - i, 0);
+		loop = tdc_read(b, chan, t + i, 1, 0);
 		if (loop < 0)
 			return -1;
 		i += loop;
