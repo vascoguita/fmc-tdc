@@ -93,6 +93,8 @@
 #define TDC_INPUT_ENABLE_FLAG BIT(7)
 /* IRQ register*/
 #define TDC_IRQ_REG			0xA0000
+#define TDC_IRQ_STATUS_REG		0xA0004
+#define TDC_IRQ_ENABLE_REG 		0xA0008
 #define TDC_IRQ_GNUM_CORE_0		BIT(0)
 #define TDC_IRQ_GNUM_CORE_1		BIT(1)
 #define TDC_IRQ_TDC_TSTAMP		BIT(2)

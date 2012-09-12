@@ -87,8 +87,6 @@ int tdc_activate_acquisition(struct spec_tdc *tdc)
 		return -EBUSY;
 	}
 
-	/* Enable IRQ */
-	writel(0xC, tdc->base + TDC_IRQ_REG + 0x8);
 	writel(TDC_CTRL_EN_ACQ, tdc->base + TDC_CTRL_REG);
 	return 0;
 }
