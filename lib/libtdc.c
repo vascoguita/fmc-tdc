@@ -338,34 +338,37 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 	for (i = 0; i < n; ) {
 		j = read(fd, &ctrl, sizeof(ctrl));
 
-		if (j < 0 && errno != EAGAIN)
-			return -1;
-
+		/* one register read */
 		if (j == sizeof(ctrl)) {
-			/* one sample: pick it */
-			t->utc = ctrl.tstamp.secs;
-			t->ticks = ctrl.tstamp.ticks;
-			t->bins = ctrl.tstamp.bins;
+			t[i].utc = ctrl.tstamp.secs;
+			t[i].ticks = ctrl.tstamp.ticks;
+			t[i]. bins = ctrl.tstamp.bins;
 
 			i++;
 			continue;
 		}
 
+		/* some bytes read but not complete structure */
 		if (j > 0) {
-			/* some bytes read but not complete structure */
 			errno = EIO;
 			return -1;
 		}
 
-		/* so, it's EAGAIN: if we already got something, we are done */
+		/* from here on, an error was returned */
+
+		/* real error, so exit */
+		if (errno != EAGAIN)
+			return -1;
+
+		/* EAGAIN: if we already got something, we are done */
 		if (i)
 			return i;
 
-		/* EAGAIN at first sample */
-		if (j < 0 && flags == O_NONBLOCK)
+		/* EAGAIN and no data yet. If noblock then return */
+		if (flags == O_NONBLOCK)
 			return -1;
 
-		/* So, first sample and blocking read. Wait.. */
+		/* blocking read */
 		FD_ZERO(&set);
 		FD_SET(fd, &set);
 		if (select(fd+1, &set, NULL, NULL, NULL) < 0)
@@ -373,5 +376,18 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		continue;
 	}
 
+	return i;
+}
+
+int tdc_fread(struct tdc_board *b, int chan, struct tdc_time *t, int n)
+{
+	int i, loop;
+
+	for (i = 0; i < n; ) {
+		loop = tdc_read(b, chan, t + i, n - i, 0);
+		if (loop < 0)
+			return -1;
+		i += loop;
+	}
 	return i;
 }

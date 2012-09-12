@@ -46,5 +46,6 @@ extern int tdc_get_active_channels(struct tdc_board *b, uint32_t *config);
 
 extern int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		    int n, int flags);
+extern int tdc_fread(struct tdc_board *b, int chan, struct tdc_time *t, int n);
 
 #endif
