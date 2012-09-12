@@ -83,7 +83,7 @@ int tdc_activate_acquisition(struct spec_tdc *tdc)
 
 	acam_status_test = tdc_acam_status(tdc)-0xC4000800;
 	if (acam_status_test != 0) {
-        	pr_err( "ACAM status not ready! 0x%x\n", acam_status_test);
+        	pr_err( "ACAM status: not ready! 0x%x\n", acam_status_test);
 		return -EBUSY;
 	}
 
