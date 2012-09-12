@@ -3,7 +3,7 @@ ZIO ?= $(HOME)/dependencies/zio
 LIB = libtdc.a
 LOBJ := libtdc.o
 
-CFLAGS = -Wall -ggdb -O2 -I.. -I$(ZIO)/include
+CFLAGS = -Wall -ggdb -I.. -I$(ZIO)/include
 LDFLAGS = -L. -ltdc
 
 modules all: lib test
