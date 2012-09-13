@@ -41,6 +41,8 @@ static struct zio_attribute tdc_zattr_dev[] = {
 	ZATTR_EXT_REG("dac_word", _RW_, TDC_ATTR_DEV_DAC_WORD, 0),
 	ZATTR_EXT_REG("activate_acquisition", _RW_,
 		      TDC_ATTR_DEV_ACTIVATE_ACQUISITION, 0),
+	ZATTR_EXT_REG("get_wr_pointer", _RW_,
+		      TDC_ATTR_DEV_GET_POINTER, 0),
 
 };
 
@@ -185,6 +187,10 @@ static int tdc_zio_info_get(struct device *dev,
 	case TDC_ATTR_DEV_ACTIVATE_ACQUISITION:
 		*usr_val = atomic_read(&tdc->busy);
 		break;
+	case TDC_ATTR_DEV_GET_POINTER:
+		*usr_val = tdc_get_circular_buffer_wr_pointer(tdc);
+		break;
+
 	default:
 		return -EINVAL;
 	}
