@@ -232,10 +232,6 @@ int tdc_fmc_probe(struct fmc_device *dev)
 #endif
 	for(i = 0; i < TDC_CHAN_NUMBER; i++)
 		sema_init(&tdc->event[i].lock, 0);
-	/* Disable inputs */
-	tdc_set_input_enable(tdc, 0);
-	/* Disable running acquisition, if any */
-	tdc_deactivate_acquisition(tdc);
 	/* Setup the Gennum 412x local clock frequency */
 	tdc_fmc_gennum_setup_local_clock(tdc, 160);
 	/* Reset FPGA to load the firmware */
