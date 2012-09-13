@@ -232,7 +232,10 @@ int tdc_fmc_probe(struct fmc_device *dev)
 #endif
 	for(i = 0; i < TDC_CHAN_NUMBER; i++)
 		sema_init(&tdc->event[i].lock, 0);
-	
+	/* Disable inputs */
+	tdc_set_input_enable(tdc, 0);
+	/* Disable running acquisition, if any */
+	tdc_deactivate_acquisition(tdc);
 	/* Setup the Gennum 412x local clock frequency */
 	tdc_fmc_gennum_setup_local_clock(tdc, 160);
 	/* Reset FPGA to load the firmware */
@@ -243,12 +246,19 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc_acam_reset(tdc);
 	/* Initialice UTC time */
 	tdc_set_local_utc_time(tdc);
+	/* Initialize DAC */
+	tdc_set_dac_word(tdc, 0xA8F5);
+	/* Initialize timestamp threshold */
+	tdc_set_irq_tstamp_thresh(tdc, 255);
+	/* Initialize time threshold */
+	tdc_set_irq_time_thresh(tdc, 256);
 	/* Prepare the irq work */
 	INIT_WORK(&tdc->irq_work, tdc_fmc_irq_work);
 	/* Request the IRQ */
 	dev->op->irq_request(dev, tdc_fmc_irq_handler, "spec-tdc", IRQF_SHARED);
 	/* Enable IRQ */
 	writel(0xC, tdc->base + TDC_IRQ_ENABLE_REG); /* FIXME: define constant 0xC */
+
 
 	return tdc_zio_register_device(tdc);
 }
