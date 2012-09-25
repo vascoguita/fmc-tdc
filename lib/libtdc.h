@@ -18,6 +18,13 @@ struct tdc_time {
 	uint64_t bins;
 };
 
+enum {
+	CHAN0 = 1 << 0,
+	CHAN1 = 1 << 1,
+	CHAN2 = 1 << 2,
+	CHAN3 = 1 << 3,
+	CHAN4 = 1 << 4
+};
 
 extern int tdc_init(void);
 extern void tdc_exit(void);

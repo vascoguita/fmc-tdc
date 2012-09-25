@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 		printf("Timestamps threshold functions OK\n");
 
 	/* set/get active channels */
-	set = 12;
+	set = CHAN0 | CHAN2 | CHAN4;
 	if (tdc_set_active_channels(b, set))
 		printf("Error setting active channels\n");
 	if (tdc_get_active_channels(b, &get))
