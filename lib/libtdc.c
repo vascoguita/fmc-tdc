@@ -267,6 +267,11 @@ int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr)
 	return __tdc_sysfs_get(b, "get_wr_pointer", ptr);
 }
 
+int tdc_clear_dacapo_flag(struct tdc_board *b)
+{
+	return __tdc_sysfs_set(b, "clear_dacapo_flag", 1);
+}
+
 static int __tdc_valid_channel(struct tdc_board *b, int chan)
 {
 	if (chan < 0 || chan > 4) {
