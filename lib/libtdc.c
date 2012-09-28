@@ -262,6 +262,11 @@ int tdc_get_active_channels(struct tdc_board *b, uint32_t *config)
 	return __tdc_sysfs_get(b, "input_enable", config);
 }
 
+int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr)
+{
+	return __tdc_sysfs_get(b, "get_wr_pointer", ptr);
+}
+
 static int __tdc_valid_channel(struct tdc_board *b, int chan)
 {
 	if (chan < 0 || chan > 4) {
