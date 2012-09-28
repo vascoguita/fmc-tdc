@@ -10,6 +10,10 @@ int main(int argc, char **argv)
 	uint32_t set, get;
 
 	b = tdc_open(1);
+	if (!b) {
+		printf("Unable to open device with lun 1");
+		exit(1);
+	}
 
 	/* set/get UTC time */
 	set = 123;
