@@ -7,25 +7,9 @@
 int main(int argc, char **argv)
 {
 	struct tdc_board *b;
-	int i;
 	uint32_t set, get;
 
-	i = tdc_init();
-	if (i < 0) {
-		fprintf(stderr, "%s: tdc_init(): %s\n", argv[0],
-			strerror(errno));
-		exit(1);
-	}
-	if (i == 0) {
-		fprintf(stderr, "%s: no boards found\n", argv[0]);
-		exit(1);
-	}
-	if (i != 1) {
-		fprintf(stderr, "%s: found %i boards\n",
-			argv[0], i);
-	}
-
-	b = tdc_open(0, -1);
+	b = tdc_open(1);
 
 	/* set/get UTC time */
 	set = 123;
@@ -85,6 +69,5 @@ int main(int argc, char **argv)
 
 	tdc_close(b);
 
-	tdc_exit();
 	return 0;
 }

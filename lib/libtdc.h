@@ -5,6 +5,7 @@
 
 struct tdc_board {
 	int dev_id;
+	int lun;
 	char *devbase;
 	char *sysbase;
 	int ctrl[5]; /* The 5 control channels */
@@ -26,10 +27,7 @@ enum {
 	CHAN4 = 1 << 4
 };
 
-extern int tdc_init(void);
-extern void tdc_exit(void);
-
-extern struct tdc_board *tdc_open(int offset, int dev_id);
+extern struct tdc_board *tdc_open(int lun);
 extern int tdc_close(struct tdc_board *b);
 
 extern int tdc_start_acquisition(struct tdc_board *b);

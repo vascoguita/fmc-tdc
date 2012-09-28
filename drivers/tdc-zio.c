@@ -43,7 +43,7 @@ static struct zio_attribute tdc_zattr_dev[] = {
 		      TDC_ATTR_DEV_ACTIVATE_ACQUISITION, 0),
 	ZATTR_EXT_REG("get_wr_pointer", _RW_,
 		      TDC_ATTR_DEV_GET_POINTER, 0),
-
+	ZATTR_EXT_REG("lun", S_IRUGO, TDC_ATTR_DEV_LUN, 1),
 };
 
 static struct zio_cset tdc_cset[] = {
@@ -189,6 +189,9 @@ static int tdc_zio_info_get(struct device *dev,
 		break;
 	case TDC_ATTR_DEV_GET_POINTER:
 		*usr_val = tdc_get_circular_buffer_wr_pointer(tdc);
+		break;
+	case TDC_ATTR_DEV_LUN:
+		/* FIXME: add code to return real lun */
 		break;
 
 	default:
