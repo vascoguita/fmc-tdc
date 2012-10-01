@@ -370,13 +370,9 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		if (errno != EAGAIN)
 			return -1;
 
-		/* EAGAIN: if we already got something, we are done */
-		if (i)
-			return i;
-
-		/* EAGAIN and no data yet. If noblock then return */
+		/* EAGAIN: if we can't block, return elements read */
 		if (flags == O_NONBLOCK)
-			return -1;
+			return i;
 
 		/* blocking read */
 		FD_ZERO(&set);
@@ -386,18 +382,5 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		continue;
 	}
 
-	return i;
-}
-
-int tdc_fread(struct tdc_board *b, int chan, struct tdc_time *t, int n)
-{
-	int i, loop;
-
-	for (i = 0; i < n; ) {
-		loop = tdc_read(b, chan, t + i, 1, 0);
-		if (loop < 0)
-			return -1;
-		i += loop;
-	}
 	return i;
 }
