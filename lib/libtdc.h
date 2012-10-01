@@ -17,6 +17,7 @@ struct tdc_time {
 	uint64_t utc;
 	uint64_t ticks;
 	uint64_t bins;
+	uint32_t da_capo;
 };
 
 enum {
