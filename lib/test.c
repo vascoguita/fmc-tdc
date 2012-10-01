@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 
 	b = tdc_open(1);
 	if (!b) {
-		printf("Unable to open device with lun 1");
+		printf("Unable to open device with lun 1\n");
 		exit(1);
 	}
 
@@ -119,9 +119,9 @@ int main(int argc, char **argv)
 		printf("Error setting active channels\n");
 	res = tdc_read(b, 6, t, 10, O_NONBLOCK);
 	if (res == -1 && errno == EINVAL)
-		printf("Read from invalid chan OK");
+		printf("Read from invalid chan OK\n");
 	else
-		printf("Reda from invalid chan wrong");
+		printf("Read from invalid chan wrong\n");
 
 	/* read from disabled chan  */
 	tdc_activate_all_channels(b);
@@ -130,9 +130,9 @@ int main(int argc, char **argv)
 		printf("Error setting active channels\n");
 	res = tdc_read(b, 1, t, 10, O_NONBLOCK);
 	if (res == -1 && errno == EINVAL)
-		printf("Read from disabled chan OK");
+		printf("Read from disabled chan OK\n");
 	else
-		printf("Read from disabled chan wrong");
+		printf("Read from disabled chan wrong\n");
 
 	/* read with all chans disabled */
 	tdc_deactivate_all_channels(b);
@@ -141,9 +141,9 @@ int main(int argc, char **argv)
 		printf("Error setting active channels\n");
 	res = tdc_read(b, 0, t, 10, O_NONBLOCK);
 	if (res == -1 && errno == EINVAL)
-		printf("Read with disabled chans OK");
+		printf("Read with disabled chans OK\n");
 	else
-		printf("Read with disabled chans wrong");
+		printf("Read with disabled chans wrong\n");
 
 
 	tdc_close(b);
