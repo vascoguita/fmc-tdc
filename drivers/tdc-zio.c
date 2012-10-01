@@ -195,7 +195,7 @@ static int tdc_zio_info_get(struct device *dev,
 		*usr_val = tdc_get_circular_buffer_wr_pointer(tdc);
 		break;
 	case TDC_ATTR_DEV_LUN:
-		/* FIXME: add code to return real lun */
+		*usr_val = tdc->lun;
 		break;
 
 	default:

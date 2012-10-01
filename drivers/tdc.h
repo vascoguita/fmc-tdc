@@ -53,6 +53,7 @@ enum tdc_zattr_dev_idx {
 };
 
 struct spec_tdc {
+	uint32_t lun;
 	struct fmc_device *fmc;
 	struct spec_dev *spec;
 	struct zio_device *zdev, *hwzdev;

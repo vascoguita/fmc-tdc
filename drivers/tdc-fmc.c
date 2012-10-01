@@ -216,6 +216,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	spec = dev->carrier_data;
 	tdc->spec = spec;
 	spec->sub_priv = tdc;
+	tdc->lun = 2; /* FIXME: this must be calculated from module params */
 	tdc->fmc = dev;
 	tdc->base = dev->base;		   /* BAR 0 */
 	tdc->gn412x_regs = spec->remap[2]; /* BAR 4  */
