@@ -13,6 +13,7 @@
 #include "libtdc.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#define TDC_INPUT_ENABLE_FLAG (1 << 7)
 
 static inline int __tdc_sysfs_get_lun(char *sysbase, uint32_t *resp)
 {
@@ -122,6 +123,7 @@ struct tdc_board *tdc_open(int lun)
 		b->lun = lun;
 		b->sysbase = strdup(glob_sys.gl_pathv[i]);
 		b->devbase = strdup(glob_dev.gl_pathv[i]);
+		b->chan_config = 0;
 		/* trim the "-0-0-ctrl" at the end */
 		b->devbase[strlen(b->devbase) - strlen("-0-0-ctrl")] = '\0';
 		/* extract dev_id */
@@ -129,7 +131,6 @@ struct tdc_board *tdc_open(int lun)
 		for (j = 0; j < ARRAY_SIZE(b->ctrl); j++) {
 			b->ctrl[j] = -1;
 			b->data[j] = -1;
-			b->enabled[j] = 0;
 		}
 		break;
 	}
@@ -230,10 +231,14 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 	int res = 0;
 	int i;
 
+	/* Clear other bits than the 5 smaller */
+	config = config & 0x1f;
+	b->chan_config = (b->chan_config & TDC_INPUT_ENABLE_FLAG) | config;
+
 	/* Hardware deactivation */
-	res = __tdc_sysfs_set(b, "input_enable", config);
+	res = __tdc_sysfs_set(b, "input_enable", b->chan_config);
 	if (res) {
-		printf("Error setting chan config in hardware\n");
+		fprintf(stderr, "Error setting chan config in hardware\n");
 		return res;
 	}
 
@@ -243,10 +248,8 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 		sprintf(file, "tdc-cset%i/enable", i);
 		if (config & (1 << i)) {
 			res = __tdc_sysfs_set(b, file, 1);
-			b->enabled[i] = 1;
 		} else {
 			res = __tdc_sysfs_set(b, file, 0);
-			b->enabled[i] = 0;
 		}
 		if (res) {
 			printf("Error setting ZIO chan config in cset %i\n", i);
@@ -259,7 +262,20 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 
 int tdc_get_active_channels(struct tdc_board *b, uint32_t *config)
 {
-	return __tdc_sysfs_get(b, "input_enable", config);
+	*config = b->chan_config & ~TDC_INPUT_ENABLE_FLAG;
+	return 0;
+}
+
+int tdc_activate_all_channels(struct tdc_board *b)
+{
+	b->chan_config |= TDC_INPUT_ENABLE_FLAG;
+	return __tdc_sysfs_set(b, "input_enable", b->chan_config);
+}
+
+int tdc_deactivate_all_channels(struct tdc_board *b)
+{
+	b->chan_config &= ~TDC_INPUT_ENABLE_FLAG;
+	return __tdc_sysfs_set(b, "input_enable", b->chan_config);
 }
 
 int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr)
@@ -281,7 +297,14 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 		return  0;
 	}
 
-	if (!b->enabled[chan]) {
+	if (!(b->chan_config & TDC_INPUT_ENABLE_FLAG) ) {
+		fprintf(stderr, "%s: All channels disabled\n",
+			__func__, chan);
+		errno = EINVAL; 
+		return  0;
+	}
+
+	if (!(b->chan_config & (1 << chan)) ) {
 		fprintf(stderr, "%s: Channel not enabled: %i\n",
 			__func__, chan);
 		errno = EINVAL; 

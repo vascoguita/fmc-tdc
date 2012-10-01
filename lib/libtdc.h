@@ -8,9 +8,9 @@ struct tdc_board {
 	int lun;
 	char *devbase;
 	char *sysbase;
+	uint32_t chan_config; /* Channel activation */
 	int ctrl[5]; /* The 5 control channels */
 	int data[5]; /* The 5 data channels */
-	int enabled[5]; /* channel activation */
 };
 
 struct tdc_time {
@@ -49,6 +49,9 @@ extern int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres);
 
 extern int tdc_set_active_channels(struct tdc_board *b, uint32_t config);
 extern int tdc_get_active_channels(struct tdc_board *b, uint32_t *config);
+
+extern int tdc_activate_all_channels(struct tdc_board *b);
+extern int tdc_deactivate_all_channels(struct tdc_board *b);
 
 extern int tdc_get_circular_buffer_ptr(struct tdc_board *b, uint32_t *ptr);
 

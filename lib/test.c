@@ -59,10 +59,49 @@ int main(int argc, char **argv)
 	else
 		printf("Timestamps threshold functions OK\n");
 
-	/* set/get active channels */
+	/* set/get active channels with general activation */
+	tdc_activate_all_channels(b);
 	set = CHAN0 | CHAN2 | CHAN4;
 	if (tdc_set_active_channels(b, set))
 		printf("Error setting active channels\n");
+	if (tdc_get_active_channels(b, &get))
+		printf("Error getting active channels\n");
+	if (set != get)
+		printf("Active channels set and get don't match\n");
+	else
+		printf("Channel activation functions OK\n");
+
+	/* set/get active channels with general deactivation */
+	tdc_deactivate_all_channels(b);
+	set = CHAN0 | CHAN2 | CHAN4;
+	if (tdc_set_active_channels(b, set))
+		printf("Error setting active channels\n");
+	if (tdc_get_active_channels(b, &get))
+		printf("Error getting active channels\n");
+	if (set != get)
+		printf("Active channels set and get don't match\n");
+	else
+		printf("Channel activation functions OK\n");
+
+	/* set/get active channels with general activation change */
+	tdc_activate_all_channels(b);
+	set = CHAN0 | CHAN2 | CHAN4;
+	if (tdc_set_active_channels(b, set))
+		printf("Error setting active channels\n");
+	tdc_deactivate_all_channels(b);
+	if (tdc_get_active_channels(b, &get))
+		printf("Error getting active channels\n");
+	if (set != get)
+		printf("Active channels set and get don't match\n");
+	else
+		printf("Channel activation functions OK\n");
+
+	/* set/get active channels with general activation change */
+	tdc_deactivate_all_channels(b);
+	set = CHAN0 | CHAN2 | CHAN4;
+	if (tdc_set_active_channels(b, set))
+		printf("Error setting active channels\n");
+	tdc_activate_all_channels(b);
 	if (tdc_get_active_channels(b, &get))
 		printf("Error getting active channels\n");
 	if (set != get)
