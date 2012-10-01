@@ -353,7 +353,7 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 			t[i].utc = ctrl.tstamp.secs;
 			t[i].ticks = ctrl.tstamp.ticks;
 			t[i].bins = ctrl.tstamp.bins;
-			/* FIXME: store dacapr flag from wherever it is */
+			t[i].da_capo = ctrl.flags;
 
 			i++;
 			continue;
