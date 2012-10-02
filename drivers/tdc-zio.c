@@ -46,6 +46,8 @@ static struct zio_attribute tdc_zattr_dev[] = {
 	ZATTR_EXT_REG("lun", S_IRUGO, TDC_ATTR_DEV_LUN, 1),
 	ZATTR_EXT_REG("clear_dacapo_flag", _RW_,
 		      TDC_ATTR_DEV_CLEAR_DACAPO_FLAG, 0),
+	ZATTR_EXT_REG("reset_acam", _RW_,
+		      TDC_ATTR_DEV_RESET_ACAM, 0),
 };
 
 static struct zio_cset tdc_cset[] = {
@@ -150,6 +152,10 @@ static int tdc_zio_conf_set(struct device *dev,
 		break;
 	case TDC_ATTR_DEV_CLEAR_DACAPO_FLAG:
 		tdc_clear_da_capo_flag(tdc);
+		break;
+	case TDC_ATTR_DEV_RESET_ACAM:
+		tdc_acam_set_default_config(tdc);
+		tdc_acam_reset(tdc);
 		break;
 	default:
 		return -EINVAL;
