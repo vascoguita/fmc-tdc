@@ -299,15 +299,15 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 
 	if (!(b->chan_config & TDC_INPUT_ENABLE_FLAG) ) {
 		fprintf(stderr, "%s: All channels disabled\n",
-			__func__, chan);
-		errno = EINVAL; 
+			__func__);
+		errno = EINVAL;
 		return  0;
 	}
 
 	if (!(b->chan_config & (1 << chan)) ) {
 		fprintf(stderr, "%s: Channel not enabled: %i\n",
 			__func__, chan);
-		errno = EINVAL; 
+		errno = EINVAL;
 		return  0;
 	}
 
