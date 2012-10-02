@@ -191,16 +191,52 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
+static int tdc_fmc_get_device_lun(struct fmc_device *dev)
+{
+	struct spec_dev *spec;
+	struct pci_dev *pdev;
+	int i;
+
+	/* If there are no parameters defined, assign 1 as the default value */
+	if (nlun == 0) {
+		pr_info("No LUNs rules defined. Assigning default value 1\n");
+		return 1;
+	}
+
+	spec = dev->carrier_data;
+	pdev = spec->pdev;
+
+	for (i = 0; i < nlun; i++) {
+		if (PCI_SLOT(pdev->devfn) == slot[i] &&
+		    pdev->bus->number == bus[i]) {
+			pr_info("Matched LUN %d for device in bus %d and slot %d\n",
+				lun[i], bus[i], slot[i]);
+			return lun[i];
+		}
+	}
+
+	pr_err("No LUN found for device in bus %d and slot %d\n",
+	       pdev->bus->number, PCI_SLOT(pdev->devfn));
+	return -ENODEV;
+}
+
 int tdc_fmc_probe(struct fmc_device *dev)
 {
 	struct spec_tdc *tdc;
 	struct spec_dev *spec;
-	int ret, i;
+	int ret, i, dev_lun;
+	char gateware_path[128];
 
 	if(strcmp(dev->carrier_name, "SPEC") != 0)
 		return -ENODEV;
 
-	ret = dev->op->reprogram(dev, &tdc_fmc_driver, "fmc/eva_tdc_for_v2.bin");
+	dev_lun = tdc_fmc_get_device_lun(dev);
+	if (dev_lun < 0)
+		return dev_lun;
+
+	sprintf(gateware_path, "fmc/%s", gateware);
+	pr_info("Using gateware %s\n", gateware_path);
+	ret = dev->op->reprogram(dev, &tdc_fmc_driver, gateware_path);
 	if (ret < 0) {
 		pr_err("%s: error reprogramming the FPGA\n", __func__);
 		return -ENODEV;
@@ -216,7 +252,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	spec = dev->carrier_data;
 	tdc->spec = spec;
 	spec->sub_priv = tdc;
-	tdc->lun = 2; /* FIXME: this must be calculated from module params */
+	tdc->lun = dev_lun;
 	tdc->fmc = dev;
 	tdc->base = dev->base;		   /* BAR 0 */
 	tdc->gn412x_regs = spec->remap[2]; /* BAR 4  */

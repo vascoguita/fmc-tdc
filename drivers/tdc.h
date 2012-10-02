@@ -2,11 +2,21 @@
 #define __FMC_TDC_H__
 
 #define TDC_VERSION	1
+#define MAX_DEVICES	16
 
 #include <linux/types.h>
 #include <linux/workqueue.h>
 #include <linux/semaphore.h>
 #include "hw/tdc_regs.h"
+
+/* module parameters */
+extern int lun[MAX_DEVICES];
+extern unsigned int nlun;
+extern int bus[MAX_DEVICES];
+extern unsigned int nbus;
+extern int slot[MAX_DEVICES];
+extern unsigned int nslot;
+extern char *gateware;
 
 struct tdc_event {
 	u32 fine_time;		/* In BIN (81 ps resolution) */

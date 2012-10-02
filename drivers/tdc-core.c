@@ -19,6 +19,20 @@
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
+int lun[MAX_DEVICES];
+unsigned int nlun;
+module_param_array(lun, int, &nlun, S_IRUGO);
+
+int bus[MAX_DEVICES];
+unsigned int nbus;
+module_param_array(bus, int, &nbus, S_IRUGO);
+
+int slot[MAX_DEVICES];
+unsigned int nslot;
+module_param_array(slot, int, &nslot, S_IRUGO);
+
+char *gateware = "eva_tdc_for_v2.bin";
+module_param(gateware, charp, S_IRUGO);
 
 void tdc_set_utc_time(struct spec_tdc *tdc, u32 value)
 {
@@ -28,8 +42,8 @@ void tdc_set_utc_time(struct spec_tdc *tdc, u32 value)
 
 void tdc_set_local_utc_time(struct spec_tdc *tdc)
 {
-	struct timeval utc_time;	
-	
+	struct timeval utc_time;
+
 	do_gettimeofday(&utc_time);
 	tdc_set_utc_time(tdc, utc_time.tv_sec);
 }
@@ -111,9 +125,29 @@ inline u32 tdc_get_circular_buffer_wr_pointer(struct spec_tdc *tdc)
 	return readl(tdc->base + TDC_CIRCULAR_BUF_PTR_R);
 }
 
+static int check_parameters(void)
+{
+	if (nlun < 0 || nlun > MAX_DEVICES) {
+		pr_err("Invalid number of devices (%d)", nlun);
+		return -EINVAL;
+	}
+
+	if ((nlun != nbus) || (nlun != nslot)) {
+		pr_err("Parameter mismatch: %d luns, %d buses and %d slots\n",
+		       nlun, nbus, nslot);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int tdc_init(void)
 {
 	int err;
+
+	err = check_parameters();
+	if (err < 0)
+		return err;
 
 	err = tdc_zio_init();
 	if (err < 0)
@@ -124,7 +158,7 @@ static int tdc_init(void)
 		tdc_zio_exit();
 		return err;
 	}
-	
+
 	return 0;
 }
 
