@@ -301,12 +301,9 @@ static int __tdc_chan_to_decimal(int chan)
 
 static int __tdc_valid_channel(struct tdc_board *b, int chan)
 {
-	int chan_dec;
-
-	chan_dec = __tdc_chan_to_decimal(chan);
-	if (chan_dec < 0 || chan_dec > 4) {
+	if (chan < 0 || chan > 4) {
 		fprintf(stderr, "%s: Invalid channel: %i\n",
-			__func__, chan_dec);
+			__func__, chan);
 		errno = EINVAL;
 		return  0;
 	}
@@ -318,9 +315,9 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 		return  0;
 	}
 
-	if (!(b->chan_config & chan)) {
+	if (!(b->chan_config & (1 << chan))) {
 		fprintf(stderr, "%s: Channel not enabled: %i\n",
-			__func__, chan_dec);
+			__func__, chan);
 		errno = EINVAL;
 		return  0;
 	}
@@ -331,17 +328,14 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 static int __tdc_open_file(struct tdc_board *b, int chan)
 {
 	char fname[128];
-	int chan_dec;
-
-	chan_dec = __tdc_chan_to_decimal(chan);
-	sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan_dec);
+	sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan);
 
 	/* open file */
-	if (b->ctrl[chan_dec] <= 0) {
-		b->ctrl[chan_dec] = open(fname, O_RDONLY | O_NONBLOCK);
+	if (b->ctrl[chan] <= 0) {
+		b->ctrl[chan] = open(fname, O_RDONLY | O_NONBLOCK);
 	}
 
-	if (b->ctrl[chan_dec] < 0)
+	if (b->ctrl[chan] < 0)
 		fprintf(stderr, "%s: Error opening file: %s\n",
 			__func__, fname);
 
@@ -351,20 +345,17 @@ static int __tdc_open_file(struct tdc_board *b, int chan)
 static int __tdc_close_file(struct tdc_board *b, int chan)
 {
 	int ret;
-	int chan_dec;
 
-	chan_dec = __tdc_chan_to_decimal(chan);
-
-	ret = close(b->ctrl[chan_dec]);
+	ret = close(b->ctrl[chan]);
 	if (ret) {
 		char fname[128];
-		sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan_dec);
+		sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan);
 		fprintf(stderr, "%s: Error closing file: %s\n",
 			__func__, fname);
 		return -1;
 	}
 
-	b->ctrl[chan_dec] = -1;
+	b->ctrl[chan] = -1;
 	return 0;
 }
 
@@ -375,11 +366,14 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 	int fd, i, j;
 	fd_set set;
 	int ret = 0;
+	int chan_dec;
 
-	if (!__tdc_valid_channel(b, chan))
+	chan_dec = __tdc_chan_to_decimal(chan);
+
+	if (!__tdc_valid_channel(b, chan_dec))
 		return -1;
 
-	fd = __tdc_open_file(b, chan);
+	fd = __tdc_open_file(b, chan_dec);
 	if (fd < 0)
 		return -1;
 
@@ -394,6 +388,7 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 			t[i].da_capo = ctrl.flags;
 
 			i++;
+			ret = i;
 			continue;
 		}
 
@@ -427,6 +422,6 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		}
 	}
 
-	__tdc_close_file(b, chan);
+	__tdc_close_file(b, chan_dec);
 	return ret;
 }
