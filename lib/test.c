@@ -20,6 +20,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+#if 0
+
 	/* set/get UTC time */
 	set = 123;
 	if (tdc_set_utc_time(b, set))
@@ -147,11 +149,14 @@ int main(int argc, char **argv)
 	else
 		printf("Read with disabled chans wrong\n");
 
+#endif
+
 	/* read from valid chan */
 	tdc_set_host_utc_time(b);
 	tdc_activate_all_channels(b);
-	tdc_set_active_channels(b, CHAN0);
-	tdc_set_time_threshold(b, 10);
+	tdc_set_active_channels(b, CHAN0 | CHAN1 | CHAN2 | CHAN3 | CHAN4);
+	tdc_set_time_threshold(b, 1);
+	tdc_set_timestamp_threshold(b, 10);
 	tdc_start_acquisition(b);
 	for (i = 0; i <100; i++) {
 		/* this should be a blocking read */
