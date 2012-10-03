@@ -364,7 +364,7 @@ static int __tdc_close_file(struct tdc_board *b, int chan)
 		return -1;
 	}
 
-	b->ctrl[chan] = -1;
+	b->ctrl[chan_dec] = -1;
 	return 0;
 }
 
