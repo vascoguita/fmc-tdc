@@ -288,11 +288,25 @@ int tdc_clear_dacapo_flag(struct tdc_board *b)
 	return __tdc_sysfs_set(b, "clear_dacapo_flag", 1);
 }
 
+static int __tdc_chan_to_decimal(int chan)
+{
+	int ret = -1;
+	while (chan > 0) {
+		chan = chan >> 1;
+		ret++;
+	}
+
+	return ret;
+}
+
 static int __tdc_valid_channel(struct tdc_board *b, int chan)
 {
-	if (chan < 0 || chan > 4) {
+	int chan_dec;
+
+	chan_dec = __tdc_chan_to_decimal(chan);
+	if (chan_dec < 0 || chan_dec > 4) {
 		fprintf(stderr, "%s: Invalid channel: %i\n",
-			__func__, chan);
+			__func__, chan_dec);
 		errno = EINVAL;
 		return  0;
 	}
@@ -304,9 +318,9 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 		return  0;
 	}
 
-	if (!(b->chan_config & (1 << chan)) ) {
+	if (!(b->chan_config & chan)) {
 		fprintf(stderr, "%s: Channel not enabled: %i\n",
-			__func__, chan);
+			__func__, chan_dec);
 		errno = EINVAL;
 		return  0;
 	}
@@ -317,18 +331,41 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 static int __tdc_open_file(struct tdc_board *b, int chan)
 {
 	char fname[128];
+	int chan_dec;
+
+	chan_dec = __tdc_chan_to_decimal(chan);
+	sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan_dec);
 
 	/* open file */
-	if (b->ctrl[chan] <= 0) {
-		sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan);
-		b->ctrl[chan] = open(fname, O_RDONLY | O_NONBLOCK);
+	if (b->ctrl[chan_dec] <= 0) {
+		b->ctrl[chan_dec] = open(fname, O_RDONLY | O_NONBLOCK);
 	}
 
-	if (b->ctrl[chan] < 0)
+	if (b->ctrl[chan_dec] < 0)
 		fprintf(stderr, "%s: Error opening file: %s\n",
 			__func__, fname);
 
 	return b->ctrl[chan];
+}
+
+static int __tdc_close_file(struct tdc_board *b, int chan)
+{
+	int ret;
+	int chan_dec;
+
+	chan_dec = __tdc_chan_to_decimal(chan);
+
+	ret = close(b->ctrl[chan_dec]);
+	if (ret) {
+		char fname[128];
+		sprintf(fname, "%s-%i-0-ctrl", b->devbase, chan_dec);
+		fprintf(stderr, "%s: Error closing file: %s\n",
+			__func__, fname);
+		return -1;
+	}
+
+	b->ctrl[chan] = -1;
+	return 0;
 }
 
 int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
@@ -337,6 +374,7 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 	struct zio_control ctrl;
 	int fd, i, j;
 	fd_set set;
+	int ret = 0;
 
 	if (!__tdc_valid_channel(b, chan))
 		return -1;
@@ -362,26 +400,33 @@ int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		/* some bytes read but not complete structure */
 		if (j > 0) {
 			errno = EIO;
-			return -1;
+			ret = -1;
+			break;
 		}
 
 		/* from here on, an error was returned */
 
 		/* real error, so exit */
-		if (errno != EAGAIN)
-			return -1;
+		if (errno != EAGAIN) {
+			ret = -1;
+			break;
+		}
 
 		/* EAGAIN: if we can't block, return elements read */
-		if (flags == O_NONBLOCK)
-			return i;
+		if (flags == O_NONBLOCK) {
+			ret = i;
+			break;
+		}
 
 		/* blocking read */
 		FD_ZERO(&set);
 		FD_SET(fd, &set);
-		if (select(fd+1, &set, NULL, NULL, NULL) < 0)
-			return -1;
-		continue;
+		if (select(fd+1, &set, NULL, NULL, NULL) < 0) {
+			ret = -1;
+			break;
+		}
 	}
 
-	return i;
+	__tdc_close_file(b, chan);
+	return ret;
 }
