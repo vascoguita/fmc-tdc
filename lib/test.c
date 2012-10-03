@@ -152,17 +152,19 @@ int main(int argc, char **argv)
 	tdc_activate_all_channels(b);
 	tdc_set_active_channels(b, CHAN0);
 	tdc_set_time_threshold(b, 10);
+	tdc_start_acquisition(b);
 	for (i = 0; i <100; i++) {
 		/* this should be a blocking read */
 		res = tdc_read(b, 0, &t, 1, 0);
 		if (res == 1) {
-			printf("Got sample: utc %"PRIu64" ticks %"PRIu64" bins %"PRIu64" dacapo %i",
+			printf("Got sample: utc %"PRIu64" ticks %"PRIu64" bins %"PRIu64" dacapo %i\n",
 			       t.utc, t.ticks, t.bins, t.da_capo);
 		} else {
-			printf("Error reading sample");
+			printf("Error reading sample\n");
 		}
 	}
 
+	tdc_stop_acquisition(b);
 	tdc_close(b);
 
 	return 0;
