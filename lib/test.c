@@ -3,14 +3,16 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <inttypes.h>
 #include "libtdc.h"
 
 int main(int argc, char **argv)
 {
 	struct tdc_board *b;
-	struct tdc_time t[10];
+	struct tdc_time t;
 	uint32_t set, get;
 	int res;
+	int i;
 
 	b = tdc_open(1);
 	if (!b) {
@@ -117,7 +119,7 @@ int main(int argc, char **argv)
 	set = CHAN0;
 	if (tdc_set_active_channels(b, set))
 		printf("Error setting active channels\n");
-	res = tdc_read(b, 6, t, 10, O_NONBLOCK);
+	res = tdc_read(b, 6, &t, 1, O_NONBLOCK);
 	if (res == -1 && errno == EINVAL)
 		printf("Read from invalid chan OK\n");
 	else
@@ -128,7 +130,7 @@ int main(int argc, char **argv)
 	set = CHAN0;
 	if (tdc_set_active_channels(b, set))
 		printf("Error setting active channels\n");
-	res = tdc_read(b, 1, t, 10, O_NONBLOCK);
+	res = tdc_read(b, 1, &t, 1, O_NONBLOCK);
 	if (res == -1 && errno == EINVAL)
 		printf("Read from disabled chan OK\n");
 	else
@@ -139,12 +141,27 @@ int main(int argc, char **argv)
 	set = CHAN0;
 	if (tdc_set_active_channels(b, set))
 		printf("Error setting active channels\n");
-	res = tdc_read(b, 0, t, 10, O_NONBLOCK);
+	res = tdc_read(b, 0, &t, 1, O_NONBLOCK);
 	if (res == -1 && errno == EINVAL)
 		printf("Read with disabled chans OK\n");
 	else
 		printf("Read with disabled chans wrong\n");
 
+	/* read from valid chan */
+	tdc_set_host_utc_time(b);
+	tdc_activate_all_channels(b);
+	tdc_set_active_channels(b, CHAN0);
+	tdc_set_time_threshold(b, 10);
+	for (i = 0; i <100; i++) {
+		/* this should be a blocking read */
+		res = tdc_read(b, 0, &t, 1, 0);
+		if (res == 1) {
+			printf("Got sample: utc %"PRIu64" ticks %"PRIu64" bins %"PRIu64" dacapo %i",
+			       t.utc, t.ticks, t.bins, t.da_capo);
+		} else {
+			printf("Error reading sample");
+		}
+	}
 
 	tdc_close(b);
 
