@@ -13,6 +13,7 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/delay.h>
 
 #include <linux/zio.h>
 #include <linux/zio-buffer.h>
@@ -244,17 +245,22 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 
 	zio_chan = cset->chan;
 	tdc = zdev->priv_d;
-	chan = cset->index - 1;
+	chan = cset->index;
 
 	/* Wait for data */
+#if 0
 	if(down_interruptible(&tdc->event[chan].lock))
 		return -ERESTARTSYS;
-
+#else
+	//mdelay(100);
+#endif
 	/* Check if we have read this data before */
 	/* XXX: change it if we have more data or use a mutex */
+#if 0
 	if (tdc->event[chan].read)
 		return -EAGAIN;
 	tdc->event[chan].read = 1;
+#endif
 
 	/* Process the data */
 	ctrl = zio_get_ctrl(zio_chan->active_block);
@@ -265,7 +271,6 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 	ctrl->tstamp.bins = tdc->event[chan].data.fine_time;
 	ctrl->flags = tdc->event[chan].dacapo_flag; /* XXX: Is it OK here? */
 	ctrl->reserved = tdc->event[chan].data.metadata;
-
 	return 0;
 }
 

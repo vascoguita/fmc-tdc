@@ -56,8 +56,10 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 	
 	dacapo_prev = prev_wr_ptr >> 12;
 	dacapo_curr = curr_wr_ptr >> 12;
-	curr_wr_ptr &= 0x0fff; /* Pick last 12 bits */
-	prev_wr_ptr &= 0x0fff; /* Pick last 12 bits */
+	curr_wr_ptr &= 0x00fff; /* Pick last 12 bits */
+	curr_wr_ptr >>= 2; 	/* Remove last 4 bytes. */
+	prev_wr_ptr &= 0x00fff; /* Pick last 12 bits */
+	prev_wr_ptr >>= 2; 	/* Remove last 4 bytes. */
 	dacapo_diff = dacapo_curr - dacapo_prev;
 
 	switch(dacapo_diff) {
@@ -105,8 +107,10 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	prev_wr_ptr = tdc->wr_pointer;
 	ret = tdc_dma_setup(tdc, 0, (unsigned long)events,
 			    TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event));
-	if (ret)
+	if (ret) {
+		pr_err("tdc: error in DMA setup\n");
 		goto dma_out;
+	}
 
 	/* Start DMA transfer and wait for it */
 	tdc_dma_start(tdc);
@@ -115,8 +119,12 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	/* DMA happened */
 	atomic_set(&fmc_dma_end, 0);
 	/* Check the status of the DMA */
-	if(readl(tdc->base + TDC_DMA_STAT_R) & (TDC_DMA_STAT_ERR | TDC_DMA_STAT_ABORT))
+	if(readl(tdc->base + TDC_DMA_STAT_R) & (TDC_DMA_STAT_ERR | TDC_DMA_STAT_ABORT)) {
+		pr_err("tdc: error in DMA transfer\n");
+		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
+	}
+	mutex_unlock(&fmc_dma_lock);
 
 	tdc->wr_pointer = curr_wr_ptr;
 
@@ -129,10 +137,12 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 
 	/* Start reading in the oldest event */
 	if(count == TDC_EVENT_BUFFER_SIZE)
-		rd_ptr = curr_wr_ptr; /* The oldest is curr_wr_ptr */
+		rd_ptr = (curr_wr_ptr >> 2) & 0x000ff; /* The oldest is curr_wr_ptr */
 	else
-		rd_ptr = prev_wr_ptr; /* The oldest is prev_wr_ptr */
+		rd_ptr = (prev_wr_ptr >> 2) & 0x000ff; /* The oldest is prev_wr_ptr */
 	
+		pr_err("SIG: %s count %d\n", __func__, count);
+
 	for ( ; count > 0; count--) {
 		tmp_data = &events[rd_ptr];
 		/* Check which channel to deliver the data */
@@ -148,12 +158,11 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		/* XXX: as it has only one element of data, maybe is better a mutex 
 		 * instead of semaphore! 
 		 */
-		up(&tdc->event[chan].lock);
+		//up(&tdc->event[chan].lock);
 		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
 	}
 
 dma_out:
-	mutex_unlock(&fmc_dma_lock);
 	kfree(events);
 }
 
@@ -169,8 +178,9 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 	
 	/* Tstamp threshold or time threshold */
 	if((irq_code & TDC_IRQ_TDC_TSTAMP) ||
-	   (irq_code & TDC_IRQ_TDC_TIME_THRESH))
+	   (irq_code & TDC_IRQ_TDC_TIME_THRESH)) {
 		queue_work(tdc_workqueue, &tdc->irq_work);
+	}
 
 	/* DMA interrupt */
 	if((irq_code & TDC_IRQ_GNUM_CORE_0) ||
@@ -284,7 +294,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Request the IRQ */
 	dev->op->irq_request(dev, tdc_fmc_irq_handler, "spec-tdc", IRQF_SHARED);
 	/* Enable IRQ */
-	writel(0xC, tdc->base + TDC_IRQ_ENABLE_REG);
+	writel(0xF, tdc->base + TDC_IRQ_ENABLE_REG);
  
 	return tdc_zio_register_device(tdc);
 }
