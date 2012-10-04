@@ -11,7 +11,7 @@ ccflags-y = -I$(ZIO)/include -I$(SPEC_SW)/kernel -I$M -I$(SPEC_SW)/kernel/includ
 
 subdirs-ccflags-y = $(ccflags-y)
 
-obj-m := spec-tdc.o
+obj-m := spec-tdc.o zio-trig-tdc.o
 
 spec-tdc-objs	=  tdc-core.o tdc-zio.o tdc-fmc.o tdc-acam.o tdc-dma.o
 
