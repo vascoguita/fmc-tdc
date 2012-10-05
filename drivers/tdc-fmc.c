@@ -19,6 +19,9 @@
 #include <linux/atomic.h>
 #include <linux/semaphore.h>
 
+#include <linux/zio.h>
+#include <linux/zio-trigger.h>
+
 #include "spec.h"
 #include "tdc.h"
 #include "hw/tdc_regs.h"
@@ -57,9 +60,9 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 	dacapo_prev = prev_wr_ptr >> 12;
 	dacapo_curr = curr_wr_ptr >> 12;
 	curr_wr_ptr &= 0x00fff; /* Pick last 12 bits */
-	curr_wr_ptr >>= 2; 	/* Remove last 4 bytes. */
+	curr_wr_ptr >>= 4; 	/* Remove last 4 bits. */
 	prev_wr_ptr &= 0x00fff; /* Pick last 12 bits */
-	prev_wr_ptr >>= 2; 	/* Remove last 4 bytes. */
+	prev_wr_ptr >>= 4; 	/* Remove last 4 bits. */
 	dacapo_diff = dacapo_curr - dacapo_prev;
 
 	switch(dacapo_diff) {
@@ -137,11 +140,11 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 
 	/* Start reading in the oldest event */
 	if(count == TDC_EVENT_BUFFER_SIZE)
-		rd_ptr = (curr_wr_ptr >> 2) & 0x000ff; /* The oldest is curr_wr_ptr */
+		rd_ptr = (curr_wr_ptr >> 4) & 0x000ff; /* The oldest is curr_wr_ptr */
 	else
-		rd_ptr = (prev_wr_ptr >> 2) & 0x000ff; /* The oldest is prev_wr_ptr */
+		rd_ptr = (prev_wr_ptr >> 4) & 0x000ff; /* The oldest is prev_wr_ptr */
 	
-		pr_err("SIG: %s count %d\n", __func__, count);
+	pr_err("SIG: %s count %d\n", __func__, count);
 
 	for ( ; count > 0; count--) {
 		tmp_data = &events[rd_ptr];
@@ -160,6 +163,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		 */
 		//up(&tdc->event[chan].lock);
 		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
+		//zio_fire_trigger(tdc->hwzdev->cset[chan].ti);
 	}
 
 dma_out:
