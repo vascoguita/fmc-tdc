@@ -27,9 +27,7 @@ struct tdc_event {
 
 struct tdc_event_buffer {
 	struct tdc_event data;
-	struct semaphore lock;
 	int dacapo_flag;
-	int read;
 };
 
 struct tdc_acam_cfg {

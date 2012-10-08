@@ -17,7 +17,6 @@
 #include <linux/wait.h>
 #include <linux/sched.h>
 #include <linux/atomic.h>
-#include <linux/semaphore.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -154,16 +153,9 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		tdc->event[chan].dacapo_flag = dacapo_flag;
 		/* Copy the data and notify the readers (ZIO trigger) */
 		tdc->event[chan].data = *tmp_data;
-		/* XXX: Flag to avoid the ZIO trigger to read always the same element
-		 * Until we change to a mutex or a data buffer bigger than one.
-		 */
-		tdc->event[chan].read = 0;
-		/* XXX: as it has only one element of data, maybe is better a mutex 
-		 * instead of semaphore! 
-		 */
-		//up(&tdc->event[chan].lock);
 		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
-		//zio_fire_trigger(tdc->hwzdev->cset[chan].ti);
+
+		zio_fire_trigger(tdc->zdev->cset[chan].ti);
 	}
 
 dma_out:
@@ -238,7 +230,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 {
 	struct spec_tdc *tdc;
 	struct spec_dev *spec;
-	int ret, i, dev_lun;
+	int ret, dev_lun;
 	char gateware_path[128];
 
 	if(strcmp(dev->carrier_name, "SPEC") != 0)
@@ -272,8 +264,6 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	tdc->gn412x_regs = spec->remap[2]; /* BAR 4  */
 	tdc->wr_pointer = 0;
 
-	for(i = 0; i < TDC_CHAN_NUMBER; i++)
-		sema_init(&tdc->event[i].lock, 0);
 	/* Setup the Gennum 412x local clock frequency */
 	tdc_fmc_gennum_setup_local_clock(tdc, 160);
 	/* Reset FPGA to load the firmware */

@@ -219,7 +219,7 @@ static const struct zio_sysfs_operations tdc_zio_s_op = {
 
 static struct zio_device tdc_tmpl = {
 	.owner = THIS_MODULE,
-	.preferred_trigger = "user",
+	.preferred_trigger = "tdc",
 	.s_op = &tdc_zio_s_op,
 	.cset = tdc_cset,
 	.n_cset = ARRAY_SIZE(tdc_cset),
@@ -246,21 +246,6 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 	zio_chan = cset->chan;
 	tdc = zdev->priv_d;
 	chan = cset->index;
-
-	/* Wait for data */
-#if 0
-	if(down_interruptible(&tdc->event[chan].lock))
-		return -ERESTARTSYS;
-#else
-	//mdelay(100);
-#endif
-	/* Check if we have read this data before */
-	/* XXX: change it if we have more data or use a mutex */
-#if 0
-	if (tdc->event[chan].read)
-		return -EAGAIN;
-	tdc->event[chan].read = 1;
-#endif
 
 	/* Process the data */
 	ctrl = zio_get_ctrl(zio_chan->active_block);
@@ -291,11 +276,20 @@ static struct zio_driver tdc_zdrv = {
 	.probe = tdc_zio_probe,
 };
 
+/* Copied from zio-sys.c. This works because ZIO only supports one children */
+static int __tdc_match_child(struct device *dev, void *data)
+{
+//      if (dev->type == &zobj_device_type)
+                return 1;
+//      return 0;
+}
+
 int tdc_zio_register_device(struct spec_tdc *tdc)
 {
 	int err = 0;
 	struct pci_dev *pdev;
 	int dev_id;
+	struct device *dev;
 
 	tdc->hwzdev = zio_allocate_device();
 	if (IS_ERR(tdc->hwzdev))
@@ -314,6 +308,14 @@ int tdc_zio_register_device(struct spec_tdc *tdc)
 		zio_free_device(tdc->hwzdev);
 		return err;
 	}
+
+	dev = device_find_child(&tdc->hwzdev->head.dev, NULL, __tdc_match_child);
+        if (!dev) {
+                pr_err("Child device not found!!\n");
+		return -ENODEV;
+	}
+	tdc->zdev = to_zio_dev(dev);
+
 	return 0;
 }
 
