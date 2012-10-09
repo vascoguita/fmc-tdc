@@ -201,12 +201,6 @@ static int tdc_fmc_get_device_lun(struct fmc_device *dev)
 	struct pci_dev *pdev;
 	int i;
 
-	/* If there are no parameters defined, assign 1 as the default value */
-	if (nlun == 0) {
-		pr_info("No LUNs rules defined. Assigning default value 1\n");
-		return 1;
-	}
-
 	spec = dev->carrier_data;
 	pdev = spec->pdev;
 

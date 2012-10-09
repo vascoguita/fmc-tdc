@@ -138,6 +138,10 @@ static int check_parameters(void)
 		return -EINVAL;
 	}
 
+	if (nlun == 0) {
+		pr_err("No LUNs provided. The driver won't match any device");
+	}
+
 	return 0;
 }
 
