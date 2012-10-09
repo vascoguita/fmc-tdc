@@ -6,7 +6,7 @@ LOBJ := libtdc.o
 CFLAGS = -Wall -ggdb -I.. -I$(ZIO)/include
 LDFLAGS = -L. -ltdc
 
-modules all: lib test
+modules all: lib
 
 lib: $(LIB)
 
@@ -16,7 +16,5 @@ lib: $(LIB)
 $(LIB): $(LOBJ)
 	ar r $@ $^
 
-test: test.o
-
 clean:
-	rm -f $(LIB) *.o *~ test
+	rm -f $(LIB) *.o *~
