@@ -143,8 +143,6 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	else
 		rd_ptr = (prev_wr_ptr >> 4) & 0x000ff; /* The oldest is prev_wr_ptr */
 	
-	pr_err("SIG: %s count %d\n", __func__, count);
-
 	for ( ; count > 0; count--) {
 		tmp_data = &events[rd_ptr];
 		/* Check which channel to deliver the data */
