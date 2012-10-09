@@ -80,6 +80,22 @@ static inline int __tdc_sysfs_set(struct tdc_board *b, char *name,
 	return -1;
 }
 
+static int __tdc_sysfs_set_buffer_size(struct tdc_board *b, uint32_t value)
+{
+	char path[128];
+	int i, ret;
+
+	for (i = 0; i < 5; i++) {
+		sprintf(path, "tdc-cset%d/chan0/buffer/max-buffer-len", i);
+		ret = __tdc_sysfs_set(b, path, value);
+		if(ret) {
+			fprintf(stderr, "Error changing the max-buffer-len value to %d\n", value);
+			return ret;
+		}
+	}
+	return 0;
+}
+
 struct tdc_board *tdc_open(int lun)
 {
 	glob_t glob_dev, glob_sys;
@@ -132,6 +148,7 @@ struct tdc_board *tdc_open(int lun)
 			b->ctrl[j] = -1;
 			b->data[j] = -1;
 		}
+		__tdc_sysfs_set_buffer_size(b, 256);
 		break;
 	}
 
