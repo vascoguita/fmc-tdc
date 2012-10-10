@@ -132,10 +132,6 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 
 	/* Process the data */
 	dacapo_flag = tdc_fmc_check_lost_events(curr_wr_ptr, prev_wr_ptr, &count);
-	if (dacapo_flag) {
-		pr_err("We have lost data\n");
-		/* TODO: Notify it in some way to the user. Flag in ctrl block? */
-	}
 
 	/* Start reading in the oldest event */
 	if(count == TDC_EVENT_BUFFER_SIZE)
