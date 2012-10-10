@@ -126,9 +126,8 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
 	}
-	mutex_unlock(&fmc_dma_lock);
-
 	tdc->wr_pointer = curr_wr_ptr;
+	mutex_unlock(&fmc_dma_lock);
 
 	/* Process the data */
 	dacapo_flag = tdc_fmc_check_lost_events(curr_wr_ptr, prev_wr_ptr, &count);
@@ -148,7 +147,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		/* Copy the data and notify the readers (ZIO trigger) */
 		tdc->event[chan].data = *tmp_data;
 		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
-
+		/* Fire ZIO trigger to save the adquisitions in ZIO buffers */
 		zio_fire_trigger(tdc->zdev->cset[chan].ti);
 	}
 
