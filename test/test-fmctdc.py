@@ -17,6 +17,15 @@ from optparse import OptionParser
 lun = -1;
 device = -1;
 
+class tdc_dev (Structure):
+    _fields_ = [("dev_id", c_int),
+		("lun", c_int),
+		("devbase", POINTER(c_char)),
+		("sysbase", POINTER(c_char)),
+		("chan_config", c_uint32),
+		("ctrl", POINTER(c_int)),
+		("data", POINTER(c_int))]
+
 def print_header():
     print ('')
     print ('\t FMC TDC Testing program \t')
@@ -32,7 +41,7 @@ class Cli(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.ruler = ''
         self.libtdc = arg
-        self.tdc = 0;
+        self.tdc_open = 0;
 
     def do_version(self, arg):
         "print version, license and author of the test program"
@@ -43,24 +52,31 @@ class Cli(cmd.Cmd):
         "open a TDC device: open <lun>"
         
         self.lun = arg;
+	ptr = POINTER(tdc_dev);
+#	self.libtdc.tdc_open.restype = ptr;
         self.tdc = self.libtdc.tdc_open(arg);
+	self.tdc_open = 1;
 
     def do_close(self, arg):
         "close an open TDC device"
 
-        if self.tdc == 0:
+        if self.tdc_open == 0:
             print "No device to close"
             return
 
         self.libtdc.tdc_close(self.tdc);
-        self.tdc = 0;
+        self.tdc_open = 0;
 
     def do_current_utc(self, arg):
         "show current UTC time of the board in seconds"
 
-        if (self.tdc):
-            val = self.libtdc.tdc_get_utc_time(self.tdc, byref(val))
-            print "Current utc time: " + val
+        if (self.tdc_open):
+	    val = c_uint(0)
+            print "Current utc time: ",
+	    print val
+            self.libtdc.tdc_get_utc_time(self.tdc, byref(val))
+            print "Current utc time: ",
+	    print val
         else:
             print "No device open"
 
