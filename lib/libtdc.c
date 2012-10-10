@@ -180,7 +180,7 @@ int tdc_close(struct tdc_board *b)
 		b->data[j] = -1;
 	}
 
-	free(b->sysbase;)
+	free(b->sysbase);
 	free(b->devbase);
 	free(b);
 	return 0;
