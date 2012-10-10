@@ -16,5 +16,8 @@ lib: $(LIB)
 $(LIB): $(LOBJ)
 	ar r $@ $^
 
+libtdc.so: libtdc.c
+	$(CC) -fPIC -shared $(CFLAGS) -o $@ $^
+
 clean:
-	rm -f $(LIB) *.o *~
+	rm -f $(LIB) libtdc.so *.o *~
