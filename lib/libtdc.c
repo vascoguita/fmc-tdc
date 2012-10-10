@@ -180,7 +180,7 @@ int tdc_close(struct tdc_board *b)
 		b->data[j] = -1;
 	}
 
-	free(b->sysbase);
+	free(b->sysbase;)
 	free(b->devbase);
 	free(b);
 	return 0;
@@ -253,7 +253,7 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 	b->chan_config = (b->chan_config & TDC_INPUT_ENABLE_FLAG) | config;
 
 	/* Hardware deactivation */
-	res = __tdc_sysfs_set(b, "input_enable", b->chan_config);
+	res = __tdc_sysfs_set(b, "channel_term", b->chan_config);
 	if (res) {
 		fprintf(stderr, "Error setting chan config in hardware\n");
 		return res;
@@ -286,13 +286,13 @@ int tdc_get_active_channels(struct tdc_board *b, uint32_t *config)
 int tdc_activate_all_channels(struct tdc_board *b)
 {
 	b->chan_config |= TDC_INPUT_ENABLE_FLAG;
-	return __tdc_sysfs_set(b, "input_enable", b->chan_config);
+	return __tdc_sysfs_set(b, "channel_term", b->chan_config);
 }
 
 int tdc_deactivate_all_channels(struct tdc_board *b)
 {
 	b->chan_config &= ~TDC_INPUT_ENABLE_FLAG;
-	return __tdc_sysfs_set(b, "input_enable", b->chan_config);
+	return __tdc_sysfs_set(b, "channel_term", b->chan_config);
 }
 
 int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr)
