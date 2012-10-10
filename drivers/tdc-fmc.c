@@ -54,7 +54,8 @@ static void tdc_fmc_fw_reset(struct spec_tdc *tdc)
 
 static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *count)
 {
-	u32 dacapo_prev, dacapo_curr, dacapo_diff;
+	u32 dacapo_prev, dacapo_curr;
+	int dacapo_diff, ptr_diff = 0;
 	
 	dacapo_prev = prev_wr_ptr >> 12;
 	dacapo_curr = curr_wr_ptr >> 12;
@@ -67,7 +68,8 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 	switch(dacapo_diff) {
 
 	case 1:
-		if ((curr_wr_ptr - prev_wr_ptr) > 0) {
+		ptr_diff = curr_wr_ptr - prev_wr_ptr;
+		if (ptr_diff > 0) {
 			*count = TDC_EVENT_BUFFER_SIZE;
 			return 1; /* We lost data */
 		}
