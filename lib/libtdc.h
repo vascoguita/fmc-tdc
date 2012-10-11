@@ -53,7 +53,7 @@ extern int tdc_get_active_channels(struct tdc_board *b, uint32_t *config);
 extern int tdc_activate_all_channels(struct tdc_board *b);
 extern int tdc_deactivate_all_channels(struct tdc_board *b);
 
-extern int tdc_get_circular_buffer_ptr(struct tdc_board *b, uint32_t *ptr);
+extern int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr);
 
 extern int tdc_clear_dacapo_flag(struct tdc_board *b);
 
