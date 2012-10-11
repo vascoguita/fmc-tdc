@@ -1,4 +1,4 @@
-ZIO ?= $(HOME)/dependencies/zio
+ZIO ?= $(HOME)/zio
 
 LIB = libtdc.a
 LOBJ := libtdc.o
