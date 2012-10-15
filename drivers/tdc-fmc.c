@@ -88,6 +88,29 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 	return 0;
 }
 
+static inline int tdc_is_valid_pulse_width(struct tdc_event rising, struct tdc_event falling)
+{
+
+	/* Check pulse width from smaller to bigger quantities. */
+	if (likely(rising.fine_time < (falling.fine_time - 124))) {
+		/* Valid pulse width (higher or equal to 100 ns) */
+		return 1;	
+	}
+	else {
+		if (likely(rising.coarse_time < (falling.coarse_time - 13)))
+			/* Valid pulse width (higher or equal to 100 ns) */
+			return 1;
+		else {
+			if (likely(rising.local_utc < (falling.local_utc - 1)))
+				/* Valid pulse width (higher or equal to 100 ns) */
+				return 1;
+		}
+	}
+
+	/* Invalid pulse width (less than 100 ns) */
+	return 0;
+}
+
 static void tdc_fmc_irq_work(struct work_struct *work)
 {
 	struct spec_tdc *tdc = container_of(work, struct spec_tdc, irq_work);
@@ -146,11 +169,20 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		chan = tmp_data->metadata & TDC_EVENT_CHANNEL_MASK;
 		/* Add the DaCapo flag to notify the user */
 		tdc->event[chan].dacapo_flag = dacapo_flag;
-		/* Copy the data and notify the readers (ZIO trigger) */
-		tdc->event[chan].data = *tmp_data;
+		/* Check if the event is due to rising edge or falling edge */
+		if (tmp_data->metadata & TDC_EVENT_SLOPE_MASK)
+			/* Copy the data as it is a rising edge one */
+			tdc->event[chan].data = *tmp_data;
+		else {
+		
+			/* Check pulse width using the falling edge event */
+			if(tdc_is_valid_pulse_width(tdc->event[chan].data,
+						    *tmp_data)) {
+				/* Valid pulse width -> Fire ZIO trigger */
+				zio_fire_trigger(tdc->zdev->cset[chan].ti);
+			}
+		}
 		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
-		/* Fire ZIO trigger to save the adquisitions in ZIO buffers */
-		zio_fire_trigger(tdc->zdev->cset[chan].ti);
 	}
 
 dma_out:
