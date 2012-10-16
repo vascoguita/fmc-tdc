@@ -9,7 +9,7 @@
 int main(int argc, char **argv)
 {
 	struct tdc_board *b;
-	struct tdc_time t;
+	struct tdc_time *t;
 	uint32_t set, get;
 	int res;
 	int i;
@@ -158,12 +158,13 @@ int main(int argc, char **argv)
 	tdc_set_time_threshold(b, 10);
 	tdc_set_timestamp_threshold(b, 10);
 	tdc_start_acquisition(b);
+	t = tdc_zalloc(1);
 	for (i = 0; i <100; i++) {
 		/* this should be a blocking read */
-		res = tdc_read(b, CHAN0, &t, 1, 0);
+		res = tdc_read(b, CHAN0, t, 1, 0);
 		if (res == 1) {
 			printf("Got sample: utc %"PRIu64" ticks %"PRIu64" bins %"PRIu64" dacapo %i\n",
-			       t.utc, t.ticks, t.bins, t.da_capo);
+			       t->utc, t->ticks, t->bins, t->da_capo);
 		} else {
 			printf("Error reading sample\n");
 		}

@@ -31,6 +31,9 @@ enum {
 extern struct tdc_board *tdc_open(int lun);
 extern int tdc_close(struct tdc_board *b);
 
+extern struct tdc_time *tdc_zalloc(unsigned int events);
+extern void tdc_free(struct tdc_time *buffer);
+
 extern int tdc_start_acquisition(struct tdc_board *b);
 extern int tdc_stop_acquisition(struct tdc_board *b);
 

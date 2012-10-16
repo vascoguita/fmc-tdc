@@ -186,6 +186,16 @@ int tdc_close(struct tdc_board *b)
 	return 0;
 }
 
+struct tdc_time *tdc_zalloc(unsigned int events)
+{
+	return calloc(events, sizeof(struct tdc_time));
+}
+
+void tdc_free(struct tdc_time *buffer)
+{
+	free(buffer);
+}
+
 int tdc_start_acquisition(struct tdc_board *b)
 {
 	return __tdc_sysfs_set(b, "activate_acquisition", 1);
