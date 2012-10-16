@@ -173,6 +173,7 @@ int main(int argc, char **argv)
 
 	tdc_stop_acquisition(b);
 	tdc_close(b);
+	tdc_free(t);
 
 	return 0;
 }
