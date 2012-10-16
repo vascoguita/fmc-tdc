@@ -32,10 +32,10 @@ DECLARE_WAIT_QUEUE_HEAD(fmc_wait_dma);
 static atomic_t fmc_dma_end;
 
 static struct fmc_gpio tdc_gpio = {
-	.carrier_name = "spec",
+	//.carrier_name = "spec",
 	.gpio = FMC_GPIO_IRQ(0),
-	.mode = GPIOF_DIR_OUT,
-	.irqmode = IRQF_TRIGGER_LOW,
+	.mode = GPIOF_DIR_IN,
+	.irqmode = IRQF_TRIGGER_RISING,
 };
 
 static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
@@ -169,7 +169,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 
 	/* Check the status of the DMA */
 	ret = readl(tdc->base + TDC_DMA_STAT_R);
-	if((ret == TDC_DMA_STAT_ERR) || (ret == TDC_DMA_STAT_ABORT)) {
+	if((ret & TDC_DMA_STAT_ERR) || (ret & TDC_DMA_STAT_ABORT)) {
 		pr_err("tdc: error in DMA transfer\n");
 		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;

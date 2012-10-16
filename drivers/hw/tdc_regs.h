@@ -28,11 +28,11 @@
 #define TDC_DMA_NEXT_H_R	0x1C
 #define TDC_DMA_ATTRIB_R	0x20
 
-#define TDC_DMA_STAT_IDLE 	0
-#define TDC_DMA_STAT_DONE 	1
-#define TDC_DMA_STAT_BUSY 	2
-#define TDC_DMA_STAT_ERR 	3
-#define TDC_DMA_STAT_ABORT 	4
+#define TDC_DMA_STAT_IDLE 	BIT(0)
+#define TDC_DMA_STAT_DONE 	BIT(1)
+#define TDC_DMA_STAT_BUSY 	BIT(2)
+#define TDC_DMA_STAT_ERR 	BIT(3)
+#define TDC_DMA_STAT_ABORT 	BIT(4)
 
 /* ACAM GPX chip registers available */
 #define TDC_ACAM_CFG_REG_0	0x20000
