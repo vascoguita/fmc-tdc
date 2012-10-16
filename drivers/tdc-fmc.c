@@ -142,9 +142,18 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	/* Start DMA transfer and wait for it */
 	tdc_dma_start(tdc);
 
-	wait_event(fmc_wait_dma, atomic_read(&fmc_dma_end));
+	/* Wait for the end of DMA transfer. Timeout of a second to avoid locks */
+	ret = wait_event_timeout(fmc_wait_dma, atomic_read(&fmc_dma_end), HZ);
 	/* DMA happened */
 	atomic_set(&fmc_dma_end, 0);
+
+	/* In case of timeout, notify the user */
+	if(!ret) {
+		pr_err("tdc: timeout in DMA transfer.\n");
+		mutex_unlock(&fmc_dma_lock);
+		goto dma_out;
+	}
+
 	/* Check the status of the DMA */
 	if(readl(tdc->base + TDC_DMA_STAT_R) & (TDC_DMA_STAT_ERR | TDC_DMA_STAT_ABORT)) {
 		pr_err("tdc: error in DMA transfer\n");
