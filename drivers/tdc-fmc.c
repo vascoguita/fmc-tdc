@@ -31,6 +31,13 @@ DEFINE_MUTEX(fmc_dma_lock);
 DECLARE_WAIT_QUEUE_HEAD(fmc_wait_dma);
 static atomic_t fmc_dma_end;
 
+static struct fmc_gpio tdc_gpio = {
+	.carrier_name = "spec",
+	.gpio = FMC_GPIO_IRQ(0),
+	.mode = GPIOF_DIR_OUT,
+	.irqmode = IRQF_TRIGGER_LOW,
+};
+
 static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
 {	
 	unsigned int divot;
@@ -320,6 +327,8 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Prepare the irq work */
 	INIT_WORK(&tdc->irq_work, tdc_fmc_irq_work);
 
+	/* Setup GPIO to have IRQ */
+	dev->op->gpio_config(dev, &tdc_gpio, 1);
 	/* Clear IRQ */
 	writel(0xF, tdc->base + TDC_IRQ_STATUS_REG); 
 	/* Request the IRQ */
