@@ -347,6 +347,7 @@ int tdc_fmc_init(void)
 {
 	tdc_workqueue = create_singlethread_workqueue(KBUILD_MODNAME);
 	atomic_set(&fmc_dma_end, 0);
+	tdc_fmc_driver.version = FMC_VERSION;
 	tdc_fmc_driver.probe = tdc_fmc_probe;
 	tdc_fmc_driver.remove = tdc_fmc_remove;
 	fmc_driver_register(&tdc_fmc_driver);
