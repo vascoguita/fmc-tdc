@@ -155,7 +155,8 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	}
 
 	/* Check the status of the DMA */
-	if(readl(tdc->base + TDC_DMA_STAT_R) & (TDC_DMA_STAT_ERR | TDC_DMA_STAT_ABORT)) {
+	ret = readl(tdc->base + TDC_DMA_STAT_R);
+	if((ret == TDC_DMA_STAT_ERR) || (ret == TDC_DMA_STAT_ABORT)) {
 		pr_err("tdc: error in DMA transfer\n");
 		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
