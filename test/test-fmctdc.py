@@ -26,6 +26,12 @@ class tdc_dev (Structure):
 		("ctrl", POINTER(c_int)),
 		("data", POINTER(c_int))]
 
+class tdc_time (Structure):
+    _fields_ = [("utc", c_ulonglong),
+		("ticks", c_ulonglong),
+		("bins", c_ulonglong),
+		("dacapo", c_uint32)]
+
 def print_header():
     print ('')
     print ('\t FMC TDC Testing program \t')
@@ -194,8 +200,40 @@ class Cli(cmd.Cmd):
 	    val = c_uint32(int(arg))
             self.libtdc.tdc_set_active_channels(self.tdc, val)
 
+    def do_read (self, arg):
+        "read samples from a channel: read [chan] [samples]"
 
+        if (self.tdc_open == 0):
+            print "No device open"
+            return
 
+        args = arg.split()
+        if (len(args) != 2):
+            print "Invalid arguments"
+            return
+
+        chan = int(args[0])
+        nsamples = int(args[1])
+
+        if (chan < 0) or (chan > 4):
+            print "Invalid channel"
+            return
+
+        ptr = POINTER(tdc_time)
+        self.libtdc.tdc_zalloc.restype = ptr
+        samples = self.libtdc.tdc_zalloc(nsamples)
+
+        res = self.libtdc.tdc_read(self.tdc, chan, byref(samples[0]), nsamples, 0)
+        if (res < 0):
+            print "Got no samples"
+            return
+
+        for i in range(res):
+            print ("Sample: utc: %s ticks: %s bins: %s da_capo: %s"
+                   % (samples[i].utc, samples[i].ticks,
+                      samples[i].bins, samples[i].dacapo))
+
+        self.libtdc.tdc_free(samples)
 
     # -------------------------------------------
 
