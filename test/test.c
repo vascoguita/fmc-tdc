@@ -153,8 +153,8 @@ int main(int argc, char **argv)
 
 	/* read from valid chan */
 	tdc_set_host_utc_time(b);
-	tdc_activate_all_channels(b);
-	tdc_set_active_channels(b, CHAN0);
+	tdc_activate_channels(b);
+	tdc_set_channels_term(b, CHAN0);
 	tdc_set_time_threshold(b, 10);
 	tdc_set_timestamp_threshold(b, 10);
 	tdc_start_acquisition(b);

@@ -129,19 +129,19 @@ class Cli(cmd.Cmd):
 	else:
             print "No device open"
 
-    def do_activate_all_channels (self, arg):
+    def do_activate_channels (self, arg):
         "Activate all channels"
 
         if (self.tdc_open):
-            self.libtdc.tdc_activate_all_channels(self.tdc)
+            self.libtdc.tdc_activate_channels(self.tdc)
 	else:
             print "No device open"
 
-    def do_deactivate_all_channels (self, arg):
+    def do_deactivate_channels (self, arg):
         "Deactivate all channels"
 
         if (self.tdc_open):
-            self.libtdc.tdc_deactivate_all_channels(self.tdc)
+            self.libtdc.tdc_deactivate_channels(self.tdc)
 	else:
             print "No device open"
 
@@ -193,7 +193,7 @@ class Cli(cmd.Cmd):
 	    val = c_uint32(int(arg))
             self.libtdc.tdc_set_time_threshold(self.tdc, val)
 
-    def do_active_channels (self, arg):
+    def do_channels_term (self, arg):
 	"get/set active channels: active_channels [value]"
 
         if (self.tdc_open == 0):
@@ -202,11 +202,11 @@ class Cli(cmd.Cmd):
 
 	if arg == "":
 	    val = c_uint32(0)
-            self.libtdc.tdc_get_active_channels(self.tdc, byref(val))
+            self.libtdc.tdc_getchannels_term(self.tdc, byref(val))
             print val
 	else:
 	    val = c_uint32(chan_mask(arg))
-            self.libtdc.tdc_set_active_channels(self.tdc, val)
+            self.libtdc.tdc_set_channels_term(self.tdc, val)
 
     def do_read (self, arg):
         "read samples from a channel: read [chan] [samples]"

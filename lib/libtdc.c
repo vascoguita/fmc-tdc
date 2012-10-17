@@ -263,10 +263,9 @@ int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres)
 	return __tdc_sysfs_get(b, "tstamp_thresh", thres);
 }
 
-int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
+int tdc_set_channels_term(struct tdc_board *b, uint32_t config)
 {
 	int res = 0;
-	int i;
 
 	/* Clear other bits than the 5 smaller */
 	config = config & 0x1f;
@@ -279,37 +278,22 @@ int tdc_set_active_channels(struct tdc_board *b, uint32_t config)
 		return res;
 	}
 
-	/* ZIO deactivation */
-	for (i = 0; i <= 4; i++) {
-		char file[20];
-		sprintf(file, "tdc-cset%i/enable", i);
-		if (config & (1 << i)) {
-			res = __tdc_sysfs_set(b, file, 1);
-		} else {
-			res = __tdc_sysfs_set(b, file, 0);
-		}
-		if (res) {
-			printf("Error setting ZIO chan config in cset %i\n", i);
-			return res;
-		}
-	}
-
 	return res;
 }
 
-int tdc_get_active_channels(struct tdc_board *b, uint32_t *config)
+int tdc_get_channels_term(struct tdc_board *b, uint32_t *config)
 {
 	*config = b->chan_config & ~TDC_INPUT_ENABLE_FLAG;
 	return 0;
 }
 
-int tdc_activate_all_channels(struct tdc_board *b)
+int tdc_activate_channels(struct tdc_board *b)
 {
 	b->chan_config |= TDC_INPUT_ENABLE_FLAG;
 	return __tdc_sysfs_set(b, "channel_term", b->chan_config);
 }
 
-int tdc_deactivate_all_channels(struct tdc_board *b)
+int tdc_deactivate_channels(struct tdc_board *b)
 {
 	b->chan_config &= ~TDC_INPUT_ENABLE_FLAG;
 	return __tdc_sysfs_set(b, "channel_term", b->chan_config);
@@ -348,13 +332,6 @@ static int __tdc_valid_channel(struct tdc_board *b, int chan)
 	if (!(b->chan_config & TDC_INPUT_ENABLE_FLAG) ) {
 		fprintf(stderr, "%s: All channels disabled\n",
 			__func__);
-		errno = EINVAL;
-		return  0;
-	}
-
-	if (!(b->chan_config & (1 << chan))) {
-		fprintf(stderr, "%s: Channel not enabled: %i\n",
-			__func__, chan);
 		errno = EINVAL;
 		return  0;
 	}

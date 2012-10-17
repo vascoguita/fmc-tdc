@@ -50,11 +50,11 @@ extern int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres);
 extern int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres);
 extern int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres);
 
-extern int tdc_set_active_channels(struct tdc_board *b, uint32_t config);
-extern int tdc_get_active_channels(struct tdc_board *b, uint32_t *config);
+extern int tdc_set_channels_term(struct tdc_board *b, uint32_t config);
+extern int tdc_get_channels_term(struct tdc_board *b, uint32_t *config);
 
-extern int tdc_activate_all_channels(struct tdc_board *b);
-extern int tdc_deactivate_all_channels(struct tdc_board *b);
+extern int tdc_activate_channels(struct tdc_board *b);
+extern int tdc_deactivate_channels(struct tdc_board *b);
 
 extern int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr);
 
