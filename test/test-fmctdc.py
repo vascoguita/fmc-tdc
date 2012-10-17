@@ -202,7 +202,7 @@ class Cli(cmd.Cmd):
 
 	if arg == "":
 	    val = c_uint32(0)
-            self.libtdc.tdc_getchannels_term(self.tdc, byref(val))
+            self.libtdc.tdc_get_channels_term(self.tdc, byref(val))
             print val
 	else:
 	    val = c_uint32(chan_mask(arg))
