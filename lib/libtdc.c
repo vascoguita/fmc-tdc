@@ -198,7 +198,17 @@ void tdc_free(struct tdc_time *buffer)
 
 int tdc_start_acquisition(struct tdc_board *b)
 {
-	return __tdc_sysfs_set(b, "activate_acquisition", 1);
+	int ret, tries = 0;
+
+	do {
+		ret = __tdc_sysfs_set(b, "activate_acquisition", 1);
+		if (ret) {
+			__tdc_sysfs_set(b, "reset_acam", 1);
+			tries++;
+		}
+	} while ((ret !=0) && (tries < 10));
+
+	return ret;
 }
 
 int tdc_stop_acquisition(struct tdc_board *b)
