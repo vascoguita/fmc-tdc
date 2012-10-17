@@ -220,12 +220,12 @@ class Cli(cmd.Cmd):
             print "Invalid arguments"
             return
 
-        chan = chan_mask(args[0])
-        nsamples = int(args[1])
-
-        if (chan < 0) or (chan > 4):
+        if (int(args[0]) < 0) or (int(args[0]) > 4):
             print "Invalid channel"
             return
+
+        chan = chan_mask(args[0])
+        nsamples = int(args[1])
 
         ptr = POINTER(tdc_time)
         self.libtdc.tdc_zalloc.restype = ptr
