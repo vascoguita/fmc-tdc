@@ -42,6 +42,14 @@ def print_header():
     print ('Website: http://www.ohwr.org/projects/fmc-tdc-sw')
     print ('')
 
+def chan_mask(chans_str):
+    "returns the binary mask representing a string of channels"
+    mask = 0
+    chans_list = chans_str.split()
+    for i in range(len(chans_list)):
+        mask = mask | (1 << int(chans_list[i]))
+    return mask
+
 class Cli(cmd.Cmd):
     def __init__(self, arg):
         cmd.Cmd.__init__(self)
@@ -197,7 +205,7 @@ class Cli(cmd.Cmd):
             self.libtdc.tdc_get_active_channels(self.tdc, byref(val))
             print val
 	else:
-	    val = c_uint32(int(arg))
+	    val = c_uint32(chan_mask(arg))
             self.libtdc.tdc_set_active_channels(self.tdc, val)
 
     def do_read (self, arg):
@@ -212,7 +220,7 @@ class Cli(cmd.Cmd):
             print "Invalid arguments"
             return
 
-        chan = int(args[0])
+        chan = chan_mask(args[0])
         nsamples = int(args[1])
 
         if (chan < 0) or (chan > 4):
