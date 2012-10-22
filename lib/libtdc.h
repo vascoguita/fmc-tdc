@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct tdc_board {
 	int dev_id;
 	int lun;
@@ -62,5 +66,8 @@ extern int tdc_clear_dacapo_flag(struct tdc_board *b);
 
 extern int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		    int n, int flags);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
