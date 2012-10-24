@@ -136,7 +136,7 @@ Get circular buffer pointer value.\\
 Clear Dacapo flag from the circular buffer pointer value.\\
 \textbf{int tdc\_read(struct tdc\_board *b, int chan, struct tdc\_time *t,
 		    int n, int flags);} \\
-Read \textit{n} events. The allowed flags are O\_BLOCKING (blocking read) and O\_NONBLOCKING (non-blocking read).
+Read \textit{n} events. The allowed flags are 0 (blocking read) or O\_NONBLOCK (non-blocking read).
 
 \section{Test program}
 \subsection{Introduction}
