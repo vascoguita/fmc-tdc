@@ -30,7 +30,9 @@ In electronic instrumentation and signal processing, a time to digital converter
 
 This is the project to provide support of the FMC TDC board in the Linux kernel plugged to a SPEC carrier board.
 
-The aim is to provide an loadable module to be used along with this board for the latest Linux kernel versions. For that purpose, it depends on ZIO framework and FMC bus to work.
+The aim is to provide an loadable module to be used along with this board for
+the latest Linux kernel versions. The driver relies on ZIO framework and the FMC
+bus dependencies, which are other projects hosted in OHWR.
 
 \section{Installation}
 \subsection{Dependencies}
@@ -87,7 +89,9 @@ In the previous output, the parameters will be: bus=0 slot=4.
 
 \subsection{Introduction}
 
-As the driver uses the ZIO framework, it is provided an C/C++ user-space library to manage the FMC TDC devices. The user should use it instead of accesing directly to the driver.
+To facilitate the task of managing the FMC TDC devices, it is provided an C/C++
+user-space library. It is recommended to use it instead of accesing directly to
+the driver.
 
 \subsection{API}
 
