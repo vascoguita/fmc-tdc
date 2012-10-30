@@ -173,7 +173,7 @@ class Cli(cmd.Cmd):
             print val
 	else:
 	    val = c_uint32(int(arg))
-            if (val < 0) or (val > 127):
+            if (val > c_ulong(127)):
                  print "wrong timestamp value. Valid values [0-127]"
                  return
             self.libtdc.tdc_set_timestamp_threshold(self.tdc, val)
