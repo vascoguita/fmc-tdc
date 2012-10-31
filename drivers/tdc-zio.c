@@ -241,6 +241,7 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 	struct zio_channel *zio_chan;
 	struct zio_control *ctrl;
 	struct zio_device *zdev = cset->zdev;
+	struct zio_ti *ti = cset->ti;
 	int chan;
 
 	zio_chan = cset->chan;
@@ -248,12 +249,12 @@ static int tdc_zio_raw_io(struct zio_cset *cset)
 	chan = cset->index;
 
 	/* Process the data */
-	ctrl = zio_get_ctrl(zio_chan->active_block);
+	ctrl = zio_chan->current_ctrl;
 	ctrl->ssize = 1;		/* one event */
 	ctrl->nbits = 0;		/* no sample data. Only metadata */
-	ctrl->tstamp.secs = tdc->event[chan].data.local_utc;
-	ctrl->tstamp.ticks = tdc->event[chan].data.coarse_time;
-	ctrl->tstamp.bins = tdc->event[chan].data.fine_time;
+	ti->tstamp.tv_sec = tdc->event[chan].data.local_utc;
+	ti->tstamp.tv_nsec = tdc->event[chan].data.coarse_time;
+	ti->tstamp_extra = tdc->event[chan].data.fine_time;
 	ctrl->flags = tdc->event[chan].dacapo_flag; /* XXX: Is it OK here? */
 	ctrl->reserved = tdc->event[chan].data.metadata;
 	return 0;
