@@ -1,5 +1,5 @@
 /*
- * FMC support for tdc driver 
+ * FMC support for tdc driver
  *
  * Copyright (C) 2012 CERN (http://www.cern.ch)
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
@@ -9,7 +9,7 @@
  * version 2 as published by the Free Software Foundation.
  */
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/delay.h>
 #include <linux/workqueue.h>
@@ -39,13 +39,13 @@ static struct fmc_gpio tdc_gpio = {
 };
 
 static void tdc_fmc_gennum_setup_local_clock(struct spec_tdc *tdc, int freq)
-{	
+{
 	unsigned int divot;
 	unsigned int data;
 
 	/* Setup local clock */
 	divot = 800/freq - 1;
-        data = 0xE001F00C + (divot << 4);
+	data = 0xE001F00C + (divot << 4);
 	writel(data, tdc->gn412x_regs + TDC_PCI_CLK_CSR);
 }
 
@@ -63,13 +63,13 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 {
 	u32 dacapo_prev, dacapo_curr;
 	int dacapo_diff, ptr_diff = 0;
-	
+
 	dacapo_prev = prev_wr_ptr >> 12;
 	dacapo_curr = curr_wr_ptr >> 12;
 	curr_wr_ptr &= 0x00fff; /* Pick last 12 bits */
-	curr_wr_ptr >>= 4; 	/* Remove last 4 bits. */
+	curr_wr_ptr >>= 4;	/* Remove last 4 bits. */
 	prev_wr_ptr &= 0x00fff; /* Pick last 12 bits */
-	prev_wr_ptr >>= 4; 	/* Remove last 4 bits. */
+	prev_wr_ptr >>= 4;	/* Remove last 4 bits. */
 	dacapo_diff = dacapo_curr - dacapo_prev;
 
 	switch(dacapo_diff) {
@@ -88,10 +88,10 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 		break;
 	default:
 		/* We lost data for sure. Notify to the user */
-		*count = TDC_EVENT_BUFFER_SIZE; 
+		*count = TDC_EVENT_BUFFER_SIZE;
 		return 1;
 	}
-       
+
 	return 0;
 }
 
@@ -103,7 +103,7 @@ static inline int tdc_is_valid_pulse_width(struct tdc_event rising, struct tdc_e
 	/* Check pulse width from smaller to bigger quantities. */
 	if (likely(diff > 124)) {
 		/* Valid pulse width (higher or equal to 100 ns) */
-		return 1;	
+		return 1;
 	}
 	else {
 		diff = falling.coarse_time - rising.coarse_time;
@@ -142,7 +142,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	curr_wr_ptr = tdc_get_circular_buffer_wr_pointer(tdc);
 
 	if(curr_wr_ptr == tdc->wr_pointer)
-		goto dma_out; 	/* No new events happened */
+		goto dma_out;	/* No new events happened */
 
 	prev_wr_ptr = tdc->wr_pointer;
 	ret = tdc_dma_setup(tdc, 0, (unsigned long)events,
@@ -185,7 +185,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 		rd_ptr = (curr_wr_ptr >> 4) & 0x000ff; /* The oldest is curr_wr_ptr */
 	else
 		rd_ptr = (prev_wr_ptr >> 4) & 0x000ff; /* The oldest is prev_wr_ptr */
-	
+
 	for ( ; count > 0; count--) {
 		tmp_data = &events[rd_ptr];
 		/* Check which channel to deliver the data */
@@ -197,7 +197,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 			/* Copy the data as it is a rising edge one */
 			tdc->event[chan].data = *tmp_data;
 		else {
-		
+
 			/* Check pulse width using the falling edge event */
 			if(tdc_is_valid_pulse_width(tdc->event[chan].data,
 						    *tmp_data)) {
@@ -221,7 +221,7 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 
 	/* Check the source of the interrupt */
 	irq_code = readl(fmc->base + TDC_IRQ_STATUS_REG);
-	
+
 	/* Tstamp threshold or time threshold */
 	if((irq_code & TDC_IRQ_TDC_TSTAMP) ||
 	   (irq_code & TDC_IRQ_TDC_TIME_THRESH)) {
@@ -330,12 +330,12 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Setup GPIO to have IRQ */
 	dev->op->gpio_config(dev, &tdc_gpio, 1);
 	/* Clear IRQ */
-	writel(0xF, tdc->base + TDC_IRQ_STATUS_REG); 
+	writel(0xF, tdc->base + TDC_IRQ_STATUS_REG);
 	/* Request the IRQ */
 	dev->op->irq_request(dev, tdc_fmc_irq_handler, "spec-tdc", IRQF_SHARED);
 	/* Enable IRQ */
 	writel(0xF, tdc->base + TDC_IRQ_ENABLE_REG);
- 
+
 	return tdc_zio_register_device(tdc);
 }
 

@@ -1,5 +1,5 @@
 /*
- * core tdc driver 
+ * core tdc driver
  *
  * Copyright (C) 2012 CERN (http://www.cern.ch)
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
@@ -9,7 +9,7 @@
  * version 2 as published by the Free Software Foundation.
  */
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/kernel.h>
 #include <linux/module.h>

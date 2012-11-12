@@ -1,5 +1,5 @@
 /*
- * DMA support for tdc driver 
+ * DMA support for tdc driver
  *
  * Copyright (C) 2012 CERN (http://www.cern.ch)
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
@@ -19,7 +19,7 @@
 
 /*
  * tdc_dma_setup -- Setup DMA operation
- * 
+ *
  * @tdc: pointer to spec_tdc struct of the device
  * @src: address to copy the data from (in TDC board)
  * @dst: address to copy the data to (in host computer)

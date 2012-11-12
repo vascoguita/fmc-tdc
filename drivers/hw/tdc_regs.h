@@ -13,8 +13,8 @@
 
 /* Gennum chip register */
 
-#define TDC_PCI_SYS_CFG_SYSTEM 	0x800
-#define TDC_PCI_CLK_CSR 	0x808
+#define TDC_PCI_SYS_CFG_SYSTEM	0x800
+#define TDC_PCI_CLK_CSR	0x808
 
 
 /* Gennum core registers for DMA transactions */
@@ -28,11 +28,11 @@
 #define TDC_DMA_NEXT_H_R	0x1C
 #define TDC_DMA_ATTRIB_R	0x20
 
-#define TDC_DMA_STAT_IDLE 	BIT(0)
-#define TDC_DMA_STAT_DONE 	BIT(1)
-#define TDC_DMA_STAT_BUSY 	BIT(2)
-#define TDC_DMA_STAT_ERR 	BIT(3)
-#define TDC_DMA_STAT_ABORT 	BIT(4)
+#define TDC_DMA_STAT_IDLE	BIT(0)
+#define TDC_DMA_STAT_DONE	BIT(1)
+#define TDC_DMA_STAT_BUSY	BIT(2)
+#define TDC_DMA_STAT_ERR	BIT(3)
+#define TDC_DMA_STAT_ABORT	BIT(4)
 
 /* ACAM GPX chip registers available */
 #define TDC_ACAM_CFG_REG_0	0x20000
@@ -94,7 +94,7 @@
 /* IRQ register*/
 #define TDC_IRQ_REG			0xA0000
 #define TDC_IRQ_STATUS_REG		0xA0004
-#define TDC_IRQ_ENABLE_REG 		0xA0008
+#define TDC_IRQ_ENABLE_REG		0xA0008
 #define TDC_IRQ_GNUM_CORE_0		BIT(0)
 #define TDC_IRQ_GNUM_CORE_1		BIT(1)
 #define TDC_IRQ_TDC_TSTAMP		BIT(2)

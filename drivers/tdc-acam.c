@@ -1,5 +1,5 @@
 /*
- * ACAM support for tdc driver 
+ * ACAM support for tdc driver
  *
  * Copyright (C) 2012 CERN (http://www.cern.ch)
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>

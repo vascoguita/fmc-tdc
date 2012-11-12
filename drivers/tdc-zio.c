@@ -1,5 +1,5 @@
 /*
- * ZIO support for tdc driver 
+ * ZIO support for tdc driver
  *
  * Copyright (C) 2012 CERN (http://www.cern.ch)
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
@@ -9,7 +9,7 @@
  * version 2 as published by the Free Software Foundation.
  */
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -280,9 +280,9 @@ static struct zio_driver tdc_zdrv = {
 /* Copied from zio-sys.c. This works because ZIO only supports one children */
 static int __tdc_match_child(struct device *dev, void *data)
 {
-//      if (dev->type == &zobj_device_type)
-                return 1;
-//      return 0;
+//	if (dev->type == &zobj_device_type)
+	      return 1;
+//	return 0;
 }
 
 int tdc_zio_register_device(struct spec_tdc *tdc)
@@ -311,8 +311,8 @@ int tdc_zio_register_device(struct spec_tdc *tdc)
 	}
 
 	dev = device_find_child(&tdc->hwzdev->head.dev, NULL, __tdc_match_child);
-        if (!dev) {
-                dev_err(&tdc->spec->pdev->dev, "Child device not found!!\n");
+	if (!dev) {
+		dev_err(&tdc->spec->pdev->dev, "Child device not found!!\n");
 		return -ENODEV;
 	}
 	tdc->zdev = to_zio_dev(dev);
@@ -335,4 +335,3 @@ void tdc_zio_exit(void)
 {
 	zio_unregister_driver(&tdc_zdrv);
 }
-
