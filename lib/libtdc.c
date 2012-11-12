@@ -110,7 +110,7 @@ struct tdc_board *tdc_open(int lun)
 	glob("/dev/zio/tdc-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
 
 	/* And look in /sys as well */
-        glob("/sys/bus/zio/devices/tdc-*",0 , NULL, &glob_sys);
+	glob("/sys/bus/zio/devices/tdc-*",0 , NULL, &glob_sys);
 	assert(glob_dev.gl_pathc == glob_sys.gl_pathc);
 
 	/* Check that there are boards found */

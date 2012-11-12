@@ -6,7 +6,7 @@
  * This file describes the external interface to the FMCTDC
  * driver and provides the definitions for proper communication
  * with the device
- * 
+ *
  * Copyright (c) 2012 CERN
  * @author Samuel Iglesias Gonsalvez <siglesias@igalia.com>
  * @date Oct 24th 2012
@@ -18,12 +18,12 @@
 /*! \file */
 /*!
  *  \mainpage FMC TDC Device Driver
- *  \author Samuel Iglesias Gonsalvez, Igalia S.L. 
+ *  \author Samuel Iglesias Gonsalvez, Igalia S.L.
  *  \version 24 Oct 2012
  *
  * An FPGA Mezzanine Card (FMC) with a Time to Digital Converter chip to perform
  * one-shot sub-nanosecond time interval measurements.
- * 
+ *
  * HW OHWR project: http://www.ohwr.org/projects/fmc-tdc
  *
  * SW OHWR project: http://www.ohwr.org/projects/fmc-tdc-sw
@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-/*! 
+/*!
  * This struct is used as argument in almost all the functions.
  *  The user should not modify its attributes!
  */
@@ -63,7 +63,7 @@ struct tdc_time {
 	uint32_t da_capo;
 };
 
-/*!  
+/*!
  * This enum can be used in tdc_{s,g}et_channels_term() functions.
  */
 enum {
@@ -87,7 +87,7 @@ extern struct tdc_board *tdc_open(int lun);
 /**
  * @brief Close a FMCTDC device
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
@@ -116,81 +116,81 @@ extern void tdc_free(struct tdc_time *buffer);
 /**
  * @brief Start acquiring events
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_start_acquisition(struct tdc_board *b);
 
 /**
  * @brief Stop acquiring events
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_stop_acquisition(struct tdc_board *b);
 
 /**
  * @brief Set host UTC time to FMCTDC board
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_set_host_utc_time(struct tdc_board *b);
 
 /**
  * @brief Set UTC time to FMCTDC board
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param utc - UTC value to be written, in seconds. EPOC format.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_set_utc_time(struct tdc_board *b, uint32_t utc);
 
 /**
  * @brief Get UTC time to FMCTDC board
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param utc - Read UTC value, in seconds. EPOC format.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_get_utc_time(struct tdc_board *b, uint32_t *utc);
 
 /**
  * @brief Set DAC to FMCTDC board
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param dw - DAC word value to be written.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_set_dac_word(struct tdc_board *b, uint32_t dw);
 
 /**
  * @brief Set DAC to FMCTDC board
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param dw - DAC word value to be read.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_get_dac_word(struct tdc_board *b, uint32_t *dw);
 
@@ -201,13 +201,13 @@ extern int tdc_get_dac_word(struct tdc_board *b, uint32_t *dw);
  * enough number of events acquired (configured by timestamp threshold).
  *
  * It doens't means that we have always pending events.
- * 
- * @param b - pointer to struct tdc_board 
+ *
+ * @param b - pointer to struct tdc_board
  * @param thres - Time threshold, in seconds.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_set_time_threshold(struct tdc_board *b, uint32_t thres);
 
@@ -218,13 +218,13 @@ extern int tdc_set_time_threshold(struct tdc_board *b, uint32_t thres);
  * enough number of events acquired (configured by timestamp threshold).
  *
  * It doens't means that we have always pending events.
- * 
- * @param b - pointer to struct tdc_board 
+ *
+ * @param b - pointer to struct tdc_board
  * @param thres - Time threshold, in seconds.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres);
 
@@ -236,12 +236,12 @@ extern int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres);
  * chip thinks that each edge of the input signal is an event, but we are only
  * interested on the rising edge one.
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param thres - Timestamp threshold, in seconds.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres);
 
@@ -253,36 +253,36 @@ extern int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres);
  * chip thinks that each edge of the input signal is an event, but we are only
  * interested on the rising edge one.
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param thres - Timestamp threshold, in seconds.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres);
 
 /**
  * @brief Set channel termination resistor (50 Ohms)
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param config - value to enable the channels. Each bit is one channel: bit 0 -> chan 0, bit 1 -> chan 1, etc.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_set_channels_term(struct tdc_board *b, uint32_t config);
 
 /**
  * @brief Get channel termination resistor (50 Ohms)
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param config - value to enable the channels. Each bit is one channel: bit 0 -> chan 0, bit 1 -> chan 1, etc.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_get_channels_term(struct tdc_board *b, uint32_t *config);
 
@@ -290,53 +290,53 @@ extern int tdc_get_channels_term(struct tdc_board *b, uint32_t *config);
  * @brief Enable all channels to acquire
  *
  * It is needed to execute this function before calling tdc_start_acquisition().
- * 
- * @param b - pointer to struct tdc_board 
+ *
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_activate_channels(struct tdc_board *b);
 
 /**
  * @brief Disable all channels to acquire
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_deactivate_channels(struct tdc_board *b);
 
 /**
  * @brief Get circular buffer pointer value.
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param ptr - circular buffer pointer value with dacapo register included.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_get_circular_buffer_pointer(struct tdc_board *b, uint32_t *ptr);
 
 /**
  * @brief Clear Dacapo register.
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_clear_dacapo_flag(struct tdc_board *b);
 
 /**
  * @brief Read events
  *
- * @param b - pointer to struct tdc_board 
+ * @param b - pointer to struct tdc_board
  * @param chan - chan number in decimal, starting from 0 to 4.
  * @param t - buffer
  * @param n - number of events to read.
@@ -344,7 +344,7 @@ extern int tdc_clear_dacapo_flag(struct tdc_board *b);
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
- * 
+ *
  */
 extern int tdc_read(struct tdc_board *b, int chan, struct tdc_time *t,
 		    int n, int flags);
