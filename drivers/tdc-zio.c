@@ -312,7 +312,7 @@ int tdc_zio_register_device(struct spec_tdc *tdc)
 
 	dev = device_find_child(&tdc->hwzdev->head.dev, NULL, __tdc_match_child);
         if (!dev) {
-                pr_err("Child device not found!!\n");
+                dev_err(&tdc->spec->pdev->dev, "Child device not found!!\n");
 		return -ENODEV;
 	}
 	tdc->zdev = to_zio_dev(dev);
