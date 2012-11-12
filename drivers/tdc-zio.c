@@ -28,80 +28,81 @@
 static int tdc_zio_raw_io(struct zio_cset *cset);
 
 /* The sample size. Mandatory, device-wide */
-DEFINE_ZATTR_STD(ZDEV, tdc_zattr_dev_std) = {
-	ZATTR_REG(zdev, ZATTR_NBITS, S_IRUGO, 0, 32), /* FIXME: 32 bits. Really? */
+static ZIO_ATTR_DEFINE_STD(ZIO_DEV, tdc_zattr_dev_std) = {
+	ZIO_ATTR(zdev, ZIO_ATTR_NBITS, S_IRUGO, 0, 32), /* FIXME: 32 bits. Really? */
 };
 
 static struct zio_attribute tdc_zattr_dev[] = {
-	ZATTR_EXT_REG("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
-	ZATTR_EXT_REG("tstamp_thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, 100),
-	ZATTR_EXT_REG("time_thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
-	ZATTR_EXT_REG("current_utc_time", S_IRUGO, TDC_ATTR_DEV_CURRENT_UTC, 0),
-	ZATTR_EXT_REG("set_utc_time", S_IWUGO, TDC_ATTR_DEV_SET_UTC, 0),
-	ZATTR_EXT_REG("channel_term", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0x1F),
-	ZATTR_EXT_REG("dac_word", _RW_, TDC_ATTR_DEV_DAC_WORD, 0),
-	ZATTR_EXT_REG("activate_acquisition", _RW_,
+	ZIO_ATTR_EXT("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
+	ZIO_ATTR_EXT("tstamp_thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, 100),
+	ZIO_ATTR_EXT("time_thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZIO_ATTR_EXT("current_utc_time", S_IRUGO, TDC_ATTR_DEV_CURRENT_UTC, 0),
+	ZIO_ATTR_EXT("set_utc_time", S_IWUGO, TDC_ATTR_DEV_SET_UTC, 0),
+	ZIO_ATTR_EXT("channel_term", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0x1F),
+	ZIO_ATTR_EXT("dac_word", _RW_, TDC_ATTR_DEV_DAC_WORD, 0),
+	ZIO_ATTR_EXT("activate_acquisition", _RW_,
 		      TDC_ATTR_DEV_ACTIVATE_ACQUISITION, 0),
-	ZATTR_EXT_REG("get_wr_pointer", _RW_,
+	ZIO_ATTR_EXT("get_wr_pointer", _RW_,
 		      TDC_ATTR_DEV_GET_POINTER, 0),
-	ZATTR_EXT_REG("lun", S_IRUGO, TDC_ATTR_DEV_LUN, 1),
-	ZATTR_EXT_REG("clear_dacapo_flag", _RW_,
+	ZIO_ATTR_EXT("lun", S_IRUGO, TDC_ATTR_DEV_LUN, 1),
+	ZIO_ATTR_EXT("clear_dacapo_flag", _RW_,
 		      TDC_ATTR_DEV_CLEAR_DACAPO_FLAG, 0),
-	ZATTR_EXT_REG("reset_acam", _RW_,
+	ZIO_ATTR_EXT("reset_acam", _RW_,
 		      TDC_ATTR_DEV_RESET_ACAM, 0),
+
 };
 
 static struct zio_cset tdc_cset[] = {
 	{
-		SET_OBJECT_NAME("tdc-cset0"),
+		ZIO_SET_OBJ_NAME("tdc-cset0"),
 		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
-		.ssize =	4, /* FIXME: 0? */
-		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
+		.ssize =	4,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-cset1"),
+		ZIO_SET_OBJ_NAME("tdc-cset1"),
 		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
-		.ssize =	4, /* FIXME: 0? */
-		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
+		.ssize =	4,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-cset2"),
+		ZIO_SET_OBJ_NAME("tdc-cset2"),
 		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
-		.ssize =	4, /* FIXME: 0? */
-		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
+		.ssize =	4,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-cset3"),
+		ZIO_SET_OBJ_NAME("tdc-cset3"),
 		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
-		.ssize =	4, /* FIXME: 0? */
-		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
+		.ssize =	4,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
 		},
 	},
 	{
-		SET_OBJECT_NAME("tdc-cset4"),
+		ZIO_SET_OBJ_NAME("tdc-cset4"),
 		.raw_io =	tdc_zio_raw_io,
 		.n_chan =	1,
-		.ssize =	4, /* FIXME: 0? */
-		.flags =	ZIO_DIR_INPUT | ZCSET_TYPE_TIME,
+		.ssize =	4,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
@@ -121,7 +122,7 @@ static int tdc_zio_conf_set(struct device *dev,
 	attr = zdev->zattr_set.ext_zattr;
 	tdc = zdev->priv_d;
 
-	switch (zattr->priv.addr) {
+	switch (zattr->id) {
 	case TDC_ATTR_DEV_TSTAMP_THRESH:
 		tdc_set_irq_tstamp_thresh(tdc, usr_val);
 		break;
@@ -177,7 +178,7 @@ static int tdc_zio_info_get(struct device *dev,
 	attr = zdev->zattr_set.ext_zattr;
 	tdc = zdev->priv_d;
 
-	switch (zattr->priv.addr) {
+	switch (zattr->id) {
 	case TDC_ATTR_DEV_TSTAMP_THRESH:
 		*usr_val = tdc_get_irq_tstamp_thresh(tdc);
 		break;
