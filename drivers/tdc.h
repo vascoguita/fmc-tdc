@@ -18,6 +18,9 @@ extern int slot[MAX_DEVICES];
 extern unsigned int nslot;
 extern char *gateware;
 
+#define DEFAULT_TIME_THRESH	0x10
+#define DEFAULT_TSTAMP_THRESH	0x10
+
 struct tdc_event {
 	u32 fine_time;		/* In BIN (81 ps resolution) */
 	u32 coarse_time;	/* 8 ns resolution */

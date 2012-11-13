@@ -321,9 +321,9 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Initialize DAC */
 	tdc_set_dac_word(tdc, 0xA8F5);
 	/* Initialize timestamp threshold */
-	tdc_set_irq_tstamp_thresh(tdc, 0x10);
+	tdc_set_irq_tstamp_thresh(tdc, DEFAULT_TSTAMP_THRESH);
 	/* Initialize time threshold */
-	tdc_set_irq_time_thresh(tdc, 0x10);
+	tdc_set_irq_time_thresh(tdc, DEFAULT_TIME_THRESH);
 	/* Prepare the irq work */
 	INIT_WORK(&tdc->irq_work, tdc_fmc_irq_work);
 

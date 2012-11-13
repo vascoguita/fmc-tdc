@@ -34,11 +34,11 @@ static ZIO_ATTR_DEFINE_STD(ZIO_DEV, tdc_zattr_dev_std) = {
 
 static struct zio_attribute tdc_zattr_dev[] = {
 	ZIO_ATTR_EXT("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
-	ZIO_ATTR_EXT("tstamp_thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, 100),
-	ZIO_ATTR_EXT("time_thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, 100),
+	ZIO_ATTR_EXT("tstamp_thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, DEFAULT_TSTAMP_THRESH),
+	ZIO_ATTR_EXT("time_thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, DEFAULT_TIME_THRESH),
 	ZIO_ATTR_EXT("current_utc_time", S_IRUGO, TDC_ATTR_DEV_CURRENT_UTC, 0),
 	ZIO_ATTR_EXT("set_utc_time", S_IWUGO, TDC_ATTR_DEV_SET_UTC, 0),
-	ZIO_ATTR_EXT("channel_term", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0x1F),
+	ZIO_ATTR_EXT("channel_term", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0),
 	ZIO_ATTR_EXT("dac_word", _RW_, TDC_ATTR_DEV_DAC_WORD, 0),
 	ZIO_ATTR_EXT("activate_acquisition", _RW_,
 		      TDC_ATTR_DEV_ACTIVATE_ACQUISITION, 0),
