@@ -255,12 +255,19 @@ int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres)
 
 int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres)
 {
-	return __tdc_sysfs_set(b, "tstamp_thresh", thres);
+	return __tdc_sysfs_set(b, "tstamp_thresh", thres * 2);
 }
 
 int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres)
 {
-	return __tdc_sysfs_get(b, "tstamp_thresh", thres);
+	uint32_t value;
+	int res;
+
+	res = __tdc_sysfs_get(b, "tstamp_thresh", &value);
+	if (!res)
+		*thres = value / 2;
+
+	return res;
 }
 
 int tdc_set_channels_term(struct tdc_board *b, uint32_t config)
