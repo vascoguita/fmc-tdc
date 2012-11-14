@@ -141,14 +141,17 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	mutex_lock(&fmc_dma_lock);
 	curr_wr_ptr = tdc_get_circular_buffer_wr_pointer(tdc);
 
-	if(curr_wr_ptr == tdc->wr_pointer)
+	if(curr_wr_ptr == tdc->wr_pointer) {
+		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;	/* No new events happened */
+	}
 
 	prev_wr_ptr = tdc->wr_pointer;
 	ret = tdc_dma_setup(tdc, 0, (unsigned long)events,
 			    TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event));
 	if (ret) {
 		dev_err(&tdc->fmc->dev, "tdc: error in DMA setup\n");
+		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
 	}
 
