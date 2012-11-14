@@ -231,10 +231,7 @@ extern int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres);
 /**
  * @brief Set timestamp threshold
  *
- * The timestamp threshold is the number of events (multiplied by two) we want
- * per interrupt. It is the double of the expected number of events because ACAM
- * chip thinks that each edge of the input signal is an event, but we are only
- * interested on the rising edge one.
+ * The timestamp threshold is the number of events we want per interrupt.
  *
  * @param b - pointer to struct tdc_board
  * @param thres - Timestamp threshold, in seconds.
@@ -248,10 +245,7 @@ extern int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres);
 /**
  * @brief Get timestamp threshold
  *
- * The timestamp threshold is the number of events (multiplied by two) we want
- * per interrupt. It is the double of the expected number of events because ACAM
- * chip thinks that each edge of the input signal is an event, but we are only
- * interested on the rising edge one.
+ * The timestamp threshold is the number of events we want per interrupt.
  *
  * @param b - pointer to struct tdc_board
  * @param thres - Timestamp threshold, in seconds.

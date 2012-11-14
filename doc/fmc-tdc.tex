@@ -121,9 +121,9 @@ Get FMC TDC DAC value. \\
 Set time threshold (time between IRQ where the event number acquired are less than the timestamp
 threshold). In seconds. \\
 \textbf{int tdc\_get\_time\_threshold(struct tdc\_board *b, uint32\_t *thres);} \\
-Get time threshold. \\
+Get time threshold.\\
 \textbf{int tdc\_set\_timestamp\_threshold(struct tdc\_board *b, uint32\_t thres);} \\
-Set timestamp threshold. Remember that the number of events actually acquired are the half of the timestampt threshold, because The ACAM chip gives a timestamp for each edge of the input signal. \\
+Set timestamp threshold.\\
 \textbf{int tdc\_get\_timestamp\_threshold(struct tdc\_board *b, uint32\_t *thres);} \\
 Get timestamp threshold.\\
 \textbf{int tdc\_set\_channels\_term(struct tdc\_board *b, uint32\_t config);} \\
