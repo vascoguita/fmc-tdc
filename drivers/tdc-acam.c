@@ -68,7 +68,6 @@ int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 	writel(cfg->edge_config, tdc->base + TDC_ACAM_CFG_REG_0);
 	writel(cfg->channel_adj, tdc->base + TDC_ACAM_CFG_REG_1);
 	writel(cfg->mode_enable, tdc->base + TDC_ACAM_CFG_REG_2);
-	mdelay(1000);
 	writel(cfg->resolution, tdc->base + TDC_ACAM_CFG_REG_3);
 	writel(cfg->start_timer_set, tdc->base + TDC_ACAM_CFG_REG_4);
 	writel(cfg->start_retrigger, tdc->base + TDC_ACAM_CFG_REG_5);
@@ -80,7 +79,7 @@ int tdc_acam_load_config(struct spec_tdc *tdc, struct tdc_acam_cfg *cfg)
 
 	/* Send the load command to the firmware */
 	__tdc_acam_do_load_config(tdc);
-	mdelay(1000);
+	mdelay(100);
 	return 0;
 }
 
