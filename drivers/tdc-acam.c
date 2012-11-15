@@ -15,7 +15,6 @@
 #include <asm/io.h>
 
 #include "tdc.h"
-#include "hw/acam_gpx.h"
 #include "hw/tdc_regs.h"
 
 void tdc_acam_reset(struct spec_tdc *tdc)
