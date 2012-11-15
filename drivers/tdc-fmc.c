@@ -99,10 +99,11 @@ static inline int tdc_is_valid_pulse_width(struct tdc_event rising, struct tdc_e
 {
 	uint64_t up, down;
 
+	/* Convert the timestamp to picoseconds */
 	up = rising.coarse_time * 8000000000 + rising.fine_time * 81;
 	down = (falling.local_utc - rising.local_utc) * 1000000000000 +
 		falling.coarse_time * 8000000000 + rising.fine_time * 81;
-
+	/* Valid pulse width if it is higher of 100 ns */
 	return (down - up > 100000);
 }
 
