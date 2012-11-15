@@ -150,7 +150,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	ret = tdc_dma_setup(tdc, 0, (unsigned long)events,
 			    TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event));
 	if (ret) {
-		dev_err(&tdc->fmc->dev, "tdc: error in DMA setup\n");
+		dev_err(&tdc->fmc->dev, "error in DMA setup\n");
 		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
 	}
@@ -165,7 +165,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 
 	/* In case of timeout, notify the user */
 	if(!ret) {
-		dev_err(&tdc->fmc->dev, "tdc: timeout in DMA transfer.\n");
+		dev_err(&tdc->fmc->dev, "timeout in DMA transfer.\n");
 		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
 	}
@@ -173,7 +173,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	/* Check the status of the DMA */
 	ret = readl(tdc->base + TDC_DMA_STAT_R);
 	if((ret & TDC_DMA_STAT_ERR) || (ret & TDC_DMA_STAT_ABORT)) {
-		dev_err(&tdc->fmc->dev, "tdc: error in DMA transfer\n");
+		dev_err(&tdc->fmc->dev, "error in DMA transfer\n");
 		mutex_unlock(&fmc_dma_lock);
 		goto dma_out;
 	}
