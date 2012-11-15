@@ -20,9 +20,9 @@
 #define AR2_Disable(chan)	(1<<(3+chan))
 #define AR2_Adj(chan, value)	(((value)&0xf) << (12 + 4*(chan-7)))
 
-#define AR3_RaSpeed(num,val)	(val <<	 num*2 + 21))
+#define AR3_RaSpeed(num,val)	(val << num*2 + 21))
 
-#define AR3_Zero		(0) // nothing interesting for the Fine Delay
+#define AR3_Zero		(0)
 
 #define AR4_StartTimer(value)	((value) & 0xff)
 #define AR4_Quiet		(1<<8)
@@ -80,4 +80,3 @@
 #define AR12_NotLocked		(1<<10)
 
 #endif
-
