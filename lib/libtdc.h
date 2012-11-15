@@ -198,7 +198,8 @@ extern int tdc_get_dac_word(struct tdc_board *b, uint32_t *dw);
  * @brief Set time threshold
  *
  * The time threshold is the maximum time we will not have an IRQ if there is no
- * enough number of events acquired (configured by timestamp threshold).
+ * enough number of events acquired (configured by timestamp threshold). This
+ * value must be a 32 bits positive value.
  *
  * It doens't means that we have always pending events.
  *
@@ -232,6 +233,7 @@ extern int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres);
  * @brief Set timestamp threshold
  *
  * The timestamp threshold is the number of events we want per interrupt.
+ * The value must be between 0 and 64.
  *
  * @param b - pointer to struct tdc_board
  * @param thres - Timestamp threshold, in seconds.

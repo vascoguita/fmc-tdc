@@ -255,6 +255,11 @@ int tdc_get_time_threshold(struct tdc_board *b, uint32_t *thres)
 
 int tdc_set_timestamp_threshold(struct tdc_board *b, uint32_t thres)
 {
+	if (thres > 64) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	return __tdc_sysfs_set(b, "tstamp_thresh", thres * 2);
 }
 
