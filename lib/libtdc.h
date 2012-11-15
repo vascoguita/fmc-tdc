@@ -260,7 +260,7 @@ extern int tdc_get_timestamp_threshold(struct tdc_board *b, uint32_t *thres);
  * @brief Set channel termination resistor (50 Ohms)
  *
  * @param b - pointer to struct tdc_board
- * @param config - value to enable the channels. Each bit is one channel: bit 0 -> chan 0, bit 1 -> chan 1, etc.
+ * @param config - value to enable the channels. The value is combination of the CHAN0, CHAN1, CHAN2, CHAN3 and CHAN4 enumeration values.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
@@ -272,7 +272,7 @@ extern int tdc_set_channels_term(struct tdc_board *b, uint32_t config);
  * @brief Get channel termination resistor (50 Ohms)
  *
  * @param b - pointer to struct tdc_board
- * @param config - value to enable the channels. Each bit is one channel: bit 0 -> chan 0, bit 1 -> chan 1, etc.
+ * @param config - value to enable the channels. The value is combination of the CHAN0, CHAN1, CHAN2, CHAN3 and CHAN4 enumeration values.
  *
  * @return >0 - on success, device file descriptor number
  * @return <0 - if failure
@@ -331,7 +331,7 @@ extern int tdc_clear_dacapo_flag(struct tdc_board *b);
  * @brief Read events
  *
  * @param b - pointer to struct tdc_board
- * @param chan - chan number in decimal, starting from 0 to 4.
+ * @param chan - chan number, using the CHAN0, CHAN1, CHAN2, CHAN3 and CHAN4 enumeration.
  * @param t - buffer
  * @param n - number of events to read.
  * @param flags - flags: 0 (blocking read) or O_NONBLOCK (non blocking read).
