@@ -23,19 +23,21 @@
 #include "tdc.h"
 #include "hw/tdc_regs.h"
 
-#define _RW_ (S_IRUGO | S_IWUGO) /* I want 80-col lines so this lazy thing */
+#define _RW_ (S_IRUGO | S_IWUGO)
 
 static int tdc_zio_raw_io(struct zio_cset *cset);
 
 /* The sample size. Mandatory, device-wide */
 static ZIO_ATTR_DEFINE_STD(ZIO_DEV, tdc_zattr_dev_std) = {
-	ZIO_ATTR(zdev, ZIO_ATTR_NBITS, S_IRUGO, 0, 32), /* FIXME: 32 bits. Really? */
+	ZIO_ATTR(zdev, ZIO_ATTR_NBITS, S_IRUGO, 0, 32),
 };
 
 static struct zio_attribute tdc_zattr_dev[] = {
 	ZIO_ATTR_EXT("version", S_IRUGO, TDC_ATTR_DEV_VERSION, TDC_VERSION),
-	ZIO_ATTR_EXT("tstamp_thresh", _RW_, TDC_ATTR_DEV_TSTAMP_THRESH, DEFAULT_TSTAMP_THRESH),
-	ZIO_ATTR_EXT("time_thresh", _RW_, TDC_ATTR_DEV_TIME_THRESH, DEFAULT_TIME_THRESH),
+	ZIO_ATTR_EXT("tstamp_thresh", _RW_,
+		     TDC_ATTR_DEV_TSTAMP_THRESH, DEFAULT_TSTAMP_THRESH),
+	ZIO_ATTR_EXT("time_thresh", _RW_,
+		     TDC_ATTR_DEV_TIME_THRESH, DEFAULT_TIME_THRESH),
 	ZIO_ATTR_EXT("current_utc_time", S_IRUGO, TDC_ATTR_DEV_CURRENT_UTC, 0),
 	ZIO_ATTR_EXT("set_utc_time", S_IWUGO, TDC_ATTR_DEV_SET_UTC, 0),
 	ZIO_ATTR_EXT("channel_term", _RW_, TDC_ATTR_DEV_INPUT_ENABLED, 0),
