@@ -97,31 +97,13 @@ static int tdc_fmc_check_lost_events(u32 curr_wr_ptr, u32 prev_wr_ptr, int *coun
 
 static inline int tdc_is_valid_pulse_width(struct tdc_event rising, struct tdc_event falling)
 {
-	int diff;
+	uint64_t up, down;
 
-	diff = falling.fine_time - rising.fine_time;
-	/* Check pulse width from smaller to bigger quantities. */
-	if (likely(diff > 124)) {
-		/* Valid pulse width (higher or equal to 100 ns) */
-		return 1;
-	}
-	else {
-		diff = falling.coarse_time - rising.coarse_time;
-		if (likely(diff > 13)) {
-			/* Valid pulse width (higher or equal to 100 ns) */
-			return 1;
-		}
-		else {
-			diff = falling.local_utc - rising.local_utc;
-			if (likely(diff > 1)) {
-				/* Valid pulse width (higher or equal to 100 ns) */
-				return 1;
-			}
-		}
-	}
+	up = rising.coarse_time * 8000000000 + rising.fine_time * 81;
+	down = (falling.local_utc - rising.local_utc) * 1000000000000 +
+		falling.coarse_time * 8000000000 + rising.fine_time * 81;
 
-	/* Invalid pulse width (less than 100 ns) */
-	return 0;
+	return (down - up > 100000);
 }
 
 static void tdc_fmc_irq_work(struct work_struct *work)
