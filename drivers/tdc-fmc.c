@@ -203,7 +203,7 @@ irqreturn_t tdc_fmc_irq_handler(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct spec_dev *spec = fmc->carrier_data;
-	struct spec_tdc *tdc = spec->sub_priv;
+	struct spec_tdc *tdc = fmc->mezzanine_data;
 	u32 irq_code;
 
 	/* Check the source of the interrupt */
@@ -288,7 +288,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 	/* Initialize structures */
 	spec = dev->carrier_data;
 	tdc->spec = spec;
-	spec->sub_priv = tdc;
+	dev->mezzanine_data = tdc;
 	tdc->lun = dev_lun;
 	tdc->fmc = dev;
 	tdc->base = dev->base;		   /* BAR 0 */
@@ -328,8 +328,7 @@ int tdc_fmc_probe(struct fmc_device *dev)
 
 int tdc_fmc_remove(struct fmc_device *dev)
 {
-	struct spec_dev *spec = dev->carrier_data;
-	struct spec_tdc *tdc = spec->sub_priv;
+	struct spec_tdc *tdc = dev->mezzanine_data;
 
 	cancel_work_sync(&tdc->irq_work);
 	tdc->fmc->op->irq_free(tdc->fmc);
