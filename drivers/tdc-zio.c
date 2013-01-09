@@ -233,7 +233,6 @@ static const struct zio_sysfs_operations tdc_zio_s_op = {
 
 static struct zio_device tdc_tmpl = {
 	.owner = THIS_MODULE,
-//	.preferred_trigger = "tdc", /* XXX: user trigger??? */
 	.s_op = &tdc_zio_s_op,
 	.cset = tdc_cset,
 	.n_cset = ARRAY_SIZE(tdc_cset),

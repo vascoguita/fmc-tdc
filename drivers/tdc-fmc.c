@@ -190,8 +190,7 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 			/* Check pulse width using the falling edge event */
 			if(tdc_is_valid_pulse_width(tdc->event[chan].data,
 						    *tmp_data)) {
-//				/* Valid pulse width -> Fire ZIO trigger */
-//				zio_fire_trigger(tdc->zdev->cset[chan].ti);
+				/* Valid pulse width */
 				ctrl = tdc->zdev->cset[chan].chan->current_ctrl;
 				ti = tdc->zdev->cset[chan].ti;
 				ctrl->ssize = 1; /* one event */
