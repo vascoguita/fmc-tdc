@@ -59,9 +59,11 @@ static struct zio_cset tdc_cset[] = {
 	{
 		ZIO_SET_OBJ_NAME("tdc-cset0"),
 		.raw_io =	tdc_zio_raw_io,
+		.stop_io = 	NULL,
 		.n_chan =	1,
-		.ssize =	4,
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
+		.ssize =	0,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |
+					ZIO_CSET_SELF_TIMED,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
@@ -70,9 +72,11 @@ static struct zio_cset tdc_cset[] = {
 	{
 		ZIO_SET_OBJ_NAME("tdc-cset1"),
 		.raw_io =	tdc_zio_raw_io,
+		.stop_io = 	NULL,
 		.n_chan =	1,
-		.ssize =	4,
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
+		.ssize =	0,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |
+					ZIO_CSET_SELF_TIMED,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
@@ -81,9 +85,11 @@ static struct zio_cset tdc_cset[] = {
 	{
 		ZIO_SET_OBJ_NAME("tdc-cset2"),
 		.raw_io =	tdc_zio_raw_io,
+		.stop_io = 	NULL,
 		.n_chan =	1,
-		.ssize =	4,
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
+		.ssize =	0,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |
+					ZIO_CSET_SELF_TIMED,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
@@ -92,9 +98,11 @@ static struct zio_cset tdc_cset[] = {
 	{
 		ZIO_SET_OBJ_NAME("tdc-cset3"),
 		.raw_io =	tdc_zio_raw_io,
+		.stop_io = 	NULL,
 		.n_chan =	1,
-		.ssize =	4,
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
+		.ssize =	0,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |
+					ZIO_CSET_SELF_TIMED,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
@@ -103,9 +111,11 @@ static struct zio_cset tdc_cset[] = {
 	{
 		ZIO_SET_OBJ_NAME("tdc-cset4"),
 		.raw_io =	tdc_zio_raw_io,
+		.stop_io = 	NULL,
 		.n_chan =	1,
-		.ssize =	4,
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,
+		.ssize =	0,
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |
+					ZIO_CSET_SELF_TIMED,
 		.zattr_set = {
 			.ext_zattr = NULL,
 			.n_ext_attr = 0,
@@ -223,7 +233,7 @@ static const struct zio_sysfs_operations tdc_zio_s_op = {
 
 static struct zio_device tdc_tmpl = {
 	.owner = THIS_MODULE,
-	.preferred_trigger = "tdc",
+//	.preferred_trigger = "tdc", /* XXX: user trigger??? */
 	.s_op = &tdc_zio_s_op,
 	.cset = tdc_cset,
 	.n_cset = ARRAY_SIZE(tdc_cset),
@@ -241,27 +251,8 @@ static const struct zio_device_id tdc_table[] = {
 
 static int tdc_zio_raw_io(struct zio_cset *cset)
 {
-	struct spec_tdc *tdc;
-	struct zio_channel *zio_chan;
-	struct zio_control *ctrl;
-	struct zio_device *zdev = cset->zdev;
-	struct zio_ti *ti = cset->ti;
-	int chan;
-
-	zio_chan = cset->chan;
-	tdc = zdev->priv_d;
-	chan = cset->index;
-
-	/* Process the data */
-	ctrl = zio_chan->current_ctrl;
-	ctrl->ssize = 1;		/* one event */
-	ctrl->nbits = 0;		/* no sample data. Only metadata */
-	ti->tstamp.tv_sec = tdc->event[chan].data.local_utc;
-	ti->tstamp.tv_nsec = tdc->event[chan].data.coarse_time;
-	ti->tstamp_extra = tdc->event[chan].data.fine_time;
-	ctrl->flags = tdc->event[chan].dacapo_flag; /* XXX: Is it OK here? */
-	ctrl->reserved = tdc->event[chan].data.metadata;
-	return 0;
+	/* data_done will come whenever the data is available */
+	return -EAGAIN;
 }
 
 static int tdc_zio_probe(struct zio_device *zdev)

@@ -114,6 +114,8 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 	u32 curr_wr_ptr, prev_wr_ptr;
 	int ret, dacapo_flag, count, rd_ptr, chan;
 	struct tdc_event *events, *tmp_data;
+	struct zio_control *ctrl;
+	struct zio_ti *ti;
 
 	events = kzalloc(TDC_EVENT_BUFFER_SIZE*sizeof(struct tdc_event), GFP_KERNEL);
 	if(!events) {
@@ -188,8 +190,19 @@ static void tdc_fmc_irq_work(struct work_struct *work)
 			/* Check pulse width using the falling edge event */
 			if(tdc_is_valid_pulse_width(tdc->event[chan].data,
 						    *tmp_data)) {
-				/* Valid pulse width -> Fire ZIO trigger */
-				zio_fire_trigger(tdc->zdev->cset[chan].ti);
+//				/* Valid pulse width -> Fire ZIO trigger */
+//				zio_fire_trigger(tdc->zdev->cset[chan].ti);
+				ctrl = tdc->zdev->cset[chan].chan->current_ctrl;
+				ti = tdc->zdev->cset[chan].ti;
+				ctrl->ssize = 1; /* one event */
+				ctrl->nsamples = 1; /* one event */
+				ctrl->nbits = 0; /* no sample data. Only metadata */
+				ti->tstamp.tv_sec = tdc->event[chan].data.local_utc;
+				ti->tstamp.tv_nsec = tdc->event[chan].data.coarse_time;
+				ti->tstamp_extra = tdc->event[chan].data.fine_time;
+				ctrl->flags = tdc->event[chan].dacapo_flag; /* XXX: Is it OK here? */
+				ctrl->reserved = tdc->event[chan].data.metadata;
+				zio_trigger_data_done(&tdc->zdev->cset[chan]);
 			}
 		}
 		rd_ptr = (rd_ptr + 1) % TDC_EVENT_BUFFER_SIZE;
