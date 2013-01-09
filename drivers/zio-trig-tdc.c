@@ -36,6 +36,9 @@ static struct zio_ti *ztt_create(struct zio_trigger_type *trig,
 	if (!ti)
 		return ERR_PTR(-ENOMEM);
 
+	ti->flags = ZIO_DISABLED;
+	ti->cset = cset;
+
 	return ti;
 }
 
