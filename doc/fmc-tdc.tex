@@ -64,7 +64,6 @@ To load the drivers, we should load the dependencies first:
 \indent\indent\texttt{\# insmod <path\_spec-sw>/kernel/spec.ko} \\
 Once the dependencies are loaded, we load the drivers:
 
-\indent\indent\texttt{\# insmod <path\_fmc-tdc-sw>/drivers/zio-trigger-tdc.ko} \\
 \indent\indent\texttt{\# insmod <path\_fmc-tdc-sw>/drivers/spec-tdc.ko <parameters>} 
 
 \subsubsection{FMC TDC driver parameters}
@@ -162,7 +161,7 @@ First of all, you should compile the shared object library:
 To execute it:
 
 \indent\indent\texttt{\$ cd <path\_fmc-tdc-sw>/test} \\
-\indent\indent\texttt{\$ ./test-fmctdc.py} \\
+\indent\indent\texttt{\$ sudo ./test-fmctdc.py} \\
 If you want the help, you can execute:\\
 \indent\indent\texttt{\$ ./test-fmctdc.py -h} \\
 
