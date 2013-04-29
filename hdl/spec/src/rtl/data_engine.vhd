@@ -202,7 +202,7 @@ begin
                         acam_we         <= '0';
                   -----------------------------------------------
             
-                        if activate_acq_p_i = '1' then     -- activation of timestamps aquisition
+                        if activate_acq_p_i = '1' then   -- activation of timestamps aquisition
                           nxt_engine_st   <= ACTIVE;
 
                         elsif acam_wr_config_p_i = '1' then
@@ -272,7 +272,7 @@ begin
       -- ef check                                                                             ^
 
       -- It is first checked if iFIFO1 is not empty, and if so a timestamp is retreived from it.
-      -- Then iFIFO2 is checked and if it not empty a timestamp is retreived from it.
+      -- Then iFIFO2 is checked and if it is not empty a timestamp is retreived from it.
       -- The alternation between the two FIFOs takes place until they are both empty.
       -- The retreival of a timestamp from any of the FIFOs takes place
 

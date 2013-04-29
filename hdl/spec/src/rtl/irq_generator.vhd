@@ -152,7 +152,7 @@ begin
                      nxt_irq_st   <= IDLE;
                    end if;
 
-      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when TSTAMP_AND_TIME_COUNTING =>
                 -----------------------------------------------
                    irq_tstamp_p_o <= '0';
@@ -164,7 +164,7 @@ begin
                 -----------------------------------------------
                    if deactivate_acq_p_i = '1' then
                      nxt_irq_st   <= IDLE;
-                   elsif tstamps_c >= ZERO and tstamps_c >= irq_tstamp_threshold_i(8 downto 0) then
+                   elsif tstamps_c > ZERO and tstamps_c >= irq_tstamp_threshold_i(8 downto 0) then -- not >= ZERO!!
                      nxt_irq_st   <= RAISE_IRQ_TSTAMP;
                    elsif time_c >= irq_time_threshold_i and tstamps_c > ZERO then
                      nxt_irq_st   <= RAISE_IRQ_TIME;
@@ -219,6 +219,7 @@ begin
   end process;
 
 
+
 ---------------------------------------------------------------------------------------------------
 --                                      TIMESTAMPS COUNTER                                       --
 ---------------------------------------------------------------------------------------------------
@@ -237,6 +238,8 @@ begin
        counter_o         => tstamps_c);
      -------------------------------------------
     tstamps_c_incr_en    <= tstamps_c_en and tstamp_wr_p_i;
+
+
 
 ---------------------------------------------------------------------------------------------------
 --                                         TIME COUNTER                                          --

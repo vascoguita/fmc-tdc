@@ -20,13 +20,15 @@
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
 -- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     05/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--     04/2013  v1    EG  Fixed bug when timestamop comes on the first retrigger after a new      |
+--                        second; fixed bug on rollover that is a bit delayed wrt Acam IrFlag     |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -64,26 +66,26 @@ entity data_formatting is
   port
   -- INPUTS
      -- Signal from the clk_rst_manager
-    (clk_i                   : in std_logic; -- 125 MHz clk
-     rst_i                   : in std_logic; -- general reset
+    (clk_i                   : in std_logic;                      -- 125 MHz clk
+     rst_i                   : in std_logic;                      -- general reset
 
      -- Signals from the circular_buffer unit: WISHBONE classic
-     tstamp_wr_wb_ack_i      : in std_logic; -- tstamp writing WISHBONE acknowledge
+     tstamp_wr_wb_ack_i      : in std_logic;                      -- tstamp writing WISHBONE acknowledge
      tstamp_wr_dat_i         : in std_logic_vector(127 downto 0); -- not used
 
      -- Signals from the data_engine unit
-     acam_tstamp1_i          : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
-                                                                 -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO1
-     acam_tstamp1_ok_p_i     : in std_logic; -- tstamp2 valid indicator
-     acam_tstamp2_i          : in std_logic_vector(31 downto 0);   -- 32 bits tstamp to be treated and stored;
-                                                                 -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
-     acam_tstamp2_ok_p_i     : in std_logic; -- tstamp2 valid indicator
+     acam_tstamp1_ok_p_i     : in std_logic;                      -- tstamp1 valid indicator
+     acam_tstamp1_i          : in std_logic_vector(31 downto 0);  -- 32 bits tstamp to be treated and stored;
+                                                                  -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO1
+     acam_tstamp2_ok_p_i     : in std_logic;                      -- tstamp2 valid indicator
+     acam_tstamp2_i          : in std_logic_vector(31 downto 0);  -- 32 bits tstamp to be treated and stored;
+                                                                  -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
 
      -- Signals from the reg_ctrl unit
-     dacapo_c_rst_p_i        : in std_logic; -- instruction from PCIe to clear dacapo flag
+     dacapo_c_rst_p_i        : in std_logic;                      -- instruction from PCIe to clear dacapo flag
 
      -- Signals from the one_hz_gen unit
-     local_utc_i             : in std_logic_vector(31 downto 0);   -- local UTC time
+     local_utc_i             : in std_logic_vector(31 downto 0);  -- local UTC time
 
      -- Signals from the start_retrig_ctrl unit
      roll_over_incr_recent_i : in std_logic;
@@ -138,9 +140,16 @@ architecture rtl of data_formatting is
   -- circular buffer counters
   signal dacapo_counter                                       : unsigned(19 downto 0);
   signal wr_index                                             : unsigned(7 downto 0);
+  -- coarse time calculations
+  signal belongs_to_previous_sec, tstamp_on_first_retrig_case1: std_logic;
+  signal tstamp_on_first_retrig_case2                         : std_logic;
+  signal un_previous_clk_i_cycles_offset                      : unsigned(31 downto 0);
+  signal un_previous_retrig_nb_offset                         : unsigned(31 downto 0);
+  signal un_previous_roll_over_nb                             : unsigned(31 downto 0);
+  signal un_current_clk_i_cycles_offset, un_previous_utc      : unsigned(31 downto 0);
+  signal un_current_retrig_nb_offset, un_current_roll_over_nb : unsigned(31 downto 0);
+  signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
 
-  -- signal previous_clk_i_cycles_offset                         : std_logic_vector(31 downto 0);
-  -- signal previous_retrig_nb_offset, previous_roll_over_nb     : std_logic_vector(31 downto 0);
 
 
 --=================================================================================================
@@ -295,48 +304,85 @@ begin
   end process;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- reg_info_of_previous_sec: process (clk_i)
-  -- begin   
-    -- if rising_edge (clk_i) then
-      -- if rst_i = '1' then
-        -- previous_clk_i_cycles_offset <= (others => '0');
-        -- previous_retrig_nb_offset    <= (others => '0');
-        -- previous_roll_over_nb        <= (others => '0');
+  reg_info_of_previous_sec: process (clk_i)
+  begin   
+    if rising_edge (clk_i) then
+      if rst_i = '1' then
+        un_previous_clk_i_cycles_offset <= (others => '0');
+        un_previous_retrig_nb_offset    <= (others => '0');
+        un_previous_roll_over_nb        <= (others => '0');
+        un_previous_utc                 <= (others => '0');
 
-      -- elsif one_hz_p_i = '1' then
-        -- previous_clk_i_cycles_offset <= clk_i_cycles_offset_i;
-        -- previous_retrig_nb_offset    <= retrig_nb_offset_i;
-        -- previous_roll_over_nb        <= roll_over_nb_i;
-      -- end if;
-    -- end if;
-  -- end process;
+      elsif one_hz_p_i = '1' then
+        un_previous_clk_i_cycles_offset <= unsigned(clk_i_cycles_offset_i);
+        un_previous_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
+        un_previous_roll_over_nb        <= unsigned(roll_over_nb_i);
+        un_previous_utc                 <= local_utc_i;
+      end if;
+    end if;
+  end process;
+
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  full_timestamp(31 downto 0)   <= fine_time;
-  full_timestamp(63 downto 32)  <= coarse_time;
-  full_timestamp(95 downto 64)  <= local_utc;
-  full_timestamp(127 downto 96) <= metadata;
-  tstamp_wr_dat_o               <= full_timestamp;
-
-  --un_clk_i_cycles_offset        <= unsigned(previous_clk_i_cycles_offset) when retrig_nb_offset_i = acam_start_nb_32  
-  --                                 else unsigned(clk_i_cycles_offset_i);
-  --un_retrig_nb_offset           <= unsigned(previous_retrig_nb_offset) when retrig_nb_offset_i = acam_start_nb_32 
-  --                                 else unsigned(retrig_nb_offset_i);
-  --un_roll_over                  <= unsigned(previous_roll_over_nb) when retrig_nb_offset_i = acam_start_nb_32  
-  --                                 else unsigned(roll_over_nb_i);
-
   -- all the values needed for the calculations have to be converted to unsigned
-  acam_start_nb_32              <= x"000000" & acam_start_nb;
-  un_acam_start_nb              <= unsigned(acam_start_nb_32);
-  un_clk_i_cycles_offset        <= unsigned(clk_i_cycles_offset_i);
-  un_retrig_nb_offset           <= unsigned(retrig_nb_offset_i);
-  un_roll_over                  <= unsigned(roll_over_nb_i);
+  acam_start_nb_32                 <= x"000000" & acam_start_nb;
+  un_acam_start_nb                 <= unsigned(acam_start_nb_32);
+  un_current_clk_i_cycles_offset   <= unsigned(clk_i_cycles_offset_i);
+  un_current_retrig_nb_offset      <= unsigned(retrig_nb_offset_i);
+  un_current_roll_over_nb          <= unsigned(roll_over_nb_i);
+  un_current_retrig_from_roll_over <= shift_left(un_current_roll_over_nb-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
+                                      else shift_left(un_current_roll_over_nb, 8);
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  full_timestamp(31 downto 0)      <= fine_time;
+  full_timestamp(63 downto 32)     <= coarse_time;
+  full_timestamp(95 downto 64)     <= local_utc;
+  full_timestamp(127 downto 96)    <= metadata;
+  tstamp_wr_dat_o                  <= full_timestamp;
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  un_clk_i_cycles_offset           <= un_previous_clk_i_cycles_offset when (belongs_to_previous_sec = '1')
+                                      else un_current_clk_i_cycles_offset;
+
+  un_retrig_nb_offset              <= un_previous_retrig_nb_offset when (belongs_to_previous_sec = '1')
+                                      else un_current_retrig_nb_offset;
+
+  un_roll_over                     <= un_previous_roll_over_nb when (belongs_to_previous_sec = '1') 
+                                      else un_current_roll_over_nb;
+
+  local_utc                        <= un_previous_utc when (belongs_to_previous_sec = '1')
+                                      else local_utc_i;
+
+
+  belongs_to_previous_sec          <= '1' when tstamp_on_first_retrig_case1 or tstamp_on_first_retrig_case2 else '0';
+
+  -- the equation below describes the case where: a timestamp came on the same retgigger after a new second
+  -- (un_current_retrig_from_roll_over in principle is 0):
+  tstamp_on_first_retrig_case1     <= un_current_retrig_from_roll_over + un_acam_start_nb = un_current_retrig_nb_offset
+
+  -- according to the Acam documentation there is an indeterminacy to whether the fine time refers to the previous retrigger or the current one.
+  -- the equation below describes the case where: a timestamp came on the same retgigger after a new second but the acam assigned
+  -- it to the previous retrigger.
+  -- the "un_current_retrig_from_roll_over = 0" describes that a new second has arrived;
+  -- the "fine_time > 6318" desribes a fine time that is referred to the previous retrigger; in principle in a retrigger is 512 ns,
+  -- so a fine time > 512 ns means that it is referred to a previous second.
+  tstamp_on_first_retrig_case2     <= (un_current_retrig_nb_offset = un_acam_start_nb+1) and (unsigned(fine_time) > 6318) and (un_current_retrig_from_roll_over = 0)
+
 
   -- the number of roll-overs of the ACAM internal start retrigger counter is converted to a number
   -- of internal start retriggers.
   -- shifted left to multiply by 256
-  un_retrig_from_roll_over      <= shift_left(un_roll_over-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
-                                   else shift_left(un_roll_over, 8);
+  -- If a new tstamp has arrived from the ACAM when the roll_over has just been increased,
+  -- there are chances the tstamp belongs to the previous roll-over value. This is because the
+  -- moment the IrFlag is taken into account in the FPGA is different from the moment the tstamp
+  -- has arrived to the ACAM. So if in a timestamp the start_nb from the ACAM is close to the
+  -- upper end (close to 255) and on the moment the timestamp is being treated in the FPGA the IrFlag
+  -- has recently been tripped it means that for the formatting of the tstamp the previous value of
+  -- the roll_over_c should be considered (before the IrFlag tripping).
+  -- Have to calculate the amount of tstamps that could have been accumulated before the rollover
+  -- changes; the current value we put "192" is not well studied for all cases!!
+  un_retrig_from_roll_over         <= shift_left(un_roll_over-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
+                                      else shift_left(un_roll_over, 8);
 
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -345,7 +391,7 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- local UTC: updated every second by the one_hz_pulse unit
-  local_utc                     <= local_utc_i;
+
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- coarse time: expressed as the number of 125 MHz clock cycles since the last one_hz_pulse.
@@ -364,14 +410,16 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata                      <= acam_start_nb &
-                                   roll_over_nb_i(15 downto 0) &
-                                   -- x"0000"              & -- 16 bits         (MSB)
-                                   -- "000" & acam_fifo_ef & -- 4 bits in total
-                                   -- "000" & acam_fifo_lf & -- 4 bits in total
-                                   "000" & acam_slope   & -- 4 bits in total
-                                   "0"   & acam_channel;  -- 4 bits in total (LSB)
-
+  metadata                      <= acam_start_nb &                      -- for debugging
+                                   retrig_nb_offset_i(15 downto 0) &    -- for debugging
+                                   belongs_to_previous_sec & roll_over_incr_recent_i & "0" & acam_slope & --for debugging
+                                   "0"   & acam_channel;
+                                   --"0"   & acam_channel;  -- 4 bits in total (LSB)
+  --metadata                      <= x"0000"              & -- 16 bits         (MSB)
+  --                                 "000" & acam_fifo_ef & -- 4 bits in total
+  --                                 "000" & acam_fifo_lf & -- 4 bits in total
+  --                                 "000" & acam_slope   & -- 4 bits in total
+  --                                 "0"   & acam_channel;  -- 4 bits in total (LSB)
 
 
 ---------------------------------------------------------------------------------------------------

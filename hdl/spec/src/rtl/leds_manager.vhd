@@ -22,17 +22,18 @@
 --                                       | O  O |   5, 6                                          |
 --                                       |______|                                                 |
 --                                                                                                |
---              And further down 2 LEDs on the front panel of the SPEC carrier board:             |
---                                        ______                                                  |
---                                       | O  O |   1, 2                                          |
---                                       |______|                                                 |
---                                                                                                |
 --              TDC LED  1 orange: division of the 125 MHz clock; one hz pulses                   |
 --              TDC LED  2 orange: Channel 1 terminatio enable                                    |
 --              TDC LED  3 orange: Channel 2 terminatio enable                                    |
 --              TDC LED  4 orange: Channel 3 terminatio enable                                    |
 --              TDC LED  5 orange: Channel 4 terminatio enable                                    |
 --              TDC LED  6 orange: Channel 5 terminatio enable                                    |
+--                                                                                                |
+--              And further down 2 LEDs on the front panel of the SPEC carrier board:             |
+--                                        ______                                                  |
+--                                       | O  O |   1, 2                                          |
+--                                       |______|                                                 |
+--                                                                                                |
 --              SPEC LED 1 green : PLL status (DLD)                                               |
 --              SPEC LED 2 red   : division of the 20 MHz clock                                   |
 --                                                                                                |

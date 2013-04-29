@@ -92,7 +92,7 @@ entity reg_ctrl is
      -- Signals from the GNUM_core unit: WISHBONE classic for TDC core and ACAM regs transfer
      gnum_csr_adr_i        : in std_logic_vector(g_span-1 downto 0); -- WISHBONE classic address
      gnum_csr_cyc_i        : in std_logic;                           -- WISHBONE classic cycle
-     gnum_csr_dat_i        : in std_logic_vector(g_width-1 downto 0);-- WISHBONE classic data
+     gnum_csr_dat_i        : in std_logic_vector(g_width-1 downto 0);-- WISHBONE classic data in
      gnum_csr_stb_i        : in std_logic;                           -- WISHBONE classic strobe
      gnum_csr_we_i         : in std_logic;                           -- WISHBONE classic write enable
 
@@ -116,8 +116,8 @@ entity reg_ctrl is
 
   -- OUTPUTS
      -- Signals to the GNUM_core unit: WISHBONE classic for TDC core and ACAM regs transfer
-     gnum_csr_ack_o        : out std_logic;
-     gnum_csr_dat_o        : out std_logic_vector(g_width-1 downto 0);
+     gnum_csr_ack_o        : out std_logic;                           -- WISHBONE classic acknowledge
+     gnum_csr_dat_o        : out std_logic_vector(g_width-1 downto 0);-- WISHBONE classic data out
 
      -- Signals to the data_engine unit: config regs for the ACAM
      acam_config_o         : out config_vector;
@@ -166,10 +166,11 @@ architecture rtl of reg_ctrl is
   signal starting_utc, acam_inputs_en, start_phase    : std_logic_vector(g_width-1 downto 0);
   signal ctrl_reg, one_hz_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
   signal irq_time_threshold                           : std_logic_vector(g_width-1 downto 0);
-  signal clear_ctrl_reg, send_dac_word_p          : std_logic;
-  signal dac_word                                 : std_logic_vector(23 downto 0);
+  signal clear_ctrl_reg, send_dac_word_p              : std_logic;
+  signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
+  signal dat_out                                      : std_logic_vector(g_span-1 downto 0);
 
 --=================================================================================================
 --                                       architecture begin
@@ -197,6 +198,7 @@ begin
   end process;
 
 
+
 ---------------------------------------------------------------------------------------------------
 --                           Reception of ACAM Configuration Registers                           --
 ---------------------------------------------------------------------------------------------------
@@ -205,6 +207,7 @@ begin
 -- the configuration registers to be loaded to the ACAM chip. The received data is stored in the
 -- acam_config vector which is input to the data_engine and the acam_databus_interface units for
 -- the further transfer to the ACAM chip.
+
   acam_config_reg_reception: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -221,7 +224,7 @@ begin
         acam_config(9)    <= (others =>'0');
         acam_config(10)   <= (others =>'0');
 
-      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then
+      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then -- WISHBONE writes
 
         if reg_adr = c_ACAM_REG0_ADR then
           acam_config(0)  <= gnum_csr_dat_i;
@@ -282,24 +285,27 @@ begin
 -- TDCcore_config_reg_reception: reception from the PCIe interface of the configuration registers
 -- to be loaded locally.
 -- The following information is received:
---   o acam_inputs_en: for the activation of the stop signals arriving to the ACAM
---   o starting_utc
---   o one_hz_phase  : think not useful......
---   o start_phase   : think not useful......
+--   o acam_inputs_en       : for the activation of the TDC input signals
+--   o irq_tstamp_threshold : for the activation of PCIe interrupts based on the number of timestamps
+--   o irq_time_threshold   : for the activation of PCIe interrupts based on the time elapsed
+--   o starting_utc         : definition of the current UTC time
+--   o one_hz_phase         : eva: think not used
+--   o start_phase          : eva: think not used
+
   TDCcore_config_reg_reception: process (clk_i)
   begin
     if rising_edge (clk_i) then
       if rst_i ='1' then
-        acam_inputs_en         <= (others =>'0');
-        starting_utc           <= (others =>'0');
-        start_phase            <= (others =>'0');
-        one_hz_phase           <= (others =>'0');
-        irq_tstamp_threshold   <= x"00000100";   -- default 256 timestamps: full memory
-        irq_time_threshold     <= x"00000078";   -- default 2 minutes 
-        dac_word           <= c_DEFAULT_DAC_WORD; -- for DAC Vout = 1.65
+        acam_inputs_en       <= (others =>'0');
+        starting_utc         <= (others =>'0');
+        start_phase          <= (others =>'0');
+        one_hz_phase         <= (others =>'0');
+        irq_tstamp_threshold <= x"00000100";        -- default 256 timestamps: full memory
+        irq_time_threshold   <= x"00000078";        -- default 2 minutes 
+        dac_word             <= c_DEFAULT_DAC_WORD; -- for DAC Vout = 1.65
 
 
-      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then
+      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then -- WISHBONE writes
 
         if reg_adr = c_STARTING_UTC_ADR then
           starting_utc         <= gnum_csr_dat_i;
@@ -357,14 +363,14 @@ begin
   begin
     if rising_edge (clk_i) then
       if rst_i = '1' then
-        ctrl_reg        <= (others =>'0');
-        clear_ctrl_reg  <= '0';
+        ctrl_reg         <= (others =>'0');
+        clear_ctrl_reg   <= '0';
 
       elsif clear_ctrl_reg = '1' then
-        ctrl_reg        <= (others =>'0');
-        clear_ctrl_reg  <= '0';
+        ctrl_reg         <= (others =>'0');
+        clear_ctrl_reg   <= '0';
 
-      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then
+      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '1' then -- WISHBONE writes
         if reg_adr = c_CTRL_REG_ADR then
           ctrl_reg       <= gnum_csr_dat_i;
           clear_ctrl_reg <= '1';
@@ -386,12 +392,12 @@ begin
   acam_rst_p_o           <= ctrl_reg(8);
   load_utc_p_o           <= ctrl_reg(9);
   dacapo_c_rst_p_o       <= ctrl_reg(10);
-  send_dac_word_p    <= ctrl_reg(11);
+  send_dac_word_p        <= ctrl_reg(11);
 -- ctrl_reg bits 12 to 31 not used for the moment!
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  --  --  --  --  --  --  --  --  --  --  --  --   
 -- Pulse_stretcher: Increases the width of the send_dac_word_p pulse so that it can be sampled
--- by the 20 MHz clock of the clks_rsts_manager that is communication with the DAC.
+-- by the 20 MHz clock of the clks_rsts_manager that is communicating with the DAC.
 
   Pulse_stretcher: incr_counter
   generic map
@@ -403,68 +409,73 @@ begin
      counter_incr_en_i => pulse_extender_en,
      counter_is_full_o => open,
      counter_o         => pulse_extender_c);
-
   pulse_extender_en     <= '1' when pulse_extender_c < "111" else '0';
-  send_dac_word_p_o <= pulse_extender_en;
+  send_dac_word_p_o     <= pulse_extender_en;
+
+
 
 ---------------------------------------------------------------------------------------------------
 --                        Delivery of ACAM and TDC core Readback Registers                       --
 ---------------------------------------------------------------------------------------------------   
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- TDCcore_ctrl_reg_reception: Delivery to the PCIe interface of all the readable registers,
 -- including those of the ACAM and the TDC core.
 
-  with reg_adr select
-    gnum_csr_dat_o <=
-      ----------------------------------------------------
-      -- regs written by the PCIe
-      acam_config(0)         when c_ACAM_REG0_ADR,
-      acam_config(1)         when c_ACAM_REG1_ADR,
-      acam_config(2)         when c_ACAM_REG2_ADR,
-      acam_config(3)         when c_ACAM_REG3_ADR,
-      acam_config(4)         when c_ACAM_REG4_ADR,
-      acam_config(5)         when c_ACAM_REG5_ADR,
-      acam_config(6)         when c_ACAM_REG6_ADR,
-      acam_config(7)         when c_ACAM_REG7_ADR,
-      acam_config(8)         when c_ACAM_REG11_ADR,
-      acam_config(9)         when c_ACAM_REG12_ADR,
-      acam_config(10)        when c_ACAM_REG14_ADR,
+  WISHBONEreads: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i = '1' then
+        gnum_csr_dat_o <= (others =>'0');
 
-      ----------------------------------------------------
-      -- regs read from the ACAM
-      acam_config_rdbk_i(0)  when c_ACAM_REG0_RDBK_ADR,
-      acam_config_rdbk_i(1)  when c_ACAM_REG1_RDBK_ADR,
-      acam_config_rdbk_i(2)  when c_ACAM_REG2_RDBK_ADR,
-      acam_config_rdbk_i(3)  when c_ACAM_REG3_RDBK_ADR,
-      acam_config_rdbk_i(4)  when c_ACAM_REG4_RDBK_ADR,
-      acam_config_rdbk_i(5)  when c_ACAM_REG5_RDBK_ADR,
-      acam_config_rdbk_i(6)  when c_ACAM_REG6_RDBK_ADR,
-      acam_config_rdbk_i(7)  when c_ACAM_REG7_RDBK_ADR,
-      acam_ififo1_i          when c_ACAM_REG8_RDBK_ADR,
-      acam_ififo2_i          when c_ACAM_REG9_RDBK_ADR,
-      acam_start01_i         when c_ACAM_REG10_RDBK_ADR,
-      acam_config_rdbk_i(8)  when c_ACAM_REG11_RDBK_ADR,
-      acam_config_rdbk_i(9)  when c_ACAM_REG12_RDBK_ADR,
-      acam_config_rdbk_i(10) when c_ACAM_REG14_RDBK_ADR,
+      elsif gnum_csr_cyc_i = '1' and gnum_csr_stb_i = '1' and gnum_csr_we_i = '0' then -- WISHBONE reads
+        gnum_csr_dat_o <= dat_out;
+      end if;
+    end if;
+  end process;
 
-      ----------------------------------------------------
-      -- regs written by the PCIe
-      starting_utc           when c_STARTING_UTC_ADR,
-      acam_inputs_en         when c_ACAM_INPUTS_EN_ADR,
-      start_phase            when c_START_PHASE_ADR,
-      one_hz_phase           when c_ONE_HZ_PHASE_ADR,
-      irq_tstamp_threshold   when c_IRQ_TSTAMP_THRESH_ADR,
-      irq_time_threshold     when c_IRQ_TIME_THRESH_ADR,
-      x"00" & dac_word       when c_DAC_WORD_ADR,
-
-      ----------------------------------------------------
-      -- regs written locally by the TDC core units
-      local_utc_i            when c_LOCAL_UTC_ADR,
-      irq_code_i             when c_IRQ_CODE_ADR,
-      wr_index_i             when c_WR_INDEX_ADR,
-      core_status_i          when c_CORE_STATUS_ADR,
-
-      x"C0FFEEEE"            when others;
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  with reg_adr select dat_out <= 
+    -- regs written by the PCIe
+    acam_config(0)         when c_ACAM_REG0_ADR,
+    acam_config(1)         when c_ACAM_REG1_ADR,
+    acam_config(2)         when c_ACAM_REG2_ADR,
+    acam_config(3)         when c_ACAM_REG3_ADR,
+    acam_config(4)         when c_ACAM_REG4_ADR,
+    acam_config(5)         when c_ACAM_REG5_ADR,
+    acam_config(6)         when c_ACAM_REG6_ADR,
+    acam_config(7)         when c_ACAM_REG7_ADR,
+    acam_config(8)         when c_ACAM_REG11_ADR,
+    acam_config(9)         when c_ACAM_REG12_ADR,
+    acam_config(10)        when c_ACAM_REG14_ADR,
+    -- regs read from the ACAM
+    acam_config_rdbk_i(0)  when c_ACAM_REG0_RDBK_ADR,
+    acam_config_rdbk_i(1)  when c_ACAM_REG1_RDBK_ADR,
+    acam_config_rdbk_i(2)  when c_ACAM_REG2_RDBK_ADR,
+    acam_config_rdbk_i(3)  when c_ACAM_REG3_RDBK_ADR,
+    acam_config_rdbk_i(4)  when c_ACAM_REG4_RDBK_ADR,
+    acam_config_rdbk_i(5)  when c_ACAM_REG5_RDBK_ADR,
+    acam_config_rdbk_i(6)  when c_ACAM_REG6_RDBK_ADR,
+    acam_config_rdbk_i(7)  when c_ACAM_REG7_RDBK_ADR,
+    acam_ififo1_i          when c_ACAM_REG8_RDBK_ADR,
+    acam_ififo2_i          when c_ACAM_REG9_RDBK_ADR,
+    acam_start01_i         when c_ACAM_REG10_RDBK_ADR,
+    acam_config_rdbk_i(8)  when c_ACAM_REG11_RDBK_ADR,
+    acam_config_rdbk_i(9)  when c_ACAM_REG12_RDBK_ADR,
+    acam_config_rdbk_i(10) when c_ACAM_REG14_RDBK_ADR,
+    -- regs written by the PCIe
+    starting_utc           when c_STARTING_UTC_ADR,
+    acam_inputs_en         when c_ACAM_INPUTS_EN_ADR,
+    start_phase            when c_START_PHASE_ADR,
+    one_hz_phase           when c_ONE_HZ_PHASE_ADR,
+    irq_tstamp_threshold   when c_IRQ_TSTAMP_THRESH_ADR,
+    irq_time_threshold     when c_IRQ_TIME_THRESH_ADR,
+    x"00" & dac_word       when c_DAC_WORD_ADR,
+    -- regs written locally by the TDC core units
+    local_utc_i            when c_LOCAL_UTC_ADR,
+    irq_code_i             when c_IRQ_CODE_ADR,
+    wr_index_i             when c_WR_INDEX_ADR,
+    core_status_i          when c_CORE_STATUS_ADR,
+    -- others
+    x"C0FFEEEE"            when others;
 
 
 end architecture rtl;

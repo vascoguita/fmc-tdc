@@ -81,14 +81,12 @@ entity acam_timecontrol_interface is
 
   -- OUTPUTS
     -- Signals to the ACAM chip
-     start_dis_o             : out std_logic;
      start_from_fpga_o       : out std_logic;
-     stop_dis_o              : out std_logic;
 
     -- Signals to the 
-     acam_errflag_r_edge_p_o  : out std_logic; -- ACAM ErrFlag rising edge
-     acam_errflag_f_edge_p_o  : out std_logic; -- ACAM ErrFlag falling edge
-     acam_intflag_f_edge_p_o  : out std_logic);-- ACAM IntFlag falling edge
+     acam_errflag_r_edge_p_o : out std_logic; -- ACAM ErrFlag rising edge
+     acam_errflag_f_edge_p_o : out std_logic; -- ACAM ErrFlag falling edge
+     acam_intflag_f_edge_p_o : out std_logic);-- ACAM IntFlag falling edge
 
 end acam_timecontrol_interface;
 
@@ -251,10 +249,6 @@ begin
 
     start_trig_edge    <= start_trig_r(1) and not(start_trig_r(0));
 
-   
-    -- outputs
-    stop_dis_o          <= '0';
-    start_dis_o         <= '0';
 
 end architecture rtl;
 --=================================================================================================

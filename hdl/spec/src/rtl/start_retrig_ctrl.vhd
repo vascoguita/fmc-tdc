@@ -29,17 +29,17 @@
 --                          each bit represents 81.03 ps                                          |
 --                                                                                                |
 --              In I-Mode the Acam chip provides unlimited measuring range with internal start    |
---              retriggers. Acam is programmed to retrigger every (16*acam_clk) = (64*clk_i) ticks|
---              (the StartTimer in Acam Reg 4 is set to 15), it counts the number of retriggers   |
---              after a Start pulse and upon the arrival of a Stop pulse it sends this number     |
---              in the "Start#" field of the timestamp. Unfortunately Acam's counter of the       |
---              retriggers has only 8 bits and can count up to 256 retriggers. Within one second  |
---              (our UTC time) there can be up to 1,953,125 retriggers, which is >> 256 and       |
---              actually corresponds to 7629 overflows of the Acam counter. Therefore there is the|
---              need to follow Acam and keep track of the overflows. The Acam Interrupt flag      |
---              (IrFlag pin 59) has been set to follow the highest bit of the Start# (through the |
---              Acam Reg 12 bit 26) and like this we manage to count retriggers synchronously to  |
---              Acam itself.                                                                      |
+--              retriggers. Acam is programmed to retrigger every (16*acam_clk_period) =          |
+--              (64*clk_i_period) = 512 ns; the StartTimer in Acam Reg 4 is set to 15. It counts  |
+--              the number of retriggers after a Start pulse and upon the arrival of a Stop pulse |
+--              and it sends this number in the "Start#" field of the timestamp.                  |
+--              Unfortunately Acam's counter of the retriggers has only 8 bits and can count up   |
+--              to 256 retriggers. Within one second (our UTC time) there can be up to            |
+--              1,953,125 retriggers, which is >> 256 and actually corresponds to 7629 overflows  |
+--              of the Acam counter. Therefore there is the need to follow Acam and keep track of |
+--              the overflows. The Acam Interrupt flag (IrFlag pin 59) has been set to follow the |
+--              highest bit of the Start# (through the Acam Reg 12 bit 26) and like this we       |
+--              manage to count retriggers synchronously to Acam itself.                          |
 --              For simplification, in the following figure we assume that two Stop signals arrive|
 --              after less than 256 Acam internal retriggers. Therefore in the timestamps that    |
 --              Acam will give the Start# field will represent the exact amount of retriggers     |
