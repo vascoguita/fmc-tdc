@@ -1,6 +1,6 @@
 # Synopsys, Inc. constraint file
-# C:\FMC_TDC\evas_fmc_tdc\syn\tdc_syn_constraints.sdc
-# Written on Thu Apr 26 19:30:14 2012
+# C:/FMC_TDC/evas_fmc_tdc/syn/tdc_syn_constraints.sdc
+# Written on Mon Apr 29 17:17:22 2013
 # by Synplify Premier with Design Planner, F-2012.03 Scope Editor
 
 #
@@ -10,10 +10,10 @@
 #
 # Clocks
 #
-define_clock   {p:tdc_clk_p_i}                                  -name {tdc_clk125}        -freq 125   -clockgroup default_clkgroup1__1
-define_clock   {p:spec_clk_i}                                   -name {spec_clk20}        -freq 20    -clockgroup default_clkgroup2__2
-define_clock   {p:acam_refclk_p_i}                              -name {acam_refclk31_25}  -freq 31.25 -clockgroup default_clkgroup4__4
-define_clock   {n:gnum_interface_block.cmp_clk_in.rx_pllout_x1} -name {gnum_clk200}       -freq 200   -clockgroup default_clkgroup3__3
+define_clock   {p:tdc_clk_p_i} -name {tdc_clk125}  -freq 125 -clockgroup default_clkgroup1__1
+define_clock   {p:spec_clk_i} -name {spec_clk20}  -freq 20 -clockgroup default_clkgroup2__2
+define_clock   {p:acam_refclk_p_i} -name {acam_refclk31_25}  -freq 31.25 -clockgroup default_clkgroup4__4
+define_clock   {n:gnum_interface_block.cmp_clk_in.rx_pllout_x1} -name {gnum_clk200}  -freq 200 -clockgroup default_clkgroup3__3
 
 #
 # Clock to Clock
@@ -38,7 +38,6 @@ define_output_delay              {p:l2p_data_o[15:0]  }  2.00 -improve 0.00 -rou
 define_output_delay              {p:l2p_dframe_o}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
 define_output_delay              {p:l2p_valid_o }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
 define_output_delay              {p:l2p_edb_o   }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:spare_o     }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
 define_input_delay               {p:l2p_rdy_i   }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
 define_input_delay               {p:l_wr_rdy_i[0]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
 define_input_delay               {p:l_wr_rdy_i[1]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
@@ -50,7 +49,6 @@ define_output_delay              {p:pll_cs_o}  2.00 -improve 0.00 -route 0.00 -r
 define_output_delay              {p:pll_sclk_o}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
 define_input_delay               {p:pll_status_i}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
 define_input_delay               {p:pll_sdo_i}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
-
 define_output_delay              {p:start_from_fpga_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
 define_output_delay              {p:cs_n_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
 define_output_delay              {p:rd_n_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
@@ -92,6 +90,7 @@ define_false_path  -to {{p:tdc_led_trig3_o}}
 define_false_path  -to {{p:tdc_led_trig4_o}} 
 define_false_path  -to {{p:tdc_led_trig5_o}} 
 define_false_path  -to {{p:irq_p_o}} 
+define_false_path  -to {{p:irq_aux_p_o}} 
 
 #
 # Attributes
@@ -99,82 +98,32 @@ define_false_path  -to {{p:irq_p_o}}
 define_global_attribute  {syn_useioff} {1}
 define_global_attribute  {syn_noarrayports} {1}
 define_global_attribute  {syn_netlist_hierarchy} {0}
-
-
-define_attribute   {p:acam_refclk_p_i} {syn_loc} {E16}
-define_attribute   {p:acam_refclk_n_i} {syn_loc} {F16}
-define_io_standard {acam_refclk_p_i} syn_pad_type {DIFF_SSTL_18_Class_II}
-define_io_standard {acam_refclk_n_i} syn_pad_type {DIFF_SSTL_18_Class_II}
-
-
-#define_attribute   {p:alu_trigger_o} {syn_loc} {W13}
-#define_io_standard {alu_trigger_o} syn_pad_type {LVCMOS_25}
-
-
-define_attribute   {p:tdc_led_trig1_o} {syn_loc} {W18}
-define_io_standard {tdc_led_trig1_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:tdc_led_trig2_o} {syn_loc} {B20}
-define_io_standard {tdc_led_trig2_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:tdc_led_trig3_o} {syn_loc} {A20}
-define_io_standard {tdc_led_trig3_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:tdc_clk_p_i} {syn_loc} {L20}
-define_attribute   {p:tdc_clk_n_i} {syn_loc} {L22}
-define_io_standard {tdc_clk_p_i} syn_pad_type {DIFF_SSTL_18_Class_II}
-define_io_standard {tdc_clk_n_i} syn_pad_type {DIFF_SSTL_18_Class_II}
-
-define_attribute   {p:term_en_1_o} {syn_loc} {Y11}
-define_io_standard {term_en_1_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:term_en_2_o} {syn_loc} {AB11}
-define_io_standard {term_en_2_o} syn_pad_type {LVCMOS_25}
-
-
-define_attribute   {p:ef1_i} {syn_loc} {W12}
-define_io_standard {ef1_i} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:ef2_i} {syn_loc} {Y12}
-define_io_standard {ef2_i} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:term_en_3_o} {syn_loc} {R11}
-define_io_standard {term_en_3_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:term_en_4_o} {syn_loc} {T11}
-define_io_standard {term_en_4_o} syn_pad_type {LVCMOS_25}
-
-
-define_attribute   {p:term_en_5_o} {syn_loc} {R13}
-define_io_standard {term_en_5_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:tdc_led_status_o} {syn_loc} {T14}
-define_io_standard {tdc_led_status_o}  syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:tdc_led_trig4_o} {syn_loc} {D17}
-define_io_standard {tdc_led_trig4_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:tdc_led_trig5_o} {syn_loc} {C18}
-define_io_standard {tdc_led_trig5_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:pll_sclk_o} {syn_loc} {AA16}
-define_io_standard {pll_sclk_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:pll_dac_sync_o} {syn_loc} {AB16}
-define_io_standard {pll_dac_sync_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:pll_cs_o} {syn_loc} {Y17}
-define_io_standard {pll_cs_o} syn_pad_type {LVCMOS_25}
-
-define_attribute   {p:cs_n_o} {syn_loc} {AB17}
-define_io_standard {cs_n_o} syn_pad_type {LVCMOS_25}
-
+define_attribute {p:acam_refclk_p_i} {syn_loc} {E16}
+define_attribute {p:acam_refclk_n_i} {syn_loc} {F16}
+define_attribute {p:tdc_clk_p_i} {syn_loc} {L20}
+define_attribute {p:tdc_clk_n_i} {syn_loc} {L22}
+define_attribute {p:tdc_led_trig1_o} {syn_loc} {W18}
+define_attribute {p:tdc_led_trig2_o} {syn_loc} {B20}
+define_attribute {p:tdc_led_trig3_o} {syn_loc} {A20}
+define_attribute {p:term_en_1_o} {syn_loc} {Y11}
+define_attribute {p:term_en_2_o} {syn_loc} {AB11}
+define_attribute {p:ef1_i} {syn_loc} {W12}
+define_attribute {p:ef2_i} {syn_loc} {Y12}
+define_attribute {p:term_en_3_o} {syn_loc} {R11}
+define_attribute {p:term_en_4_o} {syn_loc} {T11}
+define_attribute {p:term_en_5_o} {syn_loc} {R13}
+define_attribute {p:tdc_led_status_o} {syn_loc} {T14}
+define_attribute {p:tdc_led_trig4_o} {syn_loc} {D17}
+define_attribute {p:tdc_led_trig5_o} {syn_loc} {C18}
+define_attribute {p:pll_sclk_o} {syn_loc} {AA16}
+define_attribute {p:pll_dac_sync_o} {syn_loc} {AB16}
+define_attribute {p:pll_cs_o} {syn_loc} {Y17}
+define_attribute {p:cs_n_o} {syn_loc} {AB17}
+define_attribute {p:prsnt_m2c_n_i} {syn_loc} {AB14}
 define_attribute {p:err_flag_i} {syn_loc} {V11}
 define_attribute {p:int_flag_i} {syn_loc} {W11}
 define_attribute {p:start_dis_o} {syn_loc} {T15}
 define_attribute {p:stop_dis_o} {syn_loc} {U15}
-
-
 define_attribute {p:rst_n_a_i} {syn_loc} {N20}
 define_attribute {p:p2l_clk_p_i} {syn_loc} {M20}
 define_attribute {p:p2l_clk_n_i} {syn_loc} {M19}
@@ -232,14 +181,10 @@ define_attribute {p:p_rd_d_rdy_i[1]} {syn_loc} {P19}
 define_attribute {p:p_rd_d_rdy_i[0]} {syn_loc} {N16}
 define_attribute {p:tx_error_i} {syn_loc} {M17}
 define_attribute {p:irq_p_o} {syn_loc} {U16}
-define_attribute {p:spare_o} {syn_loc} {AB19}
+define_attribute {p:irq_aux_p_o} {syn_loc} {AB19}
 define_attribute {p:pll_sdo_i} {syn_loc} {AB18}
 define_attribute {p:pll_status_i} {syn_loc} {Y18}
-
-
 define_attribute {p:pll_sdi_o} {syn_loc} {AA18}
-
-
 define_attribute {p:start_from_fpga_o} {syn_loc} {W17}
 define_attribute {p:data_bus_io[27]} {syn_loc} {AB4}
 define_attribute {p:data_bus_io[26]} {syn_loc} {AA4}
@@ -269,20 +214,14 @@ define_attribute {p:data_bus_io[3]} {syn_loc} {W8}
 define_attribute {p:data_bus_io[2]} {syn_loc} {V7}
 define_attribute {p:data_bus_io[1]} {syn_loc} {Y6}
 define_attribute {p:data_bus_io[0]} {syn_loc} {W6}
-
 define_attribute {p:address_o[3]} {syn_loc} {AB15}
 define_attribute {p:address_o[2]} {syn_loc} {Y15}
 define_attribute {p:address_o[1]} {syn_loc} {U12}
 define_attribute {p:address_o[0]} {syn_loc} {T12}
-
 define_attribute {p:oe_n_o} {syn_loc} {V13}
 define_attribute {p:rd_n_o} {syn_loc} {AB13}
 define_attribute {p:wr_n_o} {syn_loc} {Y13}
 define_attribute {p:enable_inputs_o} {syn_loc} {C19}
-
-
-
-
 define_attribute {p:spec_aux0_i} {syn_loc} {C22}
 define_attribute {p:spec_aux1_i} {syn_loc} {D21}
 define_attribute {p:spec_aux2_o} {syn_loc} {G19}
@@ -296,10 +235,37 @@ define_attribute {p:carrier_one_wire_b} {syn_loc} {D4}
 define_attribute {p:mezz_one_wire_b} {syn_loc} {A19}
 define_attribute {p:sys_scl_b} {syn_loc} {F7}
 define_attribute {p:sys_sda_b} {syn_loc} {F8}
+define_attribute {p:pcb_ver_i[0]} {syn_loc} {P5}
+define_attribute {p:pcb_ver_i[1]} {syn_loc} {P4}
+define_attribute {p:pcb_ver_i[2]} {syn_loc} {AA2}
+define_attribute {p:pcb_ver_i[3]} {syn_loc} {AA1}
+define_attribute {p:prsnt_m2c_n_i} {syn_loc} {AB14}
 
 #
 # I/O Standards
 #
+define_io_standard               {acam_refclk_p_i} syn_pad_type {DIFF_SSTL_18_Class_II}
+define_io_standard               {acam_refclk_n_i} syn_pad_type {DIFF_SSTL_18_Class_II}
+define_io_standard               {tdc_clk_p_i} syn_pad_type {DIFF_SSTL_18_Class_II}
+define_io_standard               {tdc_clk_n_i} syn_pad_type {DIFF_SSTL_18_Class_II}
+define_io_standard               {tdc_led_trig1_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {tdc_led_trig2_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {tdc_led_trig3_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {term_en_1_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {term_en_2_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {ef1_i} syn_pad_type {LVCMOS_25}
+define_io_standard               {ef2_i} syn_pad_type {LVCMOS_25}
+define_io_standard               {term_en_3_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {term_en_4_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {term_en_5_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {tdc_led_status_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {tdc_led_trig4_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {tdc_led_trig5_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {pll_sclk_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {pll_dac_sync_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {pll_cs_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {cs_n_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {prsnt_m2c_n_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {rst_n_a_i} syn_pad_type {LVCMOS18}
 define_io_standard               {p2l_clk_p_i} syn_pad_type {DIFF_SSTL_18_Class_II}
 define_io_standard               {p2l_clk_n_i} syn_pad_type {DIFF_SSTL_18_Class_II}
@@ -322,27 +288,26 @@ define_io_standard               {l_wr_rdy_i[1:0]} syn_pad_type {SSTL_18_Class_I
 define_io_standard               {p_rd_d_rdy_i[1:0]} syn_pad_type {SSTL_18_Class_I}
 define_io_standard               {tx_error_i} syn_pad_type {SSTL_18_Class_I}
 define_io_standard               {irq_p_o} syn_pad_type {LVCMOS_25}
-define_io_standard               {spare_o} syn_pad_type {LVCMOS_25}
+define_io_standard               {pcb_ver_i[0]} syn_pad_type {LVCMOS_15}
+define_io_standard               {pcb_ver_i[1]} syn_pad_type {LVCMOS_15}
+define_io_standard               {pcb_ver_i[2]} syn_pad_type {LVCMOS_15}
+define_io_standard               {pcb_ver_i[3]} syn_pad_type {LVCMOS_15}
+define_io_standard               {prsnt_m2c_n_i} syn_pad_type {LVCMOS_25}
+define_io_standard               {irq_aux_p_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {pll_status_i} syn_pad_type {LVCMOS_25}
-
 define_io_standard               {pll_sdo_i} syn_pad_type {LVCMOS_25}
-
 define_io_standard               {pll_sdi_o} syn_pad_type {LVCMOS_25}
-
 define_io_standard               {err_flag_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {int_flag_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {start_dis_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {start_from_fpga_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {stop_dis_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {data_bus_io[27:0]} syn_pad_type {LVCMOS_25}
-
 define_io_standard               {address_o[3:0]} syn_pad_type {LVCMOS_25}
-
 define_io_standard               {oe_n_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {rd_n_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {wr_n_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {enable_inputs_o} syn_pad_type {LVCMOS_25}
-
 define_io_standard               {spec_aux0_i} syn_pad_type {LVCMOS18}
 define_io_standard               {spec_aux1_i} syn_pad_type {LVCMOS18}
 define_io_standard               {spec_aux2_o} syn_pad_type {LVCMOS18}

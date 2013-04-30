@@ -139,7 +139,7 @@ package tdc_core_pkg is
            date      => x"20121116",
            name      => "WB-SPEC-CSR        ")));
 
-  constant c_TDC_SDB_DEVICE : t_sdb_device :=-----------------------------------------
+  constant c_TDC_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -152,7 +152,7 @@ package tdc_core_pkg is
           (vendor_id => x"000000000000CE42", -- CERN
            device_id => x"00000604",
            version   => x"00000001",
-           date      => x"20121116",
+           date      => x"20130429",
            name      => "WB-TDC-Core        ")));
 
   constant c_INT_SDB_DEVICE : t_sdb_device :=

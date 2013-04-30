@@ -354,33 +354,30 @@ begin
                                       else local_utc_i;
 
 
-  belongs_to_previous_sec          <= '1' when tstamp_on_first_retrig_case1 or tstamp_on_first_retrig_case2 else '0';
+  belongs_to_previous_sec          <= '1' when tstamp_on_first_retrig_case1 = '1' or tstamp_on_first_retrig_case2 = '1' else '0';
 
   -- the equation below describes the case where: a timestamp came on the same retgigger after a new second
   -- (un_current_retrig_from_roll_over in principle is 0):
-  tstamp_on_first_retrig_case1     <= un_current_retrig_from_roll_over + un_acam_start_nb = un_current_retrig_nb_offset
+  tstamp_on_first_retrig_case1     <= '1' when (un_current_retrig_from_roll_over + un_acam_start_nb = un_current_retrig_nb_offset) else '0';
 
   -- according to the Acam documentation there is an indeterminacy to whether the fine time refers to the previous retrigger or the current one.
   -- the equation below describes the case where: a timestamp came on the same retgigger after a new second but the acam assigned
   -- it to the previous retrigger.
   -- the "un_current_retrig_from_roll_over = 0" describes that a new second has arrived;
-  -- the "fine_time > 6318" desribes a fine time that is referred to the previous retrigger; in principle in a retrigger is 512 ns,
-  -- so a fine time > 512 ns means that it is referred to a previous second.
-  tstamp_on_first_retrig_case2     <= (un_current_retrig_nb_offset = un_acam_start_nb+1) and (unsigned(fine_time) > 6318) and (un_current_retrig_from_roll_over = 0)
+  -- the "fine_time > 6318" desribes a fine time that is referred to the previous retrigger; 6318 * 81ps = 512ns which is a complete Acam retrigger
+  tstamp_on_first_retrig_case2     <= '1' when (un_current_retrig_nb_offset = un_acam_start_nb+1) and (unsigned(fine_time) > 6318) and (un_current_retrig_from_roll_over = 0) else '0';
 
 
-  -- the number of roll-overs of the ACAM internal start retrigger counter is converted to a number
-  -- of internal start retriggers.
-  -- shifted left to multiply by 256
-  -- If a new tstamp has arrived from the ACAM when the roll_over has just been increased,
-  -- there are chances the tstamp belongs to the previous roll-over value. This is because the
-  -- moment the IrFlag is taken into account in the FPGA is different from the moment the tstamp
-  -- has arrived to the ACAM. So if in a timestamp the start_nb from the ACAM is close to the
-  -- upper end (close to 255) and on the moment the timestamp is being treated in the FPGA the IrFlag
-  -- has recently been tripped it means that for the formatting of the tstamp the previous value of
-  -- the roll_over_c should be considered (before the IrFlag tripping).
-  -- Have to calculate the amount of tstamps that could have been accumulated before the rollover
-  -- changes; the current value we put "192" is not well studied for all cases!!
+  -- the number of roll-overs of the ACAM-internal-start-retrigger-counter is converted to a number of internal start retriggers,
+  -- multiplying by 256 i.e. shifting left
+  -- Note that if a new tstamp has arrived from the ACAM when the roll_over has just been increased, there are chances the tstamp
+  -- belongs to the previous roll-over value. This is because the moment the IrFlag is taken into account in the FPGA is different
+  -- from the moment the tstamp has arrived to the ACAM (several clk_i cycles to empty Acam fifo). So if in a timestamp the
+  -- start_nb from the ACAM is close to the upper end (close to 255) and on the moment the timestamp is being treated in the FPGA
+  -- the IrFlag has recently been tripped it means that for the formatting of the tstamp the previous value of the roll_over_c
+  -- should be considered (before the IrFlag tripping).
+  -- Eva: have to calculate better the amount of tstamps that could have been accumulated before the rollover changes;
+  -- the current value we put "192" is not well studied for all cases!!
   un_retrig_from_roll_over         <= shift_left(un_roll_over-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
                                       else shift_left(un_roll_over, 8);
 
@@ -410,16 +407,9 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata                      <= acam_start_nb &                      -- for debugging
-                                   retrig_nb_offset_i(15 downto 0) &    -- for debugging
-                                   belongs_to_previous_sec & roll_over_incr_recent_i & "0" & acam_slope & --for debugging
-                                   "0"   & acam_channel;
-                                   --"0"   & acam_channel;  -- 4 bits in total (LSB)
-  --metadata                      <= x"0000"              & -- 16 bits         (MSB)
-  --                                 "000" & acam_fifo_ef & -- 4 bits in total
-  --                                 "000" & acam_fifo_lf & -- 4 bits in total
-  --                                 "000" & acam_slope   & -- 4 bits in total
-  --                                 "0"   & acam_channel;  -- 4 bits in total (LSB)
+  metadata                      <= acam_start_nb & retrig_nb_offset_i(15 downto 0) &         -- for debugging (24 MSbits)
+                                   belongs_to_previous_sec & roll_over_incr_recent_i & "0" & -- for debugging (3 bits)
+                                   acam_slope & "0" & acam_channel;                          -- 5 LSbits
 
 
 ---------------------------------------------------------------------------------------------------

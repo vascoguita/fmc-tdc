@@ -1,7 +1,0 @@
-INFILE=C:\FMC_TDC\evas_fmc_tdc\syn\par_tdc.ncd
-OUTFILE=C:\FMC_TDC\evas_fmc_tdc\syn\tdc.bit
-FAMILY=Spartan6
-PART=xc6slx45t-3fgg484
-WORKINGDIR=C:\FMC_TDC\evas_fmc_tdc\syn
-LICENSE=ISE
-USER_INFO=No user information available.

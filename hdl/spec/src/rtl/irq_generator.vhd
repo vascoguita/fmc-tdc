@@ -29,7 +29,10 @@
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
---     05/2011  v0.1  EG  First version                                                           |
+--     05/2012  v0.1  EG  First version                                                           |
+--     04/2013  v0.2  EG  line 170 added "irq_time_threshold_i > 0"; if the user doesn t want the |
+--                        time interrupts he sets the irq_time_threshold reg to zero; same goes   |
+--                        for number-of-tstamps interrupts, users sets to zero to disable them    |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -166,7 +169,7 @@ begin
                      nxt_irq_st   <= IDLE;
                    elsif tstamps_c > ZERO and tstamps_c >= irq_tstamp_threshold_i(8 downto 0) then -- not >= ZERO!!
                      nxt_irq_st   <= RAISE_IRQ_TSTAMP;
-                   elsif time_c >= irq_time_threshold_i and tstamps_c > ZERO then
+                   elsif unsigned(irq_time_threshold_i) > 0 and time_c >= irq_time_threshold_i and tstamps_c > ZERO then
                      nxt_irq_st   <= RAISE_IRQ_TIME;
                    else
                      nxt_irq_st   <= TSTAMP_AND_TIME_COUNTING;
