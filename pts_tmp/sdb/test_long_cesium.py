@@ -99,10 +99,6 @@ def main (default_directory='.'):
     bitstream = os.path.join(default_directory, FMC_TDC_BITSTREAM_PATH)
     os.system(firmware_loader + ' ' + bitstream)
     time.sleep(1)
-    firmware_loader = os.path.join(default_directory, FPGA_LOADER_PATH)
-    bitstream = os.path.join(default_directory, FMC_TDC_BITSTREAM_PATH)
-    os.system(firmware_loader + ' ' + bitstream)
-    time.sleep(1)
     print "Firmware loaded!"
 
     # TDC object declaration
