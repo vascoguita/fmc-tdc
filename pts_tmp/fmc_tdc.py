@@ -159,7 +159,6 @@ class CFMCTDC:
         self.tdc_regs.wr_reg(0x00, 0x1F0FC81)
         self.tdc_regs.wr_reg(0x04, 0x0)
         self.tdc_regs.wr_reg(0x08, 0xE02)
-        time.sleep(1)
         self.tdc_regs.wr_reg(0x0C, 0x0)
         self.tdc_regs.wr_reg(0x10, 0x200000F)
         self.tdc_regs.wr_reg(0x14, 0x7D0)
