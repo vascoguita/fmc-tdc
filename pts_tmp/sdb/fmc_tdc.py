@@ -61,7 +61,7 @@ class CFMCTDC:
 
     # ACAM register addresses and expected register contents
     ACAM_READBACK_ADDR = [0x40, 0x44, 0x48, 0x4C, 0X50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x78]
-    ACAM_READBACK_REGS = [0xC1F0FC81, 0xC0000000, 0xC0000E02, 0xC0000000, 0xC200000F, 0xC00007D0, 0xC00000FC, 0xC0001FEA, 0x00000000, 0x00000000, 0x00000000, 0xC3000000, 0xC4000800, 0xC0000000]
+    ACAM_READBACK_REGS = [0xC1F0FC81, 0xC0000000, 0xC0000E02, 0xC0000000, 0xC200000F, 0xC00007D0, 0xC00000FC, 0xC0001FEA, 0x00000000, 0x00000000, 0x00000000, 0xC0FF0000, 0xC4000800, 0xC0000000]
 
     # DMA length in bytes
     DMA_LENGTH = 4096
@@ -166,18 +166,15 @@ class CFMCTDC:
     # Configures ACAM    
     def config_acam(self):
         print "Loading ACAM and TDC core registers"
-        time.sleep(1)
         self.tdc_regs.wr_reg(0x00, 0x1F0FC81)
         self.tdc_regs.wr_reg(0x04, 0x0)
         self.tdc_regs.wr_reg(0x08, 0xE02)
-        time.sleep(1)
         self.tdc_regs.wr_reg(0x0C, 0x0)
         self.tdc_regs.wr_reg(0x10, 0x200000F)
         self.tdc_regs.wr_reg(0x14, 0x7D0)
         self.tdc_regs.wr_reg(0x18, 0x3)
         self.tdc_regs.wr_reg(0x1C, 0x1FEA)
-        #self.tdc_regs.wr_reg(0x2C, 0xFF0000)
-        self.tdc_regs.wr_reg(0x2C, 0x03000000)
+        self.tdc_regs.wr_reg(0x2C, 0xFF0000)
         self.tdc_regs.wr_reg(0x30, 0x4000000)
         self.tdc_regs.wr_reg(0x38, 0x0)
         self.tdc_regs.wr_reg(0xFC, 0x4)
