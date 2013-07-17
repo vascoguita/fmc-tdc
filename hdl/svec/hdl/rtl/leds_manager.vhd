@@ -87,6 +87,8 @@ entity leds_manager is
      acam_inputs_en_i  : in std_logic_vector(g_width-1 downto 0); -- enable for the ACAM channels;
                                         -- activation comes through dedicated reg c_ACAM_INPUTS_EN_ADR
 
+     fordebug_i        : in std_logic;
+
 
   -- OUTPUTS
      -- Signals to the LEDs on the TDC front panel
@@ -105,8 +107,9 @@ end leds_manager;
 --=================================================================================================
 architecture rtl of leds_manager is
 
-  signal tdc_led_blink_done                    : std_logic;
-  signal spec_led_period, visible_blink_length : std_logic_vector(g_width-1 downto 0);
+  signal tdc_led_blink_done, tdc_debug_led_blink_done : std_logic;
+  signal spec_led_period, visible_blink_length        : std_logic_vector(g_width-1 downto 0);
+  signal tdc_debug_led                                : std_logic;
 
 
 begin
@@ -116,7 +119,7 @@ begin
   
 ---------------------------------------------------------------------------------------------------
 
-  tdc_led_blink_counter: decr_counter
+  tdc_status_led_blink_counter: decr_counter
   port map
     (clk_i             => clk_i,
      rst_i             => rst_i,
@@ -126,7 +129,7 @@ begin
      counter_o         => open);
 
 ---------------------------------------------------------------------------------------------------
-  tdc_led: process (clk_i)
+  tdc_status_led_gener: process (clk_i)
   begin
     if rising_edge (clk_i) then
       if rst_i ='1' then
@@ -146,10 +149,38 @@ begin
 --                                    TDC FRONT PANEL LEDs 2-6                                   --
 --------------------------------------------------------------------------------------------------- 
 ---------------------------------------------------------------------------------------------------
+
+  tdc_debug_led_blink_counter: decr_counter
+  port map
+    (clk_i             => clk_i,
+     rst_i             => rst_i,
+     counter_load_i    => fordebug_i,
+     counter_top_i     => visible_blink_length,
+     counter_is_zero_o => tdc_debug_led_blink_done,
+     counter_o         => open);
+
+---------------------------------------------------------------------------------------------------
+  tdc_debug_led_gener: process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i ='1' then
+        tdc_debug_led <= '0';
+      elsif fordebug_i ='1' then
+        tdc_debug_led <= '1';
+      elsif tdc_debug_led_blink_done = '1' then
+        tdc_debug_led <= '0';
+      end if;
+    end if;
+  end process;
+
+  visible_blink_length <= c_BLINK_LGTH_SIM when values_for_simulation else c_BLINK_LGTH_SYN;
+
+
+
   all_outputs: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      tdc_led_trig5_o  <= acam_inputs_en_i(4) and acam_inputs_en_i(7);
+      tdc_led_trig5_o  <= tdc_debug_led;--acam_inputs_en_i(4) and acam_inputs_en_i(7);
       tdc_led_trig4_o  <= acam_inputs_en_i(3) and acam_inputs_en_i(7);
       tdc_led_trig3_o  <= acam_inputs_en_i(2) and acam_inputs_en_i(7);
       tdc_led_trig2_o  <= acam_inputs_en_i(1) and acam_inputs_en_i(7);

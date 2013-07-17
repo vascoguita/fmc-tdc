@@ -160,7 +160,7 @@ end reg_ctrl;
 architecture rtl of reg_ctrl is
 
   signal acam_config                                  : config_vector;
-  signal reg_adr                                      : std_logic_vector(7 downto 0);
+  signal reg_adr,reg_adr_pipe0                                      : std_logic_vector(7 downto 0);
   signal starting_utc, acam_inputs_en, start_phase    : std_logic_vector(g_width-1 downto 0);
   signal ctrl_reg, one_hz_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
   signal irq_time_threshold                           : std_logic_vector(g_width-1 downto 0);
@@ -168,8 +168,9 @@ architecture rtl of reg_ctrl is
   signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out                                      : std_logic_vector(g_span-1 downto 0);
+  signal dat_out, dat_out_pipe0                                      : std_logic_vector(g_span-1 downto 0);
 
+  signal tdc_config_wb_ack_o_pipe0 : std_logic;
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -189,8 +190,13 @@ begin
     if rising_edge (clk_i) then
       if rst_i = '1' then
         tdc_config_wb_ack_o <= '0';
+        tdc_config_wb_ack_o_pipe0 <= '0';
+      elsif(tdc_config_wb_cyc_i = '0') then
+        tdc_config_wb_ack_o <= '0';
+        tdc_config_wb_ack_o_pipe0 <= '0';
       else
-        tdc_config_wb_ack_o <= tdc_config_wb_stb_i and tdc_config_wb_cyc_i;
+        tdc_config_wb_ack_o <= tdc_config_wb_ack_o_pipe0;
+        tdc_config_wb_ack_o_pipe0 <= tdc_config_wb_stb_i and tdc_config_wb_cyc_i;
       end if;
     end if;
   end process;
@@ -421,17 +427,16 @@ begin
   WISHBONEreads: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if rst_i = '1' then
-        tdc_config_wb_dat_o <= (others =>'0');
-
-      elsif tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '0' then -- WISHBONE reads
-        tdc_config_wb_dat_o <= dat_out;
-      end if;
+      --if tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '0' then -- WISHBONE reads
+      --  tdc_config_wb_dat_o <= dat_out;
+      reg_adr_pipe0 <= reg_adr;
+      tdc_config_wb_dat_o <= dat_out;
+      --end if;
     end if;
   end process;
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  with reg_adr select dat_out <= 
+  with reg_adr_pipe0 select dat_out <= 
     -- regs written by the PCIe/VME interface
     acam_config(0)         when c_ACAM_REG0_ADR,
     acam_config(1)         when c_ACAM_REG1_ADR,

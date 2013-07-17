@@ -75,7 +75,7 @@ package tdc_core_pkg is
      wbd_width     => x"4",                  -- 32-bit port granularity
      sdb_component =>
        (addr_first  => x"0000000000000000",
-        addr_last   => x"000000000000007F",
+        addr_last   => x"0000000000000FFF",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
            device_id => x"00000601",
@@ -295,7 +295,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 --                            Constants regarding the Circular Buffer                            --
 ---------------------------------------------------------------------------------------------------
-  constant c_CIRCULAR_BUFF_SIZE : unsigned(31 downto 0) := x"00000100";
+  constant c_CIRCULAR_BUFF_SIZE : unsigned(7 downto 0) := "11111111";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -681,6 +681,7 @@ package tdc_core_pkg is
        retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
        one_hz_p_i              : in std_logic;
       ----------------------------------------------------------------------
+       tdc_led_5_o             : out std_logic;
        tstamp_wr_wb_adr_o      : out std_logic_vector(7 downto 0);
        tstamp_wr_wb_cyc_o      : out std_logic;
        tstamp_wr_dat_o         : out std_logic_vector(127 downto 0);
@@ -802,6 +803,7 @@ package tdc_core_pkg is
        rst_i            : in std_logic;
        one_hz_p_i       : in std_logic;
        acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
+       fordebug_i       : in std_logic;
       ----------------------------------------------------------------------
        tdc_led_status_o : out std_logic;
        tdc_led_trig1_o  : out std_logic;

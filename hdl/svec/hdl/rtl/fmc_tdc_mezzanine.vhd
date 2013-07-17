@@ -130,10 +130,9 @@ architecture rtl of fmc_tdc_mezzanine is
   constant c_NUM_WB_MASTERS           : integer := 5;
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 0;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 1;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
-  constant c_WB_SLAVE_TSTAMP_MEM      : integer := 2;  -- Access to TDC core timestamps memory
+  constant c_WB_SLAVE_DUMMY           : integer := 2;  -- Dummy for debugging
   constant c_WB_SLAVE_TDC_SYS_I2C     : integer := 3;  -- TDC mezzanine board system EEPROM I2C
-  constant c_WB_SLAVE_DUMMY           : integer := 4;  -- Dummy for debugging
-
+  constant c_WB_SLAVE_TSTAMP_MEM      : integer := 4;  -- Access to TDC core timestamps memory
 
   -- Slave port on the wishbone crossbar
   constant c_NUM_WB_SLAVES            : integer := 1;
@@ -143,11 +142,11 @@ architecture rtl of fmc_tdc_mezzanine is
   constant c_SDB_ADDRESS              : t_wishbone_address := x"00000000";
   -- WISHBONE crossbar layout
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(4 downto 0) :=
-    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00001000"),
-     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00001100"),
-     2 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00001200"),
-     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00001300"),
-     4 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00001400"));
+    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00010000"),
+     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00011000"),
+     2 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00012000"),
+     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00013000"),
+     4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00014000"));
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --

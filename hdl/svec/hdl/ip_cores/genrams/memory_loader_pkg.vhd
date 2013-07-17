@@ -147,15 +147,14 @@ package body memory_loader_pkg is
     variable data_tmp : unsigned(mem_width-1 downto 0);
     variable data_int : integer;
   begin
-    if(file_name = "" or file_name = "none") then
+    if(file_name = "") then
       mem := (others => (others => '0'));
       return mem;
     end if;
 
     file_open(status, f_in, file_name, read_mode);
 
-    if(status = open_ok) then
-    else
+    if(status /= open_ok) then
       if(fail_if_notfound) then
         report "f_load_mem_from_file(): can't open file '"&file_name&"'" severity failure;
       else

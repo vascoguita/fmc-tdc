@@ -13,7 +13,7 @@
 -- File         one_hz_gen.vhd                                                                    |
 --                                                                                                |
 -- Description  Generates one pulse every second synchronously with the acam reference clock.     |
---              The phase with the reference clock can be adjusted [eva still don t know why??]   |
+--              The phase with the reference clock can be adjusted. still don t know why??        |
 --              It also keeps track of the UTC time based on the local clock.                     |
 --                                                                                                |
 --                                                                                                |
@@ -66,16 +66,16 @@ entity one_hz_gen is
     (g_width                : integer := 32);
   port
   -- INPUTS
-     -- Signals from the clks_rsts_manager unit
-    (clk_i                  : in std_logic;  -- 125 MHZ clk
-     rst_i                  : in std_logic;  -- global reset, synched to clk_i
-     acam_refclk_r_edge_p_i : in std_logic;  -- rising edge on 31.25MHz ACAM reference clk
-     clk_period_i           : in std_logic_vector(g_width-1 downto 0); -- nb of clk_i periods for 1s
+     -- Signals from the clk_rst_manager unit
+    (clk_i                  : in std_logic;
+     rst_i                  : in std_logic;  
+     acam_refclk_r_edge_p_i : in std_logic;   
+     clk_period_i           : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods for 1s
 
      -- Signals from the reg_ctrl unit
      load_utc_p_i           : in std_logic; -- enables loading of the local UTC time with starting_utc_i value
-     starting_utc_i         : in std_logic_vector(g_width-1 downto 0); -- value coming from the PCIe/VME interface
-     pulse_delay_i          : in std_logic_vector(g_width-1 downto 0); -- nb of clk_i periods phase delay
+     starting_utc_i         : in std_logic_vector(g_width-1 downto 0); -- value coming from the PCIe
+     pulse_delay_i          : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods phase delay
                                                                        -- with respect to reference clock
 
   -- OUTPUTS
@@ -92,7 +92,7 @@ end one_hz_gen;
 --=================================================================================================
 architecture rtl of one_hz_gen is
 
-  constant constant_delay         : unsigned(g_width-1 downto 0) := x"00000004"; --maybe put in package..maybe not needed
+  constant constant_delay         : unsigned(g_width-1 downto 0) := x"00000004"; --maybe put in package--maybe not needed
   signal local_utc                : unsigned(g_width-1 downto 0);
   signal one_hz_p_pre             : std_logic;
   signal one_hz_p_post            : std_logic;
@@ -147,9 +147,9 @@ begin
 --                                         Load UTC time                                         --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
--- utc_counter: generation of a 1-clk-long pulse every second
+-- utc_counter: generation of a 1 clk-long pulse every second
 
-  utc_counter: process (clk_i) -- maybe use an already existing counter???
+  utc_counter: process (clk_i)--maybe use an already existing counter???
   begin   
     if rising_edge (clk_i) then
       if rst_i ='1' then

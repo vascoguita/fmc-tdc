@@ -46,14 +46,18 @@ package genram_pkg is
 
   type t_generic_ram_init is array (integer range <>, integer range <>) of std_logic;
   
+  -- Generic RAM initialized with nothing.
+  constant c_generic_ram_nothing : t_generic_ram_init(-1 downto 0, -1 downto 0) := 
+    (others => (others => '0'));
+
   -- Single-port synchronous RAM
   component generic_spram
     generic (
       g_data_width               : natural;
       g_size                     : natural;
       g_with_byte_enable         : boolean := false;
-      g_init_file                : string  := "none";
-      g_addr_conflict_resolution : string  := "dont_care") ;
+      g_init_file                : string  := "";
+      g_addr_conflict_resolution : string  := "read_first") ;
     port (
       rst_n_i : in  std_logic;
       clk_i   : in  std_logic;
@@ -64,33 +68,14 @@ package genram_pkg is
       q_o     : out std_logic_vector(g_data_width-1 downto 0));
   end component;
 
-  component generic_simple_dpram
-    generic (
-      g_data_width               : natural;
-      g_size                     : natural;
-      g_with_byte_enable         : boolean := false;
-      g_addr_conflict_resolution : string  := "dont_care";
-      g_init_file                : string  := "none";
-      g_dual_clock               : boolean := true);
-    port (
-      rst_n_i : in  std_logic := '1';
-      clka_i  : in  std_logic;
-      bwea_i  : in  std_logic_vector((g_data_width+7)/8 -1 downto 0) := f_gen_dummy_vec('1', (g_data_width+7)/8);
-      wea_i   : in  std_logic;
-      aa_i    : in  std_logic_vector(f_log2_size(g_size)-1 downto 0);
-      da_i    : in  std_logic_vector(g_data_width       -1 downto 0);
-      clkb_i  : in  std_logic;
-      ab_i    : in  std_logic_vector(f_log2_size(g_size)-1 downto 0);
-      qb_o    : out std_logic_vector(g_data_width       -1 downto 0));
-  end component;
-
   component generic_dpram
     generic (
       g_data_width               : natural;
       g_size                     : natural;
       g_with_byte_enable         : boolean := false;
-      g_addr_conflict_resolution : string  := "dont_care";
-      g_init_file                : string  := "none";
+      g_addr_conflict_resolution : string  := "read_first";
+      g_init_file                : string  := "";
+      g_init_value               : t_generic_ram_init := c_generic_ram_nothing;
       g_dual_clock               : boolean := true);
     port (
       rst_n_i : in  std_logic := '1';

@@ -21,6 +21,11 @@ TIMESPEC TS_acam_refclk_p_i = PERIOD "acam_refclk_p_i" 32 ns HIGH 50%;
 NET "acam_refclk_n_i" TNM_NET = acam_refclk_n_i;
 TIMESPEC TS_acam_refclk_n_i = PERIOD "acam_refclk_n_i" 32 ns HIGH 50%;
 
+NET "clk_62m5_pllxilinx" TNM_NET = "clk_62m5_pllxilinx";
+NET "clk_125m" TNM_NET = "clk_125m";
+TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_pllxilinx" TO "clk_125m" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "clk_125m" TO "clk_62m5_pllxilinx" 20ns DATAPATHONLY;
+
 
 #
 # Clock to Clock
@@ -29,6 +34,7 @@ TIMESPEC TS_acam_refclk_n_i = PERIOD "acam_refclk_n_i" 32 ns HIGH 50%;
 #
 # Inputs/Outputs
 #
+
 
 #
 # Registers

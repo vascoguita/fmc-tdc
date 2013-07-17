@@ -12,30 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 -- File         acam_timecontrol_interface.vhd                                                    |
 --                                                                                                |
--- Description  Interface with the ACAM chip pins for the timing issues.                          |
---              o The unit is responsible for delivering to the ACAM, the Start pulse, upon the   |
---                activation-of-the-aquisition command (activate_acq_p_i) coming through the      |
---                Control Register bit 0, from the PCIe/VME interface.                            |
---                All ACAM timestamps will be referring to this Start pulse (a timestamp is the   |
---                time difference between this pulse and a pulse arriving to any of the channels).|
---                Since though in this application we are only interested in calculating timestamp|
---                differences, the exact arrival of this Start pulse is not actually significant. |
---                Note that the timestamps subtraction takes place on the software level of this  | 
---                TDC application.                                                                |
---                Start       :  ______|-|_______________________________________________________ |
---                Stop Ch1    :  _______________|-|______________________________________________ |
---                Stop Ch2    :  _________________________________|-|____________________________ |
---                ACAM tstamp1:        <-------->                                                 |
---                ACAM tstamp2:        <------------------------->                                |
---                Tstamps diff:                 <---------------->
---              o The unit is also receiving the ACAM signal int_flag_i, which is following       |
---                the ACAM Start# MSB (configuration set through the ACAM register 12);           |
---                it makes it synchronous to the clk_i and makes it availabe to the               |
---                start_retrig_ctrl unit.                                                         |
---              o Finally, the unit is receiving the the ACAM signal err_flag_i, which is         |
---                following the ACAM Full Flags of the Hit FIFOs(configuration set through the    |
---                ACAM register 11); it detects a rising edge and makes it available to the       |
---                irq_generator unit.                                                             |
+-- Description  interface with the acam chip pins for control and timing                          |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -85,31 +62,28 @@ use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 entity acam_timecontrol_interface is
   port
   -- INPUTS
-    -- Signals from the clks_rsts_manager unit
-    (clk_i                   : in std_logic;  -- 125 MHz clock
-     rst_i                   : in std_logic;  -- global reset, synched to clk_i
-     acam_refclk_r_edge_p_i  : in std_logic;  -- pulse upon ACAM RefClk rising edge
+    -- Signals from the clk_rst_manager unit
+    (clk_i                   : in std_logic; -- 125 MHz clock
+     rst_i                   : in std_logic; -- reset
+     acam_refclk_r_edge_p_i  : in std_logic; -- pulse upon ACAM RefClk rising edge
 
     -- Signals from the ACAM chip
-     int_flag_i              : in std_logic;  -- ACAM interrupt flag, active HIGH; through ACAM config
-                                              -- reg 12 it is set to the MSB of Start#
-     err_flag_i              : in std_logic;  -- ACAM error flag, active HIGH; through ACAM config
-                                              -- reg 11 is set to report for any HitFIFOs full flags
+     err_flag_i              : in std_logic; -- ACAM error flag, active HIGH; through ACAM config
+                                             -- reg 11 is set to report for any HitFIFOs full flags
+     int_flag_i              : in std_logic; -- ACAM interrupt flag, active HIGH; through ACAM config
+                                             -- reg 12 it is set to the MSB of Start#
 
     -- Signals from the reg_ctrl unit
-     activate_acq_p_i        : in std_logic;  -- signal from PCIe/VME to send the Start pulse 
-                                              -- and to start retrieving the ACAM timestamps
-     window_delay_i          : in std_logic_vector(31 downto 0); -- eva: think not used
+     activate_acq_p_i        : in std_logic; -- signal from PCIe to start following the ACAM chip
+                                             -- for tstamps aquisition
+     window_delay_i          : in std_logic_vector(31 downto 0); -- eva: don t know yet:s
 
 
   -- OUTPUTS
     -- Signals to the ACAM chip
-     start_from_fpga_o       : out std_logic; -- Start pulse, to which all timestamps will be refering to;
-                                              -- note though that in this application we are only interested
-                                              -- in time differences, therefore the exact arrival of this 
-                                              -- pulse is not significant.
+     start_from_fpga_o       : out std_logic;
 
-    -- Signals to the start_retrig_ctrl unit
+    -- Signals to the 
      acam_errflag_r_edge_p_o : out std_logic; -- ACAM ErrFlag rising edge
      acam_errflag_f_edge_p_o : out std_logic; -- ACAM ErrFlag falling edge
      acam_intflag_f_edge_p_o : out std_logic);-- ACAM IntFlag falling edge
@@ -168,9 +142,8 @@ begin
   acam_intflag_f_edge_p_o   <= not(int_flag_synch(1)) and int_flag_synch(0);
 
 
-
 ---------------------------------------------------------------------------------------------------
---                                     Start Pulse Generation                                    --
+--                                      Input Synchronizers                                      --
 ---------------------------------------------------------------------------------------------------   
 -- Generation of the start pulse and the enable window:
 -- the start pulse originates from an internal signal at the same time, the StartDis is de-asserted.
@@ -209,8 +182,8 @@ begin
   total_delay          <= std_logic_vector(unsigned(window_delay_i)+constant_delay);
 
     
-  start_pulse_from_fpga: process (clk_i)             -- start pulse in the middle of the
-  begin                                              -- de-assertion window of StartDisable
+  start_pulse_from_fpga: process (clk_i)                  -- start pulse in the middle of the
+  begin                                                   -- de-assertion window of StartDisable
     if rising_edge (clk_i) then
       if rst_i ='1' then
         start_from_fpga_o <= '0';
@@ -223,6 +196,7 @@ begin
       end if;
     end if;
   end process;
+
 
 
   -- Synchronization of the activate_acq_p with the acam_refclk_p_i
@@ -244,8 +218,8 @@ begin
 
 
 
-  actual_trigger_received: process (clk_i)           -- signal needed to exclude the generation of
-  begin                                              -- the start_from_fpga_o after a general rst_i
+  actual_trigger_received: process (clk_i)        -- signal needed to exclude the generation of
+  begin                                           -- the start_from_fpga_o after a general rst_i
     if rising_edge (clk_i) then
       if rst_i ='1' then  
         start_trig_received <= '0';

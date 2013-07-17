@@ -138,9 +138,9 @@ entity start_retrig_ctrl is
     (g_width                 : integer := 32);
   port
   -- INPUTS
-     -- Signal from the clks_rsts_manager
-    (clk_i                   : in std_logic; -- 125 MHz clk
-     rst_i                   : in std_logic; -- global reset, synched to clk_i
+     -- Signal from the clk_rst_manager
+    (clk_i                   : in std_logic;
+     rst_i                   : in std_logic;
 
      -- Signal from the acam_timecontrol_interface
      acam_intflag_f_edge_p_i : in std_logic;
@@ -169,8 +169,7 @@ architecture rtl of start_retrig_ctrl is
   signal current_retrig_nb   : std_logic_vector(g_width-1 downto 0);
   signal retrig_nb_offset    : std_logic_vector(g_width-1 downto 0);
   signal retrig_p            : std_logic;
-  signal roll_over_c         : unsigned(g_width-1 downto 0);
-  signal acam_rollovers      : unsigned(g_width-1 downto 0);
+  signal roll_over_c         : std_logic_vector(g_width-1 downto 0);
 
 --=================================================================================================
 --                                       architecture begin
@@ -265,34 +264,16 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- This counter keeps track of the number of overflows of the Acam counter within one second
-  --roll_over_counter: incr_counter
-    -- generic map
-      -- (width             => g_width)
-    -- port map
-      -- (clk_i             => clk_i,
-       -- rst_i             => one_hz_p_i,  
-       -- counter_top_i     => x"FFFFFFFF",
-       -- counter_incr_en_i => acam_intflag_f_edge_p_i,
-       -- counter_is_full_o => open,
-       -- counter_o         => roll_over_c);
-
-  roll_over_incr_counter: process (clk_i)
-  begin
-    if rising_edge (clk_i) then
-      if one_hz_p_i = '1' then
-        roll_over_c    <= (others => '0');
-        acam_rollovers <= (others => '0');
-
-      elsif roll_over_c = x"FFFFFFFF" then
-        roll_over_c     <= x"FFFFFFFF";
-        acam_rollovers  <= shift_left(x"FFFFFFFF",8);
-
-      elsif acam_intflag_f_edge_p_i ='1' then
-          roll_over_c    <= roll_over_c + "1";
-          acam_rollovers <= shift_left(roll_over_c + "1",8);
-      end if;
-    end if;
-  end process;
+  roll_over_counter: incr_counter
+    generic map
+      (width             => g_width)
+    port map
+      (clk_i             => clk_i,
+       rst_i             => one_hz_p_i,  
+       counter_top_i     => x"FFFFFFFF",
+       counter_incr_en_i => acam_intflag_f_edge_p_i,
+       counter_is_full_o => open,
+       counter_o         => roll_over_c);
 
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -303,18 +284,12 @@ begin
   begin
     if rising_edge (clk_i) then
       if rst_i ='1' then
-        clk_i_cycles_offset     <= (others=>'0');
-        retrig_nb_offset        <= (others=>'0');
-        roll_over_incr_recent_o <= '0';
+        clk_i_cycles_offset <= (others=>'0');
+        retrig_nb_offset    <= (others=>'0');
 
       elsif one_hz_p_i = '1' then
         clk_i_cycles_offset <= current_cycles;
         retrig_nb_offset    <= current_retrig_nb;
-        if unsigned(current_retrig_nb) < 64 then
-          roll_over_incr_recent_o <= '1';
-        else
-          roll_over_incr_recent_o <= '0';
-        end if;
       end if;
 
     end if;
@@ -323,10 +298,11 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --    
     
   -- outputs
+  roll_over_incr_recent_o <= '1' when unsigned(current_retrig_nb) < 64 else '0';
   clk_i_cycles_offset_o   <= clk_i_cycles_offset;
   retrig_nb_offset_o      <= retrig_nb_offset;
-  roll_over_nb_o          <= std_logic_vector(acam_rollovers);
-  --roll_over_nb_o          <= roll_over_c;
+  roll_over_nb_o          <= roll_over_c;
+
 
 
 end architecture rtl;

@@ -14,8 +14,8 @@
 --                                                                                                |
 -- Description  The unit interfaces with the ACAM chip pins for the configuration of the registers|
 --              and the aquisition of the timestamps.                                             |
---              The ACAM proprietary interface is converted to a WISHBONE classic interface,      |
---              through which the unit communicates with the data_engine unit.                    |
+--              The ACAM proprietary interface is converted to a WISHBONE classic interface, with |
+--              which the unit communicates with the data_engine unit.                            |
 --              The WISHBONE master is implemented in the data_engine and the slave in this unit. |
 --                                                                                                |
 --              ___________               ____________              ___________                   |
@@ -78,13 +78,13 @@ entity acam_databus_interface is
   port
 
   -- INPUTS
-     -- Signals from the clks_rsts_manager unit
+     -- Signals from the clk_rst_manager unit
     (clk_i        : in std_logic; -- 125 MHz clock
-     rst_i        : in std_logic; -- global reset, synched to clk_i
+     rst_i        : in std_logic; -- global reset
 
      -- Signals from the ACAM chip
      ef1_i        : in std_logic; -- FIFO1 empty flag
-     ef2_i        : in std_logic; -- FIFO2 empty flag
+     ef2_i        : in std_logic; -- FIFO1 empty flag
 
      data_bus_io   : inout std_logic_vector(27 downto 0);
 
@@ -92,27 +92,27 @@ entity acam_databus_interface is
      cyc_i        : in std_logic; -- WISHBONE cycle
      stb_i        : in std_logic; -- WISHBONE strobe
      we_i         : in std_logic; -- WISHBONE write enable
-     adr_i        : in std_logic_vector(7 downto 0);  -- address of ACAM to write to/ read from (only 4 LSB are output)
-     dat_i        : in std_logic_vector(31 downto 0); -- data to load to ACAM (only 28 LSB are output)
+     adr_i        : in std_logic_vector(7 downto 0);  -- address of Acam to write to/ read from (only 4 LSB are output)
+     dat_i        : in std_logic_vector(31 downto 0); -- data to load to Acam (only 28 LSB are output)
 
 
   -- OUTPUTS
      -- signals internal to the chip: interface with other modules
-     ef1_o        : out std_logic; -- ACAM FIFO1 empty flag (bouble registered with clk_i)
-     ef1_synch1_o : out std_logic; -- ACAM FIFO1 empty flag (after 1 clk_i register)
-     ef2_o        : out std_logic; -- ACAM FIFO2 empty flag (bouble registered with clk_i)
-     ef2_synch1_o : out std_logic; -- ACAM FIFO2 empty flag (after 1 clk_i register)
+     ef1_o        : out std_logic; -- acam FIFO1 empty flag (bouble registered with clk_i)
+     ef1_synch1_o : out std_logic; -- acam FIFO1 empty flag (after 1 clk_i register)
+     ef2_o        : out std_logic; -- acam FIFO2 empty flag (bouble registered with clk_i)
+     ef2_synch1_o : out std_logic; -- acam FIFO2 empty flag (after 1 clk_i register)
 
      -- Signals to ACAM interface
-     adr_o        : out std_logic_vector(3 downto 0);   -- ACAM address
-     cs_n_o       : out std_logic;                      -- ACAM chip select, active low
-     oe_n_o       : out std_logic;                      -- ACAM output enble, active low
-     rd_n_o       : out std_logic;                      -- ACAM read enable, active low
-     wr_n_o       : out std_logic;                      -- ACAM write enable, active low
+     adr_o        : out std_logic_vector(3 downto 0);   -- acam address
+     cs_n_o       : out std_logic;                      -- acam chip select, active low
+     oe_n_o       : out std_logic;                      -- acam output enble, active low
+     rd_n_o       : out std_logic;                      -- acam read enable, active low
+     wr_n_o       : out std_logic;                      -- acam write enable, active low
 
      -- Signals to the data_engine unit
      ack_o        : out std_logic;                      -- WISHBONE ack 
-     dat_o        : out std_logic_vector(31 downto 0)); -- ef1 & ef2 & 0 & 0 & 28 bits ACAM data_bus_io
+     dat_o        : out std_logic_vector(31 downto 0)); -- ef1 & ef2 & 0 & 0 & 28 bits acam data_bus_io
 
 end acam_databus_interface;
 
@@ -320,7 +320,7 @@ output_registers: process (clk_i)
   cs           <= ((stb_i and cyc_i)               or cs_extend) and not(ack);
   rd           <= ((stb_i and cyc_i and not(we_i)) or rd_extend) and not(ack);
   wr           <= ((stb_i and cyc_i and we_i)      or wr_extend) and not(wr_remove) and not(ack); 
-               -- the wr signal has to be removed to respect the ACAM specs
+               -- the wr signal has to be removed to respect the Acam specs
   data_bus_io  <= dat_i(27 downto 0) when we_i='1' else (others =>'Z');
   adr_o        <= adr_i(3 downto 0);
 

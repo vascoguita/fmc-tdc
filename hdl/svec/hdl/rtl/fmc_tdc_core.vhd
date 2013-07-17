@@ -134,7 +134,7 @@ entity fmc_tdc_core is
      tdc_mem_wb_we_i     : in std_logic;                            -- WISHBONE pipelined write enable
      tdc_mem_wb_cyc_i    : in std_logic;                            -- WISHBONE pipelined cycle
      tdc_mem_wb_ack_o    : out std_logic;                           -- WISHBONE pipelined acknowledge
-     tdc_mem_wb_dat_o    : out std_logic_vector(31 downto 0);       -- WISHBONE classic data out
+     tdc_mem_wb_dat_o    : out std_logic_vector(31 downto 0);       -- WISHBONE pipelined data out
      tdc_mem_wb_stall_o  : out std_logic);                          -- WISHBONE pipelined stall
 end fmc_tdc_core;
 
@@ -173,6 +173,7 @@ architecture rtl of fmc_tdc_core is
   signal circ_buff_class_stb, circ_buff_class_cyc           : std_logic;
   signal circ_buff_class_we, circ_buff_class_ack            : std_logic;
   signal circ_buff_class_data_wr, circ_buff_class_data_rd   : std_logic_vector(4*g_width-1 downto 0);
+
 
 
 --=================================================================================================
@@ -502,6 +503,7 @@ begin
      rst_i            => rst_i,
      one_hz_p_i       => one_hz_p,
      acam_inputs_en_i => acam_inputs_en,
+     fordebug_i       => acam_tstamp1_ok_p,
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
      tdc_led_trig2_o  => tdc_led_trig2_o,
