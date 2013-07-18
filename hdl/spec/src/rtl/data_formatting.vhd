@@ -19,8 +19,8 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v1                                                                                |
+-- Date         07/2013                                                                           |
+-- Version      v2                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -29,6 +29,8 @@
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
 --     04/2013  v1    EG  Fixed bug when timestamop comes on the first retrigger after a new      |
 --                        second; fixed bug on rollover that is a bit delayed wrt Acam IrFlag     |
+--     07/2013  v2    EG  Cleaner writing with adition of intermediate DFF on the acam_tstamp     |
+--                        calculations                                                            |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -146,10 +148,11 @@ architecture rtl of data_formatting is
   signal un_previous_clk_i_cycles_offset                      : unsigned(31 downto 0);
   signal un_previous_retrig_nb_offset                         : unsigned(31 downto 0);
   signal un_previous_roll_over_nb                             : unsigned(31 downto 0);
-  signal un_current_clk_i_cycles_offset, un_previous_utc      : unsigned(31 downto 0);
+  signal un_current_clk_i_cycles_offset                       : unsigned(31 downto 0);
   signal un_current_retrig_nb_offset, un_current_roll_over_nb : unsigned(31 downto 0);
   signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
-
+  signal un_acam_fine_time :unsigned(31 downto 0);
+  signal previous_utc                                         : std_logic_vector(31 downto 0);
 
 
 --=================================================================================================
@@ -311,13 +314,13 @@ begin
         un_previous_clk_i_cycles_offset <= (others => '0');
         un_previous_retrig_nb_offset    <= (others => '0');
         un_previous_roll_over_nb        <= (others => '0');
-        un_previous_utc                 <= (others => '0');
+        previous_utc                    <= (others => '0');
 
       elsif one_hz_p_i = '1' then
         un_previous_clk_i_cycles_offset <= unsigned(clk_i_cycles_offset_i);
         un_previous_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
         un_previous_roll_over_nb        <= unsigned(roll_over_nb_i);
-        un_previous_utc                 <= local_utc_i;
+        previous_utc                    <= local_utc_i;
       end if;
     end if;
   end process;
@@ -325,6 +328,7 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- all the values needed for the calculations have to be converted to unsigned
+  un_acam_fine_time                <= unsigned(fine_time);
   acam_start_nb_32                 <= x"000000" & acam_start_nb;
   un_acam_start_nb                 <= unsigned(acam_start_nb_32);
   un_current_clk_i_cycles_offset   <= unsigned(clk_i_cycles_offset_i);
@@ -340,46 +344,68 @@ begin
   full_timestamp(127 downto 96)    <= metadata;
   tstamp_wr_dat_o                  <= full_timestamp;
 
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  un_clk_i_cycles_offset           <= un_previous_clk_i_cycles_offset when (belongs_to_previous_sec = '1')
-                                      else un_current_clk_i_cycles_offset;
+  -- The following process makes essential calculations for the definition of the coarse time.
+  -- Regarding the signals: un_clk_i_cycles_offset, un_retrig_nb_offset, local_utc it has to be difined
+  -- if the values that characterize the current second or the one previous to it should be used.
+  -- In the case where: a timestamp came on the same retgigger after a new second
+  -- (un_current_retrig_from_roll_over is 0 and un_acam_start_nb = un_current_retrig_nb_offset)
+  -- the values of the previous second should be used.
+  -- Also, according to the ACAM documentation there is an indeterminacy to whether the fine time refers
+  -- to the previous retrigger or the current one. The equation described on line 386 describes
+  -- the case where: a timestamp came on the same retgigger after a new second but the ACAM assigned
+  -- it to the previous retrigger (the "un_current_retrig_from_roll_over = 0" describes that a new second
+  -- has arrived; the "un_acam_fine_time > 6318" desribes a fine time that is referred to the previous retrigger;
+  -- 6318 * 81ps = 512ns which is a complete ACAM retrigger).
 
-  un_retrig_nb_offset              <= un_previous_retrig_nb_offset when (belongs_to_previous_sec = '1')
-                                      else un_current_retrig_nb_offset;
-
-  un_roll_over                     <= un_previous_roll_over_nb when (belongs_to_previous_sec = '1') 
-                                      else un_current_roll_over_nb;
-
-  local_utc                        <= un_previous_utc when (belongs_to_previous_sec = '1')
-                                      else local_utc_i;
-
-
-  belongs_to_previous_sec          <= '1' when tstamp_on_first_retrig_case1 = '1' or tstamp_on_first_retrig_case2 = '1' else '0';
-
-  -- the equation below describes the case where: a timestamp came on the same retgigger after a new second
-  -- (un_current_retrig_from_roll_over in principle is 0):
-  tstamp_on_first_retrig_case1     <= '1' when (un_current_retrig_from_roll_over + un_acam_start_nb = un_current_retrig_nb_offset) else '0';
-
-  -- according to the Acam documentation there is an indeterminacy to whether the fine time refers to the previous retrigger or the current one.
-  -- the equation below describes the case where: a timestamp came on the same retgigger after a new second but the acam assigned
-  -- it to the previous retrigger.
-  -- the "un_current_retrig_from_roll_over = 0" describes that a new second has arrived;
-  -- the "fine_time > 6318" desribes a fine time that is referred to the previous retrigger; 6318 * 81ps = 512ns which is a complete Acam retrigger
-  tstamp_on_first_retrig_case2     <= '1' when (un_current_retrig_nb_offset = un_acam_start_nb+1) and (unsigned(fine_time) > 6318) and (un_current_retrig_from_roll_over = 0) else '0';
-
-
-  -- the number of roll-overs of the ACAM-internal-start-retrigger-counter is converted to a number of internal start retriggers,
-  -- multiplying by 256 i.e. shifting left
-  -- Note that if a new tstamp has arrived from the ACAM when the roll_over has just been increased, there are chances the tstamp
-  -- belongs to the previous roll-over value. This is because the moment the IrFlag is taken into account in the FPGA is different
-  -- from the moment the tstamp has arrived to the ACAM (several clk_i cycles to empty Acam fifo). So if in a timestamp the
-  -- start_nb from the ACAM is close to the upper end (close to 255) and on the moment the timestamp is being treated in the FPGA
-  -- the IrFlag has recently been tripped it means that for the formatting of the tstamp the previous value of the roll_over_c
-  -- should be considered (before the IrFlag tripping).
+  -- Regarding the un_retrig_from_roll_over, i.e. number of roll-overs of the ACAM-internal-start-retrigger-counter,
+  -- it has to be converted to a number of internal start retriggers, multiplying by 256 i.e. shifting left!
+  -- Note that if a new tstamp has arrived from the ACAM when the roll_over has just been increased, there are chances
+  -- the tstamp belongs to the previous roll-over value. This is because the moment the IrFlag is taken into account
+  -- in the FPGA is different from the moment the tstamp has arrived to the ACAM (several clk_i cycles to empty ACAM FIFOs).
+  -- So if in a timestamp the start_nb from the ACAM is close to the upper end (close to 255) and on the moment the timestamp
+  -- is being treated in the FPGA the IrFlag has recently been tripped it means that for the formatting of the tstamp the
+  -- previous value of the roll_over_c should be considered (before the IrFlag tripping).
   -- Eva: have to calculate better the amount of tstamps that could have been accumulated before the rollover changes;
   -- the current value we put "192" is not well studied for all cases!!
-  un_retrig_from_roll_over         <= shift_left(un_roll_over-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
-                                      else shift_left(un_roll_over, 8);
+
+  coarse_time_intermed_calcul: process (clk_i)   -- ACAM data handling DFF #3; at the next cycle (#4) the data is written in memory
+  begin   
+    if rising_edge (clk_i) then
+      if rst_i ='1' then
+        un_clk_i_cycles_offset   <= (others => '0');
+        un_retrig_nb_offset      <= (others => '0');
+        un_retrig_from_roll_over <= (others => '0');
+        local_utc                <= (others => '0');
+      else
+         -- ACAM tstamp arrived on the same retgigger after a new second
+        if (un_acam_start_nb+un_current_retrig_from_roll_over =  un_current_retrig_nb_offset) or
+          (un_acam_start_nb =  un_current_retrig_nb_offset-1 and  un_acam_fine_time > 6318 and (un_current_retrig_from_roll_over = 0) ) then
+
+          un_clk_i_cycles_offset <= un_previous_clk_i_cycles_offset;
+          un_retrig_nb_offset    <= un_previous_retrig_nb_offset;
+          local_utc              <= previous_utc;
+          -- ACAM tstamp arrived when roll_over has just increased
+          if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
+            un_retrig_from_roll_over  <= shift_left(un_previous_roll_over_nb-1, 8);
+          else
+            un_retrig_from_roll_over  <= shift_left(un_previous_roll_over_nb, 8);
+          end if;
+
+        else
+          un_clk_i_cycles_offset <= unsigned(clk_i_cycles_offset_i);
+          un_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
+          local_utc              <= local_utc_i;
+          if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
+            un_retrig_from_roll_over  <= shift_left(unsigned(roll_over_nb_i)-1, 8);
+          else
+            un_retrig_from_roll_over  <= shift_left(unsigned(roll_over_nb_i), 8);
+          end if;
+        end if;        
+      end if;
+    end if;
+  end process;
 
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

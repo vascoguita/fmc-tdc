@@ -471,8 +471,8 @@ begin
   irq_sources(1 downto 0)  <= dma_irq;
   irq_sources(2)           <= irq_tstamp_p;
   irq_sources(3)           <= irq_time_p;
-  irq_sources(5)           <= irq_acam_err_p;
-  irq_sources(31 downto 6) <= (others => '0');
+  irq_sources(4)           <= irq_acam_err_p;
+  irq_sources(31 downto 5) <= (others => '0');
   irq_aux_p_o              <= irq_to_gn4124;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

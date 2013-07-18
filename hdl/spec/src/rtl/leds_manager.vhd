@@ -99,7 +99,7 @@ entity leds_manager is
      internal_rst_i    : in std_logic;  -- core internal reset, synched with 125 MHz clk
 
      -- Signal from the PLL
-     pll_status_i          : in std_logic;  -- PLL lock detect
+     pll_status_i       : in std_logic;  -- PLL lock detect
 
      -- Signals from the buttons on the SPEC PCB
      spec_aux_butt_1_i : in std_logic;  -- SPEC PCB button 1 (PB1)

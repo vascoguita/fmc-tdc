@@ -752,7 +752,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component leds_manager is
     generic
-      (g_width               : integer := 32;
+      (g_width          : integer := 32;
        values_for_simul : boolean := FALSE);
     port
       (clk_20mhz_i       : in std_logic;

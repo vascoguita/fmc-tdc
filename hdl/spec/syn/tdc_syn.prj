@@ -6,13 +6,8 @@
 
 #project files
 
-add_file -include "../src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ngc"
-add_file -include "../src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ngc"
 add_file -include "../src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ngc"
-
-#add_file -include "../src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.ndf"
-#add_file -include "../src/ip_cores/gnum_core/xilinx_cores/fifo_64x512.ndf"
-#add_file -include "../src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ndf"
+add_file -include "../src/ip_cores/mem_core/blk_mem_circ_buff_v6_4.ndf"
 
 add_file -vhdl -lib work "../src/ip_cores/gnum_core/gn4124_core_pkg.vhd"
 add_file -vhdl -lib work "../src/ip_cores/gnum_core/xilinx_cores/fifo_32x512.vhd"
@@ -121,7 +116,7 @@ set_option -num_critical_paths 5
 
 # Xilinx options
 set_option -run_prop_extract 1
-set_option -maxfan 10000
+set_option -maxfan 500
 set_option -disable_io_insertion 0
 set_option -pipe 0
 set_option -retiming 0

@@ -1,6 +1,6 @@
 # Synopsys, Inc. constraint file
 # C:/FMC_TDC/evas_fmc_tdc/syn/tdc_syn_constraints.sdc
-# Written on Mon Apr 29 17:17:22 2013
+# Written on Wed Jul 17 10:47:25 2013
 # by Synplify Premier with Design Planner, F-2012.03 Scope Editor
 
 #
@@ -10,10 +10,10 @@
 #
 # Clocks
 #
-define_clock   {p:tdc_clk_p_i} -name {tdc_clk125}  -freq 125 -clockgroup default_clkgroup1__1
-define_clock   {p:spec_clk_i} -name {spec_clk20}  -freq 20 -clockgroup default_clkgroup2__2
-define_clock   {p:acam_refclk_p_i} -name {acam_refclk31_25}  -freq 31.25 -clockgroup default_clkgroup4__4
-define_clock   {n:gnum_interface_block.cmp_clk_in.rx_pllout_x1} -name {gnum_clk200}  -freq 200 -clockgroup default_clkgroup3__3
+define_clock   {p:tdc_clk_p_i} -name {tdc_clk125p}  -freq 125 -clockgroup default_clkgroup28__1
+define_clock   {p:spec_clk_i} -name {spec_clk20}  -freq 20 -clockgroup default_clkgroup29__2
+define_clock   {p:acam_refclk_p_i} -name {acam_refclk31_25}  -freq 31.25 -clockgroup default_clkgroup30__3
+define_clock   {n:gnum_interface_block.cmp_clk_in.rx_bufg_pll_x1} -name {gnum_clk200}  -freq 200 -clockgroup default_clkgroup31__4
 
 #
 # Clock to Clock
@@ -22,46 +22,6 @@ define_clock   {n:gnum_interface_block.cmp_clk_in.rx_pllout_x1} -name {gnum_clk2
 #
 # Inputs/Outputs
 #
-define_input_delay               -default  2.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              -default  2.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_input_delay               {p:p2l_data_i[15:0]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p2l_dframe_i}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p2l_valid_i }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p_wr_req_i[0]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p_wr_req_i[1]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:vc_rdy_i    }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:p_wr_rdy_o  }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:rx_error_o  }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:l2p_clk_p_o }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:l2p_clk_n_o }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:l2p_data_o[15:0]  }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:l2p_dframe_o}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:l2p_valid_o }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:l2p_edb_o   }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:l2p_rdy_i   }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:l_wr_rdy_i[0]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:l_wr_rdy_i[1]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p_rd_d_rdy_i[0]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p_rd_d_rdy_i[1]}  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:tx_error_i  }  2.00 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_output_delay              {p:pll_sdi_o}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
-define_output_delay              {p:pll_cs_o}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
-define_output_delay              {p:pll_sclk_o}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
-define_input_delay               {p:pll_status_i}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
-define_input_delay               {p:pll_sdo_i}  2.00 -improve 0.00 -route 0.00 -ref {spec_clk20:r}
-define_output_delay              {p:start_from_fpga_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:cs_n_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:rd_n_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:wr_n_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:term_en_1_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:term_en_2_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:term_en_3_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:term_en_4_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:term_en_5_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:enable_inputs_o}  1.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
-define_output_delay              {p:p2l_rdy_o   }  0.50 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p2l_clk_p_i }  0.80 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
-define_input_delay               {p:p2l_clk_n_i }  0.80 -improve 0.00 -route 0.00 -ref {gnum_clk200:r}
 
 #
 # Registers
@@ -73,8 +33,6 @@ define_input_delay               {p:p2l_clk_n_i }  0.80 -improve 0.00 -route 0.0
 define_multicycle_path  -from {{p:data_bus_io[27:0]}}  3
 define_multicycle_path  -to {{p:data_bus_io[27:0]}}  3
 define_multicycle_path  -to {{p:address_o[3:0]}}  3
-define_multicycle_path  -through {n:wb_csr_adr_decoded[18:0]}  2
-define_multicycle_path  -to {{p:start_from_fpga_o}}  2
 define_false_path  -from {{p:spec_aux0_i}} 
 define_false_path  -from {{p:spec_aux1_i}} 
 define_false_path  -to {{p:spec_aux2_o}} 
@@ -89,8 +47,8 @@ define_false_path  -to {{p:tdc_led_trig2_o}}
 define_false_path  -to {{p:tdc_led_trig3_o}} 
 define_false_path  -to {{p:tdc_led_trig4_o}} 
 define_false_path  -to {{p:tdc_led_trig5_o}} 
-define_false_path  -to {{p:irq_p_o}} 
-define_false_path  -to {{p:irq_aux_p_o}} 
+define_false_path  -from {{p:rst_n_a_i}} 
+define_false_path  -from {{i:gnum_interface_block.rst_reg}} 
 
 #
 # Attributes
@@ -181,7 +139,6 @@ define_attribute {p:p_rd_d_rdy_i[1]} {syn_loc} {P19}
 define_attribute {p:p_rd_d_rdy_i[0]} {syn_loc} {N16}
 define_attribute {p:tx_error_i} {syn_loc} {M17}
 define_attribute {p:irq_p_o} {syn_loc} {U16}
-define_attribute {p:irq_aux_p_o} {syn_loc} {AB19}
 define_attribute {p:pll_sdo_i} {syn_loc} {AB18}
 define_attribute {p:pll_status_i} {syn_loc} {Y18}
 define_attribute {p:pll_sdi_o} {syn_loc} {AA18}
@@ -293,7 +250,6 @@ define_io_standard               {pcb_ver_i[1]} syn_pad_type {LVCMOS_15}
 define_io_standard               {pcb_ver_i[2]} syn_pad_type {LVCMOS_15}
 define_io_standard               {pcb_ver_i[3]} syn_pad_type {LVCMOS_15}
 define_io_standard               {prsnt_m2c_n_i} syn_pad_type {LVCMOS_25}
-define_io_standard               {irq_aux_p_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {pll_status_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {pll_sdo_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {pll_sdi_o} syn_pad_type {LVCMOS_25}
