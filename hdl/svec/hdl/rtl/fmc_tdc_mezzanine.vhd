@@ -298,7 +298,6 @@ begin
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).int   <= '0';
   cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).err        <= '0';
   cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).rty        <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).stall      <= '0';
   cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).int        <= '0';
 
 

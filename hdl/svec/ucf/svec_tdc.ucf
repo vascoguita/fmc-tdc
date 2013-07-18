@@ -47,7 +47,7 @@ TIMESPEC ts_ignore_xclock2 = FROM "clk_125m" TO "clk_62m5_pllxilinx" 20ns DATAPA
 #===============================================================================
 # False Path
 #===============================================================================
-
+# has to be multicycle path of 3 cycles!! 
 NET "data_bus_io[0]" TIG;
 NET "data_bus_io[1]" TIG;
 NET "data_bus_io[2]" TIG;
@@ -76,7 +76,6 @@ NET "data_bus_io[24]" TIG;
 NET "data_bus_io[25]" TIG;
 NET "data_bus_io[26]" TIG;
 NET "data_bus_io[27]" TIG;
-
 NET "address_o[0]" TIG;
 NET "address_o[1]" TIG;
 NET "address_o[2]" TIG;

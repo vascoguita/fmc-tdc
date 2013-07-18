@@ -86,7 +86,7 @@ entity acam_databus_interface is
      ef1_i        : in std_logic; -- FIFO1 empty flag
      ef2_i        : in std_logic; -- FIFO1 empty flag
 
-     data_bus_io   : inout std_logic_vector(27 downto 0);
+     data_bus_io  : inout std_logic_vector(27 downto 0);
 
      -- Signals from the data_engine unit
      cyc_i        : in std_logic; -- WISHBONE cycle
@@ -126,7 +126,7 @@ architecture rtl of acam_databus_interface is
   type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
   signal acam_data_st, nxt_acam_data_st                              : t_acam_interface;
 
-  signal ef1_synch, ef2_synch                                        : std_logic_vector(1 downto 0);
+  signal ef1_synch, ef2_synch                                        : std_logic_vector(1 downto 0) := (others =>'1');
   signal ack, cs, cs_extend, rd, rd_extend, wr, wr_extend, wr_remove : std_logic;
 
 

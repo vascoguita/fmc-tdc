@@ -180,7 +180,7 @@ begin
   all_outputs: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      tdc_led_trig5_o  <= tdc_debug_led;--acam_inputs_en_i(4) and acam_inputs_en_i(7);
+      tdc_led_trig5_o  <= fordebug_i;--tdc_debug_led;--acam_inputs_en_i(4) and acam_inputs_en_i(7);
       tdc_led_trig4_o  <= acam_inputs_en_i(3) and acam_inputs_en_i(7);
       tdc_led_trig3_o  <= acam_inputs_en_i(2) and acam_inputs_en_i(7);
       tdc_led_trig2_o  <= acam_inputs_en_i(1) and acam_inputs_en_i(7);

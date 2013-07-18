@@ -173,6 +173,8 @@ architecture rtl of fmc_tdc_core is
   signal circ_buff_class_stb, circ_buff_class_cyc           : std_logic;
   signal circ_buff_class_we, circ_buff_class_ack            : std_logic;
   signal circ_buff_class_data_wr, circ_buff_class_data_rd   : std_logic_vector(4*g_width-1 downto 0);
+  --LED
+  signal led_fordebug                                       : std_logic;
 
 
 
@@ -503,7 +505,7 @@ begin
      rst_i            => rst_i,
      one_hz_p_i       => one_hz_p,
      acam_inputs_en_i => acam_inputs_en,
-     fordebug_i       => acam_tstamp1_ok_p,
+     fordebug_i       => led_fordebug,
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
      tdc_led_trig2_o  => tdc_led_trig2_o,
@@ -511,6 +513,7 @@ begin
      tdc_led_trig4_o  => tdc_led_trig4_o,
      tdc_led_trig5_o  => tdc_led_trig5_o);
 
+  led_fordebug <= acam_tstamp1_ok_p or acam_tstamp2_ok_p;
   
 end rtl;
 ----------------------------------------------------------------------------------------------------

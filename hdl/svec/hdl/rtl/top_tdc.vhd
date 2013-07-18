@@ -209,6 +209,7 @@ architecture rtl of top_tdc is
   signal acam_refclk_r_edge_p                     : std_logic;
   signal send_dac_word_p                          : std_logic;
   signal dac_word                                 : std_logic_vector(23 downto 0);
+  signal pllxilinx_62m5_locked                    : std_logic;
   -- VME interface
   signal VME_DATA_b_out                           : std_logic_vector(31 downto 0);
   signal VME_ADDR_b_out                           : std_logic_vector(31 downto 1);
@@ -319,7 +320,7 @@ begin
       CLKOUT3  => open,
       CLKOUT4  => open,
       CLKOUT5  => open,
-      LOCKED   => open,
+      LOCKED   => pllxilinx_62m5_locked,
       RST      => '0',
       CLKFBIN  => pllxilinx_62m5_clk_fb,
       CLKIN    => clk_125m);
@@ -328,6 +329,7 @@ begin
     port map (
       O => clk_62m5_pllxilinx,
       I => pllxilinx_62m5_clk_buf);
+
 
 ---------------------------------------------------------------------------------------------------
   clks_rsts_mgment: clks_rsts_manager
@@ -340,6 +342,7 @@ begin
      tdc_125m_clk_p_i       => tdc_125m_clk_p_i,
      tdc_125m_clk_n_i       => tdc_125m_clk_n_i,
      clk_62m5_pllxilinx_i   => clk_62m5_pllxilinx,
+     clk_62m5_pllxilinx_lock_i => pllxilinx_62m5_locked,
      rst_n_i                => VME_RST_n_i,
      por_n_i                => por_n_i,
      pll_sdo_i              => pll_sdo_i,

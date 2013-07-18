@@ -744,7 +744,8 @@ package tdc_core_pkg is
        acam_refclk_n_i        : in std_logic;
        tdc_125m_clk_p_i       : in std_logic;
        tdc_125m_clk_n_i       : in std_logic;
-       clk_62m5_pllxilinx_i   : in std_logic; 
+       clk_62m5_pllxilinx_i      : in std_logic;
+       clk_62m5_pllxilinx_lock_i : in std_logic;
        rst_n_i                : in std_logic;
        por_n_i                : in std_logic;
        pll_status_i           : in std_logic;
