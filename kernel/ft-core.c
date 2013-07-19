@@ -1,0 +1,361 @@
+/*
+ * Main fmc-tdc driver module.
+ *
+ * Copyright (C) 2012-2013 CERN (www.cern.ch)
+ * Author: Tomasz Wlostowski <tomasz.wlostowski@cern.ch>
+ * Author: Alessandro Rubini <rubini@gnudd.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * version 2 as published by the Free Software Foundation or, at your
+ * option, any later version.
+ */
+
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/moduleparam.h>
+#include <linux/interrupt.h>
+#include <linux/spinlock.h>
+#include <linux/bitops.h>
+#include <linux/delay.h>
+#include <linux/slab.h>
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/io.h>
+
+#include <linux/fmc.h>
+#include <linux/fmc-sdb.h>
+
+#include "fmc-tdc.h"
+#include "hw/tdc_regs.h"
+
+/* Module parameters */
+static int ft_verbose = 0;
+module_param_named(verbose, ft_verbose, int, 0444);
+
+static struct fmc_driver ft_drv; /* forward declaration */
+FMC_PARAM_BUSID(ft_drv);
+FMC_PARAM_GATEWARE(ft_drv);
+
+static int ft_show_sdb;
+module_param_named(show_sdb, ft_show_sdb, int, 0444);
+
+static int ft_buffer_size = 8192;
+module_param_named(buffer_size, ft_buffer_size, int, 0444);
+
+
+static void ft_timer_handler(unsigned long arg)
+{
+	struct fmctdc_dev *ft = (struct fmctdc_dev *) arg;
+
+	ft_read_temp(ft, ft->verbose);
+
+	mod_timer(&ft->temp_timer, jiffies + 5 * HZ);
+}
+
+static int ft_init_channel (struct fmctdc_dev *ft, int channel)
+{
+	struct ft_channel_state *st = &ft->channels[channel - 1];
+
+	st->expected_edge = 1;
+	st->fifo.size = ft_buffer_size;
+
+	st->fifo.t = kmalloc(sizeof(struct ft_wr_timestamp) * st->fifo.size, GFP_KERNEL);
+
+	if(!st->fifo.t)
+		return -ENOMEM;
+
+	return 0;
+}
+
+static void ft_purge_fifo (struct fmctdc_dev *ft, int channel)
+{
+	struct ft_channel_state *st = &ft->channels[channel - 1];
+	
+	spin_lock(&ft->lock);
+	st->fifo.head = 0;
+	st->fifo.tail = 0;
+	st->fifo.count = 0;
+	spin_unlock(&ft->lock);
+}
+
+int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
+{
+	struct ft_channel_state *st;
+	uint32_t ien;
+
+	if ( channel < FT_CH_1 || channel > FT_NUM_CHANNELS )
+		return -EINVAL;
+
+	st = &ft->channels[channel - 1];
+
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+
+	if(enable)
+		ien |= (1 << (channel - 1));
+	else
+		ien &= ~(1 << (channel - 1));
+
+	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
+
+	if(enable)
+		set_bit(FT_FLAG_CH_TERMINATED, &st->flags);
+	else
+		clear_bit(FT_FLAG_CH_TERMINATED, &st->flags);
+
+	return 0;
+}
+
+static void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
+{
+	uint32_t ien, cmd;
+	int i;
+	
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	
+	if(enable)
+	{
+		ien |= TDC_INPUT_ENABLE_FLAG;
+		cmd = TDC_CTRL_EN_ACQ;
+	} else {
+		ien &= ~TDC_INPUT_ENABLE_FLAG;
+		cmd = TDC_CTRL_DIS_ACQ;
+	}
+
+	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
+	ft_writel(ft, TDC_CTRL_CLEAR_DACAPO_FLAG, TDC_REG_CTRL);
+	ft_writel(ft, cmd, TDC_REG_CTRL);
+}
+
+static int ft_channels_init(struct fmctdc_dev *ft)
+{
+	int i, ret;
+	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
+	{
+		ret = ft_init_channel(ft, i);
+		if(ret < 0)
+			return ret;
+		ft_enable_termination(ft, i, 1);
+	}
+	return 0;
+}
+
+static void ft_channels_exit(struct fmctdc_dev *ft)
+{
+	int i;
+	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
+		kfree( ft->channels[i - 1].fifo.t);
+}
+
+struct ft_modlist {
+	char *name;
+	int (*init)(struct fmctdc_dev *);
+	void (*exit)(struct fmctdc_dev *);
+};
+
+static struct ft_modlist init_subsystems [] = {
+	{ "acam-tdc", ft_acam_init, ft_acam_exit },
+	{ "onewire", ft_onewire_init, ft_onewire_exit },
+	{ "time", ft_time_init, ft_time_exit },
+	{ "channels", ft_channels_init, ft_channels_exit },
+	{ "zio", ft_zio_init, ft_zio_exit }
+};
+
+
+/* probe and remove are called by the FMC bus core */
+int ft_probe(struct fmc_device *fmc)
+{
+	struct ft_modlist *m;
+	struct fmctdc_dev *ft;
+	struct device *dev = fmc->hwdev;
+	char *fwname;
+	int i, index, ret;
+
+
+	printk("ft-probe executed\n");
+
+	ft = kzalloc(sizeof(struct fmctdc_dev), GFP_KERNEL);
+	if (!ft) {
+		dev_err(dev, "can't allocate device\n");
+		return -ENOMEM;
+	}
+
+	ft->raw_events = kzalloc(sizeof(struct ft_hw_timestamp) * FT_BUFFER_EVENTS, GFP_KERNEL);
+	if (!ft->raw_events) {
+		dev_err(dev, "can't allocate buffer\n");
+		return -ENOMEM;
+	}
+
+	index = fmc->op->validate(fmc, &ft_drv);
+	if (index < 0) {
+		dev_info(dev, "not using \"%s\" according to "
+			 "modparam\n", KBUILD_MODNAME);
+		return -ENODEV;
+	}
+
+
+	fmc->mezzanine_data = ft;
+	ft->fmc = fmc;
+	ft->verbose = ft_verbose;
+
+	/* apply carrier-specific hacks and workarounds */
+	if(!strcmp(fmc->carrier_name, "SPEC"))
+
+		ft->carrier_specific = &ft_carrier_spec;
+	else {
+		dev_err(dev, "unsupported carrier\n");
+		return -ENODEV;
+	}
+
+	if (ft_drv.gw_n)
+		fwname = ""; /* reprogram will pick from module parameter */
+	else 
+		fwname = ft->carrier_specific->gateware_name;
+
+	/* reprogram the card, but do not try to read the SDB.  
+	   Everything (including the SDB descriptor/bus logic) is clocked
+	   from the FMC oscillator which needs to be bootstrapped by the gateware with
+	   no possibility for the driver to check if something went wrong... */
+
+	ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
+	if (ret < 0) {
+		if (ret == -ESRCH) {
+			dev_info(dev, "%s: no gateware at index %i\n",
+				 KBUILD_MODNAME, index);
+			return -ENODEV;
+		}
+		return ret; /* other error: pass over */
+	}
+
+
+	dev_info(dev, "Gateware successfully loaded \n");
+
+	ret = ft->carrier_specific->init(ft);
+	if(ret < 0)
+		return ret;
+
+	ret = ft->carrier_specific->reset_core(ft);
+	if(ret < 0)
+		return ret;
+
+	ret = fmc_scan_sdb_tree(fmc, 0);
+	if( ret < 0 )
+	{
+		dev_err(dev, "%s: no SDB in the bitstream. Are you sure you've provided the correct one?\n", KBUILD_MODNAME);
+		return ret;
+	}
+
+	/* FIXME: this is obsoleted by fmc-bus internal parameters */
+	if (ft_show_sdb)
+		fmc_show_sdb_tree(fmc);
+
+	/* Now use SDB to find the base addresses */
+	ft->ft_core_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x604, NULL);
+	ft->ft_owregs_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x602, NULL);
+	ft->ft_dma_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x601, NULL);
+	ft->ft_carrier_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x603, NULL);
+	ft->ft_irq_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x605, NULL);
+
+	spin_lock_init(&ft->lock);
+
+	/* Retrieve calibration from the eeprom, and validate */
+
+	ret = ft_handle_eeprom_calibration(ft);
+	if (ret < 0)
+		return ret;
+
+	/* init all subsystems */
+	for (i = 0, m = init_subsystems; i < ARRAY_SIZE(init_subsystems); i++, m++) {
+		ret = m->init(ft);
+		if (ret < 0) 
+			goto err;
+	}
+
+	ret = ft_irq_init(ft);
+	if(ret < 0)
+		goto err;
+
+	ft_enable_acquisition(ft, 1);
+
+	/* start temperature polling timer */
+	setup_timer(&ft->temp_timer, ft_timer_handler, (unsigned long)ft);
+	mod_timer(&ft->temp_timer, jiffies + 5 * HZ);
+
+	ft->initialized = 1;
+	return 0;
+
+err:
+
+	while (--m, --i >= 0)
+		if (m->exit)
+			m->exit(ft);
+	return ret;
+}
+	
+
+int ft_remove(struct fmc_device *fmc)
+{
+	struct ft_modlist *m;
+	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	
+	int i = ARRAY_SIZE(init_subsystems);
+
+	if(!ft->initialized)
+		return 0; /* No init, no exit */
+
+	del_timer_sync(&ft->temp_timer);
+
+	ft_enable_acquisition(ft, 0);
+	ft_irq_exit(ft);
+
+	while (--i >= 0) {
+		m = init_subsystems + i;
+		if (m->exit)
+			m->exit(ft);
+	}
+	return 0;
+}
+
+static struct fmc_fru_id ft_fru_id[] = {
+  {
+    .product_name = "FmcTdc1ns5cha",
+  },
+};
+
+static struct fmc_driver ft_drv = {
+  .version = FMC_VERSION,
+  .driver.name = KBUILD_MODNAME,
+  .probe = ft_probe,
+  .remove = ft_remove,
+  .id_table = {
+    .fru_id = ft_fru_id,
+    .fru_id_nr = ARRAY_SIZE(ft_fru_id),
+  },
+};
+ 
+static int ft_init(void)
+{
+	int ret;
+
+	ret = ft_zio_register();
+	if (ret < 0)
+		return ret;
+
+	ret = fmc_driver_register(&ft_drv);
+	if (ret < 0) {
+		ft_zio_unregister();
+		return ret;
+	}
+	return 0;
+}
+
+static void ft_exit(void)
+{
+	fmc_driver_unregister(&ft_drv);
+	ft_zio_unregister();
+}
+
+module_init(ft_init);
+module_exit(ft_exit);
+
+MODULE_LICENSE("GPL and additional rights"); /* LGPL */

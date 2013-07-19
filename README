@@ -1,55 +1,9 @@
-Introduction
----
+WARNING!
 
-In electronic instrumentation and signal processing, a time to digital con-
-verter (abbreviated TDC) is a device for recognizing events and providing
-a digital representation of the time they occurred. At this case, the FMC
-TDC outputs the time of arrival for each incoming pulse.
+This is work in progress. It is buggy and can be incomplete!
 
-This is the project to provide support of the FMC TDC board in the
-Linux kernel plugged to a SPEC carrier board.
+Please check doc/
 
-The project's aim is to provide an loadable module to be used along with this
-board for the latest Linux kernel versions. The driver relies on ZIO frame-
-work and the FMC bus dependencies, which are other projects hosted in
-OHWR.
-
-This version is known to compile and run with kernels 3.3 onwards.
-
-License
----
-
-Unless otherwise indicated, all these files of this project are under GPLv2
-only.
-
-If you want a copy of this license, it is provided in the COPYING file or write
-to: 
-	Free Software Foundation, Inc.,
-	51 Franklin Street, Fifth Floor, 
-	Boston, MA 02110-1301 USA.
-
-asking for a written copy of the license.
-
-Documentation
----
-
-For further information, you have a more updated version of the documentation
-under the doc/ directory.
-
-Just go there and execute "make". You will need "texlive" and "doxygen" packages
-installed on your system in order to generate the documentation files.
-
-Links
----
-
-* FMC TDC HW development website: http://www.ohwr.org/projects/fmc-tdc
-* FMC TDC driver support website: http://www.ohwr.org/projects/fmc-tdc-sw
-* ZIO framework website:  http://www.ohwr.org/projects/zio
-* SPEC driver support website:  http://www.ohwr.org/projects/spec-sw
-* FMC bus driver support website:  http://www.ohwr.org/projects/fmc-bus
-
-Contact
----
-
-Mailing list: http://lists.ohwr.org/sympa/info/fmc-tdc-sw
-FMC TDC driver support website: http://www.ohwr.org/projects/fmc-tdc-sw
+In ./doc/, fmc-tdc.in is the source file, and you can "make" to get
+pdf and other formats provided you have the proper tools installed
+(mainly texinfo and tex).
