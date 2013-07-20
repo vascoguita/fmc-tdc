@@ -60,25 +60,34 @@ int open_board(char *dev_id_str)
 	return 0;
 }
 
+int check_help(int argc, char **argv, int min_args, char *usage, char *desc, char *options)
+{
+	if (argc >= 2 && !strcmp(argv[1], "-h"))
+    {
+		printf("%s: %s\n", argv[0], desc);
+		printf("usage: %s %s\n", argv[0], usage);
+		printf("%s\n", options);
+		return 1;
+    } else if(argc < min_args)
+    {
+		printf("usage: %s %s\n", argv[0], usage);
+		return 1;
+    }
+    return 0;
+}
+
 int go_identify(int argc, char **argv)
 {
-    if (argc >= 2 && !strcmp(argv[1], "-h"))
-    {
-	printf("%s: identifies a given fmc-tdc device in a crate by blinking its status LED.\n", argv[0]);
-	printf("usage: %s [-h] <device>\n", argv[0]);
-	return 0;
-    }
-
-    if(argc < 2)
-    {
-		printf("usage: %s [-h] <device>\n", argv[0]);
-		return 0;
-    }
+    if(check_help(argc, argv, 2, 
+    	"[-h] <device>", 
+    	"identifies a given fmc-tdc device in a crate by blinking its status LEDs.", 
+    	""))
+    return 0;
 
 	if(open_board(argv[1]) < 0)
 		return -1;
 
-	printf("Blinking the status LED. Press ENTER to stop.\n");
+	printf("Blinking the status LEDs. Press Enter to stop.\n");
 	fmctdc_identify_card(brd, 1);
 	getchar();
 	fmctdc_identify_card(brd, 0);
@@ -90,12 +99,11 @@ int go_list(int argc, char **argv)
 {
     int i;
 
-    if (argc >= 2 && !strcmp(argv[1], "-h"))
-    {
-	printf("%s: lists all installed fmc-tdc boards.\n", argv[0]);
-	printf("usage: %s [-h]\n", argv[0]);
-	return 0;
-    }
+    if(check_help(argc, argv, 1, 
+    	"[-h]", 
+    	"lists all installed fmc-tdc boards.", 
+    	""))
+    return 0;
 
     printf("Found %i board(s): \n", n_boards);
 
@@ -108,6 +116,23 @@ int go_list(int argc, char **argv)
 		b = (typeof(b))ub;
 		printf("%04x, %s, %s\n", b->dev_id, b->devbase, b->sysbase);
     }
+    return 0;
+}
+
+int go_read(int argc, char **argv)
+{
+	int non_block = 0;
+
+	if(check_help(argc, argv, 3, 
+				 "[-h] [-n] <channels> <n_samples>",
+				 "reads timestamps from the selected fmc-tdc channels.",
+				 "  -n: non-blocking mode\n"
+				 "When n_samples == 0, program will keep reading samples until interrupted."
+				 ))
+		return 0;
+
+    if(!strcmp(argv[1], "-n"))
+    	non_block = 1;
     return 0;
 }
 
