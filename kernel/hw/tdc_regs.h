@@ -60,10 +60,15 @@
 #define TDC_EVENT_DACAPO_FLAG		BIT(0)
 
 /* Carrier CSRs */
-#define TDC_REG_CARRIER_CTL0		0x0
-#define TDC_REG_CARRIER_CTL1		0x4
+#define TDC_REG_CARRIER_CTL0		0x0 /* a.k.a. Carrier revision/PCB id reg */
+#define TDC_REG_CARRIER_STATUS		0x4
+#define TDC_REG_CARRIER_CTL1		0x8
 
-#define TDC_CARRIER_CTL0_PLL_STAT 	 BIT(4)
+#define TDC_CARRIER_CTL0_PLL_STAT_FMC0 	 BIT(4)
+#define TDC_CARRIER_CTL0_PLL_STAT_FMC1 	 BIT(5)
+
+#define TDC_CARRIER_CTL1_RSTN_FMC0 	 BIT(3)
+#define TDC_CARRIER_CTL1_RSTN_FMC1 	 BIT(4)
 
 /* Gennum DMA registers (not defined in the SPEC driver headers) */
 #define TDC_REG_DMA_CTRL 0x0
@@ -80,5 +85,7 @@
 #define TDC_DMA_STAT_MASK 0x7
 #define TDC_DMA_STAT_DONE 0x1
 #define TDC_DMA_STAT_ERROR 0x3
+
+#define TDC_SVEC_CARRIER_BASE           0x20000
 
 #endif /* __TDC_REGISTERS_H */

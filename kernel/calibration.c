@@ -21,17 +21,17 @@
 
 /* dummy calibration data - used in case of empty/corrupted EEPROM */
 static struct ft_calibration default_calibration = {
-	{ 0, 86, 609, 572, 335}, /* zero_offset */
-	43343                    /* vcxo_default_tune */
+	{0, 86, 609, 572, 335},	/* zero_offset */
+	43343			/* vcxo_default_tune */
 };
 
 /* sdbfs-related function */
-static int ft_read_calibration_eeprom(struct fmc_device *fmc, void *buf, int length)
-				      
+static int ft_read_calibration_eeprom(struct fmc_device *fmc, void *buf,
+				      int length)
 {
 	int i, ret = 0;
 	static struct sdbfs fs;
-	
+
 	fs.data = fmc->eeprom;
 	fs.datalen = fmc->eeprom_len;
 
@@ -76,16 +76,17 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 	   offsets that could be added to TDC timestamps right away (picoseconds, referenced to WR) */
 
 	calib->zero_offset[0] = 0;
-	for(i = FT_CH_1 + 1; i < FT_NUM_CHANNELS; i++)
-		calib->zero_offset[i] = le32_to_cpu(raw_calib[i - 1]) / 100 - calib->zero_offset[0];
+	for (i = FT_CH_1 + 1; i < FT_NUM_CHANNELS; i++)
+		calib->zero_offset[i] =
+		    le32_to_cpu(raw_calib[i - 1]) / 100 - calib->zero_offset[0];
 
 	calib->vcxo_default_tune = le32_to_cpu(raw_calib[4]);
-	
+
 	for (i = 0; i < ARRAY_SIZE(calib->zero_offset); i++)
-			dev_info(d, "calib: zero_offset[%i] = %li\n", i,
-				 (long)calib->zero_offset[i]);
-	
+		dev_info(d, "calib: zero_offset[%i] = %li\n", i,
+			 (long)calib->zero_offset[i]);
+
 	dev_info(d, "calib: vcxo_default_tune %i\n", calib->vcxo_default_tune);
 
-	return 0;	
+	return 0;
 }
