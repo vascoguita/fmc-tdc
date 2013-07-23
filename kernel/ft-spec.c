@@ -78,7 +78,11 @@ static int ft_spec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 	cspec->dma_addr =
 	    dma_map_single(ft->fmc->hwdev, (char *)dst, size, DMA_FROM_DEVICE);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29)
 	if (dma_mapping_error(cspec->dma_addr)) {
+#else
+	if (dma_mapping_error(ft->fmc->hwdev, cspec->dma_addr)) {
+#endif
 		dev_err(&ft->fmc->dev, "dma_map_single failed\n");
 		return -ENOMEM;
 	}
