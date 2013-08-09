@@ -93,7 +93,7 @@ entity irq_generator is
      -- Signals from the data_formatting unit
      tstamp_wr_p_i           : in std_logic;  -- pulse upon storage of a new timestamp
 
-     -- Signal from the one_hz_gen unit
+     -- Signal from the one_hz_gen unit (currently not used)
      one_hz_p_i              : in std_logic;  -- pulse upon new second arrival
 
 
@@ -118,6 +118,7 @@ architecture rtl of irq_generator is
   signal tstamps_c_incr_en, time_c_incr_en          : std_logic;
   signal tstamps_c                                  : std_logic_vector(8 downto 0); 
   signal time_c                                     : std_logic_vector(g_width-1 downto 0);
+  signal one_ms_passed_p                            : std_logic;
 
 
 --=================================================================================================
@@ -257,7 +258,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                         TIME COUNTER                                          --
 ---------------------------------------------------------------------------------------------------
--- Incremental counter counting the time in seconds since the last interrupt or the last reset.
+-- Incremental counter counting the time in milliseconds since the last interrupt or the last reset.
   time_counter: incr_counter
     generic map
       (width             => g_width)
@@ -270,7 +271,21 @@ begin
      -------------------------------------------
        counter_o         => time_c);
      -------------------------------------------
-    time_c_incr_en       <= time_c_en and one_hz_p_i;
+    time_c_incr_en       <= time_c_en and one_ms_passed_p;
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  millisec_counter: free_counter
+    generic map
+      (width             => g_width)
+    port map
+      (clk_i             => clk_i,
+       rst_i             => rst_i,
+       counter_en_i      => '1',
+       counter_top_i     => x"0001E848", -- 125'000 clk_i cycles = 1 ms
+      -------------------------------------------
+       counter_is_zero_o => one_ms_passed_p,
+       counter_o         => open);
+      -------------------------------------------
 
 
 ---------------------------------------------------------------------------------------------------

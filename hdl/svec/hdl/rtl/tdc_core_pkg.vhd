@@ -718,19 +718,22 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component irq_controller
     port
-      (clk_i       : in  std_logic;
-       rst_n_i     : in  std_logic;
-       irq_src_p_i : in  std_logic_vector(31 downto 0);
-       wb_adr_i    : in  std_logic_vector(1 downto 0);
-       wb_dat_i    : in  std_logic_vector(31 downto 0);
-       wb_cyc_i    : in  std_logic;
-       wb_sel_i    : in  std_logic_vector(3 downto 0);
-       wb_stb_i    : in  std_logic;
-       wb_we_i     : in  std_logic;
-      ----------------------------------------------------------------------
-       wb_dat_o    : out std_logic_vector(31 downto 0);
-       wb_ack_o    : out std_logic;
-       irq_p_o     : out std_logic);
+    (rst_n_i             : in     std_logic;
+    clk_sys_i            : in     std_logic;
+    wb_adr_i             : in     std_logic_vector(1 downto 0);
+    wb_dat_i             : in     std_logic_vector(31 downto 0);
+    wb_dat_o             : out    std_logic_vector(31 downto 0);
+    wb_cyc_i             : in     std_logic;
+    wb_sel_i             : in     std_logic_vector(3 downto 0);
+    wb_stb_i             : in     std_logic;
+    wb_we_i              : in     std_logic;
+    wb_ack_o             : out    std_logic;
+    wb_stall_o           : out    std_logic;
+    wb_int_o             : out    std_logic;
+    irq_tdc1_tstamps_i   : in     std_logic;
+    irq_tdc1_acam_err_i  : in     std_logic;
+    irq_tdc2_tstamps_i   : in     std_logic;
+    irq_tdc2_acam_err_i  : in     std_logic);
   end component irq_controller;
 
 
@@ -744,10 +747,7 @@ package tdc_core_pkg is
        acam_refclk_n_i        : in std_logic;
        tdc_125m_clk_p_i       : in std_logic;
        tdc_125m_clk_n_i       : in std_logic;
-       clk_62m5_pllxilinx_i      : in std_logic;
-       clk_62m5_pllxilinx_lock_i : in std_logic;
        rst_n_i                : in std_logic;
-       por_n_i                : in std_logic;
        pll_status_i           : in std_logic;
        pll_sdo_i              : in std_logic;
        send_dac_word_p_i      : in std_logic;
@@ -755,7 +755,6 @@ package tdc_core_pkg is
       ----------------------------------------------------------------------
        tdc_125m_clk_o         : out std_logic;
        internal_rst_o         : out std_logic;
-       vme_rst_n_o            : out std_logic;
        acam_refclk_r_edge_p_o : out std_logic;
        pll_cs_n_o             : out std_logic;
        pll_dac_sync_n_o       : out std_logic;
@@ -804,7 +803,7 @@ package tdc_core_pkg is
        rst_i            : in std_logic;
        one_hz_p_i       : in std_logic;
        acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
-       fordebug_i       : in std_logic;
+       fordebug_i       : in std_logic_vector(5 downto 0);
       ----------------------------------------------------------------------
        tdc_led_status_o : out std_logic;
        tdc_led_trig1_o  : out std_logic;

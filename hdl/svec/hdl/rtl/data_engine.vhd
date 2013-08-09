@@ -310,7 +310,7 @@ begin
                           if acam_ef2_i = '0' then
                             nxt_engine_st <= GET_STAMP2;
   
-                          elsif acam_ef1_synch1_i ='0' then 
+                          elsif acam_ef1_synch1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
                           else
                             nxt_engine_st <= ACTIVE;

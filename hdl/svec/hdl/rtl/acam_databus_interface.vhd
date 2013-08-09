@@ -32,15 +32,28 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
+-- Date         08/2013                                                                           |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     10/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--     08/2013  v1.   EG  cs_n_o always active; extra 8ns cycle to the rd_n_o                     |
 --                                                                                                |
+----------------------------------------------/!\-------------------------------------------------|
+-- In this design timestamps retreival from the ACAM could not happen in 4 cycles (=4*8ns), as    |
+-- it was noticed that the ACAM tdc1_ef1_i is arriving to the FPGA more than 16ns after the rd_n_o|
+-- activation; en extra cycle is therefore essential and has been added in the                    |
+-- acam_databus_interface unit; this means that the FPGA cannot keep up to pace with the 31.25 M  |
+-- timestamps/sec max rate of the ACAM; the max rate of the application would now be 25 M         |
+-- timestamps/sec. However, in practice this is not a problem at all, as the driver layer would   |
+-- anyway be unable to keep pace with such frequencies!                                           |
+-- EVA: add this in the board's specification                                                     |
+-- EVA: check all commenting in the code that was refering to 4 cycles/ timestamp                 |
+-- EVA: change the acam_err_flag to show overflows of the interface FIFOs rather than Hit FIFOs.  |
+---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -123,7 +136,7 @@ end acam_databus_interface;
 
 architecture rtl of acam_databus_interface is
 
-  type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
+  type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, RD_ACK_AUX, WR_START, WR_PUSH, WR_ACK);
   signal acam_data_st, nxt_acam_data_st                              : t_acam_interface;
 
   signal ef1_synch, ef2_synch                                        : std_logic_vector(1 downto 0) := (others =>'1');
@@ -181,7 +194,7 @@ begin
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when IDLE     =>
                   -----------------------------------------------
-                        ack                <= '0';
+                        ack                  <= '0';
                         cs_extend            <= '0';
                         rd_extend            <= '0';
                         wr_extend            <= '0';
@@ -226,6 +239,19 @@ begin
 
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when RD_ACK =>
+
+                  -----------------------------------------------
+                        ack                  <= '0';--------------'1';
+                        cs_extend            <= '0';
+                        rd_extend            <= '0';
+                        wr_extend            <= '0';
+                        wr_remove            <= '0';
+                  -----------------------------------------------
+
+                        nxt_acam_data_st     <= RD_ACK_AUX;----IDLE;
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RD_ACK_AUX =>
 
                   -----------------------------------------------
                         ack                  <= '1';
@@ -317,9 +343,9 @@ output_registers: process (clk_i)
   end process;
 
   oe_n_o       <= '1';
-  cs           <= ((stb_i and cyc_i)               or cs_extend) and not(ack);
-  rd           <= ((stb_i and cyc_i and not(we_i)) or rd_extend) and not(ack);
-  wr           <= ((stb_i and cyc_i and we_i)      or wr_extend) and not(wr_remove) and not(ack); 
+  cs           <= '1';
+  rd           <= ((stb_i and cyc_i and not(we_i)) or rd_extend) and (not(ack));
+  wr           <= ((stb_i and cyc_i and we_i)      or wr_extend) and (not(wr_remove)) and (not(ack)); 
                -- the wr signal has to be removed to respect the Acam specs
   data_bus_io  <= dat_i(27 downto 0) when we_i='1' else (others =>'Z');
   adr_o        <= adr_i(3 downto 0);

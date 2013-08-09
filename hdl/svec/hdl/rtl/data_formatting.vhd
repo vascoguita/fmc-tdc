@@ -189,7 +189,7 @@ begin
         tstamp_wr_cyc <= '0';
         tstamp_wr_we  <= '0';
 
-      elsif acam_tstamp1_ok_p_i ='1' or acam_tstamp2_ok_p_i ='1' then --------------->>  to debug try with one_hz_p_i = '1'
+      elsif acam_tstamp1_ok_p_i ='1' or acam_tstamp2_ok_p_i ='1' then
         tstamp_wr_stb <= '1';
         tstamp_wr_cyc <= '1';
         tstamp_wr_we  <= '1';
@@ -438,17 +438,16 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata                      <= std_logic_vector(acam_timestamps) &
-                                   --acam_start_nb & retrig_nb_offset_i(15 downto 0) &       -- for debugging (24 MSbits)
+  metadata                      <= acam_start_nb & retrig_nb_offset_i(15 downto 0) &         -- for debugging (24 MSbits)
                                    belongs_to_previous_sec & roll_over_incr_recent_i & "0" & -- for debugging (3 bits)
                                    acam_slope & "0" & acam_channel;                          -- 5 LSbits
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  full_timestamp(31 downto 0)      <= fine_time;
-  full_timestamp(63 downto 32)     <= coarse_time;
-  full_timestamp(95 downto 64)     <= local_utc;
-  full_timestamp(127 downto 96)    <= metadata;
-  tstamp_wr_dat_o                  <= full_timestamp;
+  full_timestamp(31 downto 0)   <= fine_time;
+  full_timestamp(63 downto 32)  <= coarse_time;
+  full_timestamp(95 downto 64)  <= local_utc;
+  full_timestamp(127 downto 96) <= metadata;
+  tstamp_wr_dat_o               <= full_timestamp;
 
 
 ---------------------------------------------------------------------------------------------------
