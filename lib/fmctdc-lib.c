@@ -25,10 +25,9 @@
 
 #include <linux/zio.h>
 #include <linux/zio-user.h>
-#define FMCTDC_INTERNAL
-#include "fmctdc-lib.h"
 
-#include <fmc-tdc.h>
+#include "fmctdc-lib.h"
+#include "fmctdc-lib-private.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -210,23 +209,6 @@ int fmctdc_close(struct fmctdc_board *userb)
 
 }
 
-int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
-{
-	__define_board(b, userb);
-	if (on)
-		return __fmctdc_command(b, FT_CMD_WR_ENABLE);
-	else
-		return __fmctdc_command(b, FT_CMD_WR_DISABLE);
-}
-
-extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
-{
-	__define_board(b, userb);
-	if (__fmctdc_command(b, FT_CMD_WR_QUERY) == 0)
-		return 0;
-	return errno;
-}
-
 float fmctdc_read_temperature(struct fmctdc_board *userb)
 {
 	uint32_t t;
@@ -234,15 +216,6 @@ float fmctdc_read_temperature(struct fmctdc_board *userb)
 
 	fmctdc_sysfs_get(b, "temperature", &t);
 	return (float)t / 16.0;
-}
-
-int fmctdc_identify_card(struct fmctdc_board *userb, int blink_led)
-{
-	__define_board(b, userb);
-	if (blink_led)
-		return __fmctdc_command(b, FT_CMD_IDENTIFY_ON);
-	else
-		return __fmctdc_command(b, FT_CMD_IDENTIFY_OFF);
 }
 
 int fmctdc_set_termination(struct fmctdc_board *userb, int channel, int on)
@@ -254,11 +227,10 @@ int fmctdc_set_termination(struct fmctdc_board *userb, int channel, int on)
 	if(channel < FMCTDC_CH_1 || channel > FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
-	snprintf(attr, sizeof(attr), "fd-ch%d/termination", channel);
+	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel);
 
 	val = on ? 1 : 0;
 	return fmctdc_sysfs_set(b, attr, &val);
-
 }
 
 int fmctdc_get_termination(struct fmctdc_board *userb, int channel)
@@ -271,7 +243,7 @@ int fmctdc_get_termination(struct fmctdc_board *userb, int channel)
 	if(channel < FMCTDC_CH_1 || channel > FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
-	snprintf(attr, sizeof(attr), "fd-ch%d/termination", channel);
+	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
 	if(ret)
@@ -279,11 +251,33 @@ int fmctdc_get_termination(struct fmctdc_board *userb, int channel)
 	return val;
 }
 
+int fmctdc_get_acquisition(struct fmctdc_board *userb)
+{
+	__define_board(b, userb);
+	uint32_t val;
+	int ret;
+
+	ret = fmctdc_sysfs_get(b, "enable_inputs", &val);
+	if(ret)
+		return ret;
+	return val;
+}
+
+int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
+{
+	__define_board(b, userb);
+	uint32_t val;
+
+	val = on ? 1 : 0;
+	return fmctdc_sysfs_set(b, "enable_inputs", &val);
+}
+
+
 static int __fmctdc_open_channel(struct __fmctdc_board *b, int channel)
 {
 	char fname[128];
 	if (b->fdc[channel - 1] <= 0) {
-		snprintf(fname, sizeof(fname), "%s-%d-0-ctrl", b->devbase, channel);
+		snprintf(fname, sizeof(fname), "%s-%d-0-ctrl", b->devbase, channel - 1);
 		b->fdc[channel - 1] = open(fname, O_RDONLY | O_NONBLOCK);
 	}
 	return b->fdc[channel - 1];
@@ -319,9 +313,9 @@ int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t, 
 		if (j == sizeof(ctrl)) {
 			/* one sample: pick it */
 			attrs = ctrl.attr_channel.ext_val;
-			t->seconds = ctrl.tstamp.secs;
-			t->coarse = ctrl.tstamp.ticks;
-			t->frac = ctrl.tstamp.bins;
+			t->seconds = attrs[FT_ATTR_TDC_SECONDS];
+			t->coarse = attrs[FT_ATTR_TDC_COARSE];
+			t->frac = attrs[FT_ATTR_TDC_FRAC];
 			t->seq_id = attrs[FT_ATTR_TDC_SEQ];
 			i++;
 			continue;
@@ -359,4 +353,76 @@ int fmctdc_fread(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 		i += loop;
 	}
 	return i;
+}
+
+static char *names[] = { "seconds", "coarse" };
+
+int fmctdc_set_time(struct fmctdc_board *userb, struct fmctdc_time *t)
+{
+	__define_board(b, userb);
+	uint32_t attrs[ARRAY_SIZE(names)];
+	int i, ret;
+
+	attrs[0] = t->seconds & 0xffffffff;
+	attrs[1] = t->coarse;
+
+	for (i = ARRAY_SIZE(names) - 1; i >= 0; i--)
+	{
+	    ret = fmctdc_sysfs_set(b, names[i], attrs + i);
+	    if(ret < 0)
+		return ret;
+	}
+	return 0;
+}
+
+int fmctdc_get_time(struct fmctdc_board *userb, struct fmctdc_time *t)
+{
+    __define_board(b, userb);
+    uint32_t attrs[ARRAY_SIZE(names)];
+    int i, ret;
+
+    for (i = 0; i < ARRAY_SIZE(names); i++)
+    {
+	ret = fmctdc_sysfs_get(b, names[i], attrs + i);
+	if(ret < 0)
+	    return ret;
+    }
+
+    t->seconds = attrs[0];
+    t->coarse = attrs[1];
+    t->frac = 0;
+
+    return 0;
+}
+
+int fmctdc_set_host_time(struct fmctdc_board *userb)
+{
+    __define_board(b, userb);
+    return __fmctdc_command(b, FT_CMD_SET_HOST_TIME);
+}
+
+int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
+{
+	__define_board(b, userb);
+	if (on)
+	    return __fmctdc_command(b, FT_CMD_WR_ENABLE);
+	else
+	    return __fmctdc_command(b, FT_CMD_WR_DISABLE);
+}
+
+extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
+{
+	int ret;
+	__define_board(b, userb);
+	ret = __fmctdc_command(b, FT_CMD_WR_QUERY);
+
+	switch(ret)
+	{
+	    case 0: 
+		return 1;			/* no error: locked to WR */
+	    case -EAGAIN: 
+		return 0;			/* EAGAIN: not locked yet */
+	    default: 
+		return ret;			/* other error code: just an error ;) */
+	}	
 }

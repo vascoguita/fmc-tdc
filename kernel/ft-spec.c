@@ -54,7 +54,7 @@ static int ft_spec_reset(struct fmctdc_dev *ft)
 	/* set local bus clock to 160 MHz. The FPGA can't handle more. */
 	gennum_writel(spec, 0xE001F04C, 0x808);
 
-	/* fixme: there is no possibility of doing a software reset of the TDC core
+	/* fixme: there is no possibility of doing a software reset of the TDC core on the SPEC
 	   other than through a Gennum config register. This begs for a fix in the
 	   gateware! */
 
@@ -63,7 +63,8 @@ static int ft_spec_reset(struct fmctdc_dev *ft)
 	gennum_writel(spec, 0x00025000, GNPCI_SYS_CFG_SYSTEM);
 
 	msleep(3000);		/* it takes a while for the PLL to bootstrap.... or not! 
-				   We have no possibility to check :( */
+				   We have no possibility to check, as the PLL status register is driven
+				   by the clock from this PLL :( */
 
 	return 0;
 }

@@ -123,7 +123,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 
 	ts.channel = channel;
 	ts.seconds = hwts->utc;
-	frac = hwts->bins * 81 * 64 / 125;	/* reduce fraction to avoid 64-bit division */
+	frac = hwts->bins * 81 * 64 / 125;	/* 64/125 = 4096/8000: reduce fraction to avoid 64-bit division */
 
 	ts.coarse = hwts->coarse + frac / 4096;
 	ts.frac = frac % 4096;
@@ -185,7 +185,7 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 
 	/* called outside an IRQ context - probably from the polling timer simulating
-	   not-yet-supported IRQs on the SVEC */
+	   the not-yet-supported IRQs on the SVEC */
 	if (unlikely(!in_interrupt())) {
 		ft_readout_tasklet((unsigned long)ft);
 	} else

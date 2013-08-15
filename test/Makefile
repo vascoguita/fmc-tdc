@@ -1,19 +1,13 @@
-ZIO ?= $(HOME)/zio
+CFLAGS = -I. -I../lib -I../kernel -Wall -ggdb3
+TESTS = fmctdc-list fmctdc-term fmctdc-read fmctdc-acquisition
+COMMON_SRCS = test-common.c
+LDFLAGS = -L../lib -lfmctdc
 
-LIB = libtdc.a
-LOBJ := libtdc.o
+all: $(TESTS)
 
-CFLAGS = -Wall -ggdb -I.. -I../lib -I$(ZIO)/include
-LDFLAGS = -L../lib/ -ltdc
+%: %.c $(COMMON_SRCS)
+	$(CC) $(CFLAGS) $*.c $(COMMON_SRCS) $(LDFLAGS) -o $@
 
-modules all: lib sanity-test
-
-lib:
-	$(MAKE) -C ../lib
-
-sanity-test:
-	$(CC) $(CFLAGS) $@.c $(LDFLAGS) -o $@
 
 clean:
-	$(MAKE) clean -C ../lib
-	rm -f *.o *~ sanity-test
+	rm -f $(TESTS) test-common.o

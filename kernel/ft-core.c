@@ -113,6 +113,9 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 	uint32_t ien, cmd;
 	int i;
 
+	if (ft->acquisition_on == ( enable ?  1: 0 ))
+	    return;
+
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 
 	if (enable) {
@@ -130,6 +133,9 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 	ft_writel(ft, TDC_CTRL_CLEAR_DACAPO_FLAG, TDC_REG_CTRL);
 	ft_writel(ft, cmd, TDC_REG_CTRL);
 	ft->acquisition_on = enable;
+
+	if(ft->verbose)
+	    dev_info(&ft->fmc->dev, "acuqisition is %s\n", enable ? "on" : "off");
 }
 
 static int ft_channels_init(struct fmctdc_dev *ft)

@@ -68,7 +68,7 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 	/* FIXME: An UGLY hack: ft_svec_reset() executed on slot 0 (first mezzanine to
 	   be initialized) resets BOTH cards. The reason is that we need both mezzanines PLLs
 	   running to read the entire SDB tree (parts of the system interconnect are clocked from
-	   FMC clock lines - a f***up in the HDL. */
+	   FMC clock lines. */
 
 	if (ft->fmc->slot_id != 0)
 		return 0;

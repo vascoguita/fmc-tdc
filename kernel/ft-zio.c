@@ -41,8 +41,8 @@ static struct zio_attribute ft_zattr_dev[] = {
 	ZIO_ATTR_EXT("seconds", _RW_, FT_ATTR_DEV_SECONDS, 0),
 	ZIO_ATTR_EXT("coarse", _RW_, FT_ATTR_DEV_COARSE, 0),
 	ZIO_ATTR_EXT("command", S_IWUGO, FT_ATTR_DEV_COMMAND, 0),
-	ZIO_ATTR_EXT("enable_inputs", S_IWUGO, FT_ATTR_DEV_ENABLE_INPUTS, 0),
-	ZIO_ATTR_EXT("temperature", _RW_, FT_ATTR_DEV_TEMP, 0)
+	ZIO_ATTR_EXT("enable_inputs", _RW_, FT_ATTR_DEV_ENABLE_INPUTS, 0),
+	ZIO_ATTR_EXT("temperature", S_IRUGO, FT_ATTR_DEV_TEMP, 0)
 };
 
 /* Extended attributes for the TDC (== input) cset */
@@ -153,6 +153,7 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 	struct zio_cset *cset;
 	struct fmctdc_dev *ft;
 	struct ft_channel_state *st;
+	int32_t user_offs;
 
 	cset = to_zio_cset(dev);
 	ft = cset->zdev->priv_d;
@@ -164,6 +165,9 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 		return 0;
 
 	case FT_ATTR_TDC_USER_OFFSET:
+		user_offs = usr_val;
+		if(user_offs < -FT_USER_OFFSET_RANGE || user_offs > FT_USER_OFFSET_RANGE)
+		    return -EINVAL;
 		spin_lock(&ft->lock);
 		st->user_offset = usr_val;
 		spin_unlock(&ft->lock);
@@ -217,24 +221,23 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	attr = zdev->zattr_set.ext_zattr;
 	ft = zdev->priv_d;
 
-	if (zattr->id == FT_ATTR_DEV_SECONDS) {
-		/* current gw does not allow changing time when acquisition is enabled */
-		dev_err(&ft->fmc->dev,
-			"%s: no time setting supported due to bugs in gateware.\n",
-			__func__);
+	printk("conf-set: zattr %lu val %u\n", zattr->id, zattr->value);
 
-		/*return ft_set_tai_time(       ft, attr[FT_ATTR_DEV_SECONDS].value,
+	if (zattr->id == FT_ATTR_DEV_SECONDS) {
+		return ft_set_tai_time(       ft, attr[FT_ATTR_DEV_SECONDS].value,
 		   attr[FT_ATTR_DEV_COARSE].value
-		   ); */
+		   ); 
 		return -ENOTSUPP;
 	} else if (zattr->id == FT_ATTR_DEV_ENABLE_INPUTS)
-		ft_enable_acquisition(ft, zattr->value);
+                ft_enable_acquisition(ft, zattr->value);
 
 	/* Not command, nothing to do */
 	if (zattr->id != FT_ATTR_DEV_COMMAND)
 		return 0;
 
 	switch (usr_val) {
+	case FT_CMD_SET_HOST_TIME:
+	    return ft_set_host_time(ft);
 	case FT_CMD_WR_ENABLE:
 	case FT_CMD_WR_DISABLE:
 	case FT_CMD_WR_QUERY:
