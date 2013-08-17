@@ -70,15 +70,18 @@ static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 	return 0;
 }
 
-static void ft_purge_fifo(struct fmctdc_dev *ft, int channel)
+static void ft_reset_channel (struct fmctdc_dev *ft, int channel)
 {
-	struct ft_channel_state *st = &ft->channels[channel - 1];
+	struct ft_channel_state *st = &ft->channels[channel - FT_CH_1];
 
-	spin_lock(&ft->lock);
 	st->fifo.head = 0;
 	st->fifo.tail = 0;
 	st->fifo.count = 0;
-	spin_unlock(&ft->lock);
+
+	st->cur_seq_id = 0;
+	st->expected_edge = 1;
+	clear_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
+	ft_zio_kill_buffer( ft, channel );
 }
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
@@ -124,18 +127,31 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 	} else {
 		ien &= ~TDC_INPUT_ENABLE_FLAG;
 		cmd = TDC_CTRL_DIS_ACQ;
-
-		for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
-			ft_purge_fifo(ft, i);
 	}
+
+	spin_lock (&ft->lock);
 
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
 	ft_writel(ft, TDC_CTRL_CLEAR_DACAPO_FLAG, TDC_REG_CTRL);
 	ft_writel(ft, cmd, TDC_REG_CTRL);
+
 	ft->acquisition_on = enable;
 
+	if(!enable)
+	{
+    	    /* when disabling acquisition, clear the FIFOs, reset width validation state
+               machine and sequence IDs */
+
+	    for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
+		ft_reset_channel( ft, i);
+
+    	    ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
+	}
+
+	spin_unlock (&ft->lock);
+
 	if(ft->verbose)
-	    dev_info(&ft->fmc->dev, "acuqisition is %s\n", enable ? "on" : "off");
+	    dev_info(&ft->fmc->dev, "acquisition is %s\n", enable ? "on" : "off");
 }
 
 static int ft_channels_init(struct fmctdc_dev *ft)

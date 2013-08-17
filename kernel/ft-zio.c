@@ -71,6 +71,11 @@ static enum ft_devtype __ft_get_type(struct device *dev)
 	return FT_TYPE_INPUT;
 }
 
+void ft_zio_kill_buffer(struct fmctdc_dev *ft, int channel)
+{
+    zio_trigger_abort_disable( &ft->zdev->cset [ channel - FT_CH_1 ], 0);
+}
+
 /* TDC input attributes: only the user offset is special */
 static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 			       uint32_t * usr_val)
@@ -111,7 +116,6 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 	if (__ft_get_type(dev) == FT_TYPE_INPUT)
 		return ft_zio_info_channel(dev, zattr, usr_val);
 
-	/* reading temperature */
 	zdev = to_zio_dev(dev);
 	attr = zdev->zattr_set.ext_zattr;
 	ft = zdev->priv_d;
@@ -121,8 +125,10 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 		return 0;
 
 	case FT_ATTR_DEV_TEMP:
+
 		if (ft->temp_ready) {
 			attr[FT_ATTR_DEV_TEMP].value = ft->temp;
+			*usr_val = ft->temp;
 			return 0;
 		} else
 			return -EAGAIN;
@@ -135,13 +141,17 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 
 			if (ft_get_tai_time(ft, &seconds, &coarse) < 0)
 				return -EAGAIN;
+
 			attr[FT_ATTR_DEV_COARSE].value = coarse;
 			attr[FT_ATTR_DEV_SECONDS].value = (uint32_t) seconds;
+
+			*usr_val = (zattr->id == FT_ATTR_DEV_COARSE ? coarse : (uint32_t) seconds);
 			return 0;
 		}
 	case FT_ATTR_DEV_ENABLE_INPUTS:
 		attr[FT_ATTR_DEV_ENABLE_INPUTS].value =
 		    ft->acquisition_on ? 1 : 0;
+		*usr_val = ft->acquisition_on ? 1 : 0;
 		return 0;
 	}
 	return -EINVAL;
@@ -197,11 +207,12 @@ static int ft_zio_input(struct zio_cset *cset)
 
 	/* Ready for input. If there's already something, return it now */
 	if (ft_read_sw_fifo(ft, cset->index + 1, cset->chan) == 0) {
-		return 0;	/* don't call data_done, let the caller do it */
+	    return 0;	/* don't call data_done, let the caller do it */
 	}
 
 	/* Mark the active block is valid, and return EAGAIN */
-	set_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
+	
+	set_bit(FT_FLAG_CH_INPUT_READY, &st->flags); 
 	return -EAGAIN;
 }
 
@@ -221,15 +232,19 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	attr = zdev->zattr_set.ext_zattr;
 	ft = zdev->priv_d;
 
-	printk("conf-set: zattr %lu val %u\n", zattr->id, zattr->value);
-
 	if (zattr->id == FT_ATTR_DEV_SECONDS) {
-		return ft_set_tai_time(       ft, attr[FT_ATTR_DEV_SECONDS].value,
+		attr[FT_ATTR_DEV_SECONDS].value = usr_val;
+
+		return ft_set_tai_time(       ft, 
+		attr[FT_ATTR_DEV_SECONDS].value,
 		   attr[FT_ATTR_DEV_COARSE].value
 		   ); 
 		return -ENOTSUPP;
-	} else if (zattr->id == FT_ATTR_DEV_ENABLE_INPUTS)
-                ft_enable_acquisition(ft, zattr->value);
+	} else if (zattr->id == FT_ATTR_DEV_ENABLE_INPUTS) {
+    	attr[FT_ATTR_DEV_ENABLE_INPUTS].value = usr_val ? 1 : 0;
+            
+	    ft_enable_acquisition(ft, usr_val);
+	}
 
 	/* Not command, nothing to do */
 	if (zattr->id != FT_ATTR_DEV_COMMAND)

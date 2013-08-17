@@ -54,6 +54,7 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	if (st->fifo.tail == st->fifo.size)
 		st->fifo.tail = 0;
 	st->fifo.count--;
+
 	spin_unlock_irqrestore(&ft->lock, flags);
 
 	/* Write the timestamp in the trigger, it will reach the control */

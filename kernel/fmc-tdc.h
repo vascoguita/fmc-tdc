@@ -222,6 +222,8 @@ void ft_irq_exit(struct fmctdc_dev *ft);
 int ft_time_init(struct fmctdc_dev *ft);
 void ft_time_exit(struct fmctdc_dev *ft);
 
+void ft_zio_kill_buffer(struct fmctdc_dev *ft, int channel);
+
 int ft_zio_register(void);
 void ft_zio_unregister(void);
 int ft_zio_init(struct fmctdc_dev *ft);

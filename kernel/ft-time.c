@@ -95,7 +95,7 @@ int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 	if(coarse != 0)
 	    dev_warn(&ft->fmc->dev, "Warning: ignoring sub-second part (%d) when setting time.\n", coarse);
 
-	ft_writel(ft, seconds & 0xffffffff, TDC_REG_CURRENT_UTC);
+	ft_writel(ft, seconds & 0xffffffff, TDC_REG_START_UTC);
 	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
 	return 0;
 }
@@ -116,7 +116,9 @@ int ft_set_host_time (struct fmctdc_dev *ft)
 	    return -EAGAIN;
 
 	getnstimeofday(&local_ts);
-	ft_writel(ft, local_ts.tv_sec & 0xffffffff, TDC_REG_CURRENT_UTC);
+
+	ft_writel(ft, local_ts.tv_sec & 0xffffffff, TDC_REG_START_UTC);
+	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
 	return 0;
 }
 
