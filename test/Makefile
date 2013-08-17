@@ -1,5 +1,13 @@
+TESTS = fmctdc-list \
+	fmctdc-term \
+	fmctdc-read \
+	fmctdc-acquisition \
+	fmctdc-temperature \
+	fmctdc-time
+
 CFLAGS = -I. -I../lib -I../kernel -Wall -ggdb3
-TESTS = fmctdc-list fmctdc-term fmctdc-read fmctdc-acquisition
+
+
 COMMON_SRCS = test-common.c
 LDFLAGS = -L../lib -lfmctdc
 

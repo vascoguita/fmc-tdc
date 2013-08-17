@@ -8,30 +8,22 @@
  * version 2 as published by the Free Software Foundation or, at your
  * option, any later version.
  *
- * fmctdc-list: displays all FmcTdc cards installed in the system.
- *
+ * fmctdc-time: read board temperature
  */
 
 #include "test-common.h"
 
 int main(int argc, char **argv)
 {
-	int i;
-
 	init(argc, argv);
 
-	check_help(argc, argv, 1,
-		   "[-h]", "lists all installed fmc-tdc boards.", "");
+	check_help(argc, argv, 2,
+		   "[-h] <device>",
+		   "Displays current temperature of the mezzanine.\n", "");
 
-	printf("Found %i board(s): \n", n_boards);
+	open_board(argv[1]);
 
-	for (i = 0; i < n_boards; i++) {
-		struct __fmctdc_board *b;
-		struct fmctdc_board *ub;
+	printf("%.1f deg C\n", fmctdc_read_temperature(brd));
 
-		ub = fmctdc_open(i, -1);
-		b = (typeof(b)) ub;
-		printf("%04x, %s, %s\n", b->dev_id, b->devbase, b->sysbase);
-	}
 	return 0;
 }
