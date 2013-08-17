@@ -16,13 +16,13 @@
 #include <stdint.h>
 
 enum fmctdc_channel {
-    FMCTDC_CH_1 = 1,
-    FMCTDC_CH_2 = 2,
-    FMCTDC_CH_3 = 3,
-    FMCTDC_CH_4 = 4,
-    FMCTDC_CH_5 = 5,
-    FMCTDC_CH_LAST = 5,
-    FMCTDC_NUM_CHANNELS = 5
+	FMCTDC_CH_1 = 1,
+	FMCTDC_CH_2 = 2,
+	FMCTDC_CH_3 = 3,
+	FMCTDC_CH_4 = 4,
+	FMCTDC_CH_5 = 5,
+	FMCTDC_CH_LAST = 5,
+	FMCTDC_NUM_CHANNELS = 5
 };
 
 /* Opaque data type used as token */
@@ -49,13 +49,15 @@ extern int fmctdc_set_host_time(struct fmctdc_board *b);
 extern int fmctdc_set_acquisition(struct fmctdc_board *b, int enable);
 extern int fmctdc_get_acquisition(struct fmctdc_board *b);
 
-extern int fmctdc_set_termination(struct fmctdc_board *b, int channel, int enable);
+extern int fmctdc_set_termination(struct fmctdc_board *b, int channel,
+				  int enable);
 extern int fmctdc_get_termination(struct fmctdc_board *b, int channel);
 
-extern int fmctdc_fread(struct fmctdc_board *b, int channel, struct fmctdc_time *t, int n);
+extern int fmctdc_fread(struct fmctdc_board *b, int channel,
+			struct fmctdc_time *t, int n);
 extern int fmctdc_fileno_channel(struct fmctdc_board *b, int channel);
-extern int fmctdc_read(struct fmctdc_board *b, int channel, struct fmctdc_time *t, int n,
-		       int flags);
+extern int fmctdc_read(struct fmctdc_board *b, int channel,
+		       struct fmctdc_time *t, int n, int flags);
 
 extern float fmctdc_read_temperature(struct fmctdc_board *b);
 

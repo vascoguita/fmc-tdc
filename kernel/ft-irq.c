@@ -153,8 +153,9 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 			    (diff.seconds || diff.coarse > 12
 			     || (diff.coarse == 12 && diff.frac >= 2048))) {
 				ft_ts_apply_offset(&ts,
-						   ft->calib.
-						   zero_offset[channel - 1]);
+						   ft->
+						   calib.zero_offset[channel -
+								     1]);
 
 				if (st->user_offset)
 					ft_ts_apply_offset(&ts,
@@ -282,7 +283,7 @@ static void ft_readout_tasklet(unsigned long arg)
 		}
 	}
 
-      out:
+out:
 	/* ack the irq */
 	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP << ft->irq_shift,
 		   ft->ft_irq_base + TDC_REG_IRQ_STATUS);

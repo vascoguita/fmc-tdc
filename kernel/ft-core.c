@@ -70,7 +70,7 @@ static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 	return 0;
 }
 
-static void ft_reset_channel (struct fmctdc_dev *ft, int channel)
+static void ft_reset_channel(struct fmctdc_dev *ft, int channel)
 {
 	struct ft_channel_state *st = &ft->channels[channel - FT_CH_1];
 
@@ -81,7 +81,7 @@ static void ft_reset_channel (struct fmctdc_dev *ft, int channel)
 	st->cur_seq_id = 0;
 	st->expected_edge = 1;
 	clear_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
-	ft_zio_kill_buffer( ft, channel );
+	ft_zio_kill_buffer(ft, channel);
 }
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
@@ -116,8 +116,8 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 	uint32_t ien, cmd;
 	int i;
 
-	if (ft->acquisition_on == ( enable ?  1: 0 ))
-	    return;
+	if (ft->acquisition_on == (enable ? 1 : 0))
+		return;
 
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 
@@ -129,7 +129,7 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 		cmd = TDC_CTRL_DIS_ACQ;
 	}
 
-	spin_lock (&ft->lock);
+	spin_lock(&ft->lock);
 
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
 	ft_writel(ft, TDC_CTRL_CLEAR_DACAPO_FLAG, TDC_REG_CTRL);
@@ -137,21 +137,21 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 
 	ft->acquisition_on = enable;
 
-	if(!enable)
-	{
-    	    /* when disabling acquisition, clear the FIFOs, reset width validation state
-               machine and sequence IDs */
+	if (!enable) {
+		/* when disabling acquisition, clear the FIFOs, reset width validation state
+		   machine and sequence IDs */
 
-	    for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
-		ft_reset_channel( ft, i);
+		for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
+			ft_reset_channel(ft, i);
 
-    	    ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
+		ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
 	}
 
-	spin_unlock (&ft->lock);
+	spin_unlock(&ft->lock);
 
-	if(ft->verbose)
-	    dev_info(&ft->fmc->dev, "acquisition is %s\n", enable ? "on" : "off");
+	if (ft->verbose)
+		dev_info(&ft->fmc->dev, "acquisition is %s\n",
+			 enable ? "on" : "off");
 }
 
 static int ft_channels_init(struct fmctdc_dev *ft)
@@ -335,7 +335,7 @@ int ft_probe(struct fmc_device *fmc)
 	ft->initialized = 1;
 
 	return 0;
-      err:
+err:
 	while (--m, --i >= 0)
 		if (m->exit)
 			m->exit(ft);

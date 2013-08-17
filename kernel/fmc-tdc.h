@@ -56,18 +56,18 @@ enum ft_zattr_in_idx {
 };
 
 enum ft_command {
-	FT_CMD_WR_ENABLE = 0,		/* Enable White Rabbit */
-	FT_CMD_WR_DISABLE,		/* Disable it */
-	FT_CMD_WR_QUERY,		/* Check if WR is locked */
-	FT_CMD_SET_HOST_TIME,		/* Set board time to current host time */
-	FT_CMD_IDENTIFY_ON,		/* Identify card by blinking status LEDs, reserved for future use. */
+	FT_CMD_WR_ENABLE = 0,	/* Enable White Rabbit */
+	FT_CMD_WR_DISABLE,	/* Disable it */
+	FT_CMD_WR_QUERY,	/* Check if WR is locked */
+	FT_CMD_SET_HOST_TIME,	/* Set board time to current host time */
+	FT_CMD_IDENTIFY_ON,	/* Identify card by blinking status LEDs, reserved for future use. */
 	FT_CMD_IDENTIFY_OFF
 };
 
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
 
-#define FT_USER_OFFSET_RANGE 1000000000 /* picoseconds */
+#define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 
 enum ft_channel_flags {
 	FT_FLAG_CH_TERMINATED = 0,
@@ -209,7 +209,7 @@ void ft_ts_sub(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b);
 int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse);
 int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,
 		    uint32_t * coarse);
-int ft_set_host_time (struct fmctdc_dev *ft);
+int ft_set_host_time(struct fmctdc_dev *ft);
 
 int ft_enable_wr_mode(struct fmctdc_dev *ft, int enable);
 int ft_check_wr_mode(struct fmctdc_dev *ft);

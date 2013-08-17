@@ -85,15 +85,17 @@ void ft_ts_apply_offset(struct ft_wr_timestamp *ts, int32_t offset_picos)
 
 int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 {
-	if (ft->acquisition_on) /* can't change time when inputs are enabled */
-	    return -EAGAIN;
+	if (ft->acquisition_on)	/* can't change time when inputs are enabled */
+		return -EAGAIN;
 
 	if (ft->verbose)
 		dev_info(&ft->fmc->dev, "Setting TAI time to %lld:%d\n",
 			 seconds, coarse);
 
-	if(coarse != 0)
-	    dev_warn(&ft->fmc->dev, "Warning: ignoring sub-second part (%d) when setting time.\n", coarse);
+	if (coarse != 0)
+		dev_warn(&ft->fmc->dev,
+			 "Warning: ignoring sub-second part (%d) when setting time.\n",
+			 coarse);
 
 	ft_writel(ft, seconds & 0xffffffff, TDC_REG_START_UTC);
 	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
@@ -108,12 +110,12 @@ int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,
 	return 0;
 }
 
-int ft_set_host_time (struct fmctdc_dev *ft)
+int ft_set_host_time(struct fmctdc_dev *ft)
 {
 	struct timespec local_ts;
 
-	if (ft->acquisition_on) /* can't change time when inputs are enabled */
-	    return -EAGAIN;
+	if (ft->acquisition_on)	/* can't change time when inputs are enabled */
+		return -EAGAIN;
 
 	getnstimeofday(&local_ts);
 

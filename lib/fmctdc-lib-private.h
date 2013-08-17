@@ -27,8 +27,8 @@ struct __fmctdc_board {
 	int dev_id;
 	char *devbase;
 	char *sysbase;
-	int fdc[5]; /* The 5 control channels */
-	int fdd[5]; /* The 5 data channels */
+	int fdc[5];		/* The 5 control channels */
+	int fdd[5];		/* The 5 data channels */
 };
 
 static inline int fmctdc_is_verbose(void)
@@ -39,7 +39,7 @@ static inline int fmctdc_is_verbose(void)
 #define __define_board(b, ub)	struct __fmctdc_board *b = (void *)(ub)
 
 /* These two from ../tools/fdelay-raw.h, used internally */
-static inline int __fmctdc_sysfs_get(char *path, uint32_t *resp)
+static inline int __fmctdc_sysfs_get(char *path, uint32_t * resp)
 {
 	FILE *f = fopen(path, "r");
 
@@ -56,7 +56,7 @@ static inline int __fmctdc_sysfs_get(char *path, uint32_t *resp)
 	return 0;
 }
 
-static inline int __fmctdc_sysfs_set(char *path, uint32_t *value)
+static inline int __fmctdc_sysfs_set(char *path, uint32_t * value)
 {
 	char s[16];
 	int fd, ret, len;
@@ -77,7 +77,7 @@ static inline int __fmctdc_sysfs_set(char *path, uint32_t *value)
 
 /* And these two for the board structure */
 static inline int fmctdc_sysfs_get(struct __fmctdc_board *b, char *name,
-			       uint32_t *resp)
+				   uint32_t * resp)
 {
 	char pathname[128];
 
@@ -86,7 +86,7 @@ static inline int fmctdc_sysfs_get(struct __fmctdc_board *b, char *name,
 }
 
 static inline int fmctdc_sysfs_set(struct __fmctdc_board *b, char *name,
-			       uint32_t *value)
+				   uint32_t * value)
 {
 	char pathname[128];
 
