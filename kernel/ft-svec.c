@@ -20,44 +20,15 @@
 
 #include "hw/tdc_regs.h"
 
+/*
 static int ft_poll_interval = 200;
 module_param_named(poll_interval, ft_poll_interval, int, 0444);
 MODULE_PARM_DESC(poll_interval,
 		 "Buffer polling interval in milliseconds. Applies to SVEC version only.");
-
-/* SVEC-specific private data structure */
-struct ft_svec_data {
-	irq_handler_t fake_irq_handler;
-	struct timer_list poll_timer;
-};
-
-static void ft_poll_timer_handler(unsigned long arg)
-{
-	struct fmctdc_dev *ft = (struct fmctdc_dev *)arg;
-	struct ft_svec_data *cdata = ft->carrier_data;
-	uint32_t irq_stat;
-
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_IRQ_STATUS);
-	irq_stat >>= ft->irq_shift;
-
-	/* irq status bit set for the TS buffer irq? call the "real" handler */
-	if (irq_stat & TDC_IRQ_TDC_TSTAMP)
-		cdata->fake_irq_handler(TDC_IRQ_TDC_TSTAMP, ft->fmc);
-
-	mod_timer(&cdata->poll_timer, jiffies + (ft_poll_interval * HZ / 1000));
-}
+*/
 
 static int ft_svec_init(struct fmctdc_dev *ft)
 {
-	struct ft_svec_data *cdata;;
-	ft->carrier_data = kzalloc(sizeof(struct ft_svec_data), GFP_KERNEL);
-
-	if (!ft->carrier_data)
-		return -ENOMEM;
-
-	/* FIXME: use SDB (after fixing the HDL) */
-	cdata = ft->carrier_data;
-
 	return 0;
 }
 
@@ -116,47 +87,32 @@ static int ft_svec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 
 static int ft_svec_setup_irqs(struct fmctdc_dev *ft, irq_handler_t handler)
 {
-	struct ft_svec_data *cdata = ft->carrier_data;
+	int ret;
 
-/* FIXME: The code below doesn't work because current SVEC driver... does not support 
-   interrupts. We use a timer instead. */
-#if 0
-	ret = fmc->op->irq_request(fmc, handler, "fmc-tdc", IRQF_SHARED);
+	ret = ft->fmc->op->irq_request(ft->fmc, handler, "fmc-tdc", IRQF_SHARED);
 
 	if (ret < 0) {
-		dev_err(&fmc->dev, "Request interrupt failed: %d\n", ret);
+		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);
 		return ret;
 	}
-#endif
-
-	cdata->fake_irq_handler = handler;
-
-	setup_timer(&cdata->poll_timer, ft_poll_timer_handler,
-		    (unsigned long)ft);
-	mod_timer(&cdata->poll_timer, jiffies + (ft_poll_interval * HZ / 1000));
 
 	return 0;
 }
 
 static int ft_svec_disable_irqs(struct fmctdc_dev *ft)
 {
-	struct ft_svec_data *cdata = ft->carrier_data;
-
-	del_timer_sync(&cdata->poll_timer);
-
-/*	fmc->op->irq_free(fmc);*/
-
-	return 0;
+	return ft->fmc->op->irq_free(ft->fmc);
 }
 
 static int ft_svec_ack_irq(struct fmctdc_dev *ft, int irq_id)
 {
+	ft->fmc->op->irq_ack(ft->fmc);
+
 	return 0;
 }
 
 static void ft_svec_exit(struct fmctdc_dev *ft)
 {
-	kfree(ft->carrier_data);
 }
 
 struct ft_carrier_specific ft_carrier_svec = {

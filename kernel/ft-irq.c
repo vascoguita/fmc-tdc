@@ -185,15 +185,18 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
-
-	/* called outside an IRQ context - probably from the polling timer simulating
-	   the not-yet-supported IRQs on the SVEC */
-	if (unlikely(!in_interrupt())) {
-		ft_readout_tasklet((unsigned long)ft);
-	} else
-		tasklet_schedule(&ft->readout_tasklet);
-
-	return IRQ_HANDLED;
+	uint32_t irq_stat;
+	
+	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_IRQ_STATUS);
+	irq_stat >>= ft->irq_shift;
+	
+	if( likely (irq_stat & TDC_IRQ_TDC_TSTAMP))
+	{
+	    tasklet_schedule(&ft->readout_tasklet);
+	    return IRQ_HANDLED;
+	}
+	
+	return 0;
 }
 
 static inline int check_lost_events(uint32_t curr_wr_ptr, uint32_t prev_wr_ptr,
