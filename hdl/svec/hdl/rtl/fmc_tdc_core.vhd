@@ -12,12 +12,92 @@
 ---------------------------------------------------------------------------------------------------
 -- File         fmc_tdc_core.vhd                                                                  |
 --                                                                                                |
--- Description  TDC core top level                                                                |
+-- Description  The TDC core top level instanciates all the modules needed to provide to the      |
+--              PCIe/VME interface the timestamps generated in the ACAM chip.                     |
+--                                                                                                |
+--              Figure 1 shows the architecture of this core.                                     |
+--                                                                                                |
+--              Each timestamp is a 128-bit word with the following structure:                    |
+--                [31:0]   Fine time                             | each bit represents 81.03 ps   |
+--                [63:32]  Coarse time within the current second | each bit represents 8 ns       |
+--                [95:64]  Local UTC time                        | each bit represents 1 s        |
+--                [127:96] Metadata                              | rising/falling tstamp, Channel |
+--                                                                                                |
+--              As the structure indicates, each timestamp is referred to a UTC second; the coarse|
+--              and fine time indicate with 81.03 ps resolution the amount of time passed after   |
+--              the last UTC second. The one_hz_gen unit is responsible for keeping the UTC time; |
+--              currently this timekeeping depends on a TDC local oscillator, but future upgrades | 
+--              of the core would provide White Rabbit accuracy.                                  |
+--              Timestamps are formated to the structure above within the data_formatting unit and|
+--              are stored in the circular_buffer unit, where the GNUM/VME core have direct access|
+--                                                                                                |
+--              In this application, the ACAM is used in I-Mode which provides unlimited measuring|
+--              range with internal start retriggers. ACAM's counter of retriggers however is not |
+--              large enough and there is the need to follow the retriggers inside the core; the  |
+--              start_retrig_ctrl unit is responsible for that.                                   |
+--                                                                                                |
+--              The acam_databus_interface implements the communication with the ACAM for its     |
+--              configuration as well as for the timestamps retreival.                            |
+--              The acam_timecontrol_interface is mainly responsible for delivering to the ACAM   |
+--              the start pulse, to which all timestamps are related.                             |
+--                                                                                                |
+--              The regs_ctrl implements the communication with the GNUM/VME interface for the    |
+--              configuration of this core and of the ACAM.                                       |
+--              The data_engine is managing the transfering of the configuration registers from   |
+--              the regs_ctrl to the ACAM chip; it is also managing the timestamps'               |
+--              acquisition from the ACAM chip, making it available to the data_formatting unit.  |
+--                                                                                                |
+--              The core is providing an interrupt in any of the following 3 cases:               |
+--               o accumulation of timestamps larger than the settable threshold                  |
+--               o more time passed than the settable time threshold and >=1 timestamps arrived   |
+--               o error occured in the ACAM chip                                                 |
+--                                                                                                |
+--              The clks_rsts_manager unit is providing 125 MHz clock and resets to the core.     |
+--             _________________________________________________________                          |
+--            |                                                         |                         |
+--            |    ________________     ____________                    |                         |
+--            |   |  ____________  |   |            |    ___________    |                         |
+--            |   | |            | |   |            |   |           |   |                         |
+--            |   | |  ACAM time | |   |            |   |  irq gen  |   |                         |
+--            |   | |    ctrl    | |   |            |   |___________|   |                         |
+--            |   | |____________| |   |            |    ___________    |        ______           |
+--            |   |  ____________  |   |            |   |           |   |       |      |          |
+--            |   | |            | |   |    data    |   |           |   |       |      |          |
+--            |   | | ACAM data  | |   |   engine   |   |           |   |       |      |          |
+--            |   | |    ctrl    | |   |            |   |           |   |       |      |          |
+--            |   | |____________| |   |            |   |   regs    |   |  -->  |      |          |
+--            |   |________________|   |            |   |   ctrl    |   |  <--  |      |          |
+--  ACAM <--  |       fine time        |            |   |           |   |       |      |          |
+--  chip -->  |      ____________      |            |   |           |   |       | VME  |          |
+--            |     |            |     |            |   |           |   |       | core |          |
+--            |     |   start    |     |            |   |           |   |       |      |          |
+--            |     |   retrig   |     |            |   |           |   |       |      |          |
+--            |     |____________|     |            |   |           |   |       |      |          |
+--            |      coarse time       |            |   |           |   |       |      |          |
+--            |                        |            |   |           |   |       |      |          |
+--            |      ____________      |____________|   |___________|   |       |      |          |
+--            |     |            |                       ___________    |       |      |          |
+--            |     |  1 Hz gen  |      ____________    |           |   |       |      |          |
+--            |     |____________|     |            |   | circular  |   |  -->  |      |          |
+--            |        UTC time        |   data     |   |  buffer   |   |  <--  |      |          |
+--            |                        | formating  |   |           |   |       |      |          |
+--            |    _________________   |____________|   |___________|   |       |      |          |
+--            |   |____TDC LEDs_____|                                   |       |______|          |
+--            |                                                         |                         |
+--            |_________________________________________________________|                         |
+--                                                              TDC core                          |
+--             _________________________________________________________                          |
+--            |                                                         |                         |
+--            |                     clks_rsts_manager                   |                         |
+--            |_________________________________________________________|                         |
+--                                                                                                |
+--                           Figure 1: TDC core architecture                                      |
+--                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         07/2013                                                                           |
--- Version      v5                                                                                |
+-- Date         09/2013                                                                           |
+-- Version      v5.1                                                                              |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -30,7 +110,7 @@
 --                      mezzanine I2C master added                                                |
 --                      mezzanine 1 wire master added                                             |
 --                      interrupts generator added                                                |
---                      changed generation of rst_i                                               | 
+--                      changed generation of rst_i                                               |
 --                      DAC reconfiguration+needed regs added                                     |
 --     06/2012  v3  EG  Changes for v2 of TDC mezzanine                                           |
 --                      Several pinout changes,                                                   |
@@ -38,6 +118,7 @@
 --                      no PLL_LD only PLL_STATUS                                                 |
 --     04/2013  v4  EG  created fmc_tdc_core module; before was all on fmc_tdc_core               |
 --     07/2013  v5  EG  removed the clks_rsts_manager from the core; will go to top level         |
+--     09/2013  v5.1EG  added block of comments and archirecture drawing                          |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -70,56 +151,56 @@ use work.wishbone_pkg.all;
 --=================================================================================================
 entity fmc_tdc_core is
   generic
-    (g_span                 : integer := 32;     -- address span in bus interfaces
-     g_width                : integer := 32;     -- data width in bus interfaces
-     values_for_simul       : boolean := FALSE); -- this generic is set to TRUE
-                                                 -- when instantiated in a test-bench
+    (g_span                 : integer := 32;                              -- address span in bus interfaces
+     g_width                : integer := 32;                              -- data width in bus interfaces
+     values_for_simul       : boolean := FALSE);                          -- this generic is set to TRUE
+                                                                          -- when instantiated in a test-bench
   port
     (-- Clock and reset
-     clk_125m_i             : in    std_logic;   -- 125 MHz clk from the PLL on the TDC mezz
-     rst_i                  : in    std_logic;   -- global reset, synched to clk_125m_i
-     acam_refclk_r_edge_p_i : in    std_logic;   -- rising edge on 31.25MHz ACAM reference clock
-     send_dac_word_p_o      : out   std_logic;   -- command from PCIe/VME to reconfigure the TDC mezz DAC with dac_word_o
-     dac_word_o             : out   std_logic_vector(23 downto 0); -- new DAC configuration word from PCIe/VME
+     clk_125m_i             : in    std_logic;                            -- 125 MHz clk from the PLL on the TDC mezz
+     rst_i                  : in    std_logic;                            -- global reset, synched to clk_125m_i
+     acam_refclk_r_edge_p_i : in    std_logic;                            -- rising edge on 31.25MHz ACAM reference clock
+     send_dac_word_p_o      : out   std_logic;                            -- command from PCIe/VME to reconfigure the TDC mezz DAC with dac_word_o
+     dac_word_o             : out   std_logic_vector(23 downto 0);        -- new DAC configuration word from PCIe/VME
      -- Signals for the timing interface with the ACAM on TDC mezzanine
-     start_from_fpga_o      : out   std_logic;   -- start pulse
-     err_flag_i             : in    std_logic;   -- error flag
-     int_flag_i             : in    std_logic;   -- interrupt flag
-     start_dis_o            : out   std_logic;   -- start disable, not used
-     stop_dis_o             : out   std_logic;   -- stop disable, not used
+     start_from_fpga_o      : out   std_logic;                            -- start pulse
+     err_flag_i             : in    std_logic;                            -- error flag
+     int_flag_i             : in    std_logic;                            -- interrupt flag
+     start_dis_o            : out   std_logic;                            -- start disable, not used
+     stop_dis_o             : out   std_logic;                            -- stop disable, not used
      -- Signals for the data interface with the ACAM on TDC mezzanine
      data_bus_io            : inout std_logic_vector(27 downto 0);
      address_o              : out   std_logic_vector(3 downto 0);
-     cs_n_o                 : out   std_logic;   -- chip select   for ACAM
-     oe_n_o                 : out   std_logic;   -- output enable for ACAM
-     rd_n_o                 : out   std_logic;   -- read   signal for ACAM
-     wr_n_o                 : out   std_logic;   -- write  signal for ACAM
-     ef1_i                  : in    std_logic;   -- empty flag of ACAM iFIFO1
-     ef2_i                  : in    std_logic;   -- empty flag of ACAM iFIFO2
+     cs_n_o                 : out   std_logic;                            -- chip select   for ACAM
+     oe_n_o                 : out   std_logic;                            -- output enable for ACAM
+     rd_n_o                 : out   std_logic;                            -- read   signal for ACAM
+     wr_n_o                 : out   std_logic;                            -- write  signal for ACAM
+     ef1_i                  : in    std_logic;                            -- empty flag of ACAM iFIFO1
+     ef2_i                  : in    std_logic;                            -- empty flag of ACAM iFIFO2
      -- Signals for the Input Logic on TDC mezzanine
-     enable_inputs_o        : out   std_logic;   -- enables all 5 inputs
-     term_en_1_o            : out   std_logic;   -- Ch.1 termination enable of 50 Ohm termination
-     term_en_2_o            : out   std_logic;   -- Ch.2 termination enable of 50 Ohm termination
-     term_en_3_o            : out   std_logic;   -- Ch.3 termination enable of 50 Ohm termination
-     term_en_4_o            : out   std_logic;   -- Ch.4 termination enable of 50 Ohm termination
-     term_en_5_o            : out   std_logic;   -- Ch.5 termination enable of 50 Ohm termination
+     enable_inputs_o        : out   std_logic;                            -- enables all 5 inputs
+     term_en_1_o            : out   std_logic;                            -- Ch.1 termination enable of 50 Ohm termination
+     term_en_2_o            : out   std_logic;                            -- Ch.2 termination enable of 50 Ohm termination
+     term_en_3_o            : out   std_logic;                            -- Ch.3 termination enable of 50 Ohm termination
+     term_en_4_o            : out   std_logic;                            -- Ch.4 termination enable of 50 Ohm termination
+     term_en_5_o            : out   std_logic;                            -- Ch.5 termination enable of 50 Ohm termination
      -- LEDs on TDC mezzanine
-     tdc_led_status_o       : out   std_logic;   -- amber led on front pannel, division of clk_125m_i
-     tdc_led_trig1_o        : out   std_logic;   -- amber led on front pannel, Ch.1 enable
-     tdc_led_trig2_o        : out   std_logic;   -- amber led on front pannel, Ch.2 enable
-     tdc_led_trig3_o        : out   std_logic;   -- amber led on front pannel, Ch.3 enable
-     tdc_led_trig4_o        : out   std_logic;   -- amber led on front pannel, Ch.4 enable
-     tdc_led_trig5_o        : out   std_logic;   -- amber led on front pannel, Ch.5 enable
+     tdc_led_status_o       : out   std_logic;                            -- amber led on front pannel, division of clk_125m_i
+     tdc_led_trig1_o        : out   std_logic;                            -- amber led on front pannel, Ch.1 termination
+     tdc_led_trig2_o        : out   std_logic;                            -- amber led on front pannel, Ch.2 termination
+     tdc_led_trig3_o        : out   std_logic;                            -- amber led on front pannel, Ch.3 termination
+     tdc_led_trig4_o        : out   std_logic;                            -- amber led on front pannel, Ch.4 termination
+     tdc_led_trig5_o        : out   std_logic;                            -- amber led on front pannel, Ch.5 termination
      -- TDC input signals, also arriving to the FPGA; not used currently
-     tdc_in_fpga_1_i        : in    std_logic;   -- TDC input Ch.1, not used
-     tdc_in_fpga_2_i        : in    std_logic;   -- TDC input Ch.2, not used
-     tdc_in_fpga_3_i        : in    std_logic;   -- TDC input Ch.3, not used
-     tdc_in_fpga_4_i        : in    std_logic;   -- TDC input Ch.4, not used
-     tdc_in_fpga_5_i        : in    std_logic;   -- TDC input Ch.5, not used
+     tdc_in_fpga_1_i        : in    std_logic;                            -- TDC input Ch.1, not used
+     tdc_in_fpga_2_i        : in    std_logic;                            -- TDC input Ch.2, not used
+     tdc_in_fpga_3_i        : in    std_logic;                            -- TDC input Ch.3, not used
+     tdc_in_fpga_4_i        : in    std_logic;                            -- TDC input Ch.4, not used
+     tdc_in_fpga_5_i        : in    std_logic;                            -- TDC input Ch.5, not used
      -- Interrupts
-     irq_tstamp_p_o         : out   std_logic;   -- if amount of tstamps > tstamps_threshold
-     irq_time_p_o           : out   std_logic;   -- if 0 < amount of tstamps < tstamps_threshold and time > time_threshold
-     irq_acam_err_p_o       : out   std_logic;   -- if ACAM err_flag_i is activated
+     irq_tstamp_p_o         : out   std_logic;                            -- if amount of tstamps > tstamps_threshold
+     irq_time_p_o           : out   std_logic;                            -- if 0 < amount of tstamps < tstamps_threshold and time > time_threshold
+     irq_acam_err_p_o       : out   std_logic;                            -- if ACAM err_flag_i is activated
     -- WISHBONE bus interface with the PCIe/VME core for the configuration of the TDC core
      tdc_config_wb_adr_i    : in    std_logic_vector(g_span-1 downto 0);  -- WISHBONE classic address
      tdc_config_wb_dat_i    : in    std_logic_vector(g_width-1 downto 0); -- WISHBONE classic data in
@@ -176,7 +257,6 @@ architecture rtl of fmc_tdc_core is
   signal circ_buff_class_data_wr, circ_buff_class_data_rd   : std_logic_vector(4*g_width-1 downto 0);
   --LED
   signal led_fordebug                                       : std_logic_vector(5 downto 0);
-
 
 
 --=================================================================================================
@@ -307,9 +387,9 @@ begin
      rd_n_o       => rd_n_o,
      wr_n_o       => wr_n_o,
      ef1_o        => acam_ef1,
-     ef1_synch1_o => acam_ef1_meta,
+     ef1_meta_o   => acam_ef1_meta,
      ef2_o        => acam_ef2,
-     ef2_synch1_o => acam_ef2_meta,
+     ef2_meta_o   => acam_ef2_meta,
      clk_i        => clk_125m_i,
      rst_i        => rst_i,
      adr_i        => acm_adr,
@@ -353,9 +433,9 @@ begin
      clk_i                 => clk_125m_i,
      rst_i                 => rst_i,
      acam_ef1_i            => acam_ef1,
-     acam_ef1_synch1_i     => acam_ef1_meta,
+     acam_ef1_meta_i     => acam_ef1_meta,
      acam_ef2_i            => acam_ef2,
-     acam_ef2_synch1_i     => acam_ef2_meta,
+     acam_ef2_meta_i     => acam_ef2_meta,
      activate_acq_p_i      => activate_acq_p,
      deactivate_acq_p_i    => deactivate_acq_p,
      acam_wr_config_p_i    => load_acam_config,
@@ -480,7 +560,8 @@ begin
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
   stop_dis_o  <= '0';
-  
+
+
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

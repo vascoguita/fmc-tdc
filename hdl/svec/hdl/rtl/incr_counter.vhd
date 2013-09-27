@@ -12,9 +12,9 @@
 ---------------------------------------------------------------------------------------------------
 -- File         incr_counter.vhd                                                                  |
 --                                                                                                |
--- Description  Stop counter. Configurable counter_top_i and width.                               |
---				Current count value and done signal available.                                    |
---				Done signal asserted simultaneous to value = counter_top_i.                       |
+-- Description  Stop counter. Configurable "counter_top_i" and "width".                           |
+--				"Current count value" and "counting done" signals available.                      |
+--				"Counting done" signal asserted simultaneous to"current count value=counter_top_i"|
 --				Needs a rst_i to restart.                                                         |
 --                                                                                                |
 --                                                                                                |
@@ -62,7 +62,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 
 entity incr_counter is
   generic
-    (width             : integer := 32); -- default size
+    (width             : integer := 32);                        -- default size
   port
   -- INPUTS
      -- Signals from the clk_rst_manager
@@ -72,12 +72,12 @@ entity incr_counter is
      -- Signals from any unit
      counter_top_i     : in std_logic_vector(width-1 downto 0); -- max value to be counted; when reached
                                                                 -- counter stays at it, until a reset
-     counter_incr_en_i : in std_logic;   -- enables counting
+     counter_incr_en_i : in std_logic;                          -- enables counting
 
   -- OUTPUTS
      -- Signals to any unit
      counter_o         : out std_logic_vector(width-1 downto 0);
-     counter_is_full_o : out std_logic); -- counter reahed counter_top_i value
+     counter_is_full_o : out std_logic);                        -- counter reahed counter_top_i value
 
   end incr_counter;
 
@@ -120,6 +120,7 @@ begin
     end if;
   end process;
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   counter_o                 <= std_logic_vector(counter);
 
 

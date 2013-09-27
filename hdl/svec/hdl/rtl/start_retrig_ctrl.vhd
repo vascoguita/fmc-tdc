@@ -25,29 +25,29 @@
 --                                                                                                |
 --                 [63:32]  Coarse time within the current second; each bit represents 8 ns       |
 --                                                                                                |
---                  [31:0]  Fine time to be added to the Coarse time: provided directly by Acam;  |
+--                  [31:0]  Fine time to be added to the Coarse time: provided directly by ACAM;  |
 --                          each bit represents 81.03 ps                                          |
 --                                                                                                |
---              In I-Mode the Acam chip provides unlimited measuring range with internal start    |
---              retriggers. Acam is programmed to retrigger every (16*acam_clk_period) =          |
---              (64*clk_i_period) = 512 ns; the StartTimer in Acam Reg 4 is set to 15. It counts  |
+--              In I-Mode the ACAM chip provides unlimited measuring range with internal start    |
+--              retriggers. ACAM is programmed to retrigger every (16*acam_clk_period) =          |
+--              (64*clk_i_period) = 512 ns; the StartTimer in ACAM Reg 4 is set to 15. It counts  |
 --              the number of retriggers after a Start pulse and upon the arrival of a Stop pulse |
 --              and it sends this number in the "Start#" field of the timestamp.                  |
---              Unfortunately Acam's counter of the retriggers has only 8 bits and can count up   |
+--              Unfortunately ACAM's counter of the retriggers has only 8 bits and can count up   |
 --              to 256 retriggers. Within one second (our UTC time) there can be up to            |
 --              1,953,125 retriggers, which is >> 256 and actually corresponds to 7629 overflows  |
---              of the Acam counter. Therefore there is the need to follow Acam and keep track of |
---              the overflows. The Acam Interrupt flag (IrFlag pin 59) has been set to follow the |
---              highest bit of the Start# (through the Acam Reg 12 bit 26) and like this we       |
---              manage to count retriggers synchronously to Acam itself.                          |
+--              of the ACAM counter. Therefore there is the need to follow ACAM and keep track of |
+--              the overflows. The ACAM Interrupt flag (IrFlag pin 59) has been set to follow the |
+--              highest bit of the Start# (through the ACAM Reg 12 bit 26) and like this we       |
+--              manage to count retriggers synchronously to ACAM itself.                          |
 --              For simplification, in the following figure we assume that two Stop signals arrive|
---              after less than 256 Acam internal retriggers. Therefore in the timestamps that    |
---              Acam will give the Start# field will represent the exact amount of retriggers     |
+--              after less than 256 ACAM internal retriggers. Therefore in the timestamps that    |
+--              ACAM will give the Start# field will represent the exact amount of retriggers     |
 --              after the Start pulse.                                                            |
 --              Note that the interval between this external Start pulse and the first internal   |
---              retrigger may vary; it is measured by the Acam chip and stored as Start01 in Acam |
---              Reg 10. Moreover, there is the StartOff1 offset added to each Hit time by Acam    |
---              (this does not appear in this figure) made available in Acam Reg 5.               |
+--              retrigger may vary; it is measured by the ACAM chip and stored as Start01 in ACAM |
+--              Reg 10. Moreover, there is the StartOff1 offset added to each Hit time by ACAM    |
+--              (this does not appear in this figure) made available in ACAM Reg 5.               |
 --              However, in this TDC core application we are only interested in time differences  |
 --              between Stop pulses (ex. Stop2 - Stop1) and not in the precise arrival time of a  |
 --              Stop pulse. Since now both Start01 and StartOff1 are stable numbers affecting     |
@@ -57,21 +57,21 @@
 -- Start        ____|-|__________________________________________________________________________ |
 -- Retriggers   ________________|-|________________|-|________________|-|________________|-|_____ |
 -- Stop1        _________________________________________________|-|_____________________________ |
--- Hit1                                            <------------->
+-- Hit1                                            <------------->                                |
 -- Stop2        _____________________________________________________________________________|-|_ |
 -- Hit2                                                                                   <-->    |
 -- Start01          <---------->                                                                  |
 --                                                                                                |
 --              Coming back now to our timestamp format {UTC second, Coarse time, Fine time}, we  |
---              have to somehow assosiate ACAM retriggers to the UTC time. Actually, Acam has no  |
+--              have to somehow assosiate ACAM retriggers to the UTC time. Actually, ACAM has no  |
 --              knowledge of the UTC time and the arrival of a new second happens completely      |
 --              independently. As the following figure shows the final timestamp of a Stop pulse  |
 --              is defined by the current UTC time plus the amount of time between that UTC and   |
---              the Stop pulse: (2)+(3). Part (3) is provided exclusively by the Acam chip in the |
+--              the Stop pulse: (2)+(3). Part (3) is provided exclusively by the ACAM chip in the |
 --              Start# and Hit time fields of the timestamp. The sum of (1)+(2) is multiples of   |
---              256 Acam retriggers and can be defined by following the Acam output IrFlag.       |
---              Now Part (1), is the one that associates the arrival of a UTC second with the Acam|
---              time counting and is defined in this unit by following the Acam retriggers.       |
+--              256 ACAM retriggers and can be defined by following the ACAM output IrFlag.       |
+--              Now Part (1), is the one that associates the arrival of a UTC second with the ACAM|
+--              time counting and is defined in this unit by following the ACAM retriggers.       |
 --                                                                                                |
 -- IrFlag     ______________|--------------|______________|-------------|... _____________|---    |
 --             ___________________________  ___________________________       _____________       |
@@ -141,13 +141,10 @@ entity start_retrig_ctrl is
      -- Signal from the clk_rst_manager
     (clk_i                   : in std_logic;
      rst_i                   : in std_logic;
-
      -- Signal from the acam_timecontrol_interface
      acam_intflag_f_edge_p_i : in std_logic;
-
      -- Signal from the one_hz_generator unit
      one_hz_p_i              : in std_logic;
-
 
   -- OUTPUTS
      -- Signals to the data_formatting unit
@@ -233,7 +230,7 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- These two counters keep a track of the current internal start retrigger
--- of the Acam in parallel with the Acam itself. Counting up to c_ACAM_RETRIG_PERIOD = 64
+-- of the ACAM in parallel with the ACAM itself. Counting up to c_ACAM_RETRIG_PERIOD = 64
 
  retrig_period_counter: free_counter  -- retrigger periods
    generic map
@@ -263,7 +260,7 @@ begin
 
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- This counter keeps track of the number of overflows of the Acam counter within one second
+  -- This counter keeps track of the number of overflows of the ACAM counter within one second
   roll_over_counter: incr_counter
     generic map
       (width             => g_width)
@@ -294,9 +291,7 @@ begin
 
     end if;
   end process;
-
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --    
-    
   -- outputs
   roll_over_incr_recent_o <= '1' when unsigned(current_retrig_nb) < 64 else '0';
   clk_i_cycles_offset_o   <= clk_i_cycles_offset;

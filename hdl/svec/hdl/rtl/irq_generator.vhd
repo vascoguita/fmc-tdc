@@ -13,22 +13,24 @@
 -- File         irq_generator.vhd                                                                 |
 --                                                                                                |
 -- Description  Interrupts generator: the unit generates three interrups:                         |
+--                                                                                                |
 --                o irq_tstamp_p_o is a 1-clk_i-long pulse generated when the amount of timestamps|
---                  written in the circular_buffer, since the last interrupt or since the         |
---                  aquisition startup, exceeds the PCIe/VME settable threshold                   |
---                  irq_tstamp_threshold_o                                                        |
+--                  written in the circular_buffer, since the last interrupt or since the startup |
+--                  of the aquisition,exceeds the PCIe/VME settable threshold irq_tstamp_threshold|
+--                                                                                                |
 --                o irq_time_p_o is a 1-clk_i-long pulse generated when some timestamps have been |
---                  written in the circular_buffer (>0) and the amount of time passed since the   |
---                  last interrupt or since the aquisition startup, exceeds the PCIe/VME settable |
---                  threshold irq_time_threshold_o                                                |
+--                  written in the circular_buffer (>=1 timestamp) and the amount of time passed  |
+--                  since the last interrupt or since the aquisition startup, exceeds the PCIe/VME|
+--                  settable threshold irq_time_threshold                                         |
+--                                                                                                |
 --                o irq_acam_err_p_o is a 1-clk_i-long pulse generated when the ACAM Hit FIFOS are|
 --                  full (according to ACAM configuration register 11)                            |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         05/2012                                                                           |
--- Version      v0.1                                                                              |
+-- Date         08/2013                                                                           |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -37,6 +39,7 @@
 --     04/2013  v0.2  EG  line 170 added "irq_time_threshold_i > 0"; if the user doesn t want the |
 --                        time interrupts he sets the irq_time_threshold reg to zero; same goes   |
 --                        for number-of-tstamps interrupts, users sets to zero to disable them    |
+--     08/2013  v1    EG  time irq concept in milliseconds rather than seconds                    |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -76,32 +79,32 @@ entity irq_generator is
   port
   -- INPUTS
      -- Signal from the clks_rsts_manager
-    (clk_i                   : in std_logic;  -- 125 MHz clk
-     rst_i                   : in std_logic;  -- global reset, synched to clk_i
+    (clk_i                   : in std_logic;                            -- 125 MHz clk
+     rst_i                   : in std_logic;                            -- global reset, synched to clk_i
 
      irq_tstamp_threshold_i  : in std_logic_vector(g_width-1 downto 0); -- PCIe/VME settable threshold
      irq_time_threshold_i    : in std_logic_vector(g_width-1 downto 0); -- PCIe/VME settable threshold
 
      -- Signal from the acam_timecontrol_interface
-     acam_errflag_r_edge_p_i : in std_logic;  -- ACAM ErrFlag rising edge; through the ACAM config reg 11
-                                              -- the ERRflag is configured to follow the full flags of the
-                                              -- Hit FIFOs; this would translate to data loss
+     acam_errflag_r_edge_p_i : in std_logic;                            -- ACAM ErrFlag rising edge; through the ACAM config reg 11
+                                                                        -- the ERRflag is configured to follow the full flags of the
+                                                                        -- Hit FIFOs; this would translate to data loss
      -- Signal from the reg_ctrl unit 
-     activate_acq_p_i        : in std_logic;  -- activates tstamps aquisition from ACAM
-     deactivate_acq_p_i      : in std_logic;  -- deactivates tstamps aquisition
+     activate_acq_p_i        : in std_logic;                            -- activates tstamps aquisition from ACAM
+     deactivate_acq_p_i      : in std_logic;                            -- deactivates tstamps aquisition
 
      -- Signals from the data_formatting unit
-     tstamp_wr_p_i           : in std_logic;  -- pulse upon storage of a new timestamp
+     tstamp_wr_p_i           : in std_logic;                            -- pulse upon storage of a new timestamp
 
      -- Signal from the one_hz_gen unit (currently not used)
-     one_hz_p_i              : in std_logic;  -- pulse upon new second arrival
+     one_hz_p_i              : in std_logic;                            -- pulse upon new second arrival
 
 
   -- OUTPUTS
      -- Signals to the wb_irq_controller
-     irq_tstamp_p_o          : out std_logic;  -- active if amount of tstamps > tstamps_threshold
-     irq_time_p_o            : out std_logic;  -- active if amount of tstamps < tstamps_threshold but time > time_threshold
-     irq_acam_err_p_o        : out std_logic); -- active if ACAM err_flag_i is active
+     irq_tstamp_p_o          : out std_logic;                           -- active if amount of tstamps > tstamps_threshold
+     irq_time_p_o            : out std_logic;                           -- active if amount of tstamps < tstamps_threshold but time > time_threshold
+     irq_acam_err_p_o        : out std_logic);                          -- active if ACAM err_flag_i is active
 
 end irq_generator;
 
@@ -233,7 +236,6 @@ begin
   end process;
 
 
-
 ---------------------------------------------------------------------------------------------------
 --                                      TIMESTAMPS COUNTER                                       --
 ---------------------------------------------------------------------------------------------------
@@ -252,7 +254,6 @@ begin
        counter_o         => tstamps_c);
      -------------------------------------------
     tstamps_c_incr_en    <= tstamps_c_en and tstamp_wr_p_i;
-
 
 
 ---------------------------------------------------------------------------------------------------

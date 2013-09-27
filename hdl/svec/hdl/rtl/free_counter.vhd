@@ -12,9 +12,9 @@
 ---------------------------------------------------------------------------------------------------
 -- File         free_counter.vhd                                                                  |
 --                                                                                                |
--- Description  Free running counter. Configurable counter_top_i and width.                       |
---				Current count counter and done signal available.                                  |
---				Done signal asserted simultaneous to counter=0.                                   |
+-- Description  Free running counter. Configurable "counter_top_i" and "width".                   |
+--				"Current count value" and "counting done" signal available.                       |
+--				"Counting done" signal asserted simultaneous to "current count value = 0".        |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -61,7 +61,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 
 entity free_counter is
   generic
-    (width             : integer := 32); -- default size
+    (width             : integer := 32);                        -- default size
   port
   -- INPUTS
      -- Signals from the clk_rst_manager
@@ -69,14 +69,14 @@ entity free_counter is
      rst_i             : in std_logic;
 
      -- Signals from any unit
-     counter_en_i      : in std_logic;  -- enables counting
+     counter_en_i      : in std_logic;                          -- enables counting
      counter_top_i     : in std_logic_vector(width-1 downto 0); -- start value;
                                                                 -- when zero is reached counter reloads
                                                                 -- start value and restarts counting
   -- OUTPUTS
      -- Signals to any unit
      counter_o         : out std_logic_vector(width-1 downto 0);
-     counter_is_zero_o : out std_logic); -- empty counter indication
+     counter_is_zero_o : out std_logic);                        -- empty counter indication
 
 end free_counter;
 
@@ -88,6 +88,7 @@ architecture rtl of free_counter is
 
   constant zeroes : unsigned(width-1 downto 0):=(others=>'0');
   signal counter  : unsigned(width-1 downto 0):=(others=>'0'); -- init to avoid sim warnings
+
 
 --=================================================================================================
 --                                       architecture begin
@@ -118,7 +119,9 @@ begin
     end if;
   end process;
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   counter_o                 <= std_logic_vector(counter);
+
 
 end architecture rtl;
 --=================================================================================================

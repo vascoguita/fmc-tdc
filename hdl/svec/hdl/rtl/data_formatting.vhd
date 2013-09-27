@@ -12,15 +12,18 @@
 ---------------------------------------------------------------------------------------------------
 -- File         data_formatting.vhd                                                               |
 --                                                                                                |
--- Description  timestamp data formatting.                                                        |
---              formats the timestamp coming from the ACAM plus the coarse timing                 |
---              plus the UTC time and writes it to the circular buffer                            |
+-- Description  Timestamp data formatting.                                                        |
+--              Formats in a 128-bit word the                                                     |
+--                o fine timestamps coming directly from the ACAM                                 |
+--                o plus the coarse timing internally measured in the core                        |
+--                o plus the UTC time internally kept in the core                                 |
+--              and writes the word to the circular buffer                                        |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
 -- Date         07/2013                                                                           |
--- Version      v2                                                                                |
+-- Version      v2.1                                                                              |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -31,6 +34,8 @@
 --                        second; fixed bug on rollover that is a bit delayed wrt ACAM IrFlag     |
 --     07/2013  v2    EG  Cleaner writing with adition of intermediate DFF on the acam_tstamp     |
 --                        calculations                                                            |
+--     09/2013  v2.1  EG  added wr_index clearing upon dacapo_c_rst_p_i pulse; before only the    |
+--                        dacapo_counter was being reset with the dacapo_c_rst_p_i                |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -84,7 +89,7 @@ entity data_formatting is
                                                                   -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
 
      -- Signals from the reg_ctrl unit
-     dacapo_c_rst_p_i        : in std_logic;                      -- instruction from PCIe to clear dacapo flag
+     dacapo_c_rst_p_i        : in std_logic;                      -- instruction from PCIe/VME to clear dacapo flag
 
      -- Signals from the one_hz_gen unit
      local_utc_i             : in std_logic_vector(31 downto 0);  -- local UTC time
@@ -115,7 +120,7 @@ entity data_formatting is
      -- Signal to the reg_ctrl unit
      wr_index_o              : out std_logic_vector(31 downto 0)); -- index of last byte written
                                                                    -- note that the index is provided
-                                                                   -- #bytes, as the PCIe expects
+                                                                   -- #bytes, as the PCIe/VME expects
                                                                    -- (not in #128-bits-words)
 
 end data_formatting;
@@ -145,12 +150,11 @@ architecture rtl of data_formatting is
   signal dacapo_counter                                       : unsigned(19 downto 0);
   signal wr_index                                             : unsigned(7 downto 0); 
   -- coarse time calculations
-  signal belongs_to_previous_sec, tstamp_on_first_retrig_case1: std_logic;
+  signal tstamp_on_first_retrig_case1                         : std_logic;
   signal tstamp_on_first_retrig_case2                         : std_logic;
   signal un_previous_clk_i_cycles_offset                      : unsigned(31 downto 0);
   signal un_previous_retrig_nb_offset                         : unsigned(31 downto 0);
   signal un_previous_roll_over_nb                             : unsigned(31 downto 0);
-  signal un_current_clk_i_cycles_offset                       : unsigned(31 downto 0);
   signal un_current_retrig_nb_offset, un_current_roll_over_nb : unsigned(31 downto 0);
   signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
   signal un_acam_fine_time :unsigned(31 downto 0);
@@ -209,7 +213,7 @@ begin
   tstamp_wr_wb_adr: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if rst_i ='1' then
+      if rst_i ='1' or dacapo_c_rst_p_i = '1' then
         wr_index      <= (others => '0');
 
       elsif tstamp_wr_cyc = '1' and tstamp_wr_stb = '1' and tstamp_wr_we = '1' and tstamp_wr_wb_ack_i = '1' then
@@ -235,7 +239,7 @@ begin
 --                                         Da Capo flag                                          --
 ---------------------------------------------------------------------------------------------------     
 -- dacapo_counter_update: the Da Capo counter indicates the number of times the circular buffer
--- has been written completely; it can be cleared by the PCIe host.
+-- has been written completely; it can be cleared by the PCIe/VME host.
   dacapo_counter_update: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -279,7 +283,7 @@ begin
 --   [95:64]  Local UTC time coming from the one_hz_generator;
 --                                          each bit represents 1s
 
---   [127:96] Metadata for each timestamp: "00..00" & 0 & ef & Slope & Channel
+--   [127:96] Metadata for each timestamp: Slope(rising or falling tstamp), Channel
 
   tstamp_formatting: process (clk_i)   -- ACAM data handling DFF #2 (DFF #1 refers to the registering of the acam_tstamp1/2_ok_p)
   begin   
@@ -346,7 +350,6 @@ begin
   un_acam_fine_time                <= unsigned(fine_time);
   acam_start_nb_32                 <= x"000000" & acam_start_nb;
   un_acam_start_nb                 <= unsigned(acam_start_nb_32);
-  un_current_clk_i_cycles_offset   <= unsigned(clk_i_cycles_offset_i);
   un_current_retrig_nb_offset      <= unsigned(retrig_nb_offset_i);
   un_current_roll_over_nb          <= unsigned(roll_over_nb_i);
   un_current_retrig_from_roll_over <= shift_left(un_current_roll_over_nb-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
@@ -414,8 +417,6 @@ begin
     end if;
   end process;
 
-
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- the number of internal start retriggers actually occurred is calculated by subtracting the offset number
   -- already present when the one_hz_pulse arrives, and adding the start nb provided by the ACAM.
@@ -438,9 +439,9 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata                      <= acam_start_nb & retrig_nb_offset_i(15 downto 0) &         -- for debugging (24 MSbits)
-                                   belongs_to_previous_sec & roll_over_incr_recent_i & "0" & -- for debugging (3 bits)
-                                   acam_slope & "0" & acam_channel;                          -- 5 LSbits
+  metadata                      <= acam_start_nb & retrig_nb_offset_i(15 downto 0) & -- for debugging (24 MSbits)
+                                   acam_fifo_ef & roll_over_incr_recent_i & "0" &    -- for debugging (3 bits)
+                                   acam_slope & "0" & acam_channel;                  -- 5 LSbits
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   full_timestamp(31 downto 0)   <= fine_time;

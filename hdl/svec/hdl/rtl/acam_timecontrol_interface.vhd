@@ -12,7 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 -- File         acam_timecontrol_interface.vhd                                                    |
 --                                                                                                |
--- Description  interface with the acam chip pins for control and timing                          |
+-- Description  interface with the ACAM chip pins for control and timing                          |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -72,11 +72,10 @@ entity acam_timecontrol_interface is
                                              -- reg 11 is set to report for any HitFIFOs full flags
      int_flag_i              : in std_logic; -- ACAM interrupt flag, active HIGH; through ACAM config
                                              -- reg 12 it is set to the MSB of Start#
-
     -- Signals from the reg_ctrl unit
-     activate_acq_p_i        : in std_logic; -- signal from PCIe to start following the ACAM chip
+     activate_acq_p_i        : in std_logic; -- signal from PCIe/VME to start following the ACAM chip
                                              -- for tstamps aquisition
-     window_delay_i          : in std_logic_vector(31 downto 0); -- eva: don t know yet:s
+     window_delay_i          : in std_logic_vector(31 downto 0); -- eva: not needed
 
 
   -- OUTPUTS
@@ -198,7 +197,6 @@ begin
   end process;
 
 
-
   -- Synchronization of the activate_acq_p with the acam_refclk_p_i
   ready_to_trigger: process (clk_i)
   begin
@@ -217,7 +215,6 @@ begin
   end process;
 
 
-
   actual_trigger_received: process (clk_i)        -- signal needed to exclude the generation of
   begin                                           -- the start_from_fpga_o after a general rst_i
     if rising_edge (clk_i) then
@@ -233,7 +230,6 @@ begin
 
     end if;
   end process;
-
 
 
     inputs_synchronizer: process (clk_i)

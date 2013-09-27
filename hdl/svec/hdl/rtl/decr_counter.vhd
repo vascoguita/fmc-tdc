@@ -7,15 +7,15 @@
 
 ---------------------------------------------------------------------------------------------------
 --                                                                                                |
---                                       decr_counter                                             |
+--                                         decr_counter                                           |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 -- File         decr_counter.vhd                                                                  |
 --                                                                                                |
--- Description  Stop counter. Configurable counter_top_i and width.                               |
---       		Current count counter and done signal available.                                  |
---				Done signal asserted simultaneous to counter=0.                                   |
---              Countdown is launched each time counter_load_i is asserted for one clock tick.    |
+-- Description  Stop counter. Configurable "counter_top_i" and "width".                           |
+--       		"Current count value" and "counting done" signals available.                      |
+--				"Counter done" signal asserted simultaneous to "current count value = 0".         |
+--              Countdown is launched each time "counter_load_i" is asserted for one clock tick.  |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -63,7 +63,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 entity decr_counter is
 
   generic
-    (width             : integer := 32); -- default size
+    (width             : integer := 32);                        -- default size
   port
   -- INPUTS
      -- Signals from the clk_rst_manager
@@ -71,14 +71,14 @@ entity decr_counter is
      rst_i             : in std_logic;
 
      -- Signals from any unit
-     counter_load_i    : in std_logic;       -- loads counter with counter_top_i value
+     counter_load_i    : in std_logic;                          -- loads counter with counter_top_i value
      counter_top_i     : in std_logic_vector(width-1 downto 0); -- counter start value
 
 
   -- OUTPUTS
      -- Signals to any unit
      counter_o         : out std_logic_vector(width-1 downto 0);
-     counter_is_zero_o : out std_logic); -- counter empty indication
+     counter_is_zero_o : out std_logic);                        -- counter empty indication
 
 end decr_counter;
 
@@ -126,8 +126,10 @@ begin
     end if;
   end process;
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   counter_o   <= std_logic_vector(counter);
   one         <= zeroes + "1";
+
 
 end architecture rtl;
 --=================================================================================================

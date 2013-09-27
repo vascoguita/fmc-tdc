@@ -12,7 +12,74 @@
 ---------------------------------------------------------------------------------------------------
 -- File         top_tdc.vhd                                                                       |
 --                                                                                                |
--- Description  TDC top level                                                                     |
+-- Description  TDC top level for SVEC. Figure 1 shows the architecture of this unit.             |
+--                o Two TDC mezzanine cores are instanciated, for the boards on FMC1 and FMC2     |
+--                o The IRQ controller is managing the interrupts coming from both TDC cores      |
+--                o The carrier_csr module provides general information on the SVEC PCB version,  |
+--                  PLLs locking state etc                                                        |
+--                o The 1-Wire core provides communication with the SVEC Thermometer&UniqueID chip|
+--              All these cores communicate with the VME core through the SDB crossbar. The SDB   |
+--              crossbar is responsible for managing the acess to the VME core.                   |
+--                                                                                                |
+--              The speed for the VME core is 62.5MHz. The TDC mezzanine cores however operate at |
+--              125MHz. The crossing from the 62.5MHz world to the 125MHz world takes place       | 
+--              through dedicated clock_crossing cores.                                           |
+--                                                                                                |
+--              The 62.5MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of |
+--              the SVEC board.                                                                   |
+--                                                                                                |
+--              The 125MHz clock for each TDC mezzanine comes from the PLL located on it.         |
+--              A clks_rsts_manager unit is responsible for automatically configuring the PLL upon|
+--              the FPGA startup, using the 20MHz VCXO on the SVEC board. The clks_rsts_manager is|
+--              keeping the TDC mezzanine core under reset until the respective PLL gets locked.  |
+--                                                                                                |
+--              Upon powering up of the FPGA as well as after a VME reset, the whole logic gets   |
+--              reset (FMC1 125MHz, FMC2 125MHz and 62.5MHz). This also triggers a reprogramming  |
+--              of the mezzanines' PLL through the clks_rsts_manager units.                       |
+--              An extra software reset is implemented for the TDC mezzanine cores, using resevred|
+--              bits of the carrier_csr core. Such a reset also triggers the reprogramming of the |
+--              mezzanines' PLL.                                                                  |
+--                                                                                                |
+--                __________________________________________________________________              |
+--               |       ____________________________        ___        _____       |             |
+--               |      |   ____________   _______   |      |   |      |     |      |             |
+--               |      |  |            | | clk   |  | \    |   |      |     |      |             |
+--               |      |  | TDC mezz 1 | | cross |  |  \   |   |      |     |      |             |
+--         FMC1  |      |  |____________| |_______|  |   \  |   |      |     |      |             |
+--               |      |     ___________________    |    \ |   |      |     |      |             |
+--               |      |    |_clks_rsts_manager_|   |      |   |      |     |      |             |
+--               |      |____________________________|      |   |      |     |      |             |
+--               |                        FMC1 125MHz       |   |      |     |      |             |
+--               |       ____________________________       |   |      |     |      |             |
+--               |      |   ____________   _______   |      |   |      |     |      |             |
+--               |      |  |            | | clk   |  |      |   |      |     |      |             |
+--               |      |  | TDC mezz 2 | | cross |  |      | S |      |  V  |      |             |
+--         FMC2  |      |  |____________| |_______|  | ---- |   |      |     |      |             |
+--               |      |     ___________________    |      |   |      |     |      |             |
+--               |      |    |_clks_rsts_manager_|   |      |   |      |     |      |             |
+--               |      |____________________________|      | D | <--> |  M  |      |             |
+--               |                        FMC2 125MHz       |   |      |     |      |             |
+--               |       ____________________________       |   |      |     |      |             |
+--               |      |                            |      |   |      |     |      |             |
+--               |      |      IRQ controller        | ---- | B |      |  E  |      |             |
+--               |      |____________________________|      |   |      |     |      |             |
+--               |                             62.5MHz      |   |      |     |      |             |
+--               |       ____________________________       |   |      |     |      |             |
+--               |      |                            |      |   |      |     |      |             |
+-- SVEC 1W chip  |      |          1-Wire            | ---- |   |      |     |      |             |
+--               |      |____________________________|      |   |      |     |      |             |
+--               |                            62.5MHz     / |   |      |     |      |             |
+--               |       ____________________________    /  |   |      |     |      |             |
+--               |      |                            |  /   |   |      |     |      |             |
+--               |      |        Carrier_CSR         | /    |   |      |     |      |             |
+--               |      |____________________________|      |   |      |     |      |             |
+--               |                                          |___|      |_____|      |             |
+--               |                                         62.5MHZ     62.5MHz      |             |
+--               |      ______________________________________________              |             |
+--               |     |___________________LEDs_______________________|             |             |
+--               |                                                                  |             |
+--               |__________________________________________________________________|             |
+--                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
@@ -22,19 +89,7 @@
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
---     08/2013  v4  EG  design for SVEC; two cores; synchronizer between vme and the cores  |
---                                                                                                |
-----------------------------------------------/!\-------------------------------------------------|
--- In this design timestamps retreival from the ACAM could not happen in 4 cycles (=4*8ns), as    |
--- it was noticed that the ACAM tdc1_ef1_i is arriving to the FPGA more than 16ns after the rd_n_o|
--- activation; en extra cycle is therefore essential and has been added in the                    |
--- acam_databus_interface unit; this means that the FPGA cannot keep up to pace with the 31.25 M  |
--- timestamps/sec max rate of the ACAM; the max rate of the application would now be 25 M         |
--- timestamps/sec. However, in practice this is not a problem at all, as the driver layer would   |
--- anyway be unable to keep pace with such frequencies!                                           |
--- EVA: add this in the board's specification                                                     |
--- EVA: check all commenting in the code that was refering to 4 cycles/ timestamp                 |
--- EVA: change the acam_err_flag to show overflows of the interface FIFOs rather than Hit FIFOs.  |
+--     08/2013  v4  EG  design for SVEC; two cores; synchronizer between vme and the cores        |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -370,8 +425,8 @@ begin
           powerup_rst_cnt <= powerup_rst_cnt + 1;
         end if;
       else
-        rst_n_sys            <= '0';
-        powerup_rst_cnt    <= "00000000";
+        rst_n_sys         <= '0';
+        powerup_rst_cnt   <= "00000000";
       end if;
     end if;
   end process;
@@ -385,55 +440,55 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   svec_clk_ibuf : IBUFG
-    port map
-    (I => clk_20m_vcxo_i,
-     O => clk_20m_vcxo_buf);
+  port map
+  (I => clk_20m_vcxo_i,
+   O => clk_20m_vcxo_buf);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sys_clk_pll : PLL_BASE
-    generic map (
-      BANDWIDTH          => "OPTIMIZED",
-      CLK_FEEDBACK       => "CLKFBOUT",
-      COMPENSATION       => "INTERNAL",
-      DIVCLK_DIVIDE      => 1,
-      CLKFBOUT_MULT      => 50,         -- 20 MHz x 50 = 1 GHz
-      CLKFBOUT_PHASE     => 0.000,
-      CLKOUT0_DIVIDE     => 16,         -- 62.5 MHz
-      CLKOUT0_PHASE      => 0.000,
-      CLKOUT0_DUTY_CYCLE => 0.500,
-      CLKOUT1_DIVIDE     => 16,         -- 125 MHz, not used
-      CLKOUT1_PHASE      => 0.000,
-      CLKOUT1_DUTY_CYCLE => 0.500,
-      CLKOUT2_DIVIDE     => 16,
-      CLKOUT2_PHASE      => 0.000,
-      CLKOUT2_DUTY_CYCLE => 0.500,
-      CLKIN_PERIOD       => 50.0,
-      REF_JITTER         => 0.016)
-    port map (
-      CLKFBOUT => pllout_clk_sys_fb,
-      CLKOUT0  => pllout_clk_sys,
-      CLKOUT1  => open,
-      CLKOUT2  => open,
-      CLKOUT3  => open,
-      CLKOUT4  => open,
-      CLKOUT5  => open,
-      LOCKED   => sys_locked,
-      RST      => '0',
-      CLKFBIN  => pllout_clk_sys_fb,
-      CLKIN    => clk_20m_vcxo_buf);
+  generic map
+    (BANDWIDTH          => "OPTIMIZED",
+     CLK_FEEDBACK       => "CLKFBOUT",
+     COMPENSATION       => "INTERNAL",
+     DIVCLK_DIVIDE      => 1,
+     CLKFBOUT_MULT      => 50,         -- 20 MHz x 50 = 1 GHz
+     CLKFBOUT_PHASE     => 0.000,
+     CLKOUT0_DIVIDE     => 16,         -- 62.5 MHz
+     CLKOUT0_PHASE      => 0.000,
+     CLKOUT0_DUTY_CYCLE => 0.500,
+     CLKOUT1_DIVIDE     => 16,         -- 125 MHz, not used
+     CLKOUT1_PHASE      => 0.000,
+     CLKOUT1_DUTY_CYCLE => 0.500,
+     CLKOUT2_DIVIDE     => 16,
+     CLKOUT2_PHASE      => 0.000,
+     CLKOUT2_DUTY_CYCLE => 0.500,
+     CLKIN_PERIOD       => 50.0,
+     REF_JITTER         => 0.016)
+  port map
+    (CLKFBOUT => pllout_clk_sys_fb,
+     CLKOUT0  => pllout_clk_sys,
+     CLKOUT1  => open,
+     CLKOUT2  => open,
+     CLKOUT3  => open,
+     CLKOUT4  => open,
+     CLKOUT5  => open,
+     LOCKED   => sys_locked,
+     RST      => '0',
+     CLKFBIN  => pllout_clk_sys_fb,
+     CLKIN    => clk_20m_vcxo_buf);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_clk_sys_buf : BUFG
-    port map (
-      O => clk_62m5_sys,
-      I => pllout_clk_sys);
+  port map
+    (O => clk_62m5_sys,
+     I => pllout_clk_sys);
 
 
 ---------------------------------------------------------------------------------------------------
 --                                          TDC1 125MHz                                          --
 ---------------------------------------------------------------------------------------------------
   cmp_tdc1_clks_rsts_mgment : clks_rsts_manager
-    generic map
+  generic map
     (nb_of_reg                 => 68)
-    port map
+  port map
     (clk_20m_vcxo_i            => clk_20m_vcxo_buf,
      acam_refclk_p_i           => tdc1_acam_refclk_p_i,
      acam_refclk_n_i           => tdc1_acam_refclk_n_i,
@@ -461,8 +516,8 @@ begin
 --                      TDC1 domains crossing: tdc1_clk_125m <-> clk_62m5_sys                    --
 ---------------------------------------------------------------------------------------------------
   cmp_clks_crossing_ft0 : xwb_clock_crossing
-    port map
-    (slave_clk_i    => clk_62m5_sys,       -- Slave control port: VME interface at 62.5 MHz 
+  port map
+    (slave_clk_i    => clk_62m5_sys,  -- Slave control port: VME interface at 62.5 MHz 
      slave_rst_n_i  => rst_n_sys,
      slave_i        => cnx_master_out(c_SLAVE_TDC0),
      slave_o        => cnx_master_in(c_SLAVE_TDC0),
@@ -476,9 +531,9 @@ begin
 --                                          TDC2 125MHz                                          --
 ---------------------------------------------------------------------------------------------------
   cmp_tdc2_clks_rsts_mgment : clks_rsts_manager
-    generic map
+  generic map
     (nb_of_reg                 => 68)
-    port map
+  port map
     (clk_20m_vcxo_i            => clk_20m_vcxo_buf,
      acam_refclk_p_i           => tdc2_acam_refclk_p_i,
      acam_refclk_n_i           => tdc2_acam_refclk_n_i,
@@ -506,8 +561,8 @@ begin
 --                     TDC2 domains crossing: tdc2_clk_125m <-> clk_62m5_sys                     --
 ---------------------------------------------------------------------------------------------------
   cmp_clks_crossing_ft1 : xwb_clock_crossing
-    port map
-    (slave_clk_i    => clk_62m5_sys,       -- Slave control port: VME interface at 62.5 MHz 
+  port map
+    (slave_clk_i    => clk_62m5_sys,  -- Slave control port: VME interface at 62.5 MHz 
      slave_rst_n_i  => rst_n_sys,
      slave_i        => cnx_master_out(c_SLAVE_TDC1),
      slave_o        => cnx_master_in(c_SLAVE_TDC1),
@@ -528,14 +583,14 @@ begin
 --  0x60000 -> TDC board on FMC2
 
   cmp_sdb_crossbar : xwb_sdb_crossbar
-    generic map
+  generic map
     (g_num_masters => c_NUM_WB_SLAVES,
      g_num_slaves  => c_NUM_WB_MASTERS,
      g_registered  => true,
      g_wraparound  => true,
      g_layout      => c_INTERCONNECT_LAYOUT,
      g_sdb_addr    => c_SDB_ADDRESS)
-    port map
+  port map
     (clk_sys_i => clk_62m5_sys,
      rst_n_i   => rst_n_sys,
      slave_i   => cnx_slave_in,
@@ -548,11 +603,11 @@ begin
 --                                           VME CORE                                            --
 ---------------------------------------------------------------------------------------------------
   U_VME_Core : xvme64x_core
-    port map (
+  port map (
       clk_i           => clk_62m5_sys,
-      rst_n_i         => rst_n_sys,     --------------
+      rst_n_i         => rst_n_sys,
       VME_AS_n_i      => VME_AS_n_i,
-      VME_RST_n_i     => VME_RST_n_i,   --------------
+      VME_RST_n_i     => VME_RST_n_i,
       VME_WRITE_n_i   => VME_WRITE_n_i,
       VME_AM_i        => VME_AM_i,
       VME_DS_n_i      => VME_DS_n_i,
@@ -592,11 +647,11 @@ begin
 ---------------------------------------------------------------------------------------------------
 
   cmp_tdc_board1 : fmc_tdc_mezzanine
-    generic map
+  generic map
     (g_span                 => g_span,
      g_width                => g_width,
      values_for_simul       => values_for_simul)
-    port map
+  port map
     (-- clocks, resets, dac
       clk_125m_i             => tdc1_clk_125m,
       rst_i                  => tdc1_general_rst,
@@ -662,11 +717,11 @@ begin
 --                                            TDC BOARD 2                                        --
 ---------------------------------------------------------------------------------------------------
   cmp_tdc_board2 : fmc_tdc_mezzanine
-    generic map
+  generic map
     (g_span                 => g_span,
      g_width                => g_width,
      values_for_simul       => values_for_simul)
-    port map
+  port map
     (-- clocks, resets, dac
       clk_125m_i             => tdc2_clk_125m,
       rst_i                  => tdc2_general_rst,
@@ -744,7 +799,7 @@ begin
 -- 3-31 -> unused
 
   cmp_irq_controller : irq_controller
-    port map
+  port map
     (clk_sys_i           => clk_62m5_sys,
      rst_n_i             => rst_n_sys,
      wb_adr_i            => cnx_master_out(c_SLAVE_IRQ).adr(3 downto 2),
@@ -774,36 +829,36 @@ begin
   -- and the rest works with the system clock (clk_62m5_sys) we need to synchronize
   -- interrupt pulses.
   cmp_sync_irq0 : gc_pulse_synchronizer
-    port map (
-      clk_in_i  => tdc1_clk_125m,
-      clk_out_i => clk_62m5_sys,
-      rst_n_i   => rst_n_sys,
-      d_p_i     => tdc1_irq_tstamps,
-      q_p_o     => irq_sources(0));
+  port map
+    (clk_in_i  => tdc1_clk_125m,
+     clk_out_i => clk_62m5_sys,
+     rst_n_i   => rst_n_sys,
+     d_p_i     => tdc1_irq_tstamps,
+     q_p_o     => irq_sources(0));
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sync_irq1 : gc_pulse_synchronizer
-    port map (
-      clk_in_i  => tdc1_clk_125m,
-      clk_out_i => clk_62m5_sys,
-      rst_n_i   => rst_n_sys,
-      d_p_i     => tdc1_irq_acam_err_p,
-      q_p_o     => irq_sources(1));
+  port map
+    (clk_in_i  => tdc1_clk_125m,
+     clk_out_i => clk_62m5_sys,
+     rst_n_i   => rst_n_sys,
+     d_p_i     => tdc1_irq_acam_err_p,
+     q_p_o     => irq_sources(1));
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sync_irq2 : gc_pulse_synchronizer
-    port map (
-      clk_in_i  => tdc2_clk_125m,
-      clk_out_i => clk_62m5_sys,
-      rst_n_i   => rst_n_sys,
-      d_p_i     => tdc2_irq_tstamps,
-      q_p_o     => irq_sources(2));
+  port map
+    (clk_in_i  => tdc2_clk_125m,
+     clk_out_i => clk_62m5_sys,
+     rst_n_i   => rst_n_sys,
+     d_p_i     => tdc2_irq_tstamps,
+     q_p_o     => irq_sources(2));
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sync_irq3 : gc_pulse_synchronizer
-    port map (
-      clk_in_i  => tdc2_clk_125m,
-      clk_out_i => clk_62m5_sys,
-      rst_n_i   => rst_n_sys,
-      d_p_i     => tdc2_irq_acam_err_p,
-      q_p_o     => irq_sources(3));
+  port map
+    (clk_in_i  => tdc2_clk_125m,
+     clk_out_i => clk_62m5_sys,
+     rst_n_i   => rst_n_sys,
+     d_p_i     => tdc2_irq_acam_err_p,
+     q_p_o     => irq_sources(3));
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc1_irq_tstamps         <= tdc1_irq_tstamp_p or tdc1_irq_time_p;
   tdc2_irq_tstamps         <= tdc2_irq_tstamp_p or tdc2_irq_time_p;
@@ -815,13 +870,13 @@ begin
 ---------------------------------------------------------------------------------------------------
 
   cmp_carrier_onewire : xwb_onewire_master
-    generic map
+  generic map
     (g_interface_mode      => PIPELINED,
      g_address_granularity => BYTE,
      g_num_ports           => 1,
      g_ow_btp_normal       => "5.0",
      g_ow_btp_overdrive    => "1.0")
-    port map
+  port map
     (clk_sys_i   => clk_62m5_sys,
      rst_n_i     => rst_n_sys,
      slave_i     => cnx_master_out(c_SLAVE_SVEC_1W),
@@ -841,7 +896,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 -- Information on carrier type, mezzanine presence, pcb version
   cmp_carrier_csr : carrier_csr
-    port map
+  port map
     (rst_n_i                          => rst_n_sys,
      wb_clk_i                         => clk_62m5_sys,
      wb_addr_i                        => cnx_master_out(c_SLAVE_SVEC_INFO).adr(3 downto 2),
@@ -864,7 +919,7 @@ begin
      carrier_csr_ctrl_led_green_o     => open,
      carrier_csr_ctrl_led_red_o       => open,
      carrier_csr_ctrl_dac_clr_n_o     => open,
-     carrier_csr_ctrl_reserved_o      => carrier_csr_reserved_out);
+     carrier_csr_ctrl_reserved_o      => carrier_csr_reserved_out); -- TDC mezzanine cores reset
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_SLAVE_SVEC_INFO).err   <= '0';

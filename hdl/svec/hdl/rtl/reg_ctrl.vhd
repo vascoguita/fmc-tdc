@@ -26,22 +26,23 @@
 --                  different units in the design.                                                |
 --                                                                                                |
 --              Through WISHBONE reads, the unit transmits:                                       |
---                o the ACAM configuration registers read from the ACAM chip                      |
+--                o the ACAM configuration registers readback from the ACAM chip                  |
 --                o status registers coming from different units of the TDC core                  |
 --                                                                                                |
---              All the registers are of size 32 bits, as the WISHBONE dat bus                    |
+--              All the registers are of size 32 bits, as the WISHBONE data bus                   |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
+-- Date         08/2012                                                                           |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     10/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--     08/2012  v1    EG  added register reg_adr_pipe0 for slack timing reasons                   |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -84,65 +85,65 @@ entity reg_ctrl is
   port
   -- INPUTS
      -- Signals from the clks_rsts_manager unit
-    (clk_i                 : in std_logic;                                -- 125 MHz
-     rst_i                 : in std_logic;                                -- global reset, synched to clk_i
+    (clk_i                 : in std_logic;                             -- 125 MHz
+     rst_i                 : in std_logic;                             -- global reset, synched to clk_i
 
-     -- Signals from the GNUM/VME_core unit: WISHBONE for TDC core and ACAM regs transfer
-     tdc_config_wb_adr_i   : in std_logic_vector(g_span-1 downto 0); -- WISHBONE address
-     tdc_config_wb_cyc_i   : in std_logic;                           -- WISHBONE cycle
-     tdc_config_wb_dat_i   : in std_logic_vector(g_width-1 downto 0);-- WISHBONE data in
-     tdc_config_wb_stb_i   : in std_logic;                           -- WISHBONE strobe
-     tdc_config_wb_we_i    : in std_logic;                           -- WISHBONE write enable
+     -- Signals from the GNUM/VME_core unit: WISHBONE for regs transfer
+     tdc_config_wb_adr_i   : in std_logic_vector(g_span-1 downto 0);   -- WISHBONE address
+     tdc_config_wb_cyc_i   : in std_logic;                             -- WISHBONE cycle
+     tdc_config_wb_dat_i   : in std_logic_vector(g_width-1 downto 0);  -- WISHBONE data in
+     tdc_config_wb_stb_i   : in std_logic;                             -- WISHBONE strobe
+     tdc_config_wb_we_i    : in std_logic;                             -- WISHBONE write enable
 
-     -- Signals from the data_engine unit: config regs from the ACAM
-     acam_config_rdbk_i    : in config_vector;                       -- array keeping values read from ACAM regs 0-7, 11, 12, 14
-     acam_status_i         : in std_logic_vector(g_width-1 downto 0);-- keeps value read from ACAM reg 12
-     acam_ififo1_i         : in std_logic_vector(g_width-1 downto 0);-- keeps value read from ACAM reg 8; for debug reasons only
-     acam_ififo2_i         : in std_logic_vector(g_width-1 downto 0);-- keeps value read from ACAM reg 9; for debug reasons only
-     acam_start01_i        : in std_logic_vector(g_width-1 downto 0);-- keeps value read from ACAM reg 10; for debug reasons only
+     -- Signals from the data_engine unit: config regs readback from the ACAM
+     acam_config_rdbk_i    : in config_vector;                         -- array keeping values read back from ACAM regs 0-7, 11, 12, 14
+     acam_status_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 12
+     acam_ififo1_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 8; for debug reasons only
+     acam_ififo2_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 9; for debug reasons only
+     acam_start01_i        : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 10; for debug reasons only
 
      -- Signals from the data_formatting unit
-     wr_index_i            : in std_logic_vector(g_width-1 downto 0);-- index of the last circular_buffer adr written
+     wr_index_i            : in std_logic_vector(g_width-1 downto 0);  -- index of the last circular_buffer adr written
 
      -- Signals from the one_hz_gen unit
-     local_utc_i           : in std_logic_vector(g_width-1 downto 0);-- local utc time
+     local_utc_i           : in std_logic_vector(g_width-1 downto 0);  -- local utc time
 
      -- Signals not used so far
-     core_status_i         : in std_logic_vector(g_width-1 downto 0);-- TDC core status word
-     irq_code_i            : in std_logic_vector(g_width-1 downto 0);-- TDC core interrupt code word
+     core_status_i         : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
+     irq_code_i            : in std_logic_vector(g_width-1 downto 0);  -- TDC core interrupt code word
 
 
   -- OUTPUTS
-     -- Signals to the GNUM/VME_core unit: WISHBONE for TDC core and ACAM regs transfer
-     tdc_config_wb_ack_o   : out std_logic;                           -- WISHBONE acknowledge
-     tdc_config_wb_dat_o   : out std_logic_vector(g_width-1 downto 0);-- WISHBONE data out
+     -- Signals to the GNUM/VME_core unit: WISHBONE for regs transfer
+     tdc_config_wb_ack_o   : out std_logic;                            -- WISHBONE acknowledge
+     tdc_config_wb_dat_o   : out std_logic_vector(g_width-1 downto 0); -- WISHBONE data out
 
      -- Signals to the data_engine unit: config regs for the ACAM
      acam_config_o         : out config_vector;
 
      -- Signals to the data_engine unit: TDC core functionality
-     activate_acq_p_o      : out std_logic; -- activates tstamps aquisition from ACAM
-     deactivate_acq_p_o    : out std_logic; -- activates ACAM configuration readings/ writings
-     acam_wr_config_p_o    : out std_logic; -- enables writing to ACAM regs 0-7, 11, 12, 14 
-     acam_rdbk_config_p_o  : out std_logic; -- enables reading of ACAM regs 0-7, 11, 12, 14 
-     acam_rst_p_o          : out std_logic; -- enables writing the c_RESET_WORD to ACAM reg 4
-     acam_rdbk_status_p_o  : out std_logic; -- enables reading of ACAM reg 12 
-     acam_rdbk_ififo1_p_o  : out std_logic; -- enables reading of ACAM reg 8
-     acam_rdbk_ififo2_p_o  : out std_logic; -- enables reading of ACAM reg 9
-     acam_rdbk_start01_p_o : out std_logic; -- enables reading of ACAM reg 10
+     activate_acq_p_o      : out std_logic;                            -- activates tstamps aquisition from ACAM
+     deactivate_acq_p_o    : out std_logic;                            -- activates ACAM configuration readings/ writings
+     acam_wr_config_p_o    : out std_logic;                            -- enables writing to ACAM regs 0-7, 11, 12, 14 
+     acam_rdbk_config_p_o  : out std_logic;                            -- enables reading of ACAM regs 0-7, 11, 12, 14 
+     acam_rst_p_o          : out std_logic;                            -- enables writing the c_RESET_WORD to ACAM reg 4
+     acam_rdbk_status_p_o  : out std_logic;                            -- enables reading of ACAM reg 12 
+     acam_rdbk_ififo1_p_o  : out std_logic;                            -- enables reading of ACAM reg 8
+     acam_rdbk_ififo2_p_o  : out std_logic;                            -- enables reading of ACAM reg 9
+     acam_rdbk_start01_p_o : out std_logic;                            -- enables reading of ACAM reg 10
 
      -- Signal to the data_formatting unit
-     dacapo_c_rst_p_o      : out std_logic; -- clears the dacapo counter
+     dacapo_c_rst_p_o      : out std_logic;                            -- clears the dacapo counter
 
      -- Signals to the clks_resets_manager ubit
-     send_dac_word_p_o     : out std_logic; -- initiates the reconfiguration of the DAC
+     send_dac_word_p_o     : out std_logic;                            -- initiates the reconfiguration of the DAC
      dac_word_o            : out std_logic_vector(23 downto 0);
 
      -- Signal to the one_hz_gen unit
      load_utc_p_o          : out std_logic;
      starting_utc_o        : out std_logic_vector(g_width-1 downto 0);
-     irq_tstamp_threshold_o: out std_logic_vector(g_width-1 downto 0);
-     irq_time_threshold_o  : out std_logic_vector(g_width-1 downto 0);
+     irq_tstamp_threshold_o: out std_logic_vector(g_width-1 downto 0); -- threshold in number of timestamps
+     irq_time_threshold_o  : out std_logic_vector(g_width-1 downto 0); -- threshold in number of ms
      one_hz_phase_o        : out std_logic_vector(g_width-1 downto 0); -- for debug only
 
      -- Signal to the TDC mezzanine board
@@ -160,7 +161,7 @@ end reg_ctrl;
 architecture rtl of reg_ctrl is
 
   signal acam_config                                  : config_vector;
-  signal reg_adr,reg_adr_pipe0                                      : std_logic_vector(7 downto 0);
+  signal reg_adr,reg_adr_pipe0                        : std_logic_vector(7 downto 0);
   signal starting_utc, acam_inputs_en, start_phase    : std_logic_vector(g_width-1 downto 0);
   signal ctrl_reg, one_hz_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
   signal irq_time_threshold                           : std_logic_vector(g_width-1 downto 0);
@@ -168,9 +169,10 @@ architecture rtl of reg_ctrl is
   signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out, dat_out_pipe0                                      : std_logic_vector(g_span-1 downto 0);
+  signal dat_out, dat_out_pipe0                       : std_logic_vector(g_span-1 downto 0);
+  signal tdc_config_wb_ack_o_pipe0                    : std_logic;
 
-  signal tdc_config_wb_ack_o_pipe0 : std_logic;
+
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -200,7 +202,6 @@ begin
       end if;
     end if;
   end process;
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -276,10 +277,8 @@ begin
       end if;
     end if;
   end process;
-
   --  --  --  --  --  --  --  --  --  --  --  --  
   acam_config_o  <= acam_config;
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -290,8 +289,9 @@ begin
 -- registers to be loaded locally.
 -- The following information is received:
 --   o acam_inputs_en       : for the activation of the TDC input channels
---   o irq_tstamp_threshold : for the activation of VME interrupts based on the number of timestamps
---   o irq_time_threshold   : for the activation of VME interrupts based on the time elapsed
+--   o irq_tstamp_threshold : for the activation of PCIe/VME interrupts based on the number of timestamps
+--   o irq_time_threshold   : for the activation of PCIe/VME interrupts based on the time elapsed
+--   o starting_utc         : definition of the current UTC time
 --   o starting_utc         : definition of the current UTC time
 --   o one_hz_phase         : eva: think it s not used
 --   o start_phase          : eva: think it s not used
@@ -305,7 +305,7 @@ begin
         start_phase          <= (others =>'0');
         one_hz_phase         <= (others =>'0');
         irq_tstamp_threshold <= x"00000100";        -- default 256 timestamps: full memory
-        irq_time_threshold   <= x"00000078";        -- default 2 minutes 
+        irq_time_threshold   <= x"000000C8";        -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD; -- default DAC Vout = 1.65
 
 
@@ -336,22 +336,20 @@ begin
         end if;
 
         if reg_adr = c_DAC_WORD_ADR then
-          dac_word         <= tdc_config_wb_dat_i(23 downto 0);
+          dac_word             <= tdc_config_wb_dat_i(23 downto 0);
         end if;
 
       end if;
     end if;
   end process;
-
   --  --  --  --  --  --  --  --  --  --  --  --
-  starting_utc_o         <= starting_utc;
-  acam_inputs_en_o       <= acam_inputs_en;
-  start_phase_o          <= start_phase;
-  one_hz_phase_o         <= one_hz_phase;
-  irq_tstamp_threshold_o <= irq_tstamp_threshold;
-  irq_time_threshold_o   <= irq_time_threshold;
-  dac_word_o             <= dac_word;
-
+  starting_utc_o               <= starting_utc;
+  acam_inputs_en_o             <= acam_inputs_en;
+  start_phase_o                <= start_phase;
+  one_hz_phase_o               <= one_hz_phase;
+  irq_tstamp_threshold_o       <= irq_tstamp_threshold;
+  irq_time_threshold_o         <= irq_time_threshold;
+  dac_word_o                   <= dac_word;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -383,7 +381,6 @@ begin
       end if;
     end if;
   end process;
-
   --  --  --  --  --  --  --  --  --  --  --  --   
   activate_acq_p_o       <= ctrl_reg(0);
   deactivate_acq_p_o     <= ctrl_reg(1);
@@ -413,9 +410,9 @@ begin
      counter_incr_en_i => pulse_extender_en,
      counter_is_full_o => open,
      counter_o         => pulse_extender_c);
+  --  --  --  --  --  --  --  --  --  --  --  --   
   pulse_extender_en     <= '1' when pulse_extender_c < "111" else '0';
   send_dac_word_p_o     <= pulse_extender_en;
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -429,7 +426,7 @@ begin
     if rising_edge (clk_i) then
       --if tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '0' then -- WISHBONE reads
       --  tdc_config_wb_dat_o <= dat_out;
-      reg_adr_pipe0 <= reg_adr;
+      reg_adr_pipe0       <= reg_adr;
       tdc_config_wb_dat_o <= dat_out;
       --end if;
     end if;
@@ -478,8 +475,7 @@ begin
     wr_index_i             when c_WR_INDEX_ADR,
     core_status_i          when c_CORE_STATUS_ADR,
     -- others
-    tdc_config_wb_adr_i    when others;
-    --x"C0FFEEEE"            when others;
+    x"C0FFEEEE"            when others;
 
 
 end architecture rtl;

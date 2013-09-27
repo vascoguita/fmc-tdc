@@ -30,7 +30,7 @@
 --                 be in inactive mode (deactivate_acq = 1).                                      |
 --                                                                                                |
 --              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE     |
---              master fetching/ sending data from/ to the ACAM interface.                        |
+--              master fetching/ sending data from/to the ACAM interface.                         |
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -82,55 +82,55 @@ entity data_engine is
   port
   -- INPUTS
      -- Signals from the clk_rst_manager
-    (clk_i                : in std_logic; -- 125 MHz
-     rst_i                : in std_logic; -- global reset
+    (clk_i                : in std_logic;                     -- 125 MHz
+     rst_i                : in std_logic;                     -- global reset
 
-     -- Signals from the reg_ctrl unit
-     activate_acq_p_i     : in std_logic; -- activates tstamps aquisition 
-     deactivate_acq_p_i   : in std_logic; -- activates configuration readings/ writings
-     acam_wr_config_p_i   : in std_logic; -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
-     acam_rst_p_i         : in std_logic; -- enables writing c_RESET_WORD         to ACAM reg 4
-     acam_rdbk_config_p_i : in std_logic; -- enables reading of ACAM regs 0-7, 11, 12, 14 
-     acam_rdbk_status_p_i : in std_logic; -- enables reading of ACAM reg  12
-     acam_rdbk_ififo1_p_i : in std_logic; -- enables reading of ACAM reg  8
-     acam_rdbk_ififo2_p_i : in std_logic; -- enables reading of ACAM reg  9
-     acam_rdbk_start01_p_i: in std_logic; -- enables reading of ACAM reg  10
+     -- Signals from the reg_ctrl unit: communication with PCIe/VME for registers configuration
+     activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition 
+     deactivate_acq_p_i   : in std_logic;                     -- activates configuration readings/ writings
+     acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
+     acam_rst_p_i         : in std_logic;                     -- enables writing c_RESET_WORD         to ACAM reg 4
+     acam_rdbk_config_p_i : in std_logic;                     -- enables reading of ACAM regs 0-7, 11, 12, 14 
+     acam_rdbk_status_p_i : in std_logic;                     -- enables reading of ACAM reg  12
+     acam_rdbk_ififo1_p_i : in std_logic;                     -- enables reading of ACAM reg  8
+     acam_rdbk_ififo2_p_i : in std_logic;                     -- enables reading of ACAM reg  9
+     acam_rdbk_start01_p_i: in std_logic;                     -- enables reading of ACAM reg  10
 
-     acam_config_i        : in config_vector; -- array keeping values for ACAM regs 0-7, 11, 12, 14
-                                              -- as received from the PCIe interface
+     acam_config_i        : in config_vector;                 -- array keeping values for ACAM regs 0-7, 11, 12, 14
+                                                              -- as received from the PCIe/VME interface
 
      -- Signals from the acam_databus_interface unit: empty FIFO flags
-     acam_ef1_i           : in std_logic; -- emply fifo 1 (fully synched signal; ef1 after 2 DFFs)
-     acam_ef1_synch1_i    : in std_logic; -- emply fifo 1 (possibly metestable;  ef1 after 1 DFF)
-     acam_ef2_i           : in std_logic; -- emply fifo 2 (fully synched signal; ef2 after 2 DFFs)
-     acam_ef2_synch1_i    : in std_logic; -- emply fifo 2 (possibly metestable;  ef2 after 1 DFF)
+     acam_ef1_i           : in std_logic;                     -- empty fifo 1 (fully synched signal; ef1 after 2 DFFs)
+     acam_ef1_meta_i      : in std_logic;                     -- empty fifo 1 (possibly metestable;  ef1 after 1 DFF)
+     acam_ef2_i           : in std_logic;                     -- empty fifo 2 (fully synched signal; ef2 after 2 DFFs)
+     acam_ef2_meta_i      : in std_logic;                     -- empty fifo 2 (possibly metestable;  ef2 after 1 DFF)
 
-     -- Signals from the acam_databus_interface unit: WISHBONE master
-     acam_ack_i           : in std_logic; -- WISHBONE ack
+     -- Signals from the acam_databus_interface unit: communication with ACAM for configuration or tstamps retreival
+     acam_ack_i           : in std_logic;                     -- WISHBONE ack
      acam_dat_i           : in std_logic_vector(31 downto 0); -- tstamps or rdbk regs
-                                                              -- includes ef1 & ef2 & 0 & 0 & 28 bits acam data_bus_io
+                                                              -- includes ef1 & ef2 & 0 & 0 & 28 bits ACAM data_bus_io
 
 
   -- OUTPUTS
-     -- Signals to the acam_databus_interface unit: WISHBONE master
+     -- Signals to the acam_databus_interface unit: communication with ACAM for configuration or tstamps retreival
      acam_adr_o           : out std_logic_vector(7 downto 0); -- address of reg/ FIFO to write/ read
      acam_cyc_o           : out std_logic;                    -- WISHBONE cycle
      acam_stb_o           : out std_logic;                    -- WISHBONE strobe
      acam_dat_o           : out std_logic_vector(31 downto 0);-- values to write to ACAM regs
      acam_we_o            : out std_logic;                    -- WISHBONE write (enabled only for reg writings)
 
-     -- Signals to the reg_ctrl unit
+     -- Signals to the reg_ctrl unit: communication with PCIe/VME for registers configuration
      acam_config_rdbk_o   : out config_vector;                -- array keeping values read from ACAM regs 0-7, 11, 12, 14
      acam_status_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 12
      acam_ififo1_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 8
      acam_ififo2_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 9
      acam_start01_o       : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 10
 
-     -- Signals to the data_formatting unit:
+     -- Signals to the data_formatting unit: ACAM fine times
      acam_tstamp1_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO1
      acam_tstamp2_o       : out std_logic_vector(31 downto 0);-- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
-     acam_tstamp1_ok_p_o  : out std_logic; -- indication of a valid tstamp1
-     acam_tstamp2_ok_p_o  : out std_logic);-- indication of a valid tstamp2
+     acam_tstamp1_ok_p_o  : out std_logic;                    -- indication of a valid tstamp1
+     acam_tstamp2_ok_p_o  : out std_logic);                   -- indication of a valid tstamp2
 
 end data_engine;
 
@@ -143,14 +143,14 @@ architecture rtl of data_engine is
 
 type engine_state_ty is (ACTIVE, INACTIVE, GET_STAMP1, GET_STAMP2, WR_CONFIG, RDBK_CONFIG,
                          RD_STATUS, RD_IFIFO1, RD_IFIFO2, RD_START01, WR_RESET);
-signal engine_st, nxt_engine_st : engine_state_ty;
+signal engine_st, nxt_engine_st    : engine_state_ty;
 
 signal acam_cyc, acam_stb, acam_we : std_logic;
-signal acam_adr           : std_logic_vector(7 downto 0);
-signal config_adr_c       : unsigned(7 downto 0);
-signal acam_config_rdbk   : config_vector;
-signal reset_word         : std_logic_vector(31 downto 0);
-signal acam_config_reg4   : std_logic_vector(31 downto 0);
+signal acam_adr                    : std_logic_vector(7 downto 0);
+signal config_adr_c                : unsigned(7 downto 0);
+signal acam_config_rdbk            : config_vector;
+signal reset_word                  : std_logic_vector(31 downto 0);
+signal acam_config_reg4            : std_logic_vector(31 downto 0);
 
 
 --=================================================================================================
@@ -185,16 +185,17 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- Combinatorial process
   data_engine_fsm_comb: process (engine_st, activate_acq_p_i, deactivate_acq_p_i, acam_ef1_i, acam_adr,
-                                 acam_ef2_i, acam_ef1_synch1_i, acam_ef2_synch1_i, acam_wr_config_p_i,
+                                 acam_ef2_i, acam_ef1_meta_i, acam_ef2_meta_i, acam_wr_config_p_i,
                                  acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
                                  acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i)
   begin
     case engine_st is
 
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-      -- from the INACTIVE state modifications/ readings of the ACAM configuration can be initiated
-      -- all interactions refer to transfers from the ACAM, locally and vice versa; the transfering
-      -- from/ to the PCIe needs....
+      -- from the INACTIVE state modifications/readings of the ACAM configuration can be initiated;
+      -- all interactions here refer to transfers between the ACAM and locally this core.
+      -- All the interactions between the PCIe/VME interface and this core take place at the
+      -- the reg_ctrl unit.  
       when INACTIVE =>
                   -----------------------------------------------
                         acam_cyc        <= '0';
@@ -232,7 +233,6 @@ begin
                           nxt_engine_st   <= INACTIVE;
                         end if;
 
-
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       -- ACTIVE, GET_STAMP1, GET_STAMP2: intensive acquisition of timestamps from ACAM.
       -- ACAM can receive and tag pulses with an overall rate up to 31.25 MHz;
@@ -243,7 +243,7 @@ begin
       -- synchronized using a set of two registers.
       --    _______             ___________________________________________________
       --           |           |       ____                 ____
-      --           |_____ef____|______|    |___ef_synch1___|    |_____ef_synch2
+      --           |_____ef____|______|    |____ef_meta____|    |_____ef_synched
       --      ACAM |           |      |DFF1|               |DFF2|
       --           |           |      |\   |               |\   |
       --           |           |      |/___|               |/___|  
@@ -261,8 +261,8 @@ begin
       -- timestamps' aquisitions from ACAM in just 4 clk cycles.
       -- clk           --|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__
       -- ef            ------|_______________________________________________________|--------------
-      -- ef_synch1     -----------|_____________________________________________________|-----------
-      -- ef_synch2     -----------------|_____________________________________________________|-----
+      -- ef_meta       -----------|_____________________________________________________|-----------
+      -- ef_synched    -----------------|_____________________________________________________|-----
       -- stb           _______________________|-----------------------------------------------|_____
       -- adr           _______________________| iFIFO adr set
       -- rdn           -----------------------------|_________________|-----|_______________________
@@ -310,7 +310,7 @@ begin
                           if acam_ef2_i = '0' then
                             nxt_engine_st <= GET_STAMP2;
   
-                          elsif acam_ef1_synch1_i ='0' then
+                          elsif acam_ef1_meta_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
                           else
                             nxt_engine_st <= ACTIVE;
@@ -334,7 +334,7 @@ begin
                           if acam_ef1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
 
-                          elsif acam_ef2_synch1_i ='0' then
+                          elsif acam_ef2_meta_i ='0' then
                             nxt_engine_st <= GET_STAMP2;
                           else
                             nxt_engine_st <= ACTIVE;
@@ -353,7 +353,7 @@ begin
                         acam_we         <= '1';
                   -----------------------------------------------
 
-                        if acam_ack_i = '1' and acam_adr = x"0E" then -- last address
+                        if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
                         else
                           nxt_engine_st   <= WR_CONFIG;
@@ -461,17 +461,18 @@ begin
         end case;
     end process;
 
-
+  --  --  --  --  --  --  --  --  --  --  --  --  --
   acam_cyc_o <= acam_cyc;
   acam_stb_o <= acam_stb;
   acam_we_o  <= acam_we;
+
 
 ---------------------------------------------------------------------------------------------------
 --                  Address generation (acam_adr_o) for ACAM readings/ writings                  --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- adr_generation: according to the state of the FSM this process generates the acam_adr_o output
--- that specifies the ACAM register or FIFO to write to or to read from.
+-- that specifies the ACAM register or FIFO to write to/read from.
 
   adr_generation: process (engine_st, config_adr_c)
   begin
@@ -489,10 +490,10 @@ begin
                         acam_adr  <= std_logic_vector(c_ACAM_REG9_ADR);  -- FIFO2: ACAM reg 9
 
       when WR_CONFIG  =>
-                        acam_adr  <= std_logic_vector(config_adr_c); -- sweeps through ACAM reg 0-7, 11, 12, 14
+                        acam_adr  <= std_logic_vector(config_adr_c);     -- sweeps through ACAM reg 0-7, 11, 12, 14
 
       when RDBK_CONFIG=>
-                        acam_adr  <= std_logic_vector(config_adr_c); -- sweeps through ACAM reg 0-7, 11, 12, 14
+                        acam_adr  <= std_logic_vector(config_adr_c);     -- sweeps through ACAM reg 0-7, 11, 12, 14
 
       when RD_STATUS  =>
                         acam_adr  <= std_logic_vector(c_ACAM_REG12_ADR); -- status: ACAM reg 12
@@ -513,9 +514,9 @@ begin
                         acam_adr  <= x"00";
     end case;
   end process;
-
   --  --  --  --  --  --  --  --  --  --  --  --  --
-  acam_adr_o          <= acam_adr; -- x"000000" & acam_adr; --reduce size!!
+  acam_adr_o          <= acam_adr;
+
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- config_adr_c: counter used for the sweeping though the ACAM configuration addresses.
@@ -545,7 +546,6 @@ begin
   end process;
 
 
-
 ---------------------------------------------------------------------------------------------------
 --                          Values (acam_dat_o) for ACAM config writings                         --
 ---------------------------------------------------------------------------------------------------
@@ -553,6 +553,7 @@ begin
 -- data_config_decoder: according to the acam_adr this process generates the acam_dat_o output
 -- with the new value to be loaded to the corresponding ACAM reg. The values come from the
 -- acam_config_i vector that keeps what has been loaded from the PCIe interface.
+
   data_config_decoder: process(acam_adr, engine_st, acam_config_i, reset_word)
   begin
     case acam_adr is
@@ -616,8 +617,8 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- data_readback_decoder: after reading accesses to the ACAM (acam_we=0), the process recuperates
 -- the ACAM data and according to the acam_adr_o stores them to the corresponding registers.
--- In the case of timestamps aquisition, we generate the pulses acam_tstamp1_ok_p_o,
--- acam_tstamp2_ok_p_o that when active, indicate a valid timestamp. Note that for timing reasons
+-- In the case of timestamps aquisition, the acam_tstamp1_ok_p_o, acam_tstamp2_ok_p_o pulses are
+-- generated that when active, indicate a valid timestamp. Note that for timing reasons
 -- the signals acam_tstamp1_o, acam_tstamp2_o are not the outputs of flip-flops.
 
   data_readback_decoder: process (clk_i)
@@ -699,7 +700,6 @@ begin
       end if;
     end if;
   end process;
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   acam_tstamp1_o               <= acam_dat_i;
   acam_tstamp1_ok_p_o          <= '1' when (acam_ack_i ='1' and engine_st = GET_STAMP1) else '0';

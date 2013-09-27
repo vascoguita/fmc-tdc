@@ -561,9 +561,9 @@ package tdc_core_pkg is
        clk_i                 : in std_logic;
        rst_i                 : in std_logic;
        acam_ef1_i            : in std_logic;
-       acam_ef1_synch1_i     : in std_logic;
+       acam_ef1_meta_i     : in std_logic;
        acam_ef2_i            : in std_logic;
-       acam_ef2_synch1_i     : in std_logic;
+       acam_ef2_meta_i     : in std_logic;
        activate_acq_p_i      : in std_logic;
        deactivate_acq_p_i    : in std_logic;
        acam_wr_config_p_i    : in std_logic;
@@ -836,9 +836,9 @@ package tdc_core_pkg is
        wr_n_o       : out std_logic;
        ack_o        : out std_logic;
        ef1_o        : out std_logic;
-       ef1_synch1_o : out std_logic;
+       ef1_meta_o : out std_logic;
        ef2_o        : out std_logic;
-       ef2_synch1_o : out std_logic;
+       ef2_meta_o : out std_logic;
        dat_o        : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
@@ -873,7 +873,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component blk_mem_circ_buff_v6_4
     port
-      (clka : in std_logic;
+      (clka   : in std_logic;
        addra  : in std_logic_vector(7 downto 0);
        dina   : in std_logic_vector(127 downto 0);
        ena    : in std_logic;

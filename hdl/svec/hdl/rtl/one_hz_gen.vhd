@@ -12,8 +12,8 @@
 ---------------------------------------------------------------------------------------------------
 -- File         one_hz_gen.vhd                                                                    |
 --                                                                                                |
--- Description  Generates one pulse every second synchronously with the acam reference clock.     |
---              The phase with the reference clock can be adjusted. still don t know why??        |
+-- Description  Generates one pulse every second synchronously with the ACAM reference clock.     |
+--              The phase with the reference clock can be adjusted (eva: think that is not needed)|
 --              It also keeps track of the UTC time based on the local clock.                     |
 --                                                                                                |
 --                                                                                                |
@@ -74,7 +74,7 @@ entity one_hz_gen is
 
      -- Signals from the reg_ctrl unit
      load_utc_p_i           : in std_logic; -- enables loading of the local UTC time with starting_utc_i value
-     starting_utc_i         : in std_logic_vector(g_width-1 downto 0); -- value coming from the PCIe
+     starting_utc_i         : in std_logic_vector(g_width-1 downto 0); -- value coming from the PCIe/VME
      pulse_delay_i          : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods phase delay
                                                                        -- with respect to reference clock
 
@@ -92,7 +92,7 @@ end one_hz_gen;
 --=================================================================================================
 architecture rtl of one_hz_gen is
 
-  constant constant_delay         : unsigned(g_width-1 downto 0) := x"00000004"; --maybe put in package--maybe not needed
+  constant constant_delay         : unsigned(g_width-1 downto 0) := x"00000004";
   signal local_utc                : unsigned(g_width-1 downto 0);
   signal one_hz_p_pre             : std_logic;
   signal one_hz_p_post            : std_logic;
@@ -142,14 +142,13 @@ begin
   end process;
 
 
-
 ---------------------------------------------------------------------------------------------------
 --                                         Load UTC time                                         --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- utc_counter: generation of a 1 clk-long pulse every second
 
-  utc_counter: process (clk_i)--maybe use an already existing counter???
+  utc_counter: process (clk_i)
   begin   
     if rising_edge (clk_i) then
       if rst_i ='1' then
@@ -164,13 +163,12 @@ begin
       end if;
     end if;
   end process;
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   local_utc_o     <= std_logic_vector(local_utc);
 
 
 ---------------------------------------------------------------------------------------------------
---                                           Delays??                                            --
+--                                            Delays                                             --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   pulse_delayer_counter: decr_counter -- delays the one_hz_p_pre pulse for total_delay clk_i ticks 
@@ -186,10 +184,9 @@ begin
        counter_o         => open);
       -------------------------------------------
 
-      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-       total_delay       <= std_logic_vector(unsigned(pulse_delay_i)+constant_delay);
-       one_hz_p_o        <= one_hz_p_post;
-
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  total_delay       <= std_logic_vector(unsigned(pulse_delay_i)+constant_delay);
+  one_hz_p_o        <= one_hz_p_post;
 
 
 end architecture rtl;

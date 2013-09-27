@@ -30,7 +30,7 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 -- Date         05/2012                                                                           |
--- Version      v0.3                                                                              |
+-- Version      v0.1                                                                              |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -72,33 +72,33 @@ use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
 entity leds_manager is
   generic
-    (g_width                : integer := 32;
+    (g_width           : integer := 32;
      values_for_simul  : boolean := FALSE);
   port
   -- INPUTS
      -- Signals from the clks_rsts_manager
-    (clk_i             : in std_logic;  -- 125 MHz clock
-     rst_i             : in std_logic;  -- core internal reset, synched with 125 MHz clk
+    (clk_i             : in std_logic;                            -- 125 MHz clock
+     rst_i             : in std_logic;                            -- core internal reset, synched with 125 MHz clk
 
      -- Signal from the one_hz_generator unit
      one_hz_p_i        : in std_logic;
 
      -- Signal from the reg_ctrl unit
      acam_inputs_en_i  : in std_logic_vector(g_width-1 downto 0); -- enable for the ACAM channels;
-                                        -- activation comes through dedicated reg c_ACAM_INPUTS_EN_ADR
+                                                                  -- activation comes through dedicated reg c_ACAM_INPUTS_EN_ADR
 
-     -- Signal for debugging (not used)
-     fordebug_i        : in std_logic_vector(5 downto 0);
+     -- Signal for debugging
+     fordebug_i        : in std_logic_vector(5 downto 0);         -- for debugging, currently not used
 
 
   -- OUTPUTS
      -- Signals to the LEDs on the TDC front panel
-     tdc_led_status_o  : out std_logic; -- TDC  LED 1: division of 125 MHz
-     tdc_led_trig1_o   : out std_logic; -- TDC  LED 2: Channel 1 input enable
-     tdc_led_trig2_o   : out std_logic; -- TDC  LED 3: Channel 2 input enable
-     tdc_led_trig3_o   : out std_logic; -- TDC  LED 4: Channel 3 input enable
-     tdc_led_trig4_o   : out std_logic; -- TDC  LED 5: Channel 4 input enable
-     tdc_led_trig5_o   : out std_logic);-- TDC  LED 6: Channel 5 input enable
+     tdc_led_status_o  : out std_logic;                           -- TDC  LED 1: division of 125 MHz
+     tdc_led_trig1_o   : out std_logic;                           -- TDC  LED 2: Channel 1 termination enable
+     tdc_led_trig2_o   : out std_logic;                           -- TDC  LED 3: Channel 2 termination enable
+     tdc_led_trig3_o   : out std_logic;                           -- TDC  LED 4: Channel 3 termination enable
+     tdc_led_trig4_o   : out std_logic;                           -- TDC  LED 5: Channel 4 termination enable
+     tdc_led_trig5_o   : out std_logic);                          -- TDC  LED 6: Channel 5 termination enable
 
 end leds_manager;
 
