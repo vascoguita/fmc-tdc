@@ -578,7 +578,7 @@ begin
 -- WISHBONE crossbar
 --  0x10000 -> SVEC carrier UnidueID&Thermometer 1-wire
 --  0x20000 -> SVEC CSR information
---  0x20000 -> Interrupts
+--  0x30000 -> Interrupts
 --  0x40000 -> TDC board on FMC1
 --  0x60000 -> TDC board on FMC2
 
