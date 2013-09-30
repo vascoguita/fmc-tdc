@@ -793,10 +793,10 @@ begin
 ---------------------------------------------------------------------------------------------------
 -- IRQ sources
 -- 0 -> number of timestamps reached threshold or number of seconds passed reached threshold (TDC1)
--- 2 -> ACAM error                                                                           (TDC1)
--- 1 -> number of timestamps reached threshold or number of seconds passed reached threshold (TDC2)
--- 2 -> ACAM error                                                                           (TDC2)
--- 3-31 -> unused
+-- 1 -> ACAM error                                                                           (TDC1)
+-- 2 -> number of timestamps reached threshold or number of seconds passed reached threshold (TDC2)
+-- 3 -> ACAM error                                                                           (TDC2)
+-- 4-31 -> unused
 
   cmp_irq_controller : irq_controller
   port map
