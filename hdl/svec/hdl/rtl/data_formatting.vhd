@@ -218,7 +218,7 @@ begin
 
       elsif tstamp_wr_cyc = '1' and tstamp_wr_stb = '1' and tstamp_wr_we = '1' and tstamp_wr_wb_ack_i = '1' then
 
-        if wr_index = c_CIRCULAR_BUFF_SIZE then
+        if wr_index = c_CIRCULAR_BUFF_SIZE-1 then
           wr_index    <= (others => '0'); -- when memory completed, restart from the beginning
         else
           wr_index    <= wr_index + 1;    -- otherwise write to the next one
@@ -247,7 +247,7 @@ begin
         dacapo_counter <= (others => '0');
 
       elsif tstamp_wr_cyc = '1' and tstamp_wr_stb = '1' and tstamp_wr_we = '1' and
-            tstamp_wr_wb_ack_i = '1' and wr_index = c_CIRCULAR_BUFF_SIZE then
+            tstamp_wr_wb_ack_i = '1' and wr_index = c_CIRCULAR_BUFF_SIZE-1 then
         dacapo_counter <= dacapo_counter + 1;
       end if;
     end if;
