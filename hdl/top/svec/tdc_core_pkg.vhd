@@ -681,7 +681,6 @@ package tdc_core_pkg is
        retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
        one_hz_p_i              : in std_logic;
       ----------------------------------------------------------------------
-       tdc_led_5_o             : out std_logic;
        tstamp_wr_wb_adr_o      : out std_logic_vector(7 downto 0);
        tstamp_wr_wb_cyc_o      : out std_logic;
        tstamp_wr_dat_o         : out std_logic_vector(127 downto 0);
