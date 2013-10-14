@@ -30,7 +30,7 @@ architecture behavioral of tb_tdc is
     generic(
         g_span                  : integer :=32;
         g_width                 : integer :=32;
-        values_for_simulation   : boolean :=FALSE
+        values_for_simul   : boolean :=FALSE
     );
     port(
         -- interface with GNUM circuit
@@ -58,12 +58,12 @@ architecture behavioral of tb_tdc is
         p_rd_d_rdy_i: in  std_logic_vector(1 downto 0);   -- PCIe-to-Local Read Response Data Ready
         tx_error_i  : in  std_logic;                      -- Transmit Error
         irq_p_o     : out std_logic;                      -- Interrupt request pulse to GN4124 GPIO
-        spare_o     : out std_logic;
 
        -- interface signals with PLL circuit
-        acam_refclk_i           : in std_logic;
-        pll_ld_i                : in std_logic;
-        pll_refmon_i            : in std_logic;
+        acam_refclk_p_i           : in std_logic;
+        acam_refclk_n_i           : in std_logic;
+        --pll_ld_i                : in std_logic;
+        --pll_refmon_i            : in std_logic;
         pll_sdo_i               : in std_logic;
         pll_status_i            : in std_logic;
         
@@ -86,8 +86,8 @@ architecture behavioral of tb_tdc is
         data_bus_io             : inout std_logic_vector(27 downto 0);
         ef1_i                   : in std_logic;
         ef2_i                   : in std_logic;
-        lf1_i                   : in std_logic;
-        lf2_i                   : in std_logic;
+        --lf1_i                   : in std_logic;
+        --lf2_i                   : in std_logic;
 
         address_o               : out std_logic_vector(3 downto 0);
         cs_n_o                  : out std_logic;
@@ -96,16 +96,28 @@ architecture behavioral of tb_tdc is
         wr_n_o                  : out std_logic;
 
         -- other signals on the tdc card
+        tdc_in_fpga_1_i         : in std_logic;
+        tdc_in_fpga_2_i         : in std_logic;
+        tdc_in_fpga_3_i         : in std_logic;
+        tdc_in_fpga_4_i         : in std_logic;
         tdc_in_fpga_5_i         : in std_logic;
 
-        mute_inputs_o           : out std_logic;
+
+        enable_inputs_o           : out std_logic;
         tdc_led_status_o        : out std_logic;
         tdc_led_trig1_o         : out std_logic;
         tdc_led_trig2_o         : out std_logic;
         tdc_led_trig3_o         : out std_logic;
         tdc_led_trig4_o         : out std_logic;
         tdc_led_trig5_o         : out std_logic;
-        
+
+        carrier_one_wire_b      : inout std_logic;
+        sys_scl_b               : inout std_logic;
+        sys_sda_b               : inout std_logic;
+        mezz_one_wire_b         : inout std_logic;
+        pcb_ver_i               : in std_logic_vector(3 downto 0);
+        prsnt_m2c_n_i           : in std_logic;
+
         -- other signals on the spec card
         spec_aux0_i             : in std_logic;
         spec_aux1_i             : in std_logic;
@@ -284,6 +296,7 @@ constant start_retrig_period    : time:= 512 ns;
   constant STRING_MAX : integer                      := 256;
 
 signal acam_refclk_i        : std_logic:='0';
+signal acam_refclk_n_i      : std_logic:='1';
 signal tdc_clk_p_i          : std_logic:='0';
 signal tdc_clk_n_i          : std_logic:='1';
 signal spec_clk_i           : std_logic:='0';
@@ -389,7 +402,7 @@ begin
     generic map(
         g_span                  => 32,
         g_width                 => 32,
-        values_for_simulation   => TRUE
+        values_for_simul   => TRUE
     )
     port map(
         -- interface with GNUM circuit
@@ -415,12 +428,12 @@ begin
         p_rd_d_rdy_i            => p_rd_d_rdy,
         tx_error_i              => tx_error,
         irq_p_o                 => irq_p,
-        spare_o                 => spare,
         
         -- interface with PLL circuit
-        acam_refclk_i           => acam_refclk_i,
-        pll_ld_i                => pll_ld_i,
-        pll_refmon_i            => pll_refmon_i,
+        acam_refclk_p_i         => acam_refclk_i,
+        acam_refclk_n_i         => acam_refclk_n_i,
+        --pll_ld_i                => pll_ld_i,
+        --pll_refmon_i            => pll_refmon_i,
         pll_sdo_i               => pll_sdo_i,
         pll_status_i            => pll_status_i,
         
@@ -443,8 +456,8 @@ begin
         data_bus_io         => data_bus_io,
         ef1_i               => ef1_i,
         ef2_i               => ef2_i,
-        lf1_i               => lf1_i,
-        lf2_i               => lf2_i,
+        --lf1_i               => lf1_i,
+        --lf2_i               => lf2_i,
         
         address_o           => address_o,
         cs_n_o              => cs_n_o,
@@ -454,16 +467,27 @@ begin
         
         -- other signals on the tdc card
         tdc_in_fpga_5_i     => tdc_in_fpga_5,
-
-        mute_inputs_o       => mute_inputs,
+        tdc_in_fpga_1_i     => '0',
+        tdc_in_fpga_2_i     => '0',
+        tdc_in_fpga_3_i     => '0',
+        tdc_in_fpga_4_i     => '0',
+        enable_inputs_o     => mute_inputs,
         tdc_led_status_o    => tdc_led_status,
         tdc_led_trig1_o     => tdc_led_trig1,
         tdc_led_trig2_o     => tdc_led_trig2,
         tdc_led_trig3_o     => tdc_led_trig3,
         tdc_led_trig4_o     => tdc_led_trig4,
         tdc_led_trig5_o     => tdc_led_trig5,
-        
+
+
+       
         -- other signals on the spec card
+        carrier_one_wire_b  => open,
+        sys_scl_b           => open,
+        sys_sda_b           => open,
+        mezz_one_wire_b     => open,
+        pcb_ver_i           => (others => '0'),
+        prsnt_m2c_n_i       => '0',
         spec_aux0_i         => spec_aux0_i,
         spec_aux1_i         => spec_aux1_i,
         spec_aux2_o         => spec_aux2_o,
@@ -627,6 +651,9 @@ begin
         if pll_cs_o ='1' and rst_n ='1' then
             tdc_clk_p_i         <= not (tdc_clk_p_i) after 1 ns;
             tdc_clk_n_i         <= not (tdc_clk_n_i) after 1 ns;
+
+            pll_status_i        <= '1';
+
         end if;
         wait for pll_clk_period/2;
     end process;
@@ -638,6 +665,8 @@ begin
         end if;
         wait for pll_clk_period*2;
     end process;
+    acam_refclk_n_i <= not acam_refclk_i;
+
     
     spec_clock: process
     begin
