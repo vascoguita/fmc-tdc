@@ -297,7 +297,7 @@ architecture rtl of top_tdc is
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   constant c_SLAVE_SVEC_1W   : integer := 0;  -- SVEC 1wire interface
   constant c_SLAVE_SVEC_INFO : integer := 1;  -- SVEC control and status registers
-  constant c_SLAVE_IRQ       : integer := 2;  -- Interrupt controller
+  constant c_SLAVE_VIC       : integer := 2;  -- Interrupt controller
   constant c_SLAVE_TDC0      : integer := 3;  -- TIMETAG core for time-tagging
   constant c_SLAVE_TDC1      : integer := 4;  -- TIMETAG core for time-tagging
 
@@ -308,13 +308,16 @@ architecture rtl of top_tdc is
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(7 downto 0) :=
     (0 => f_sdb_embed_device     (c_ONEWIRE_SDB_DEVICE,  x"00010000"),
      1 => f_sdb_embed_device     (c_SPEC_CSR_SDB_DEVICE, x"00020000"),
-     2 => f_sdb_embed_device     (c_INT_SDB_DEVICE,      x"00030000"),
+     2 => f_sdb_embed_device     (c_xwb_vic_sdb,         x"00030000"),
      3 => f_sdb_embed_bridge     (c_FMC_TDC0_SDB_BRIDGE, x"00040000"),
      4 => f_sdb_embed_bridge     (c_FMC_TDC1_SDB_BRIDGE, x"00060000"),
      5 => f_sdb_embed_repo_url   (c_SDB_REPO_URL),
      6 => f_sdb_embed_synthesis  (c_SDB_SYNTHESIS),
      7 => f_sdb_embed_integration(c_SDB_INTEGRATION));
 
+  constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 1) :=
+    (0 => x"00010000",
+     1 => x"00020000");
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
@@ -382,8 +385,8 @@ architecture rtl of top_tdc is
 ---------------------------------------------------------------------------------------------------
 -- Interrupts
   signal irq_to_vmecore                       : std_logic;
-  signal irq_sources                          : std_logic_vector(31 downto 0);
-  signal tdc1_irq_tstamps, tdc2_irq_tstamps   : std_logic;
+  signal tdc1_irq, tdc1_irq_synch             : std_logic;
+  signal tdc2_irq, tdc2_irq_synch             : std_logic;
 
 ---------------------------------------------------------------------------------------------------
  -- Carrier other signals
@@ -515,7 +518,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                      TDC1 domains crossing: tdc1_clk_125m <-> clk_62m5_sys                    --
 ---------------------------------------------------------------------------------------------------
-  cmp_clks_crossing_ft0 : xwb_clock_crossing
+  cmp_tdc1_clks_crossing : xwb_clock_crossing
   port map
     (slave_clk_i    => clk_62m5_sys,  -- Slave control port: VME interface at 62.5 MHz 
      slave_rst_n_i  => rst_n_sys,
@@ -560,7 +563,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                     TDC2 domains crossing: tdc2_clk_125m <-> clk_62m5_sys                     --
 ---------------------------------------------------------------------------------------------------
-  cmp_clks_crossing_ft1 : xwb_clock_crossing
+  cmp_tdc2_clks_crossing : xwb_clock_crossing
   port map
     (slave_clk_i    => clk_62m5_sys,  -- Slave control port: VME interface at 62.5 MHz 
      slave_rst_n_i  => rst_n_sys,
@@ -646,11 +649,11 @@ begin
 --                                            TDC BOARD 1                                        --
 ---------------------------------------------------------------------------------------------------
 
-  cmp_tdc_board1 : fmc_tdc_mezzanine
+  cmp_tdc1 : fmc_tdc_mezzanine
   generic map
-    (g_span                 => g_span,
-     g_width                => g_width,
-     values_for_simul       => values_for_simul)
+    (g_span                  => g_span,
+     g_width                 => g_width,
+     values_for_simul        => values_for_simul)
   port map
     (-- clocks, resets, dac
       clk_125m_i             => tdc1_clk_125m,
@@ -692,10 +695,6 @@ begin
       tdc_led_trig3_o        => tdc1_led_trig3_o,
       tdc_led_trig4_o        => tdc1_led_trig4_o,
       tdc_led_trig5_o        => tdc1_led_trig5_o,
-      -- Interrupts
-      irq_tstamp_p_o         => tdc1_irq_tstamp_p,
-      irq_time_p_o           => tdc1_irq_time_p,
-      irq_acam_err_p_o       => tdc1_irq_acam_err_p,
       -- WISHBONE interface with the GNUM/VME_core
       wb_tdc_mezz_adr_i      => tdc1_slave_in.adr,
       wb_tdc_mezz_dat_i      => tdc1_slave_in.dat,
@@ -706,6 +705,8 @@ begin
       wb_tdc_mezz_we_i       => tdc1_slave_in.we,
       wb_tdc_mezz_ack_o      => tdc1_slave_out.ack,
       wb_tdc_mezz_stall_o    => tdc1_slave_out.stall,
+      -- Interrupts
+      wb_irq_o               => tdc1_irq,
       -- TDC board EEPROM I2C EEPROM interface
       sys_scl_b              => tdc1_scl_b,
       sys_sda_b              => tdc1_sda_b,
@@ -716,7 +717,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                            TDC BOARD 2                                        --
 ---------------------------------------------------------------------------------------------------
-  cmp_tdc_board2 : fmc_tdc_mezzanine
+  cmp_tdc2 : fmc_tdc_mezzanine
   generic map
     (g_span                 => g_span,
      g_width                => g_width,
@@ -762,10 +763,6 @@ begin
       tdc_led_trig3_o        => tdc2_led_trig3_o,
       tdc_led_trig4_o        => tdc2_led_trig4_o,
       tdc_led_trig5_o        => tdc2_led_trig5_o,
-      -- Interrupts
-      irq_tstamp_p_o         => tdc2_irq_tstamp_p,
-      irq_time_p_o           => tdc2_irq_time_p,
-      irq_acam_err_p_o       => tdc2_irq_acam_err_p,
       -- WISHBONE interface with the GNUM/VME_core
       wb_tdc_mezz_adr_i      => tdc2_slave_in.adr,
       wb_tdc_mezz_dat_i      => tdc2_slave_in.dat,
@@ -776,6 +773,8 @@ begin
       wb_tdc_mezz_we_i       => tdc2_slave_in.we,
       wb_tdc_mezz_ack_o      => tdc2_slave_out.ack,
       wb_tdc_mezz_stall_o    => tdc2_slave_out.stall,
+      -- Interrupts
+      wb_irq_o               => tdc2_irq,
       -- TDC board EEPROM I2C EEPROM interface
       sys_scl_b              => tdc2_scl_b,
       sys_sda_b              => tdc2_sda_b,
@@ -789,40 +788,23 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                     INTERRUPTS CONTROLLER                                     --
+--                                 VECTOR INTERRUPTS CONTROLLER                                  --
 ---------------------------------------------------------------------------------------------------
--- IRQ sources
--- 0 -> number of timestamps reached threshold or number of seconds passed reached threshold (TDC1)
--- 1 -> ACAM error                                                                           (TDC1)
--- 2 -> number of timestamps reached threshold or number of seconds passed reached threshold (TDC2)
--- 3 -> ACAM error                                                                           (TDC2)
--- 4-31 -> unused
 
-  cmp_irq_controller : irq_controller
+  cmp_irq_vic : xwb_vic
+  generic map
+    (g_interface_mode      => PIPELINED,
+     g_address_granularity => BYTE,
+     g_num_interrupts      => 2,
+     g_init_vectors        => c_VIC_VECTOR_TABLE)
   port map
-    (clk_sys_i           => clk_62m5_sys,
-     rst_n_i             => rst_n_sys,
-     wb_adr_i            => cnx_master_out(c_SLAVE_IRQ).adr(3 downto 2),
-     wb_dat_i            => cnx_master_out(c_SLAVE_IRQ).dat,
-     wb_dat_o            => cnx_master_in(c_SLAVE_IRQ).dat,
-     wb_cyc_i            => cnx_master_out(c_SLAVE_IRQ).cyc,
-     wb_sel_i            => cnx_master_out(c_SLAVE_IRQ).sel,
-     wb_stb_i            => cnx_master_out(c_SLAVE_IRQ).stb,
-     wb_we_i             => cnx_master_out(c_SLAVE_IRQ).we,
-     wb_ack_o            => cnx_master_in(c_SLAVE_IRQ).ack,
-     wb_stall_o          => cnx_master_in(c_SLAVE_IRQ).stall,
-     wb_int_o            => irq_to_vmecore,
-     irq_tdc1_tstamps_i  => irq_sources(0),
-     irq_tdc1_acam_err_i => irq_sources(1),
-     irq_tdc2_tstamps_i  => irq_sources(2),
-     irq_tdc2_acam_err_i => irq_sources(3));
-
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused wishbone signals
-  cnx_master_in(c_SLAVE_IRQ).err   <= '0';
-  cnx_master_in(c_SLAVE_IRQ).rty   <= '0';
-  cnx_master_in(c_SLAVE_IRQ).int   <= '0';
+    (clk_sys_i             => clk_62m5_sys,
+     rst_n_i               => rst_n_sys,
+     slave_i               => cnx_master_out(c_SLAVE_VIC),
+     slave_o               => cnx_master_in(c_SLAVE_VIC),
+     irqs_i(0)             => tdc1_irq_synch,
+     irqs_i(1)             => tdc2_irq_synch,
+     irq_master_o          => irq_to_vmecore);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- since the TDC cores work in their PLL clock domains (tdc1_clk_125m and tdc2_clk_125m)
@@ -833,36 +815,17 @@ begin
     (clk_in_i  => tdc1_clk_125m,
      clk_out_i => clk_62m5_sys,
      rst_n_i   => rst_n_sys,
-     d_p_i     => tdc1_irq_tstamps,
-     q_p_o     => irq_sources(0));
+     d_p_i     => tdc1_irq,
+     q_p_o     => tdc1_irq_synch);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sync_irq1 : gc_pulse_synchronizer
   port map
     (clk_in_i  => tdc1_clk_125m,
      clk_out_i => clk_62m5_sys,
      rst_n_i   => rst_n_sys,
-     d_p_i     => tdc1_irq_acam_err_p,
-     q_p_o     => irq_sources(1));
+     d_p_i     => tdc2_irq,
+     q_p_o     => tdc2_irq_synch);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  cmp_sync_irq2 : gc_pulse_synchronizer
-  port map
-    (clk_in_i  => tdc2_clk_125m,
-     clk_out_i => clk_62m5_sys,
-     rst_n_i   => rst_n_sys,
-     d_p_i     => tdc2_irq_tstamps,
-     q_p_o     => irq_sources(2));
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  cmp_sync_irq3 : gc_pulse_synchronizer
-  port map
-    (clk_in_i  => tdc2_clk_125m,
-     clk_out_i => clk_62m5_sys,
-     rst_n_i   => rst_n_sys,
-     d_p_i     => tdc2_irq_acam_err_p,
-     q_p_o     => irq_sources(3));
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  tdc1_irq_tstamps         <= tdc1_irq_tstamp_p or tdc1_irq_time_p;
-  tdc2_irq_tstamps         <= tdc2_irq_tstamp_p or tdc2_irq_time_p;
-  irq_sources(31 downto 4) <= (others => '0');
 
 
 ---------------------------------------------------------------------------------------------------

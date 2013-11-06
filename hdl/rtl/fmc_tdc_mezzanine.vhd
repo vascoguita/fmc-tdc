@@ -144,6 +144,7 @@ entity fmc_tdc_mezzanine is
      wb_tdc_mezz_we_i       : in    std_logic;
      wb_tdc_mezz_ack_o      : out   std_logic;
      wb_tdc_mezz_stall_o    : out   std_logic;
+     wb_irq_o               : out   std_logic;
      -- I2C EEPROM interface
      sys_scl_b              : inout std_logic;
      sys_sda_b              : inout std_logic;
@@ -166,7 +167,7 @@ architecture rtl of fmc_tdc_mezzanine is
   constant c_NUM_WB_MASTERS           : integer := 5;
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 0;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 1;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
-  constant c_WB_SLAVE_DUMMY           : integer := 2;  -- Dummy for debugging
+  constant c_WB_SLAVE_IRQ             : integer := 2;  -- TDC interrupts
   constant c_WB_SLAVE_TDC_SYS_I2C     : integer := 3;  -- TDC mezzanine board system EEPROM I2C
   constant c_WB_SLAVE_TSTAMP_MEM      : integer := 4;  -- Access to TDC core timestamps memory
 
@@ -180,7 +181,7 @@ architecture rtl of fmc_tdc_mezzanine is
   constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(4 downto 0) :=
     (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00010000"),
      1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00011000"),
-     2 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00012000"),
+     2 => f_sdb_embed_device(c_INT_SDB_DEVICE,        x"00012000"),
      3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00013000"),
      4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00014000"));
 
@@ -206,8 +207,9 @@ architecture rtl of fmc_tdc_mezzanine is
   signal sys_scl_in, sys_scl_out   : std_logic;
   signal sys_scl_oe_n, sys_sda_in  : std_logic;
   signal sys_sda_out, sys_sda_oe_n : std_logic;
-  -- dummy
-  signal dummy_reg_1               : std_logic_vector(31 downto 0) := x"F000000D";
+  -- IRQ
+  signal irq_tstamp_p, irq_time_p  : std_logic;
+  signal irq_acam_err_p            : std_logic;
 
 
 --=================================================================================================
@@ -308,9 +310,9 @@ begin
      tdc_led_trig4_o         => tdc_led_trig4_o,
      tdc_led_trig5_o         => tdc_led_trig5_o,
      -- Interrupts
-     irq_tstamp_p_o          => irq_tstamp_p_o,
-     irq_time_p_o            => irq_time_p_o,
-     irq_acam_err_p_o        => irq_acam_err_p_o,
+     irq_tstamp_p_o          => irq_tstamp_p,
+     irq_time_p_o            => irq_time_p,
+     irq_acam_err_p_o        => irq_acam_err_p,
      -- WISHBONE CSR for core configuration
      tdc_config_wb_adr_i     => tdc_core_wb_adr,
      tdc_config_wb_dat_i     => cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).dat,
@@ -395,58 +397,30 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                   Dummy for debugging only!                                   --
+--                                     INTERRUPTS CONTROLLER                                     --
 ---------------------------------------------------------------------------------------------------
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- WISHBONE ack generation
-  dummy_ack_generator: process (clk_125m_i)
-  begin
-    if rising_edge (clk_125m_i) then
-      if general_rst_n = '0' then
-        cnx_master_in(c_WB_SLAVE_DUMMY).ack <= '0';
-      else
-        cnx_master_in(c_WB_SLAVE_DUMMY).ack <= cnx_master_out(c_WB_SLAVE_DUMMY).stb and
-                                               cnx_master_out(c_WB_SLAVE_DUMMY).cyc;
-      end if;
-    end if;
-  end process;
+-- IRQ sources
+-- 0 -> number of accumulated timestamps reached threshold
+-- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
+-- 1 -> ACAM error
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Registers read/write
-  dummy_regs_exchange: process (clk_125m_i)
-  begin
-    if rising_edge (clk_125m_i) then
-      if general_rst_n = '0' then
-        dummy_reg_1 <= x"F000000D";
-
-      elsif cnx_master_out(c_WB_SLAVE_DUMMY).cyc = '1' and cnx_master_out(c_WB_SLAVE_DUMMY).stb = '1'
-            and cnx_master_out(c_WB_SLAVE_DUMMY).we = '1' then
-
-        if dummy_core_wb_adr(7 downto 0) = x"00" then
-          dummy_reg_1 <= cnx_master_out(c_WB_SLAVE_DUMMY).dat;
-        end if;
-
-      elsif cnx_master_out(c_WB_SLAVE_DUMMY).cyc = '1' and cnx_master_out(c_WB_SLAVE_DUMMY).stb = '1'
-            and cnx_master_out(c_WB_SLAVE_DUMMY).we = '0' then
-
-        if dummy_core_wb_adr(7 downto 0)  = x"00" then
-          cnx_master_in(c_WB_SLAVE_DUMMY).dat <= dummy_reg_1;
-        elsif dummy_core_wb_adr(7 downto 0)  = x"01" then
-          cnx_master_in(c_WB_SLAVE_DUMMY).dat <= wb_tdc_mezz_adr_i;
-        else
-          cnx_master_in(c_WB_SLAVE_DUMMY).dat <= dummy_core_wb_adr;
-        end if;
-
-      end if;
-    end if;
-  end process;
---  --  --  --  --  --  --  --  --  --  --  --  -- --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused wishbone signals
-  dummy_core_wb_adr                           <= cnx_master_out(c_WB_SLAVE_DUMMY).adr;
-  cnx_master_in(c_WB_SLAVE_DUMMY).err         <= '0';
-  cnx_master_in(c_WB_SLAVE_DUMMY).rty         <= '0';
-  cnx_master_in(c_WB_SLAVE_DUMMY).stall       <= '0';
-  cnx_master_in(c_WB_SLAVE_DUMMY).int         <= '0';
+  cmp_irq_controller : irq_controller
+  port map
+    (clk_sys_i           => clk_125m_i,
+     rst_n_i             => general_rst_n,
+     wb_adr_i            => cnx_master_out(c_WB_SLAVE_IRQ).adr(3 downto 2),
+     wb_dat_i            => cnx_master_out(c_WB_SLAVE_IRQ).dat,
+     wb_dat_o            => cnx_master_in(c_WB_SLAVE_IRQ).dat,
+     wb_cyc_i            => cnx_master_out(c_WB_SLAVE_IRQ).cyc,
+     wb_sel_i            => cnx_master_out(c_WB_SLAVE_IRQ).sel,
+     wb_stb_i            => cnx_master_out(c_WB_SLAVE_IRQ).stb,
+     wb_we_i             => cnx_master_out(c_WB_SLAVE_IRQ).we,
+     wb_ack_o            => cnx_master_in(c_WB_SLAVE_IRQ).ack,
+     wb_stall_o          => cnx_master_in(c_WB_SLAVE_IRQ).stall,
+     wb_int_o            => wb_irq_o,
+     irq_tdc_tstamps_i   => irq_tstamp_p,
+     irq_tdc_time_i      => irq_time_p,
+     irq_tdc_acam_err_i  => irq_acam_err_p);
 
     
 end rtl;

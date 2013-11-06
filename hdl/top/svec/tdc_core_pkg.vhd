@@ -349,9 +349,6 @@ package tdc_core_pkg is
      tdc_led_trig3_o     : out   std_logic;
      tdc_led_trig4_o     : out   std_logic;
      tdc_led_trig5_o     : out   std_logic;
-     irq_tstamp_p_o      : out   std_logic;
-     irq_time_p_o        : out   std_logic;
-     irq_acam_err_p_o    : out   std_logic;
      wb_tdc_mezz_adr_i   : in    std_logic_vector(31 downto 0);
      wb_tdc_mezz_dat_i   : in    std_logic_vector(31 downto 0);
      wb_tdc_mezz_dat_o   : out   std_logic_vector(31 downto 0);
@@ -361,6 +358,7 @@ package tdc_core_pkg is
      wb_tdc_mezz_we_i    : in    std_logic;
      wb_tdc_mezz_ack_o   : out   std_logic;
      wb_tdc_mezz_stall_o : out   std_logic;
+     wb_irq_o            : out   std_logic;
      sys_scl_b           : inout std_logic;
      sys_sda_b           : inout std_logic;
      mezz_one_wire_b     : inout std_logic);
@@ -717,22 +715,21 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component irq_controller
     port
-    (rst_n_i             : in     std_logic;
-    clk_sys_i            : in     std_logic;
-    wb_adr_i             : in     std_logic_vector(1 downto 0);
-    wb_dat_i             : in     std_logic_vector(31 downto 0);
-    wb_dat_o             : out    std_logic_vector(31 downto 0);
-    wb_cyc_i             : in     std_logic;
-    wb_sel_i             : in     std_logic_vector(3 downto 0);
-    wb_stb_i             : in     std_logic;
-    wb_we_i              : in     std_logic;
-    wb_ack_o             : out    std_logic;
-    wb_stall_o           : out    std_logic;
-    wb_int_o             : out    std_logic;
-    irq_tdc1_tstamps_i   : in     std_logic;
-    irq_tdc1_acam_err_i  : in     std_logic;
-    irq_tdc2_tstamps_i   : in     std_logic;
-    irq_tdc2_acam_err_i  : in     std_logic);
+      (rst_n_i             : in     std_logic;
+       clk_sys_i           : in     std_logic;
+       wb_adr_i            : in     std_logic_vector(1 downto 0);
+       wb_dat_i            : in     std_logic_vector(31 downto 0);
+       wb_dat_o            : out    std_logic_vector(31 downto 0);
+       wb_cyc_i            : in     std_logic;
+       wb_sel_i            : in     std_logic_vector(3 downto 0);
+       wb_stb_i            : in     std_logic;
+       wb_we_i             : in     std_logic;
+       wb_ack_o            : out    std_logic;
+       wb_stall_o          : out    std_logic;
+       wb_int_o            : out    std_logic;
+       irq_tdc_tstamps_i   : in     std_logic;
+       irq_tdc_time_i      : in     std_logic;
+       irq_tdc_acam_err_i  : in     std_logic);
   end component irq_controller;
 
 
