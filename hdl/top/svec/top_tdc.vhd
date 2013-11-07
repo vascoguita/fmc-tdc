@@ -385,8 +385,8 @@ architecture rtl of top_tdc is
 ---------------------------------------------------------------------------------------------------
 -- Interrupts
   signal irq_to_vmecore                       : std_logic;
-  signal tdc1_irq, tdc1_irq_synch             : std_logic;
-  signal tdc2_irq, tdc2_irq_synch             : std_logic;
+  signal tdc1_irq, tdc2_irq                   : std_logic;
+  signal tdc1_irq_synch, tdc2_irq_synch       : std_logic_vector (1 downto 0);
 
 ---------------------------------------------------------------------------------------------------
  -- Carrier other signals
@@ -802,30 +802,26 @@ begin
      rst_n_i               => rst_n_sys,
      slave_i               => cnx_master_out(c_SLAVE_VIC),
      slave_o               => cnx_master_in(c_SLAVE_VIC),
-     irqs_i(0)             => tdc1_irq_synch,
-     irqs_i(1)             => tdc2_irq_synch,
+     irqs_i(0)             => tdc1_irq_synch(1),
+     irqs_i(1)             => tdc2_irq_synch(1),
      irq_master_o          => irq_to_vmecore);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- since the TDC cores work in their PLL clock domains (tdc1_clk_125m and tdc2_clk_125m)
-  -- and the rest works with the system clock (clk_62m5_sys) we need to synchronize
-  -- interrupt pulses.
-  cmp_sync_irq0 : gc_pulse_synchronizer
-  port map
-    (clk_in_i  => tdc1_clk_125m,
-     clk_out_i => clk_62m5_sys,
-     rst_n_i   => rst_n_sys,
-     d_p_i     => tdc1_irq,
-     q_p_o     => tdc1_irq_synch);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  cmp_sync_irq1 : gc_pulse_synchronizer
-  port map
-    (clk_in_i  => tdc1_clk_125m,
-     clk_out_i => clk_62m5_sys,
-     rst_n_i   => rst_n_sys,
-     d_p_i     => tdc2_irq,
-     q_p_o     => tdc2_irq_synch);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- and the rest works with the system clock (clk_62m5_sys) interrupt pulses need to be
+  -- synchronized
+  irq_pulse_synchronizer: process (clk_62m5_sys)
+  begin
+    if rising_edge (clk_62m5_sys) then
+      if rst_n_sys = '0' then
+        tdc1_irq_synch <= (others => '0');
+        tdc2_irq_synch <= (others => '0');
+      else
+        tdc1_irq_synch <= tdc1_irq_synch(0) & tdc1_irq;
+        tdc2_irq_synch <= tdc2_irq_synch(0) & tdc2_irq;
+		end if;
+    end if;
+  end process;
 
 
 ---------------------------------------------------------------------------------------------------
