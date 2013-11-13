@@ -357,12 +357,12 @@ begin
   -- The following process makes essential calculations for the definition of the coarse time.
   -- Regarding the signals: un_clk_i_cycles_offset, un_retrig_nb_offset, local_utc it has to be difined
   -- if the values that characterize the current second or the one previous to it should be used.
-  -- In the case where: a timestamp came on the same retgigger after a new second
+  -- In the case where: a timestamp came on the same retrigger after a new second
   -- (un_current_retrig_from_roll_over is 0 and un_acam_start_nb = un_current_retrig_nb_offset)
   -- the values of the previous second should be used.
   -- Also, according to the ACAM documentation there is an indeterminacy to whether the fine time refers
   -- to the previous retrigger or the current one. The equation described on line 386 describes
-  -- the case where: a timestamp came on the same retgigger after a new second but the ACAM assigned
+  -- the case where: a timestamp came on the same retrigger after a new second but the ACAM assigned
   -- it to the previous retrigger (the "un_current_retrig_from_roll_over = 0" describes that a new second
   -- has arrived; the "un_acam_fine_time > 6318" desribes a fine time that is referred to the previous retrigger;
   -- 6318 * 81ps = 512ns which is a complete ACAM retrigger).

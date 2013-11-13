@@ -60,11 +60,11 @@ package sdb_meta_pkg is
     -- git log -1 --format="%H" | cut -c1-320
     syn_commit_id    => x"00000000",
     -- Synthesis tool name (string, 8 char)
-    syn_tool_name    => "SynpliDP",
+    syn_tool_name    => "ISE_13_4",
     -- Synthesis tool version (bcd encoded, 32-bit)
     syn_tool_version => x"00201206",
     -- Synthesis date (bcd encoded, 32-bit)
-    syn_date         => x"20130629",
+    syn_date         => x"20131113",
     -- Synthesised by (string, 15 char)
     syn_username     => "egousiou       ");
 
@@ -74,8 +74,8 @@ package sdb_meta_pkg is
       vendor_id => x"000000000000CE42",  -- CERN
       device_id => x"47c786a2",          -- echo "spec_fmc-adc-100m14b4cha" | md5sum | cut -c1-8
       version   => x"00010001",          -- bcd encoded, [31:16] = major, [15:0] = minor
-      date      => x"20130629",          -- yyyymmdd
-      name      => "spec_fmctdc1ns5cha "));
+      date      => x"20131113",          -- yyyymmdd
+      name      => "svec_fmctdc1ns5cha "));
 
 
 end sdb_meta_pkg;

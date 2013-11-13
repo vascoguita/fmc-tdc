@@ -316,8 +316,8 @@ architecture rtl of top_tdc is
      7 => f_sdb_embed_integration(c_SDB_INTEGRATION));
 
   constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 1) :=
-    (0 => x"00010000",
-     1 => x"00020000");
+    (0 => x"00040000",
+     1 => x"00060000");
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
@@ -819,7 +819,7 @@ begin
       else
         tdc1_irq_synch <= tdc1_irq_synch(0) & tdc1_irq;
         tdc2_irq_synch <= tdc2_irq_synch(0) & tdc2_irq;
-		end if;
+      end if;
     end if;
   end process;
 

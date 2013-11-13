@@ -13,7 +13,7 @@
 -- File         acam_databus_interface.vhd                                                        |
 --                                                                                                |
 -- Description  The unit interfaces with the ACAM chip pins for the configuration of the registers|
---              and the aquisition of the timestamps.                                             |
+--              and the acquisition of the timestamps.                                            |
 --              The ACAM proprietary interface is converted to a WISHBONE classic interface, with |
 --              which the unit communicates with the data_engine unit.                            |
 --              The WISHBONE master is implemented in the data_engine and the slave in this unit. |
