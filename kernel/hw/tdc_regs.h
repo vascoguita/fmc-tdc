@@ -44,13 +44,13 @@
 #define TDC_INPUT_ENABLE_FLAG BIT(7)
 
 /* IRQ controler registers */
-#define TDC_REG_IRQ_MULTI		0x0
-#define TDC_REG_IRQ_STATUS		0x4
-#define TDC_REG_IRQ_ENABLE		0x8
+#define TDC_REG_EIC_IDR 		0x0
+#define TDC_REG_EIC_IER 		0x4
+#define TDC_REG_EIC_IMR 		0x8
+#define TDC_REG_EIC_ISR 		0xc
 
 /* IRQ status/enable bits */
-#define TDC_IRQ_TDC_TSTAMP		BIT(2)
-#define TDC_IRQ_TDC_ERROR		BIT(4)
+#define TDC_IRQ_TDC_TSTAMP		BIT(0)
 
 #define TDC_EVENT_BUFFER_SIZE		256
 #define TDC_EVENT_CHANNEL_MASK		0xF

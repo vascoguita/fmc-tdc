@@ -23,6 +23,7 @@
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
+#include <linux/zio-buffer.h>                                                                                                                                                      
 
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
@@ -187,8 +188,7 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	uint32_t irq_stat;
 	
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_IRQ_STATUS);
-	irq_stat >>= ft->irq_shift;
+	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR); /* clear the IRQ */
 	
 	if( likely (irq_stat & TDC_IRQ_TDC_TSTAMP))
 	{
@@ -288,26 +288,21 @@ static void ft_readout_tasklet(unsigned long arg)
 
 out:
 	/* ack the irq */
-	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP << ft->irq_shift,
-		   ft->ft_irq_base + TDC_REG_IRQ_STATUS);
+	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP, ft->ft_irq_base + TDC_REG_EIC_ISR);
 	fmc->op->irq_ack(fmc);
 }
 
 int ft_irq_init(struct fmctdc_dev *ft)
 {
-	uint32_t irq_en;
-
 	tasklet_init(&ft->readout_tasklet, ft_readout_tasklet,
 		     (unsigned long)ft);
 
-	/* disable coalescing, it's currently broken */
+	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
 	ft_writel(ft, 1, TDC_REG_IRQ_THRESHOLD);
 	ft_writel(ft, 0, TDC_REG_IRQ_TIMEOUT);
 
 	/* enable timestamp readout irq */
-	irq_en = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_IRQ_ENABLE);
-	fmc_writel(ft->fmc, irq_en | (TDC_IRQ_TDC_TSTAMP << ft->irq_shift),
-		   ft->ft_irq_base + TDC_REG_IRQ_ENABLE);
+	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP, ft->ft_irq_base + TDC_REG_EIC_IER);
 
 	/* configure the actual handler via a carrier-specific mechanism */
 	return ft->carrier_specific->setup_irqs(ft, ft_irq_handler);
@@ -315,7 +310,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
-	fmc_writel(ft->fmc, 0, ft->ft_irq_base + TDC_REG_IRQ_ENABLE);
+	fmc_writel(ft->fmc, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
 
 	ft->carrier_specific->disable_irqs(ft);
 }

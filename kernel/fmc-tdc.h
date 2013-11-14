@@ -146,7 +146,6 @@ struct fmctdc_dev {
 	int ft_carrier_base;
 	int ft_irq_base;
 	/* IRQ base index (for SVEC) */
-	int irq_shift;
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;
 	/* is acquisition mode active? */

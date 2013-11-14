@@ -74,7 +74,7 @@ static int ft_spec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 {
 	struct ft_spec_data *cspec = ft->carrier_data;
 	uint32_t status;
-	int i, ret;
+	int i, ret = 0;
 
 	cspec->dma_addr =
 	    dma_map_single(ft->fmc->hwdev, (char *)dst, size, DMA_FROM_DEVICE);

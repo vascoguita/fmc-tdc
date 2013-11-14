@@ -89,7 +89,11 @@ static int ft_svec_setup_irqs(struct fmctdc_dev *ft, irq_handler_t handler)
 {
 	int ret;
 
-	ret = ft->fmc->op->irq_request(ft->fmc, handler, "fmc-tdc", IRQF_SHARED);
+	/* pass the core's base addr as the VIC IRQ vector. */
+	
+	/* fixme: vector table points to the bridge instead of the core's base address */
+	ft->fmc->irq = ft->ft_core_base - 0x10000;
+	ret = ft->fmc->op->irq_request(ft->fmc, handler, "fmc-tdc", 0);
 
 	if (ret < 0) {
 		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);

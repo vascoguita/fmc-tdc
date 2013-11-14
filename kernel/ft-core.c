@@ -281,7 +281,9 @@ int ft_probe(struct fmc_device *fmc)
 				    NULL);
 	ft->ft_carrier_base =
 	    fmc_find_sdb_device(fmc->sdb, 0xce42, 0x603, NULL);
-	ft->ft_irq_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x605, NULL);
+
+	/* fixme: use SDB */
+	ft->ft_irq_base = ft->ft_core_base + 0x2000;
 
 	/* FIXME/UGLY HACK: enumerate sub-cores via SDB (requires some HDL cleanup: 
 	   at least the whole Wishbone interconnect must be clocked before we proceed
@@ -293,11 +295,8 @@ int ft_probe(struct fmc_device *fmc)
 		ft->ft_dma_base =
 		    fmc_find_sdb_device(fmc->sdb, 0xce42, 0x601, NULL);
 
-		/* FIXME: the HDL uses custom IRQ controller (not the VIC). IRQ lines are hardcoded. */
-		ft->irq_shift = 0;
 	} else {
 		ft->ft_owregs_base = ft->ft_core_base + 0x1000;
-		ft->irq_shift = fmc->slot_id * 3;
 	}
 
 	if (ft_verbose) {
@@ -308,6 +307,7 @@ int ft_probe(struct fmc_device *fmc)
 	}
 
 	spin_lock_init(&ft->lock);
+
 
 	/* Retrieve calibration from the eeprom, and validate */
 	ret = ft_handle_eeprom_calibration(ft);
