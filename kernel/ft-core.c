@@ -282,32 +282,29 @@ int ft_probe(struct fmc_device *fmc)
 	ft->ft_carrier_base =
 	    fmc_find_sdb_device(fmc->sdb, 0xce42, 0x603, NULL);
 
-	/* fixme: use SDB */
-	ft->ft_irq_base = ft->ft_core_base + 0x2000;
+	ft->ft_irq_base =
+	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x605, fmc->slot_id,
+				    NULL);
 
-	/* FIXME/UGLY HACK: enumerate sub-cores via SDB (requires some HDL cleanup: 
-	   at least the whole Wishbone interconnect must be clocked before we proceed
-	   with enumeration) */
+	/* the 0th onewire controller is the carrier one */
+	ft->ft_owregs_base =
+	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x602, fmc->slot_id + 1,
+				    NULL);
 
-	if (!strcmp(fmc->carrier_name, "SPEC")) {
-		ft->ft_owregs_base =
-		    fmc_find_sdb_device(fmc->sdb, 0xce42, 0x602, NULL);
-		ft->ft_dma_base =
-		    fmc_find_sdb_device(fmc->sdb, 0xce42, 0x601, NULL);
+	ft->ft_dma_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x601, NULL);
 
-	} else {
-		ft->ft_owregs_base = ft->ft_core_base + 0x1000;
-	}
+	ft->ft_buffer_base =
+	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x601, fmc->slot_id,
+				    NULL);
 
 	if (ft_verbose) {
 		dev_info(dev,
-			 "Base addrs: core 0x%x, carrier_csr 0x%x, irq 0x%x, 1wire 0x%x\n",
+			 "Base addrs: core 0x%x, carrier_csr 0x%x, irq 0x%x, 1wire 0x%x, buffer/DMA 0x%X\n",
 			 ft->ft_core_base, ft->ft_carrier_base, ft->ft_irq_base,
-			 ft->ft_owregs_base);
+			 ft->ft_owregs_base, ft->ft_buffer_base);
 	}
 
 	spin_lock_init(&ft->lock);
-
 
 	/* Retrieve calibration from the eeprom, and validate */
 	ret = ft_handle_eeprom_calibration(ft);
@@ -335,7 +332,7 @@ int ft_probe(struct fmc_device *fmc)
 	ft->initialized = 1;
 
 	return 0;
-err:
+      err:
 	while (--m, --i >= 0)
 		if (m->exit)
 			m->exit(ft);

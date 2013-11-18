@@ -138,54 +138,6 @@ static int ft_spec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 	return ret;
 }
 
-/* Unfortunately, on the spec this is GPIO9, i.e. IRQ(1) */
-static struct fmc_gpio ft_gpio_on[] = {
-	{
-	 .gpio = FMC_GPIO_IRQ(1),
-	 .mode = GPIOF_DIR_IN,
-	 .irqmode = IRQF_TRIGGER_RISING,
-	 }
-};
-
-static struct fmc_gpio ft_gpio_off[] = {
-	{
-	 .gpio = FMC_GPIO_IRQ(1),
-	 .mode = GPIOF_DIR_IN,
-	 .irqmode = 0,
-	 }
-};
-
-static int ft_spec_setup_irqs(struct fmctdc_dev *ft, irq_handler_t handler)
-{
-	struct fmc_device *fmc = ft->fmc;
-	int ret;
-
-	ret = fmc->op->irq_request(fmc, handler, "fmc-tdc", IRQF_SHARED);
-
-	if (ret < 0) {
-		dev_err(&fmc->dev, "Request interrupt failed: %d\n", ret);
-		return ret;
-	}
-	fmc->op->gpio_config(fmc, ft_gpio_on, ARRAY_SIZE(ft_gpio_on));
-
-	return 0;
-}
-
-static int ft_spec_disable_irqs(struct fmctdc_dev *ft)
-{
-	struct fmc_device *fmc = ft->fmc;
-
-	fmc->op->gpio_config(fmc, ft_gpio_off, ARRAY_SIZE(ft_gpio_off));
-	fmc->op->irq_free(fmc);
-
-	return 0;
-}
-
-static int ft_spec_ack_irq(struct fmctdc_dev *ft, int irq_id)
-{
-	return 0;
-}
-
 static void ft_spec_exit(struct fmctdc_dev *ft)
 {
 	kfree(ft->carrier_data);
@@ -196,8 +148,5 @@ struct ft_carrier_specific ft_carrier_spec = {
 	ft_spec_init,
 	ft_spec_reset,
 	ft_spec_copy_timestamps,
-	ft_spec_setup_irqs,
-	ft_spec_disable_irqs,
-	ft_spec_ack_irq,
 	ft_spec_exit,
 };

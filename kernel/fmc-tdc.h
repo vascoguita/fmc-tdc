@@ -87,9 +87,6 @@ struct ft_carrier_specific {
 	int (*reset_core) (struct fmctdc_dev *);
 	int (*copy_timestamps) (struct fmctdc_dev *, int base_addr, int size,
 				void *dst);
-	int (*setup_irqs) (struct fmctdc_dev *, irq_handler_t handler);
-	int (*disable_irqs) (struct fmctdc_dev *);
-	int (*ack_irq) (struct fmctdc_dev *, int irq_id);
 	void (*exit) (struct fmctdc_dev *);
 };
 
@@ -145,6 +142,7 @@ struct fmctdc_dev {
 	int ft_dma_base;
 	int ft_carrier_base;
 	int ft_irq_base;
+	int ft_buffer_base;
 	/* IRQ base index (for SVEC) */
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;

@@ -23,7 +23,7 @@
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
-#include <linux/zio-buffer.h>                                                                                                                                                      
+#include <linux/zio-buffer.h>
 
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
@@ -154,9 +154,8 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 			    (diff.seconds || diff.coarse > 12
 			     || (diff.coarse == 12 && diff.frac >= 2048))) {
 				ft_ts_apply_offset(&ts,
-						   ft->
-						   calib.zero_offset[channel -
-								     1]);
+						   ft->calib.
+						   zero_offset[channel - 1]);
 
 				if (st->user_offset)
 					ft_ts_apply_offset(&ts,
@@ -187,15 +186,14 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	uint32_t irq_stat;
-	
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR); /* clear the IRQ */
-	
-	if( likely (irq_stat & TDC_IRQ_TDC_TSTAMP))
-	{
-	    tasklet_schedule(&ft->readout_tasklet);
-	    return IRQ_HANDLED;
+
+	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);	/* clear the IRQ */
+
+	if (likely(irq_stat & TDC_IRQ_TDC_TSTAMP)) {
+		tasklet_schedule(&ft->readout_tasklet);
+		return IRQ_HANDLED;
 	}
-	
+
 	return 0;
 }
 
@@ -286,14 +284,17 @@ static void ft_readout_tasklet(unsigned long arg)
 		}
 	}
 
-out:
+      out:
 	/* ack the irq */
-	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP,
+		   ft->ft_irq_base + TDC_REG_EIC_ISR);
 	fmc->op->irq_ack(fmc);
 }
 
 int ft_irq_init(struct fmctdc_dev *ft)
 {
+	int ret;
+
 	tasklet_init(&ft->readout_tasklet, ft_readout_tasklet,
 		     (unsigned long)ft);
 
@@ -301,16 +302,28 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	ft_writel(ft, 1, TDC_REG_IRQ_THRESHOLD);
 	ft_writel(ft, 0, TDC_REG_IRQ_TIMEOUT);
 
-	/* enable timestamp readout irq */
-	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP, ft->ft_irq_base + TDC_REG_EIC_IER);
+	/* enable timestamp readout IRQ */
+	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP,
+		   ft->ft_irq_base + TDC_REG_EIC_IER);
 
-	/* configure the actual handler via a carrier-specific mechanism */
-	return ft->carrier_specific->setup_irqs(ft, ft_irq_handler);
+	/* pass the core's base addr as the VIC IRQ vector. */
+	/* fixme: vector table points to the bridge instead of the core's base address */
+	ft->fmc->irq = ft->ft_core_base - 0x10000;
+	ret = ft->fmc->op->irq_request(ft->fmc, ft_irq_handler, "fmc-tdc", 0);
+
+	if (ret < 0) {
+		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);
+		return ret;
+	}
+
+	/* kick off the interrupts (fixme: possible issue with the HDL) */
+	ft->fmc->op->irq_ack(ft->fmc);
+
+	return 0;
 }
 
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
 	fmc_writel(ft->fmc, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
-
-	ft->carrier_specific->disable_irqs(ft);
+	ft->fmc->op->irq_free(ft->fmc);
 }

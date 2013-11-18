@@ -77,40 +77,10 @@ static int ft_svec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 		return -EIO;
 
 	/* FIXME: use SDB to determine buffer base address (after fixing the HDL) */
-	addr = ft->ft_core_base + 0x4000 + base_addr;
+	addr = ft->ft_buffer_base + base_addr;
 
 	for (i = 0, dptr = (uint32_t *) dst; i < size / 4; i++, dptr++)
 		*dptr = fmc_readl(ft->fmc, addr + i * 4);
-
-	return 0;
-}
-
-static int ft_svec_setup_irqs(struct fmctdc_dev *ft, irq_handler_t handler)
-{
-	int ret;
-
-	/* pass the core's base addr as the VIC IRQ vector. */
-	
-	/* fixme: vector table points to the bridge instead of the core's base address */
-	ft->fmc->irq = ft->ft_core_base - 0x10000;
-	ret = ft->fmc->op->irq_request(ft->fmc, handler, "fmc-tdc", 0);
-
-	if (ret < 0) {
-		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);
-		return ret;
-	}
-
-	return 0;
-}
-
-static int ft_svec_disable_irqs(struct fmctdc_dev *ft)
-{
-	return ft->fmc->op->irq_free(ft->fmc);
-}
-
-static int ft_svec_ack_irq(struct fmctdc_dev *ft, int irq_id)
-{
-	ft->fmc->op->irq_ack(ft->fmc);
 
 	return 0;
 }
@@ -124,8 +94,5 @@ struct ft_carrier_specific ft_carrier_svec = {
 	ft_svec_init,
 	ft_svec_reset,
 	ft_svec_copy_timestamps,
-	ft_svec_setup_irqs,
-	ft_svec_disable_irqs,
-	ft_svec_ack_irq,
 	ft_svec_exit
 };
