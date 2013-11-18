@@ -102,6 +102,7 @@ int main(int argc, char **argv)
 	n = 0;
 
 	while (!stop) {
+		int nfds = 0;
 		struct fmctdc_time ts;
 		stop = 1;
 
@@ -109,17 +110,20 @@ int main(int argc, char **argv)
 
 		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
 			int fd = channels[i - FMCTDC_CH_1];
+			
 			if (fd < 0) {
 				fprintf(stderr, "Can't open channel %d\n", i);
 				return -1;
-			} else if (fd > 0)
+			} else if (fd > 0) {
 				FD_SET(fd, &rfds);
+				nfds = fd > nfds ? fd : nfds;
+			}
+				
 		}
 
 		/* non-blocking mode: do nothing, otherwise wait until one of the channels becomes active */
 		if (!non_block
-		    && select(FMCTDC_NUM_CHANNELS + 1, &rfds, NULL, NULL,
-			      NULL) <= 0)
+		    && select(nfds + 1, &rfds, NULL, NULL, NULL) <= 0)
 			continue;
 
 		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
