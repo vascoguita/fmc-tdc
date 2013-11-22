@@ -361,7 +361,7 @@ begin
   -- (un_current_retrig_from_roll_over is 0 and un_acam_start_nb = un_current_retrig_nb_offset)
   -- the values of the previous second should be used.
   -- Also, according to the ACAM documentation there is an indeterminacy to whether the fine time refers
-  -- to the previous retrigger or the current one. The equation described on line 386 describes
+  -- to the previous retrigger or the current one. The equation described on line 392 describes
   -- the case where: a timestamp came on the same retrigger after a new second but the ACAM assigned
   -- it to the previous retrigger (the "un_current_retrig_from_roll_over = 0" describes that a new second
   -- has arrived; the "un_acam_fine_time > 6318" desribes a fine time that is referred to the previous retrigger;

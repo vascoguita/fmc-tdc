@@ -16,8 +16,10 @@
 --                o the TDC core                                                                  |
 --                o the I2C core for the communication with the TDC board EEPROM                  |
 --                o the OneWire core for the communication with the TDC board UniqueID&Thermetec  |
+--                o the IRQ controller core that concentrates several interrupt sources into one  |
+--                  interrupt request line.                                                       |
 --              For the interconnection between the GNUM/VME core and the different cores (TDC,   |
---              I2C, 1W) the unit also instantiates an SDB crossbar.                              |
+--              I2C, 1W, IRQ) the unit also instantiates an SDB crossbar.                         |
 --                                                                                                |
 --                                   ______________________________                               |
 --                                  |                               |                             |
@@ -27,11 +29,15 @@
 --                                  |   |________________|  | S |   |                             |
 --                                  |    ________________   |   |   |                             |
 --                                  |   |                |  |   |   |                             |
---               EEPROM chip <-->   |   |    I2C core    |  | D |   |   <-->  GNUM/VME core       |
+--               EEPROM chip <-->   |   |    I2C core    |  |   |   |   <-->                      |
+--                                  |   |________________|  |   |   |                             |
+--                                  |    ________________   | D |   |          GNUM/VME core      |
+--                                  |   |                |  |   |   |                             |
+--                   1W chip <-->   |   |     1W core    |  |   |   |   <-->                      |
 --                                  |   |________________|  |   |   |                             |
 --                                  |    ________________   |   |   |                             |
 --                                  |   |                |  | B |   |                             |
---                   1W chip <-->   |   |     1W core    |  |   |   |   <-->                      |
+--                                  |   |   IRQ ctrler   |  |   |   |   <-->                      |
 --                                  |   |________________|  |___|   |                             |
 --                                  |                               |                             |
 --                                  |_______________________________|                             |
@@ -39,7 +45,7 @@
 --                                   _______________________________                              |
 --                                  |                               |                             |
 --                   DAC chip <-->  |       clks_rsts_manager       |                             |
---                                  |_______________________________|                             |
+--                   PLL chip       |_______________________________|                             |
 --                                                                                                |
 --                               Figure 1: FMC TDC mezzanine architecture                         |
 --                                                                                                |
@@ -406,21 +412,21 @@ begin
 
   cmp_irq_controller : irq_controller
   port map
-    (clk_sys_i           => clk_125m_i,
-     rst_n_i             => general_rst_n,
-     wb_adr_i            => cnx_master_out(c_WB_SLAVE_IRQ).adr(3 downto 2),
-     wb_dat_i            => cnx_master_out(c_WB_SLAVE_IRQ).dat,
-     wb_dat_o            => cnx_master_in(c_WB_SLAVE_IRQ).dat,
-     wb_cyc_i            => cnx_master_out(c_WB_SLAVE_IRQ).cyc,
-     wb_sel_i            => cnx_master_out(c_WB_SLAVE_IRQ).sel,
-     wb_stb_i            => cnx_master_out(c_WB_SLAVE_IRQ).stb,
-     wb_we_i             => cnx_master_out(c_WB_SLAVE_IRQ).we,
-     wb_ack_o            => cnx_master_in(c_WB_SLAVE_IRQ).ack,
-     wb_stall_o          => cnx_master_in(c_WB_SLAVE_IRQ).stall,
-     wb_int_o            => wb_irq_o,
-     irq_tdc_tstamps_i   => irq_tstamp_p,
-     irq_tdc_time_i      => irq_time_p,
-     irq_tdc_acam_err_i  => irq_acam_err_p);
+    (clk_sys_i          => clk_125m_i,
+     rst_n_i            => general_rst_n,
+     wb_adr_i           => cnx_master_out(c_WB_SLAVE_IRQ).adr(3 downto 2),
+     wb_dat_i           => cnx_master_out(c_WB_SLAVE_IRQ).dat,
+     wb_dat_o           => cnx_master_in(c_WB_SLAVE_IRQ).dat,
+     wb_cyc_i           => cnx_master_out(c_WB_SLAVE_IRQ).cyc,
+     wb_sel_i           => cnx_master_out(c_WB_SLAVE_IRQ).sel,
+     wb_stb_i           => cnx_master_out(c_WB_SLAVE_IRQ).stb,
+     wb_we_i            => cnx_master_out(c_WB_SLAVE_IRQ).we,
+     wb_ack_o           => cnx_master_in(c_WB_SLAVE_IRQ).ack,
+     wb_stall_o         => cnx_master_in(c_WB_SLAVE_IRQ).stall,
+     wb_int_o           => wb_irq_o,
+     irq_tdc_tstamps_i  => irq_tstamp_p,
+     irq_tdc_time_i     => irq_time_p,
+     irq_tdc_acam_err_i => irq_acam_err_p);
 
     
 end rtl;

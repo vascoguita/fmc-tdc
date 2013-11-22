@@ -77,8 +77,18 @@
 -- Authors:                                      
 --               Pablo Alvarez Sanchez (Pablo.Alvarez.Sanchez@cern.ch)                             
 --               Davide Pedretti       (Davide.Pedretti@cern.ch)  
--- Date         11/2012                                                                           
--- Version      v0.03  
+-- Date          11/2012                                                                           
+-- Version       v0.03
+-- Date          11/2013    
+-- Version       Added patch from TWlostowski  
+--               [PATCH] VME_IRQ_Controller: made IRQ line level-sensitive.
+--               There are two reasons for doing so:
+--               compatibility with Wishbone and the VIC interrupt controller
+--               possibility of losing an edge-triggered IRQ and hanging interrupts when
+--               different cores trigger interrupts very close to each other.
+--               The modified interrupter implements a retry mechanism, that is, if the IRQ line
+--               gets stuck for longer than certain period (g_retry_timeout), an IRQ cycle
+--               is repeated on the VME bus.  
 --______________________________________________________________________________
 --                               GNU LESSER GENERAL PUBLIC LICENSE                                
 --                              ------------------------------------       
@@ -235,7 +245,7 @@ architecture RTL of VME64xCore_Top is
   signal s_BAR                 : std_logic_vector(4 downto 0);
   signal s_time                : std_logic_vector(39 downto 0);
   signal s_bytes               : std_logic_vector(12 downto 0);
-  signal s_IRQ                 : std_logic;
+--  signal s_IRQ                 : std_logic;
 
   -- Oversampled input signals 
   signal VME_RST_n_oversampled    : std_logic;
@@ -317,12 +327,12 @@ begin
       clk_i => clk_i
       );                        
 
-  IrqrisingEdge : RisEdgeDetection
-    port map (
-      sig_i     => IRQ_i,
-      clk_i     => clk_i,
-      RisEdge_o => s_IRQ
-      );
+  -- IrqrisingEdge : RisEdgeDetection
+    -- port map (
+      -- sig_i     => IRQ_i,
+      -- clk_i     => clk_i,
+      -- RisEdge_o => s_IRQ
+      -- );
 
   Inst_VME_bus : VME_bus
     generic map(
@@ -431,7 +441,7 @@ begin
       VME_ADDR_123_i  => VME_ADDR_i(3 downto 1),
       INT_Level_i     => s_INT_Level,
       INT_Vector_i    => s_INT_Vector ,
-      INT_Req_i       => s_IRQ,
+      INT_Req_i       => irq_i,--s_IRQ,
       VME_IRQ_n_o     => s_VME_IRQ_n_o,
       VME_IACKOUT_n_o => VME_IACKOUT_n_o,
       VME_DTACK_n_o   => s_VME_DTACK_IRQ,

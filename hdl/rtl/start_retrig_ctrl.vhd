@@ -275,7 +275,7 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- When a new second starts, all values are captured and stored as offsets.
-  -- when a timestamps arrives, these offset will be subrstracted in order
+  -- when a timestamp arrives, these offset will be subtracted in order
   -- to base the final timestamp with respect to the current second.
   capture_offset: process (clk_i)
   begin
