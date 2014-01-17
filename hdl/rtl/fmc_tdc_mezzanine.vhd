@@ -58,13 +58,14 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         07/2013                                                                           |
--- Version      v1                                                                                |
+-- Date         01/2014                                                                           |
+-- Version      v2                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     07/2013  v1  EG  First version                                                             |
+--     01/2014  v2  EG  Different output for the timestamp data                                   |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -137,25 +138,37 @@ entity fmc_tdc_mezzanine is
      tdc_led_trig3_o        : out   std_logic;
      tdc_led_trig4_o        : out   std_logic;
      tdc_led_trig5_o        : out   std_logic;
+     -- WISHBONE interface with the GNUM/VME_core
+     -- for the core configuration | core interrupts | 1Wire | I2C 
+     wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_dat_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_cyc_i       : in    std_logic;
+     wb_tdc_csr_sel_i       : in    std_logic_vector(3 downto 0);
+     wb_tdc_csr_stb_i       : in    std_logic;
+     wb_tdc_csr_we_i        : in    std_logic;
+     wb_tdc_csr_dat_o       : out   std_logic_vector(31 downto 0);
+     wb_tdc_csr_ack_o       : out   std_logic;
+     wb_tdc_csr_stall_o     : out   std_logic;
+     wb_irq_o               : out   std_logic;
+     -- WISHBONE interface with the GNUM DMA/VME_core
+     -- for the retreival of the timestamps
+     wb_tdc_mem_adr_i       : in    std_logic_vector(31 downto 0); 
+     wb_tdc_mem_dat_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_mem_cyc_i       : in    std_logic;
+     wb_tdc_mem_stb_i       : in    std_logic;
+     wb_tdc_mem_we_i        : in    std_logic;
+     wb_tdc_mem_dat_o       : out   std_logic_vector(31 downto 0);
+     wb_tdc_mem_ack_o       : out   std_logic;
+     wb_tdc_mem_stall_o     : out   std_logic;
+     -- Interrupt pulses, for debug
      irq_tstamp_p_o         : out   std_logic;
      irq_time_p_o           : out   std_logic;
      irq_acam_err_p_o       : out   std_logic;
-     -- WISHBONE interface with the GNUM/VME_core
-     wb_tdc_mezz_adr_i      : in    std_logic_vector(31 downto 0);
-     wb_tdc_mezz_dat_i      : in    std_logic_vector(31 downto 0);
-     wb_tdc_mezz_dat_o      : out   std_logic_vector(31 downto 0);
-     wb_tdc_mezz_cyc_i      : in    std_logic;
-     wb_tdc_mezz_sel_i      : in    std_logic_vector(3 downto 0);
-     wb_tdc_mezz_stb_i      : in    std_logic;
-     wb_tdc_mezz_we_i       : in    std_logic;
-     wb_tdc_mezz_ack_o      : out   std_logic;
-     wb_tdc_mezz_stall_o    : out   std_logic;
-     wb_irq_o               : out   std_logic;
      -- I2C EEPROM interface
      sys_scl_b              : inout std_logic;
      sys_sda_b              : inout std_logic;
      -- 1-wire UniqueID&Thermometer interface
-     mezz_one_wire_b        : inout std_logic);
+     one_wire_b             : inout std_logic);
 
 end fmc_tdc_mezzanine;
 
@@ -170,12 +183,11 @@ architecture rtl of fmc_tdc_mezzanine is
 ---------------------------------------------------------------------------------------------------
   -- Note: All address in sdb and crossbar are BYTE addresses!
   -- Master ports on the wishbone crossbar
-  constant c_NUM_WB_MASTERS           : integer := 5;
+  constant c_NUM_WB_MASTERS           : integer := 4;
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 0;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 1;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
-  constant c_WB_SLAVE_IRQ             : integer := 2;  -- TDC interrupts
+  constant c_WB_SLAVE_TDC_EIC         : integer := 2;  -- TDC interrupts
   constant c_WB_SLAVE_TDC_SYS_I2C     : integer := 3;  -- TDC mezzanine board system EEPROM I2C
-  constant c_WB_SLAVE_TSTAMP_MEM      : integer := 4;  -- Access to TDC core timestamps memory
 
   -- Slave port on the wishbone crossbar
   constant c_NUM_WB_SLAVES            : integer := 1;
@@ -184,12 +196,11 @@ architecture rtl of fmc_tdc_mezzanine is
   -- sdb header address
   constant c_SDB_ADDRESS              : t_wishbone_address := x"00000000";
   -- WISHBONE crossbar layout
-  constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(4 downto 0) :=
-    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00010000"),
-     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00011000"),
-     2 => f_sdb_embed_device(c_INT_SDB_DEVICE,        x"00012000"),
-     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00013000"),
-     4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00014000"));
+  constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(3 downto 0) :=
+    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00001000"),
+     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00001100"),
+     2 => f_sdb_embed_device(c_TDC_EIC_DEVICE,        x"00001200"),
+     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00001300"));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -228,10 +239,10 @@ begin
 --                                     CSR WISHBONE CROSSBAR                                     --
 ---------------------------------------------------------------------------------------------------
 -- CSR wishbone address decoder
---   0x10000 -> TDC memory for timestamps retrieval
---   0x11000 -> TDC core configuration
---   0x12000 -> TDC mezzanine board system EEPROM I2C
---   0x13000 -> TDC mezzanine board UnidueID&Thermometer 1-wire
+--   0x1000 -> TDC memory for timestamps retrieval
+--   0x1100 -> TDC core configuration
+--   0x1200 -> TDC mezzanine board system EEPROM I2C
+--   0x1300 -> TDC mezzanine board UnidueID&Thermometer 1-wire
 
   cmp_sdb_crossbar : xwb_sdb_crossbar
   generic map
@@ -251,18 +262,18 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Connect crossbar slave port to entity port
-  cnx_slave_in(c_WB_MASTER).adr <= wb_tdc_mezz_adr_i;
-  cnx_slave_in(c_WB_MASTER).dat <= wb_tdc_mezz_dat_i;
-  cnx_slave_in(c_WB_MASTER).sel <= wb_tdc_mezz_sel_i;
-  cnx_slave_in(c_WB_MASTER).stb <= wb_tdc_mezz_stb_i;
-  cnx_slave_in(c_WB_MASTER).we  <= wb_tdc_mezz_we_i;
-  cnx_slave_in(c_WB_MASTER).cyc <= wb_tdc_mezz_cyc_i;
+  cnx_slave_in(c_WB_MASTER).adr <= wb_tdc_csr_adr_i;
+  cnx_slave_in(c_WB_MASTER).dat <= wb_tdc_csr_dat_i;
+  cnx_slave_in(c_WB_MASTER).sel <= wb_tdc_csr_sel_i;
+  cnx_slave_in(c_WB_MASTER).stb <= wb_tdc_csr_stb_i;
+  cnx_slave_in(c_WB_MASTER).we  <= wb_tdc_csr_we_i;
+  cnx_slave_in(c_WB_MASTER).cyc <= wb_tdc_csr_cyc_i;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
-  wb_tdc_mezz_dat_o             <= cnx_slave_out(c_WB_MASTER).dat;
-  wb_tdc_mezz_ack_o             <= cnx_slave_out(c_WB_MASTER).ack;
-  wb_tdc_mezz_stall_o           <= cnx_slave_out(c_WB_MASTER).stall;
+  wb_tdc_csr_dat_o             <= cnx_slave_out(c_WB_MASTER).dat;
+  wb_tdc_csr_ack_o             <= cnx_slave_out(c_WB_MASTER).ack;
+  wb_tdc_csr_stall_o           <= cnx_slave_out(c_WB_MASTER).stall;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -328,27 +339,25 @@ begin
      tdc_config_wb_dat_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).dat,
      tdc_config_wb_ack_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).ack,
      -- WISHBONE for timestamps transfer
-     tdc_mem_wb_adr_i        => tdc_mem_wb_adr,
-     tdc_mem_wb_dat_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).dat,
-     tdc_mem_wb_stb_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).stb,
-     tdc_mem_wb_we_i         => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).we,
-     tdc_mem_wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).cyc,
-     tdc_mem_wb_ack_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).ack,
-     tdc_mem_wb_dat_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).dat,
-     tdc_mem_wb_stall_o      => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).stall);
+     tdc_mem_wb_adr_i        => wb_tdc_mem_adr_i,
+     tdc_mem_wb_dat_i        => wb_tdc_mem_dat_i,
+     tdc_mem_wb_stb_i        => wb_tdc_mem_stb_i,
+     tdc_mem_wb_we_i         => wb_tdc_mem_we_i,
+     tdc_mem_wb_cyc_i        => wb_tdc_mem_cyc_i,
+     tdc_mem_wb_ack_o        => wb_tdc_mem_ack_o,
+     tdc_mem_wb_dat_o        => wb_tdc_mem_dat_o,
+     tdc_mem_wb_stall_o      => wb_tdc_mem_stall_o);
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Convert byte address into word address
   tdc_core_wb_adr <= "00" & cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).adr(31 downto 2);
-  tdc_mem_wb_adr  <= "00" & cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).adr(31 downto 2);
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).err   <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).rty   <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).stall <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).int   <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).err        <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).rty        <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).int        <= '0';
 
 
 ---------------------------------------------------------------------------------------------------
@@ -398,37 +407,45 @@ begin
      owr_en_o              => mezz_owr_en,
      owr_i                 => mezz_owr_i);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  mezz_one_wire_b          <= '0' when mezz_owr_en(0) = '1' else 'Z';
-  mezz_owr_i(0)            <= mezz_one_wire_b;
+  one_wire_b               <= '0' when mezz_owr_en(0) = '1' else 'Z';
+  mezz_owr_i(0)            <= one_wire_b;
 
 
 ---------------------------------------------------------------------------------------------------
---                                     INTERRUPTS CONTROLLER                                     --
+--                             WBGEN2 EMBEDDED INTERRUPTS CONTROLLER                             --
 ---------------------------------------------------------------------------------------------------
 -- IRQ sources
 -- 0 -> number of accumulated timestamps reached threshold
 -- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
--- 1 -> ACAM error
+-- 2 -> ACAM error
 
-  cmp_irq_controller : irq_controller
+  cmp_tdc_eic : tdc_eic
   port map
     (clk_sys_i          => clk_125m_i,
      rst_n_i            => general_rst_n,
-     wb_adr_i           => cnx_master_out(c_WB_SLAVE_IRQ).adr(3 downto 2),
-     wb_dat_i           => cnx_master_out(c_WB_SLAVE_IRQ).dat,
-     wb_dat_o           => cnx_master_in(c_WB_SLAVE_IRQ).dat,
-     wb_cyc_i           => cnx_master_out(c_WB_SLAVE_IRQ).cyc,
-     wb_sel_i           => cnx_master_out(c_WB_SLAVE_IRQ).sel,
-     wb_stb_i           => cnx_master_out(c_WB_SLAVE_IRQ).stb,
-     wb_we_i            => cnx_master_out(c_WB_SLAVE_IRQ).we,
-     wb_ack_o           => cnx_master_in(c_WB_SLAVE_IRQ).ack,
-     wb_stall_o         => cnx_master_in(c_WB_SLAVE_IRQ).stall,
+     wb_adr_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(3 downto 2),
+     wb_dat_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
+     wb_dat_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
+     wb_cyc_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
+     wb_sel_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
+     wb_stb_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
+     wb_we_i            => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
+     wb_ack_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
+     wb_stall_o         => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
      wb_int_o           => wb_irq_o,
      irq_tdc_tstamps_i  => irq_tstamp_p,
      irq_tdc_time_i     => irq_time_p,
      irq_tdc_acam_err_i => irq_acam_err_p);
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Unused wishbone signals
+  cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
+  cnx_master_in(c_WB_SLAVE_TDC_EIC).rty <= '0';
+  cnx_master_in(c_WB_SLAVE_TDC_EIC).int <= '0';
+  -- for debug
+  irq_tstamp_p_o     <= irq_tstamp_p;
+  irq_time_p_o       <= irq_time_p;
+  irq_acam_err_p_o   <= irq_acam_err_p;
 
-    
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends
