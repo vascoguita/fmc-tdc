@@ -1,6 +1,6 @@
 # Synopsys, Inc. constraint file
 # C:/FMC_TDC/evas_fmc_tdc/syn/tdc_syn_constraints.sdc
-# Written on Wed Jul 17 10:47:25 2013
+# Written on Fri Aug 09 16:09:57 2013
 # by Synplify Premier with Design Planner, F-2012.03 Scope Editor
 
 #
@@ -22,6 +22,8 @@ define_clock   {n:gnum_interface_block.cmp_clk_in.rx_bufg_pll_x1} -name {gnum_cl
 #
 # Inputs/Outputs
 #
+define_input_delay -disable      -default  2.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
+define_output_delay -disable     -default  2.00 -improve 0.00 -route 0.00 -ref {tdc_clk125:r}
 
 #
 # Registers
