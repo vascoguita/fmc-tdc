@@ -72,6 +72,7 @@ package tdc_core_pkg is
 --                              Constants regarding the SDB crossbar                             --
 ---------------------------------------------------------------------------------------------------
 -- Note: All address in sdb and crossbar are BYTE addresses!
+-- Note: All address in sdb and crossbar are BYTE addresses!
 
 -- Master ports on the wishbone crossbar
   constant c_NUM_WB_MASTERS    : integer := 7;
@@ -87,10 +88,10 @@ package tdc_core_pkg is
   constant c_NUM_WB_SLAVES     : integer := 1;
   constant c_MASTER_GENNUM     : integer := 0;
 
--- SDB header address
+  -- SDB header address
   constant c_SDB_ADDRESS : t_wishbone_address := x"00000000";
 
--- Devices sdb description
+  -- Devices sdb description
   constant c_DMA_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
@@ -147,7 +148,7 @@ package tdc_core_pkg is
      wbd_width     => x"4",                  -- 32-bit port granularity
      sdb_component =>
        (addr_first  => x"0000000000000000",
-        addr_last   => x"00000000000000FF",
+        addr_last   => x"00000000000001FF",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
            device_id => x"00000604",
@@ -155,7 +156,7 @@ package tdc_core_pkg is
            date      => x"20130429",
            name      => "WB-TDC-Core        ")));
 
-  constant c_INT_SDB_DEVICE : t_sdb_device :=
+  constant c_TDC_EIC_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -166,10 +167,11 @@ package tdc_core_pkg is
         addr_last   => x"000000000000000F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000605",
+           device_id => x"00000605",         -- !!!!!"WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
-           name      => "WB-Int.Control     ")));
+           name      => "WB-FMC-TDC.EIC     ")));
+
 
   constant c_I2C_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
@@ -187,19 +189,53 @@ package tdc_core_pkg is
            date      => x"20121116",
            name      => "WB-I2C.Control     ")));
 
+  constant c_DMA_EIC_SDB : t_sdb_device := (
+    abi_class     => x"0000",              -- undocumented device
+    abi_ver_major => x"01",
+    abi_ver_minor => x"01",
+    wbd_endian    => c_sdb_endian_big,
+    wbd_width     => x"4",                 -- 32-bit port granularity
+    sdb_component => (
+      addr_first  => x"0000000000000000",
+      addr_last   => x"000000000000000F",
+      product     => (
+        vendor_id => x"000000000000CE42",  -- CERN
+        device_id => x"d5735ab4",          -- echo "WB-DMA.EIC         " | md5sum | cut -c1-8
+        version   => x"00000001",
+        date      => x"20131204",
+        name      => "WB-DMA.EIC         ")));
 
--- Wishbone crossbar layout
-  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(9 downto 0) :=
-    (0 => f_sdb_embed_device(c_DMA_SDB_DEVICE,      x"00004000"),
-     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,  x"00004800"),
-     2 => f_sdb_embed_device(c_SPEC_CSR_SDB_DEVICE, x"00004C00"),
-     3 => f_sdb_embed_device(c_TDC_SDB_DEVICE,      x"00005000"),
-     4 => f_sdb_embed_device(c_INT_SDB_DEVICE,      x"00005400"),
-     5 => f_sdb_embed_device(c_I2C_SDB_DEVICE,      x"00005800"),
-     6 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,  x"00005C00"),
-     7 => f_sdb_embed_repo_url(c_SDB_REPO_URL),
-     8 => f_sdb_embed_synthesis(c_SDB_SYNTHESIS),
-     9 => f_sdb_embed_integration(c_SDB_INTEGRATION));
+  constant c_TDC_EIC_SDB : t_sdb_device := (
+    abi_class     => x"0000",              -- undocumented device
+    abi_ver_major => x"01",
+    abi_ver_minor => x"01",
+    wbd_endian    => c_sdb_endian_big,
+    wbd_width     => x"4",                 -- 32-bit port granularity
+    sdb_component => (
+      addr_first  => x"0000000000000000",
+      addr_last   => x"000000000000000F",
+      product     => (
+        vendor_id => x"000000000000CE42",  -- CERN
+        device_id => x"26ec6086",          -- "WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
+        version   => x"00000001",
+        date      => x"20131204",
+        name      => "WB-FMC-ADC.EIC     ")));
+
+  constant c_TDC_CONFIG_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"00000000000000FF",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000604",
+           version   => x"00000001",
+           date      => x"20130429",
+           name      => "WB-TDC-Core-Config ")));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -346,6 +382,82 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 --                                      Components Declarations:                                 --
 ---------------------------------------------------------------------------------------------------
+
+  component fmc_tdc_mezzanine is
+  generic
+    (g_span                 : integer := 32;
+     g_width                : integer := 32;
+     values_for_simul       : boolean := FALSE);
+  port
+    (-- TDC core
+     clk_125m_i             : in    std_logic;
+     rst_i                  : in    std_logic;
+     acam_refclk_r_edge_p_i : in    std_logic;
+     send_dac_word_p_o      : out   std_logic;
+     dac_word_o             : out   std_logic_vector(23 downto 0);
+     start_from_fpga_o      : out   std_logic;
+     err_flag_i             : in    std_logic;
+     int_flag_i             : in    std_logic;
+     start_dis_o            : out   std_logic;
+     stop_dis_o             : out   std_logic;
+     data_bus_io            : inout std_logic_vector(27 downto 0);
+     address_o              : out   std_logic_vector(3 downto 0);
+     cs_n_o                 : out   std_logic;
+     oe_n_o                 : out   std_logic;
+     rd_n_o                 : out   std_logic;
+     wr_n_o                 : out   std_logic;
+     ef1_i                  : in    std_logic;
+     ef2_i                  : in    std_logic;
+     tdc_in_fpga_1_i        : in    std_logic;
+     tdc_in_fpga_2_i        : in    std_logic;
+     tdc_in_fpga_3_i        : in    std_logic;
+     tdc_in_fpga_4_i        : in    std_logic;
+     tdc_in_fpga_5_i        : in    std_logic;
+     enable_inputs_o        : out   std_logic;
+     term_en_1_o            : out   std_logic;
+     term_en_2_o            : out   std_logic;
+     term_en_3_o            : out   std_logic;
+     term_en_4_o            : out   std_logic;
+     term_en_5_o            : out   std_logic;
+     tdc_led_status_o       : out   std_logic;
+     tdc_led_trig1_o        : out   std_logic;
+     tdc_led_trig2_o        : out   std_logic;
+     tdc_led_trig3_o        : out   std_logic;
+     tdc_led_trig4_o        : out   std_logic;
+     tdc_led_trig5_o        : out   std_logic;
+     -- WISHBONE interface with the GNUM/VME_core
+     -- for the core configuration | core interrupts | 1Wire | I2C 
+     wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_dat_i      : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_cyc_i       : in    std_logic;
+     wb_tdc_csr_sel_i       : in    std_logic_vector(3 downto 0);
+     wb_tdc_csr_stb_i       : in    std_logic;
+     wb_tdc_csr_we_i        : in    std_logic;
+     wb_tdc_csr_dat_o       : out   std_logic_vector(31 downto 0);
+     wb_tdc_csr_ack_o       : out   std_logic;
+     wb_tdc_csr_stall_o     : out   std_logic;
+     wb_irq_o               : out   std_logic;
+     -- WISHBONE interface with the GNUM DMA/VME_core
+     -- for the retreival of the timestamps
+     wb_tdc_mem_adr_i       : in    std_logic_vector(31 downto 0); 
+     wb_tdc_mem_dat_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_mem_cyc_i       : in    std_logic;
+     wb_tdc_mem_stb_i       : in    std_logic;
+     wb_tdc_mem_we_i        : in    std_logic;
+     wb_tdc_mem_dat_o       : out   std_logic_vector(31 downto 0);
+     wb_tdc_mem_ack_o       : out   std_logic;
+     wb_tdc_mem_stall_o     : out   std_logic;
+     -- Interrupt pulses, for debug
+     irq_tstamp_p_o         : out   std_logic;
+     irq_time_p_o           : out   std_logic;
+     irq_acam_err_p_o       : out   std_logic;
+     -- I2C EEPROM interface
+     sys_scl_b              : inout std_logic;
+     sys_sda_b              : inout std_logic;
+     -- 1-wire UniqueID&Thermometer interface
+     one_wire_b             : inout std_logic);
+  end component;
+
 
 ---------------------------------------------------------------------------------------------------
   component fmc_tdc_core
@@ -657,6 +769,46 @@ package tdc_core_pkg is
       ----------------------------------------------------------------------
   end component;
 
+
+---------------------------------------------------------------------------------------------------
+  component tdc_eic
+    port
+      (rst_n_i             : in     std_logic;
+       clk_sys_i           : in     std_logic;
+       wb_adr_i            : in     std_logic_vector(1 downto 0);
+       wb_dat_i            : in     std_logic_vector(31 downto 0);
+       wb_dat_o            : out    std_logic_vector(31 downto 0);
+       wb_cyc_i            : in     std_logic;
+       wb_sel_i            : in     std_logic_vector(3 downto 0);
+       wb_stb_i            : in     std_logic;
+       wb_we_i             : in     std_logic;
+       wb_ack_o            : out    std_logic;
+       wb_stall_o          : out    std_logic;
+       wb_int_o            : out    std_logic;
+       irq_tdc_tstamps_i   : in     std_logic;
+       irq_tdc_time_i      : in     std_logic;
+       irq_tdc_acam_err_i  : in     std_logic);
+  end component tdc_eic;
+
+
+---------------------------------------------------------------------------------------------------
+  component dma_eic
+    port
+      (rst_n_i         : in  std_logic;
+       clk_sys_i       : in  std_logic;
+       wb_adr_i        : in  std_logic_vector(1 downto 0);
+       wb_dat_i        : in  std_logic_vector(31 downto 0);
+       wb_dat_o        : out std_logic_vector(31 downto 0);
+       wb_cyc_i        : in  std_logic;
+       wb_sel_i        : in  std_logic_vector(3 downto 0);
+       wb_stb_i        : in  std_logic;
+       wb_we_i         : in  std_logic;
+       wb_ack_o        : out std_logic;
+       wb_stall_o      : out std_logic;
+       wb_int_o        : out std_logic;
+       irq_dma_done_i  : in  std_logic;
+       irq_dma_error_i : in  std_logic);
+  end component dma_eic;
 
 ---------------------------------------------------------------------------------------------------
   component irq_controller
