@@ -183,11 +183,12 @@ architecture rtl of fmc_tdc_mezzanine is
 ---------------------------------------------------------------------------------------------------
   -- Note: All address in sdb and crossbar are BYTE addresses!
   -- Master ports on the wishbone crossbar
-  constant c_NUM_WB_MASTERS           : integer := 4;
+  constant c_NUM_WB_MASTERS           : integer := 5;
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 0;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 1;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
   constant c_WB_SLAVE_TDC_EIC         : integer := 2;  -- TDC interrupts
   constant c_WB_SLAVE_TDC_SYS_I2C     : integer := 3;  -- TDC mezzanine board system EEPROM I2C
+  constant c_WB_SLAVE_TSTAMP_MEM      : integer := 4;  -- Access to TDC core timestamps memory
 
   -- Slave port on the wishbone crossbar
   constant c_NUM_WB_SLAVES            : integer := 1;
@@ -196,11 +197,12 @@ architecture rtl of fmc_tdc_mezzanine is
   -- sdb header address
   constant c_SDB_ADDRESS              : t_wishbone_address := x"00000000";
   -- WISHBONE crossbar layout
-  constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(3 downto 0) :=
-    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00001000"),
-     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00001100"),
-     2 => f_sdb_embed_device(c_TDC_EIC_DEVICE,        x"00001200"),
-     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00001300"));
+  constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(4 downto 0) :=
+    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00010000"),
+     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00011000"),
+     2 => f_sdb_embed_device(c_TDC_EIC_DEVICE,        x"00012000"),
+     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00013000"),
+     4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00014000"));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -217,7 +219,6 @@ architecture rtl of fmc_tdc_mezzanine is
   -- WISHBONE addresses
   signal tdc_core_wb_adr           : std_logic_vector(31 downto 0);
   signal tdc_mem_wb_adr            : std_logic_vector(31 downto 0);
-  signal dummy_core_wb_adr         : std_logic_vector(31 downto 0);
   -- 1-wire
   signal mezz_owr_en, mezz_owr_i   : std_logic_vector(0 downto 0);
   -- I2C
@@ -339,18 +340,20 @@ begin
      tdc_config_wb_dat_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).dat,
      tdc_config_wb_ack_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).ack,
      -- WISHBONE for timestamps transfer
-     tdc_mem_wb_adr_i        => wb_tdc_mem_adr_i,
-     tdc_mem_wb_dat_i        => wb_tdc_mem_dat_i,
-     tdc_mem_wb_stb_i        => wb_tdc_mem_stb_i,
-     tdc_mem_wb_we_i         => wb_tdc_mem_we_i,
-     tdc_mem_wb_cyc_i        => wb_tdc_mem_cyc_i,
-     tdc_mem_wb_ack_o        => wb_tdc_mem_ack_o,
-     tdc_mem_wb_dat_o        => wb_tdc_mem_dat_o,
-     tdc_mem_wb_stall_o      => wb_tdc_mem_stall_o);
+     tdc_mem_wb_adr_i        => tdc_mem_wb_adr,--wb_tdc_mem_adr_i,
+     tdc_mem_wb_dat_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).dat,--wb_tdc_mem_dat_i,
+     tdc_mem_wb_stb_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).stb,--wb_tdc_mem_stb_i,
+     tdc_mem_wb_we_i         => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).we,--wb_tdc_mem_we_i,
+     tdc_mem_wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).cyc,--wb_tdc_mem_cyc_i,
+     tdc_mem_wb_ack_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).ack,--wb_tdc_mem_ack_o,
+     tdc_mem_wb_dat_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).dat,--wb_tdc_mem_dat_o,
+     tdc_mem_wb_stall_o      => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).stall);--wb_tdc_mem_stall_o);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Convert byte address into word address
   tdc_core_wb_adr <= "00" & cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).adr(31 downto 2);
+
+  tdc_mem_wb_adr  <= "00" & cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).adr(31 downto 2);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
@@ -358,6 +361,10 @@ begin
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).rty   <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).stall <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).int   <= '0';
+
+  wb_tdc_mem_ack_o   <= '0';
+  wb_tdc_mem_dat_o   <= (others => '0');
+  wb_tdc_mem_stall_o <= '0';
 
 
 ---------------------------------------------------------------------------------------------------

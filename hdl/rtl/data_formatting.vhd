@@ -136,7 +136,7 @@ architecture rtl of data_formatting is
   signal acam_start_nb                                        : std_logic_vector(7 downto 0);
   -- timestamp manipulations
   signal un_acam_start_nb, un_clk_i_cycles_offset             : unsigned(31 downto 0);
-  signal un_roll_over, un_nb_of_retrig, un_retrig_nb_offset   : unsigned(31 downto 0);
+  signal un_nb_of_retrig, un_retrig_nb_offset                 : unsigned(31 downto 0);
   signal un_nb_of_cycles, un_retrig_from_roll_over            : unsigned(31 downto 0);
   signal acam_start_nb_32                                     : std_logic_vector(31 downto 0);
   -- final timestamp fields
@@ -148,8 +148,6 @@ architecture rtl of data_formatting is
   signal dacapo_counter                                       : unsigned(19 downto 0);
   signal wr_index                                             : unsigned(7 downto 0); 
   -- coarse time calculations
-  signal tstamp_on_first_retrig_case1                         : std_logic;
-  signal tstamp_on_first_retrig_case2                         : std_logic;
   signal un_previous_clk_i_cycles_offset                      : unsigned(31 downto 0);
   signal un_previous_retrig_nb_offset                         : unsigned(31 downto 0);
   signal un_previous_roll_over_nb                             : unsigned(31 downto 0);

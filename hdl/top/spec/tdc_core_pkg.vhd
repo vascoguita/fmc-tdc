@@ -237,6 +237,22 @@ package tdc_core_pkg is
            date      => x"20130429",
            name      => "WB-TDC-Core-Config ")));
 
+  constant c_TDC_MEM_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"0000000000000FFF",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000601",
+           version   => x"00000001",
+           date      => x"20121116",
+           name      => "WB-TDC-MEM         ")));
+
 
 ---------------------------------------------------------------------------------------------------
 --                           Constants regarding 1 Hz pulse generation                           --

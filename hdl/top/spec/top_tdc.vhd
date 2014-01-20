@@ -104,8 +104,8 @@ entity top_tdc is
      l_wr_rdy_i         : in    std_logic_vector(1 downto 0); -- Local-to-PCIe Write
      p_rd_d_rdy_i       : in    std_logic_vector(1 downto 0); -- PCIe-to-Local Read Response Data Ready
      tx_error_i         : in    std_logic;                    -- Transmit Error
-     irq_p_o            : inout std_logic;                    -- Interrupt request pulse to GN4124 GPIO 8
-     irq_aux_p_o        : inout std_logic;                    -- Interrupt request pulse to GN4124 GPIO 9, aux signal
+     irq_p_o            : out   std_logic;                    -- Interrupt request pulse to GN4124 GPIO 8
+     irq_aux_p_o        : out   std_logic;                    -- Interrupt request pulse to GN4124 GPIO 9, aux signal
 
      -- Signals for the interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
      pll_sclk_o         : out   std_logic;                    -- SPI clock
@@ -200,15 +200,15 @@ architecture rtl of top_tdc is
   constant c_SLAVE_DMA_EIC     : integer := 4;  -- DMA interrupt controller
   constant c_SLAVE_TDC         : integer := 5;  -- TDC core configuration
 
-  constant c_FMC_TDC_SDB_BRIDGE : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"00001FFF", x"00000000");
+  constant c_FMC_TDC_SDB_BRIDGE : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
 
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(8 downto 0) :=
-    (0 => f_sdb_embed_device     (c_DMA_SDB_DEVICE,     x"00001000"),
-     1 => f_sdb_embed_device     (c_ONEWIRE_SDB_DEVICE, x"00001100"),
-     2 => f_sdb_embed_device     (c_SPEC_CSR_SDB_DEVICE,x"00001200"),
-     3 => f_sdb_embed_device     (c_xwb_vic_sdb,        x"00001300"), -- c_xwb_vic_sdb described in the wishbone_pkg
-     4 => f_sdb_embed_device     (c_DMA_EIC_SDB,        x"00001400"),
-     5 => f_sdb_embed_bridge     (c_FMC_TDC_SDB_BRIDGE, x"00002000"),
+    (0 => f_sdb_embed_device     (c_DMA_SDB_DEVICE,     x"00010000"),
+     1 => f_sdb_embed_device     (c_ONEWIRE_SDB_DEVICE, x"00020000"),
+     2 => f_sdb_embed_device     (c_SPEC_CSR_SDB_DEVICE,x"00030000"),
+     3 => f_sdb_embed_device     (c_xwb_vic_sdb,        x"00040000"), -- c_xwb_vic_sdb described in the wishbone_pkg
+     4 => f_sdb_embed_device     (c_DMA_EIC_SDB,        x"00050000"),
+     5 => f_sdb_embed_bridge     (c_FMC_TDC_SDB_BRIDGE, x"00060000"),
      6 => f_sdb_embed_repo_url   (c_SDB_REPO_URL),
      7 => f_sdb_embed_synthesis  (c_SDB_SYNTHESIS),
      8 => f_sdb_embed_integration(c_SDB_INTEGRATION));
@@ -216,13 +216,13 @@ architecture rtl of top_tdc is
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- VIC default vector setting
   constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 1) :=
-    (0 => x"00003200",
+    (0 => x"00002000",
      1 => x"00001400");
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- clocks and resets
-  signal clk, general_rst_n, general_rst, clk_125m                           : std_logic;
-  signal clk_20m_vcxo_buf, clk_20m_vcxo, acam_refclk_r_edge_p       : std_logic;
+  signal general_rst_n, general_rst, clk_125m                           : std_logic;
+  signal clk_20m_vcxo_buf, acam_refclk_r_edge_p       : std_logic;
   -- DAC configuration
   signal send_dac_word_p                              : std_logic;
   signal dac_word                                     : std_logic_vector(23 downto 0);
@@ -242,27 +242,12 @@ architecture rtl of top_tdc is
   signal irq_to_gn4124                                : std_logic;  
   signal irq_acam_err_p, irq_tstamp_p, irq_time_p     : std_logic;  
   signal dma_irq                                      : std_logic_vector(1 downto 0); 
-  signal irq_sources                                  : std_logic_vector(g_width-1 downto 0);
   -- Carrier CSR info
   signal gn4124_status                                : std_logic_vector(31 downto 0);
-  signal mezz_pll_status                              : std_logic_vector(11 downto 0);
-  -- Mezzanine 1-wire
-  signal mezz_owr_pwren, mezz_owr_en, mezz_owr_i      : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
   -- Carrier 1-wire
   signal carrier_owr_en, carrier_owr_i                : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
-  -- Mezzanine system I2C for EEPROM
-  signal sys_scl_in, sys_scl_out, sys_scl_oe_n        : std_logic;
-  signal sys_sda_in, sys_sda_out, sys_sda_oe_n        : std_logic;
 
-  signal led_clk_20m_divider                 : unsigned(22 downto 0);
-  signal led_clk_20m_aux                     : std_logic_vector(7 downto 0) :="01111111";
-  signal led_clk_20m                         : std_logic;
-  signal led_clk_125m_divider                 : unsigned(22 downto 0);
-  signal led_clk_125m_aux                     : std_logic_vector(7 downto 0):="01111111";
-  signal led_clk_125m                         : std_logic;
-  signal led_clk_125m2_divider                 : unsigned(22 downto 0);
-  signal led_clk_125m2_aux                     : std_logic_vector(7 downto 0);
-  signal led_clk_125m2                         : std_logic;
+
   signal dma_eic_irq, fmc_eic_irq           : std_logic;
 
 

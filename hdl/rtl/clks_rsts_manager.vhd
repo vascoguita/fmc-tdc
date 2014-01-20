@@ -231,8 +231,8 @@ architecture rtl of clks_rsts_manager is
   signal tdc_clk_buf                               : std_logic;
   signal sclk, tdc_clk, acam_refclk                : std_logic;
   -- Resets
-  signal internal_rst, interf_rst, rst, vme_rst    : std_logic;
-  signal rst_cnt, vme_rst_cnt                      : unsigned(7 downto 0) := "00000000";
+  signal rst                                       : std_logic;
+  signal rst_cnt                                   : unsigned(7 downto 0) := "00000000";
 
 
 --=================================================================================================
