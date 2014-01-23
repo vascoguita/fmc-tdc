@@ -1,0 +1,29 @@
+peripheral {
+    name = "TDC EIC";
+    description = "FMC TDC embedded interrrupt controller.";
+    hdl_entity = "tdc_eic";
+    prefix = "tdc_eic";
+
+
+    irq {
+            name = "FMC TDC timestamps interrupt";
+            description = "FMC TDC timestamp interrupt (rising edge sensitive).";
+            prefix = "tdc_tstamps";
+            trigger = EDGE_RISING;
+        };
+
+    irq {
+            name = "FMC TDC time interrupt";
+            description = "FMC TDC time interrupt (rising edge sensitive).";
+            prefix = "tdc_time";
+            trigger = EDGE_RISING;
+        };
+
+    irq {
+            name = "FMC TDC acam error interrupt";
+            description = "FMC slot 1 acam error interrupt (rising edge sensitive).";
+            prefix = "tdc_acam_err";
+            trigger = EDGE_RISING;
+        };
+
+};

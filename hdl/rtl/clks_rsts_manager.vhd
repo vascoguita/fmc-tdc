@@ -12,9 +12,18 @@
 ---------------------------------------------------------------------------------------------------
 -- File         clks_rsts_manager.vhd                                                             |
 --                                                                                                |
--- Description  Independent block that uses the clk_20m_vcxo_i to parameterize the TDC mezzanine  |
---              PLL and DAC that will be used by all the other blocks.                            |
---              Includes input clk buffers for Xilinx Spartan6.                                   |
+-- Description  Independent block that uses the clk_20m_vcxo_i to parameterize the PLL and DAC on |
+--              TDC mezzanine.                                                                    |
+--              The PLL is programmed to generate a 125 MHz clock that arrives to to the FPGA and |
+--              is used by all the other units of the core.                                       |
+--              It is also programmed to generates a 31.25 MHz clock which is the reference clock |
+--              for the ACAM chip.                                                                |
+--              The registers for programming the PLL are hard-coded in this unit.                |
+--                                                                                                |
+--              The unit is also responsible for the generation of a global internal reset signal |
+--              for all the rest of the core. This internal reset is triggered by a GN4124/VME    |
+--              interface reset or by a Power On Reset at startup. The idea is to keep this reset |
+--              asserted until the 125 MHz clock signal received from the PLL is stable (PLL lock)|
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -84,8 +93,8 @@ entity clks_rsts_manager is
      pll_status_i           : in std_logic;                     -- PLL lock detect
      pll_sdo_i              : in std_logic;                     -- not used
 
-     -- Reset signal from the PCIe/VME interface 
-     rst_n_i                : in std_logic;                     -- GNUM/VME interface reset
+     -- Reset signal from the GN4124/VME interface 
+     rst_n_i                : in std_logic;                     -- GN4124/VME interface reset
 
      -- Signals from the reg_ctrl unit for the reconfiguration of the DAC
      send_dac_word_p_i      : in std_logic;                     -- pulse upon VME request for a DAC reconfiguration
@@ -268,13 +277,13 @@ begin
 --                                     Global Internal Reset                                     --
 --------------------------------------------------------------------------------------------------- 
 -- The following processes generate a global internal reset signal for all the rest of the core.
--- This internal reset is triggered by a GNUM/VME interface reset or by a Power On Reset at startup.
+-- This internal reset is triggered by a GN4124/VME interface reset or by a Power On Reset at startup.
 -- The idea is to keep this reset asserted until the 125 MHz clock signal received from the TDC
 -- mezzanine PLL is stable.
 
 ---------------------------------------------------------------------------------------------------
 -- Synchronous process rst_n_i_synchronizer: Synchronization of the input reset signal rst_n_i,
--- coming from the GNUM/VME interface or a PoR, to the clk_20m_vcxo_i, using a set of 2 registers.
+-- coming from the GN4124/VME interface or a PoR, to the clk_20m_vcxo_i, using a set of 2 registers.
 -- Note that the removal of the reset signal is synchronised.
   PoR_synchronizer: process (clk_20m_vcxo_i, rst_n_i)
     begin
@@ -305,8 +314,8 @@ begin
 -- Synchronous process Global_rst_generation: Generation of a reset signal for as long as the PLL
 -- on the TDC board is not locked. As soon as the pll_status is received this global internal reset
 -- is released. Note that the level of the pll_status signal rather than its rising edge is used,
--- as in the case of a PCIe/VME reset during operation the PLL will remain locked, therefore no
--- rising would be detected.
+-- as in the case of a GN4124/VME reset during operation the PLL will remain locked, therefore no
+-- rising edge would be detected.
   Global_rst_generation: process (clk_20m_vcxo_i)
   begin
     if rising_edge (clk_20m_vcxo_i) then
@@ -410,8 +419,8 @@ begin
 --                            FSM for configuration of the DAC and PLL                           --
 --------------------------------------------------------------------------------------------------- 
 -- Configuration of the PLL on the TDC mezzanine board:
--- after the powering-up of the board or after a GNUM/VME reset (rst_n_i), or
--- after a PCIe/VME command for the reconfiguration of the DAC  (send_dac_word_p_i)
+-- after the powering-up of the board or after a GN4124/VME reset (rst_n_i), or
+-- after a GN4124/VME command for the reconfiguration of the DAC  (send_dac_word_p_i)
 ---------------------------------------------------------------------------------------------------
   pll_dac_initialization_seq: process (clk_20m_vcxo_i)
   begin

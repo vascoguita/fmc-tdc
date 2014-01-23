@@ -74,7 +74,7 @@ entity one_hz_gen is
 
      -- Signals from the reg_ctrl unit
      load_utc_p_i           : in std_logic; -- enables loading of the local UTC time with starting_utc_i value
-     starting_utc_i         : in std_logic_vector(g_width-1 downto 0); -- value coming from the PCIe/VME
+     starting_utc_i         : in std_logic_vector(g_width-1 downto 0); -- value coming from the GN4124/VME
      pulse_delay_i          : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods phase delay
                                                                        -- with respect to reference clock
 

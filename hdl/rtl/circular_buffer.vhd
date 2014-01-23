@@ -17,17 +17,17 @@
 --               o The data_formatting unit is writing 128-bit long timestamps, using a WISHBONE  |
 --                 classic interface. The unit implements a WISHBONE classic slave.               |
 --                 As figure 1 indicates, from this side the memory is of size: 255 * 128.        |
---               o The GNUM/VME core is reading 32-bit words. Readings take place using pipelined |
---                 WISHBONE interface. For the PCi-e interface, Direct Memory Access can take     |
---                 place on this side. The unit implements the WISHBONE pipelined slave.          |
+--               o The GN4124/VME core is reading 32-bit words. Readings take place using         |
+--                 pipelined WISHBONE interface. For the PCi-e interface, Direct Memory Access can|
+--                 take place on this side. The unit implements the WISHBONE pipelined slave.     |
 --                 As figure 1 indicates, from this side the memory is of size: 1024 * 32.        |
 --                                                                                                |
 --              Note also that in principle the data_formatting unit is only writing in the RAM   |
---              and the GNUM core is only reading from it.                                        |
+--              and the GN4124/VME core is only reading from it.                                  |
 --                                                                                                |
 --                                                                                                |
 --                         RAM as seen from the                             RAM as seen from the  |
---                         data_formatting unit                                 GNUM/VME core     |
+--                         data_formatting unit                                 GN4124/VME core   |
 --     ____________________________________________________________            _______________    |
 --  0 |                          128 bits                          |        0 |    32 bits    |   |
 --    |____________________________________________________________|          |_______________|   |
@@ -115,7 +115,7 @@ entity circular_buffer is
      tstamp_wr_adr_i   : in std_logic_vector(7 downto 0);      -- adr 8 bits long 2^8 = 255
      tstamp_wr_dat_i   : in std_logic_vector(127 downto 0);    -- timestamp 128 bits long
 
-     -- Signals from the GNUM/VME core unit (WISHBONE pipelined): timestamps reading
+     -- Signals from the GN4124/VME core unit (WISHBONE pipelined): timestamps reading
      tdc_mem_wb_rst_i    : in std_logic;                       -- timestamp reading WISHBONE reset
      tdc_mem_wb_stb_i    : in std_logic;                       -- timestamp reading WISHBONE strobe
      tdc_mem_wb_cyc_i    : in std_logic;                       -- timestamp reading WISHBONE cycle
@@ -128,7 +128,7 @@ entity circular_buffer is
      tstamp_wr_ack_p_o : out std_logic;                        -- timestamp writing WISHBONE classic acknowledge
      tstamp_wr_dat_o   : out std_logic_vector(127 downto 0);   -- not used
 
-     -- Signals to the GNUM/VME core unit (WISHBONE pipelined): timestamps reading
+     -- Signals to the GN4124/VME core unit (WISHBONE pipelined): timestamps reading
      tdc_mem_wb_ack_o     : out std_logic;                     -- timestamp reading WISHBONE pepelined acknowledge
      tdc_mem_wb_dat_o     : out std_logic_vector(31 downto 0); -- 32 bit words
      tdc_mem_wb_stall_o   : out std_logic);                    -- timestamp reading WISHBONE pipelined stall
@@ -282,7 +282,7 @@ begin
     wea    => tstamp_wr_we,
     douta  => tstamp_wr_dat_o,             -- not used
 
-    -- Port B: attached to the GNUM/VME_core unit
+    -- Port B: attached to the GN4124/VME_core unit
     clkb   => clk_i,
     addrb  => tdc_mem_wb_adr_i(9 downto 0),-- 2^10 = 1024 addresses
     dinb   => tdc_mem_wb_dat_i,            -- not used

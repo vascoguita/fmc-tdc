@@ -13,7 +13,7 @@
 -- File         fmc_tdc_core.vhd                                                                  |
 --                                                                                                |
 -- Description  The TDC core top level instanciates all the modules needed to provide to the      |
---              PCIe/VME interface the timestamps generated in the ACAM chip.                     |
+--              GN4124/VME interface the timestamps generated in the ACAM chip.                   |
 --                                                                                                |
 --              Figure 1 shows the architecture of this core.                                     |
 --                                                                                                |
@@ -29,7 +29,7 @@
 --              currently this timekeeping depends on a TDC local oscillator, but future upgrades | 
 --              of the core would provide White Rabbit accuracy.                                  |
 --              Timestamps are formated to the structure above within the data_formatting unit and|
---              are stored in the circular_buffer unit, where the GNUM/VME core have direct access|
+--              are stored in the circular_buffer, where the GN4124/VME core have direct access   |
 --                                                                                                |
 --              In this application, the ACAM is used in I-Mode which provides unlimited measuring|
 --              range with internal start retriggers. ACAM's counter of retriggers however is not |
@@ -41,7 +41,7 @@
 --              The acam_timecontrol_interface is mainly responsible for delivering to the ACAM   |
 --              the start pulse, to which all timestamps are related.                             |
 --                                                                                                |
---              The regs_ctrl implements the communication with the GNUM/VME interface for the    |
+--              The regs_ctrl implements the communication with the GN4124/VME interface for the  |
 --              configuration of this core and of the ACAM.                                       |
 --              The data_engine is managing the transfering of the configuration registers from   |
 --              the regs_ctrl to the ACAM chip; it is also managing the timestamps'               |
@@ -68,9 +68,9 @@
 --            |   | |____________| |   |            |   |   regs    |   |  -->  |      |          |
 --            |   |________________|   |            |   |   ctrl    |   |  <--  |      |          |
 --  ACAM <--  |       fine time        |            |   |           |   |       |      |          |
---  chip -->  |      ____________      |            |   |           |   |       | VME  |          |
---            |     |            |     |            |   |           |   |       | core |          |
---            |     |   start    |     |            |   |           |   |       |      |          |
+--  chip -->  |      ____________      |            |   |           |   |       | VME/ |          |
+--            |     |            |     |            |   |           |   |       |GN4124|          |
+--            |     |   start    |     |            |   |           |   |       | core |          |
 --            |     |   retrig   |     |            |   |           |   |       |      |          |
 --            |     |____________|     |            |   |           |   |       |      |          |
 --            |      coarse time       |            |   |           |   |       |      |          |
@@ -105,7 +105,7 @@
 --     05/2011  v1  GP  First version                                                             |
 --     06/2012  v2  EG  Revamping; Comments added, signals renamed                                |
 --                      removed LEDs from top level                                               |
---                      new gnum core integrated                                                  |
+--                      new GN4124 core integrated                                                |
 --                      carrier 1 wire master added                                               |
 --                      mezzanine I2C master added                                                |
 --                      mezzanine 1 wire master added                                             |
@@ -160,8 +160,8 @@ entity fmc_tdc_core is
      clk_125m_i             : in    std_logic;                            -- 125 MHz clk from the PLL on the TDC mezz
      rst_i                  : in    std_logic;                            -- global reset, synched to clk_125m_i
      acam_refclk_r_edge_p_i : in    std_logic;                            -- rising edge on 31.25MHz ACAM reference clock
-     send_dac_word_p_o      : out   std_logic;                            -- command from PCIe/VME to reconfigure the TDC mezz DAC with dac_word_o
-     dac_word_o             : out   std_logic_vector(23 downto 0);        -- new DAC configuration word from PCIe/VME
+     send_dac_word_p_o      : out   std_logic;                            -- command from GN4124/VME to reconfigure the TDC mezz DAC with dac_word_o
+     dac_word_o             : out   std_logic_vector(23 downto 0);        -- new DAC configuration word from GN4124/VME
      -- Signals for the timing interface with the ACAM on TDC mezzanine
      start_from_fpga_o      : out   std_logic;                            -- start pulse
      err_flag_i             : in    std_logic;                            -- error flag
@@ -201,7 +201,7 @@ entity fmc_tdc_core is
      irq_tstamp_p_o         : out   std_logic;                            -- if amount of tstamps > tstamps_threshold
      irq_time_p_o           : out   std_logic;                            -- if 0 < amount of tstamps < tstamps_threshold and time > time_threshold
      irq_acam_err_p_o       : out   std_logic;                            -- if ACAM err_flag_i is activated
-    -- WISHBONE bus interface with the PCIe/VME core for the configuration of the TDC core
+    -- WISHBONE bus interface with the GN4124/VME core for the configuration of the TDC core
      tdc_config_wb_adr_i    : in    std_logic_vector(g_span-1 downto 0);  -- WISHBONE classic address
      tdc_config_wb_dat_i    : in    std_logic_vector(g_width-1 downto 0); -- WISHBONE classic data in
      tdc_config_wb_stb_i    : in    std_logic;                            -- WISHBONE classic strobe
@@ -209,7 +209,7 @@ entity fmc_tdc_core is
      tdc_config_wb_cyc_i    : in    std_logic;                            -- WISHBONE classic cycle
      tdc_config_wb_ack_o    : out   std_logic;                            -- WISHBONE classic acknowledge
      tdc_config_wb_dat_o    : out   std_logic_vector(g_width-1 downto 0); -- WISHBONE classic data out
-    -- WISHBONE bus interface with the PCIe/VME core for the retrieval of the timestamps from the TDC core memory
+    -- WISHBONE bus interface with the GN4124/VME core for the retrieval of the timestamps from the TDC core memory
      tdc_mem_wb_adr_i       : in    std_logic_vector(31 downto 0);        -- WISHBONE pipelined address
      tdc_mem_wb_dat_i       : in    std_logic_vector(31 downto 0);        -- WISHBONE pipelined data in
      tdc_mem_wb_stb_i       : in    std_logic;                            -- WISHBONE pipelined strobe
@@ -241,7 +241,7 @@ architecture rtl of fmc_tdc_core is
   signal read_ififo2, read_start01, reset_acam, load_utc    : std_logic;
   signal clear_dacapo_counter, roll_over_incr_recent        : std_logic;
   signal pulse_delay, window_delay, clk_period              : std_logic_vector(g_width-1 downto 0);
-  signal starting_utc, acam_status, acam_inputs_en          : std_logic_vector(g_width-1 downto 0);
+  signal starting_utc, acam_inputs_en                       : std_logic_vector(g_width-1 downto 0);
   signal acam_ififo1, acam_ififo2, acam_start01             : std_logic_vector(g_width-1 downto 0);
   signal irq_tstamp_threshold, irq_time_threshold           : std_logic_vector(g_width-1 downto 0);
   signal local_utc, wr_index                                : std_logic_vector(g_width-1 downto 0);
@@ -255,9 +255,11 @@ architecture rtl of fmc_tdc_core is
   signal circ_buff_class_stb, circ_buff_class_cyc           : std_logic;
   signal circ_buff_class_we, circ_buff_class_ack            : std_logic;
   signal circ_buff_class_data_wr, circ_buff_class_data_rd   : std_logic_vector(4*g_width-1 downto 0);
-  --LED
-  signal led_fordebug                                       : std_logic_vector(5 downto 0);
-
+  -- LEDs
+  signal fordebug                                           : std_logic_vector(5 downto 0);
+  -- signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3     : std_logic_vector(1 downto 0);
+  -- signal tdc_in_fpga_4, tdc_in_fpga_5                    : std_logic_vector(1 downto 0);
+  
 
 --=================================================================================================
 --                                       architecture begin
@@ -293,7 +295,6 @@ begin
      load_utc_p_o          => load_utc,
      dacapo_c_rst_p_o      => clear_dacapo_counter,
      acam_config_rdbk_i    => acam_config_rdbk,
-     acam_status_i         => acam_status,
      acam_ififo1_i         => acam_ififo1,
      acam_ififo2_i         => acam_ififo2,
      acam_start01_i        => acam_start01,
@@ -447,7 +448,6 @@ begin
      acam_rst_p_i          => reset_acam,
      acam_config_i         => acam_config,
      acam_config_rdbk_o    => acam_config_rdbk,
-     acam_status_o         => acam_status,
      acam_ififo1_o         => acam_ififo1,
      acam_ififo2_o         => acam_ififo2,
      acam_start01_o        => acam_start01,
@@ -501,7 +501,6 @@ begin
      activate_acq_p_i        => activate_acq_p,
      deactivate_acq_p_i      => deactivate_acq_p,
      tstamp_wr_p_i           => tstamp_wr_p,
-     one_hz_p_i              => one_hz_p,
      irq_tstamp_p_o          => irq_tstamp_p_o,
      irq_time_p_o            => irq_time_p_o,
      irq_acam_err_p_o        => irq_acam_err_p_o);
@@ -544,16 +543,34 @@ begin
      rst_i            => rst_i,
      one_hz_p_i       => one_hz_p,
      acam_inputs_en_i => acam_inputs_en,
-     fordebug_i       => led_fordebug,
+     fordebug_i       => fordebug,
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
      tdc_led_trig2_o  => tdc_led_trig2_o,
      tdc_led_trig3_o  => tdc_led_trig3_o,
      tdc_led_trig4_o  => tdc_led_trig4_o,
      tdc_led_trig5_o  => tdc_led_trig5_o);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  led_fordebug <= (others => '0');
 
+  -- input_pulse_synchronizer: process (clk_125m_i)
+  -- begin
+    -- if rising_edge (clk_125m_i) then
+      -- if rst_i = '1' then
+        -- tdc_in_fpga_1 <= (others => '0');
+        -- tdc_in_fpga_2 <= (others => '0');
+        -- tdc_in_fpga_3 <= (others => '0');
+        -- tdc_in_fpga_4 <= (others => '0');
+        -- tdc_in_fpga_5 <= (others => '0');
+      -- else
+        -- tdc_in_fpga_1 <= tdc_in_fpga_1(0) & tdc_in_fpga_1_i;
+        -- tdc_in_fpga_2 <= tdc_in_fpga_2(0) & tdc_in_fpga_2_i;
+        -- tdc_in_fpga_3 <= tdc_in_fpga_3(0) & tdc_in_fpga_3_i;
+        -- tdc_in_fpga_4 <= tdc_in_fpga_4(0) & tdc_in_fpga_4_i;
+        -- tdc_in_fpga_5 <= tdc_in_fpga_5(0) & tdc_in_fpga_5_i;
+      -- end if;
+    -- end if;
+  -- end process;
+  -- fordebug <= '0' & tdc_in_fpga_5(1) & tdc_in_fpga_4(1) & tdc_in_fpga_3(1) & tdc_in_fpga_2(1) & tdc_in_fpga_1(1);
+  fordebug <= "000000";
 
 ---------------------------------------------------------------------------------------------------
 --                               ACAM start_dis/ stop_dis, not used                              --

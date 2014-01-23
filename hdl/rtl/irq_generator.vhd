@@ -14,14 +14,15 @@
 --                                                                                                |
 -- Description  Interrupts generator: the unit generates three interrups:                         |
 --                                                                                                |
---                o irq_tstamp_p_o is a 1-clk_i-long pulse generated when the amount of timestamps|
---                  written in the circular_buffer, since the last interrupt or since the startup |
---                  of the aquisition,exceeds the PCIe/VME settable threshold irq_tstamp_threshold|
+--                o irq_tstamp_p_o is a 1-clk_i-long pulse generated when the amount of           |
+--                  timestamps written in the circular_buffer, since the last interrupt or since  |
+--                  the startup of the aquisition, exceeds the GN4124/VME settable threshold      |
+--                  irq_tstamp_threshold.                                                         |
 --                                                                                                |
 --                o irq_time_p_o is a 1-clk_i-long pulse generated when some timestamps have been |
 --                  written in the circular_buffer (>=1 timestamp) and the amount of time passed  |
---                  since the last interrupt or since the aquisition startup, exceeds the PCIe/VME|
---                  settable threshold irq_time_threshold                                         |
+--                  since the last interrupt or since the aquisition startup, exceeds the         |
+--                  GN4124/VME settable threshold irq_time_threshold. The threshold is in ms.     |
 --                                                                                                |
 --                o irq_acam_err_p_o is a 1-clk_i-long pulse generated when the ACAM Hit FIFOS are|
 --                  full (according to ACAM configuration register 11)                            |
@@ -80,10 +81,10 @@ entity irq_generator is
   -- INPUTS
      -- Signal from the clks_rsts_manager
     (clk_i                   : in std_logic;                            -- 125 MHz clk
-     rst_i                   : in std_logic;                            -- global reset, synched to clk_i
+     rst_i                   : in std_logic;                            -- global reset
 
-     irq_tstamp_threshold_i  : in std_logic_vector(g_width-1 downto 0); -- PCIe/VME settable threshold
-     irq_time_threshold_i    : in std_logic_vector(g_width-1 downto 0); -- PCIe/VME settable threshold
+     irq_tstamp_threshold_i  : in std_logic_vector(g_width-1 downto 0); -- GN4124/VME settable threshold
+     irq_time_threshold_i    : in std_logic_vector(g_width-1 downto 0); -- GN4124/VME settable threshold
 
      -- Signal from the acam_timecontrol_interface
      acam_errflag_r_edge_p_i : in std_logic;                            -- ACAM ErrFlag rising edge; through the ACAM config reg 11
@@ -95,9 +96,6 @@ entity irq_generator is
 
      -- Signals from the data_formatting unit
      tstamp_wr_p_i           : in std_logic;                            -- pulse upon storage of a new timestamp
-
-     -- Signal from the one_hz_gen unit (currently not used)
-     one_hz_p_i              : in std_logic;                            -- pulse upon new second arrival
 
 
   -- OUTPUTS

@@ -73,7 +73,7 @@ entity acam_timecontrol_interface is
      int_flag_i              : in std_logic; -- ACAM interrupt flag, active HIGH; through ACAM config
                                              -- reg 12 it is set to the MSB of Start#
     -- Signals from the reg_ctrl unit
-     activate_acq_p_i        : in std_logic; -- signal from PCIe/VME to start following the ACAM chip
+     activate_acq_p_i        : in std_logic; -- signal from GN4124/VME to start following the ACAM chip
                                              -- for tstamps aquisition
      window_delay_i          : in std_logic_vector(31 downto 0); -- eva: not needed
 
@@ -142,7 +142,7 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                      Input Synchronizers                                      --
+--                                  start_from_fpga_o generation                                 --
 ---------------------------------------------------------------------------------------------------   
 -- Generation of the start pulse and the enable window:
 -- the start pulse originates from an internal signal at the same time, the StartDis is de-asserted.
@@ -232,7 +232,7 @@ begin
   end process;
 
 
-    inputs_synchronizer: process (clk_i)
+    start_trig_pulse: process (clk_i)
     begin
       if rising_edge (clk_i) then
         if rst_i ='1' then

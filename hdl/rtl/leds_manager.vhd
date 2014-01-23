@@ -63,6 +63,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific libraries
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.gencores_pkg.all;
 
 
 
@@ -108,8 +109,10 @@ end leds_manager;
 --=================================================================================================
 architecture rtl of leds_manager is
 
-  signal tdc_led_blink_done   : std_logic;
-  signal visible_blink_length : std_logic_vector(g_width-1 downto 0);
+  signal tdc_led_blink_done                    : std_logic;
+  signal visible_blink_length                  : std_logic_vector(g_width-1 downto 0);
+  -- signal rst_n, blink_led1, blink_led2      : std_logic;
+  -- signal blink_led3, blink_led4, blink_led5 : std_logic;
 
 
 begin
@@ -148,14 +151,62 @@ begin
 --                                    TDC FRONT PANEL LEDs 2-6                                   --
 --------------------------------------------------------------------------------------------------- 
 ---------------------------------------------------------------------------------------------------
-  lad_1to5_outputs: process (clk_i)
+  -- rst_n <= not(rst_i);
+
+  -- cmp_extend_ch1_pulse: gc_extend_pulse
+  -- generic map
+    -- (g_width    => 5000000)
+  -- port map
+    -- (clk_i      => clk_i,
+     -- rst_n_i    => rst_n,
+     -- pulse_i    => fordebug_i(0),
+     -- extended_o => blink_led1);
+   --  --  --  --  --  -- 
+  -- cmp_extend_ch2_pulse: gc_extend_pulse
+  -- generic map
+    -- (g_width    => 5000000)
+  -- port map
+    -- (clk_i      => clk_i,
+     -- rst_n_i    => rst_n,
+     -- pulse_i    => fordebug_i(1),
+     -- extended_o => blink_led2);
+   --  --  --  --  --  -- 
+  -- cmp_extend_ch3_pulse: gc_extend_pulse
+  -- generic map
+    -- (g_width    => 5000000)
+  -- port map
+    -- (clk_i      => clk_i,
+     -- rst_n_i    => rst_n,
+     -- pulse_i    => fordebug_i(2),
+     -- extended_o => blink_led3);
+   --  --  --  --  --  -- 
+  -- cmp_extend_ch4_pulse: gc_extend_pulse
+  -- generic map
+    -- (g_width    => 5000000)
+  -- port map
+    -- (clk_i      => clk_i,
+     -- rst_n_i    => rst_n,
+     -- pulse_i    => fordebug_i(3),
+     -- extended_o => blink_led4);
+   --  --  --  --  --  -- 
+  -- cmp_extend_ch5_pulse: gc_extend_pulse
+  -- generic map
+    -- (g_width    => 5000000)
+  -- port map
+    -- (clk_i      => clk_i,
+     -- rst_n_i    => rst_n,
+     -- pulse_i    => fordebug_i(4),
+     -- extended_o => blink_led5);
+   --  --  --  --  --  -- 
+
+  led_1to5_outputs: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      tdc_led_trig5_o  <= acam_inputs_en_i(4) and acam_inputs_en_i(7);
-      tdc_led_trig4_o  <= acam_inputs_en_i(3) and acam_inputs_en_i(7);
-      tdc_led_trig3_o  <= acam_inputs_en_i(2) and acam_inputs_en_i(7);
-      tdc_led_trig2_o  <= acam_inputs_en_i(1) and acam_inputs_en_i(7);
-      tdc_led_trig1_o  <= acam_inputs_en_i(0) and acam_inputs_en_i(7);
+      tdc_led_trig1_o  <= acam_inputs_en_i(0) and acam_inputs_en_i(7);-- and blink_led1;
+      tdc_led_trig2_o  <= acam_inputs_en_i(1) and acam_inputs_en_i(7);-- and blink_led2;
+      tdc_led_trig3_o  <= acam_inputs_en_i(2) and acam_inputs_en_i(7);-- and blink_led3;
+      tdc_led_trig4_o  <= acam_inputs_en_i(3) and acam_inputs_en_i(7);-- and blink_led4;
+      tdc_led_trig5_o  <= acam_inputs_en_i(4) and acam_inputs_en_i(7);-- and blink_led5;
     end if;
   end process;
 

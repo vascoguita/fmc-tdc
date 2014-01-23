@@ -12,9 +12,9 @@
 ---------------------------------------------------------------------------------------------------
 -- File         reg_ctrl.vhd                                                                      |
 --                                                                                                |
--- Description  Interfaces with the PCIe/VME core for the configuration of the ACAM chip and of   |
---              the TDC core. Data transfers take place between the PCIe/VME interface and locally|
---              the TDC core. The unit implements a WISHBONE slave.                               |
+-- Description  Interfaces with the GN4124/VME core for the configuration of the ACAM chip and of |
+--              the TDC core. Data transfers take place between the GN4124/VME interface and      |
+--              locally the TDC core. The unit implements a WISHBONE slave.                       |
 --                                                                                                |
 --              Through WISHBONE writes, the unit receives:                                       |
 --                o the ACAM configuration registers which are then made available to the         |
@@ -88,16 +88,15 @@ entity reg_ctrl is
     (clk_i                 : in std_logic;                             -- 125 MHz
      rst_i                 : in std_logic;                             -- global reset, synched to clk_i
 
-     -- Signals from the GNUM/VME_core unit: WISHBONE for regs transfer
+     -- Signals from the GN4124/VME_core unit: WISHBONE for regs transfer
      tdc_config_wb_adr_i   : in std_logic_vector(g_span-1 downto 0);   -- WISHBONE address
      tdc_config_wb_cyc_i   : in std_logic;                             -- WISHBONE cycle
      tdc_config_wb_dat_i   : in std_logic_vector(g_width-1 downto 0);  -- WISHBONE data in
      tdc_config_wb_stb_i   : in std_logic;                             -- WISHBONE strobe
      tdc_config_wb_we_i    : in std_logic;                             -- WISHBONE write enable
 
-     -- Signals from the data_engine unit: config regs readback from the ACAM
+     -- Signals from the data_engine unit: configuration regs read back from the ACAM
      acam_config_rdbk_i    : in config_vector;                         -- array keeping values read back from ACAM regs 0-7, 11, 12, 14
-     acam_status_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 12
      acam_ififo1_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 8; for debug reasons only
      acam_ififo2_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 9; for debug reasons only
      acam_start01_i        : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 10; for debug reasons only
@@ -114,7 +113,7 @@ entity reg_ctrl is
 
 
   -- OUTPUTS
-     -- Signals to the GNUM/VME_core unit: WISHBONE for regs transfer
+     -- Signals to the GN4124/VME_core unit: WISHBONE for regs transfer
      tdc_config_wb_ack_o   : out std_logic;                            -- WISHBONE acknowledge
      tdc_config_wb_dat_o   : out std_logic_vector(g_width-1 downto 0); -- WISHBONE data out
 
@@ -169,7 +168,7 @@ architecture rtl of reg_ctrl is
   signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out, dat_out_pipe0                       : std_logic_vector(g_span-1 downto 0);
+  signal dat_out                                      : std_logic_vector(g_span-1 downto 0);
   signal tdc_config_wb_ack_o_pipe0                    : std_logic;
 
 
@@ -181,11 +180,11 @@ begin
   reg_adr <= tdc_config_wb_adr_i(7 downto 0); -- we are interested in addresses 0:5000 to 0:50FC
 
 ---------------------------------------------------------------------------------------------------
---                                 WISHBONE ACK to GNUM/VME_core                                 --
+--                                WISHBONE ACK to GN4124/VME_core                                --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- TDCconfig_ack_generator: generation of the WISHBONE acknowledge signal for the
--- interactions with the PCIe/VME_core.
+-- interactions with the GN4124/VME_core.
 
   TDCconfig_ack_generator: process (clk_i)
   begin
@@ -208,7 +207,7 @@ begin
 --                           Reception of ACAM Configuration Registers                           --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
--- ACAM_config_reg_reception: reception from the PCIe/VME interface of the configuration registers
+-- ACAM_config_reg_reception: reception from the GN4124/VME interface of the configuration registers
 -- to be loaded to the ACAM chip. The received data is stored in the acam_config vector which is
 -- input to the data_engine and the acam_databus_interface units for the further transfer to the
 -- ACAM chip.
@@ -285,12 +284,12 @@ begin
 --                         Reception of TDC core Configuration Registers                         --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
--- TDCcore_config_reg_reception: reception from the PCIe/VME interface of the configuration
+-- TDCcore_config_reg_reception: reception from the GN4124/VME interface of the configuration
 -- registers to be loaded locally.
 -- The following information is received:
 --   o acam_inputs_en       : for the activation of the TDC input channels
---   o irq_tstamp_threshold : for the activation of PCIe/VME interrupts based on the number of timestamps
---   o irq_time_threshold   : for the activation of PCIe/VME interrupts based on the time elapsed
+--   o irq_tstamp_threshold : for the activation of GN4124/VME interrupts based on the number of timestamps
+--   o irq_time_threshold   : for the activation of GN4124/VME interrupts based on the time elapsed
 --   o starting_utc         : definition of the current UTC time
 --   o starting_utc         : definition of the current UTC time
 --   o one_hz_phase         : eva: think it s not used
@@ -356,7 +355,7 @@ begin
 --                             Reception of TDC core Control Register                            --
 ---------------------------------------------------------------------------------------------------    
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
--- TDCcore_ctrl_reg_reception: reception from the PCIe/VME interface of the control register that
+-- TDCcore_ctrl_reg_reception: reception from the GN4124/VME interface of the control register that
 -- defines the action to be taken by the TDC core.
 -- Note that only one bit of the register should be written at a time. The process receives
 -- the register, defines the action to be taken and after 1 clk cycle clears the register. 
@@ -418,8 +417,9 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                        Delivery of ACAM and TDC core Readback Registers                       --
 ---------------------------------------------------------------------------------------------------   
--- TDCcore_ctrl_reg_reception: Delivery to the PCIe interface of all the readable registers,
+-- TDCcore_ctrl_reg_reception: Delivery to the GN4124/VME interface of all the readable registers,
 -- including those of the ACAM and the TDC core.
+-- Note: pipelining of the address for timing/slack reasons 
 
   WISHBONEreads: process (clk_i)
   begin
@@ -434,7 +434,7 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   with reg_adr_pipe0 select dat_out <= 
-    -- regs written by the PCIe/VME interface
+    -- regs written by the GN4124/VME interface
     acam_config(0)         when c_ACAM_REG0_ADR,
     acam_config(1)         when c_ACAM_REG1_ADR,
     acam_config(2)         when c_ACAM_REG2_ADR,
@@ -461,7 +461,7 @@ begin
     acam_config_rdbk_i(8)  when c_ACAM_REG11_RDBK_ADR,
     acam_config_rdbk_i(9)  when c_ACAM_REG12_RDBK_ADR,
     acam_config_rdbk_i(10) when c_ACAM_REG14_RDBK_ADR,
-    -- regs written by the PCIe/VME interface
+    -- regs written by the GN4124/VME interface
     starting_utc           when c_STARTING_UTC_ADR,
     acam_inputs_en         when c_ACAM_INPUTS_EN_ADR,
     start_phase            when c_START_PHASE_ADR,

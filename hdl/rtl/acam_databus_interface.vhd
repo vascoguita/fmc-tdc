@@ -22,13 +22,23 @@
 --             |           |___WRn_______|            |            |           |                  |
 --             |           |___RDn_______|            |___stb______|           |                  |
 --             |           |___CSn_______|            |___cyc______|           |                  |
---             |   ACAM    |___OEn_______|  ACAM_     |___we_______|  data_    |                  |
+--             |   ACAM    |___OEn_______|  acam_     |___we_______|  data_    |                  |
 --             |           |___EF________|  databus_  |___ack______|  engine   |                  |
 --             |           |             |  interface |___adr______|           |                  |
 --             |           |___ADR_______|            |___datI_____|           |                  |
 --             |           |___DatabusIO_|            |___datO_____|           |                  |
 --             |___________|             |____________|            |___________|                  |
 --                                                                                                |
+--                                                                                                |
+----------------------------------------------/!\-------------------------------------------------|
+-- In order for the core to be able  to keep retreiving timestamps from the ACAM at the ACAM's    |
+-- maximun speed (31.25 M timestamps/ sec), it needs to complete one retreival per                |
+-- 4 * clk_i cycles = 4 * 8 ns = 32 ns. To achieve that the core is allowing 16 ns from the moment|
+-- it activates the rd_n_o signal until the ACAM ef signal is updated. ACAM's specification       |
+-- defines that the maximum ef set time is 11.8 ns; this allows for >4 ns for the signals routing.|
+-- To make sure this constraint is met, the Xilinx design map option "Pack IO Registers/Lathes    |
+-- into IOBs" should be enabled.                                                                  |
+--------------------------------------------------------------------------------------------------|
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
@@ -42,14 +52,6 @@
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
 --     08/2013  v1.   EG  cs_n_o always active                                                    |
 --                                                                                                |
-----------------------------------------------/!\-------------------------------------------------|
--- In order for the core to be able  to keep retreiving timestamps from the ACAM at the ACAM's    |
--- maximun speed (31.25 M timestamps/ sec), it needs to complete one retreival per                |
--- 4 * clk_i cycles = 4 * 8 ns = 32 ns. To achieve that the core is allowing 16 ns from the moment|
--- it activates the rd_n_o signal until the ACAM ef signal is updated. ACAM's specification       |
--- defines that the maximum ef set time is 11.8 ns; this allows for >4 ns for the signals routing.|
--- To make sure this constraint is met, the xilinx design map option "Pack IO Registers/Lathes    |
--- into IOBs" should be enabled.                                                                  |
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -82,9 +84,9 @@ use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
 
 --=================================================================================================
---                            Entity declaration for ACAM_databus_interface
+--                            Entity declaration for acam_databus_interface
 --=================================================================================================
-entity ACAM_databus_interface is
+entity acam_databus_interface is
   port
 
   -- INPUTS
@@ -124,17 +126,17 @@ entity ACAM_databus_interface is
      ack_o       : out std_logic;                      -- WISHBONE ack 
      dat_o       : out std_logic_vector(31 downto 0)); -- ef1 & ef2 & 0 & 0 & 28 bits ACAM data_bus_io
 
-end ACAM_databus_interface;
+end acam_databus_interface;
 
 
 --=================================================================================================
 --                                    architecture declaration
 --=================================================================================================
 
-architecture rtl of ACAM_databus_interface is
+architecture rtl of acam_databus_interface is
 
-  type t_ACAM_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
-  signal ACAM_data_st, nxt_ACAM_data_st : t_ACAM_interface;
+  type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
+  signal acam_data_st, nxt_acam_data_st : t_acam_interface;
 
   signal ef1_synch, ef2_synch           : std_logic_vector(1 downto 0) := (others =>'1');
   signal ack, rd, rd_extend             : std_logic;
@@ -165,7 +167,6 @@ begin
   end process;
 
 
-
 ---------------------------------------------------------------------------------------------------
 --                                             FSM                                               --
 ---------------------------------------------------------------------------------------------------    
@@ -177,18 +178,18 @@ begin
   begin
     if rising_edge (clk_i) then
       if rst_i ='1' then
-        ACAM_data_st <= IDLE;
+        acam_data_st <= IDLE;
       else
-        ACAM_data_st <= nxt_ACAM_data_st;
+        acam_data_st <= nxt_acam_data_st;
       end if;
     end if;
   end process;
 
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  databus_access_comb_fsm: process (ACAM_data_st, stb_i, cyc_i, we_i)
+  databus_access_comb_fsm: process (acam_data_st, stb_i, cyc_i, we_i)
   begin
-    case ACAM_data_st is
+    case acam_data_st is
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when IDLE     =>
                   -----------------------------------------------
@@ -200,13 +201,13 @@ begin
 
                         if stb_i = '1' and cyc_i = '1' then
                           if we_i = '1' then
-                            nxt_ACAM_data_st <= WR_START;
+                            nxt_acam_data_st <= WR_START;
                           else
-                            nxt_ACAM_data_st <= RD_START;
+                            nxt_acam_data_st <= RD_START;
                           end if;
 
                         else
-                          nxt_ACAM_data_st   <= IDLE;
+                          nxt_acam_data_st   <= IDLE;
                         end if;
 
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --           
@@ -218,7 +219,7 @@ begin
                         wr_remove            <= '0';
                   ----------------------------------------------- 
 
-                        nxt_ACAM_data_st     <= RD_FETCH;
+                        nxt_acam_data_st     <= RD_FETCH;
 
             
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -230,7 +231,7 @@ begin
                         wr_remove            <= '0';
                   -----------------------------------------------
 
-                        nxt_ACAM_data_st     <= RD_ACK;
+                        nxt_acam_data_st     <= RD_ACK;
 
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when RD_ACK =>
@@ -242,7 +243,7 @@ begin
                         wr_remove            <= '0';
                   -----------------------------------------------
 
-                        nxt_ACAM_data_st     <= IDLE;
+                        nxt_acam_data_st     <= IDLE;
 
 
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --            
@@ -254,7 +255,7 @@ begin
                         wr_remove            <= '0';
                   -----------------------------------------------
 
-                        nxt_ACAM_data_st     <= WR_PUSH;
+                        nxt_acam_data_st     <= WR_PUSH;
             
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when WR_PUSH =>
@@ -266,7 +267,7 @@ begin
                         wr_remove            <= '1';
                   -----------------------------------------------
 
-                        nxt_ACAM_data_st     <= WR_ACK;
+                        nxt_acam_data_st     <= WR_ACK;
             
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when WR_ACK =>
@@ -278,7 +279,7 @@ begin
                         wr_remove            <= '0';
                   -----------------------------------------------
 
-                        nxt_ACAM_data_st     <= IDLE;
+                        nxt_acam_data_st     <= IDLE;
             
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when others =>
@@ -289,7 +290,7 @@ begin
                         wr_remove            <= '0';
                   -----------------------------------------------
 
-                        nxt_ACAM_data_st     <= IDLE;
+                        nxt_acam_data_st     <= IDLE;
     end case;
   end process;
 
@@ -298,7 +299,6 @@ begin
 
   -- to the 28 bits databus output we add the ef flags to arrive to a 32 bits word
   dat_o  <= ef1_synch(0) & ef2_synch(0) & "00" & data_bus_io; 
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -326,7 +326,6 @@ output_registers: process (clk_i)
                -- the wr signal has to be removed to respect the ACAM specs
   data_bus_io  <= dat_i(27 downto 0) when we_i='1' else (others =>'Z');
   adr_o        <= adr_i(3 downto 0);
-
 
 
 ---------------------------------------------------------------------------------------------------

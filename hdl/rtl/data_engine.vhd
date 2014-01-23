@@ -85,7 +85,7 @@ entity data_engine is
     (clk_i                : in std_logic;                     -- 125 MHz
      rst_i                : in std_logic;                     -- global reset
 
-     -- Signals from the reg_ctrl unit: communication with PCIe/VME for registers configuration
+     -- Signals from the reg_ctrl unit: communication with GN4124/VME for registers configuration
      activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition 
      deactivate_acq_p_i   : in std_logic;                     -- activates configuration readings/ writings
      acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
@@ -97,7 +97,7 @@ entity data_engine is
      acam_rdbk_start01_p_i: in std_logic;                     -- enables reading of ACAM reg  10
 
      acam_config_i        : in config_vector;                 -- array keeping values for ACAM regs 0-7, 11, 12, 14
-                                                              -- as received from the PCIe/VME interface
+                                                              -- as received from the GN4124/VME interface
 
      -- Signals from the acam_databus_interface unit: empty FIFO flags
      acam_ef1_i           : in std_logic;                     -- empty fifo 1 (fully synched signal; ef1 after 2 DFFs)
@@ -119,9 +119,8 @@ entity data_engine is
      acam_dat_o           : out std_logic_vector(31 downto 0);-- values to write to ACAM regs
      acam_we_o            : out std_logic;                    -- WISHBONE write (enabled only for reg writings)
 
-     -- Signals to the reg_ctrl unit: communication with PCIe/VME for registers configuration
+     -- Signals to the reg_ctrl unit: communication with GN4124/VME for registers configuration
      acam_config_rdbk_o   : out config_vector;                -- array keeping values read from ACAM regs 0-7, 11, 12, 14
-     acam_status_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 12
      acam_ififo1_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 8
      acam_ififo2_o        : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 9
      acam_start01_o       : out std_logic_vector(31 downto 0);-- keeps value read from ACAM reg 10
@@ -194,7 +193,7 @@ begin
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       -- from the INACTIVE state modifications/readings of the ACAM configuration can be initiated;
       -- all interactions here refer to transfers between the ACAM and locally this core.
-      -- All the interactions between the PCIe/VME interface and this core take place at the
+      -- All the interactions between the GN4124/VME interface and this core take place at the
       -- the reg_ctrl unit.  
       when INACTIVE =>
                   -----------------------------------------------
@@ -552,7 +551,7 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- data_config_decoder: according to the acam_adr this process generates the acam_dat_o output
 -- with the new value to be loaded to the corresponding ACAM reg. The values come from the
--- acam_config_i vector that keeps what has been loaded from the PCIe interface.
+-- acam_config_i vector that keeps what has been loaded from the GN4124 interface.
 
   data_config_decoder: process(acam_adr, engine_st, acam_config_i, reset_word)
   begin
@@ -608,7 +607,6 @@ begin
                      -- reg 4 bit 22: MasterReset :'1' = general reset excluding config regs 
                      -- reg 4 bit 23: PartialReset: would initiate a general reset excluding
                      --                             config regs&FIFOs, but this option is not used
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -708,7 +706,6 @@ begin
   acam_tstamp2_ok_p_o          <= '1' when (acam_ack_i ='1' and engine_st = GET_STAMP2) else '0';
 
   acam_config_rdbk_o           <= acam_config_rdbk;
-  acam_status_o                <= acam_config_rdbk(9);
 
 
 end architecture rtl;

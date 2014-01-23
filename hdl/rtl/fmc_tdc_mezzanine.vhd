@@ -15,14 +15,24 @@
 -- Description  The unit combines                                                                 |
 --                o the TDC core                                                                  |
 --                o the I2C core for the communication with the TDC board EEPROM                  |
---                o the OneWire core for the communication with the TDC board UniqueID&Thermetec  |
---                o the IRQ controller core that concentrates several interrupt sources into one  |
---                  interrupt request line.                                                       |
---              For the interconnection between the GNUM/VME core and the different cores (TDC,   |
---              I2C, 1W, IRQ) the unit also instantiates an SDB crossbar.                         |
+--                o the OneWire core for the communication with the TDC board UniqueID&Thermeter  |
+--                o the Embedded Ibterrupt Controller core that concentrates several interrupt    |
+--                  sources into one WISHBONE interrupt request line.                             |
 --                                                                                                |
---                                   ______________________________                               |
---                                  |                               |                             |
+--              For the interconnection between the GN4124/VME core and the different cores (TDC, |
+--              I2C, 1W, EIC) the unit instantiates an SDB crossbar.                              |
+--                                                                                                |
+--              Note that the TDC core has two WISHBONE buses, one for the configuration (of the  |
+--              core itself and of the ACAM) and one for the retrieval of the timestamps from the |
+--              memory.                                                                           |
+--                                                                                                |
+--              Note that the SPI interface for the DAC on the TDC board is implemented in the    |
+--              clcks_rsts_manager;no access to the DAC is provided through GN4124/VME interface  |
+--                                                                                                |
+--              Note that the TDC core uses word addressing, whereas the GN4124/VME cores use byte|
+--              addressing                                                                        |
+--                                   _______________________________                              |
+--                                  |      FMC TDC mezzanine        |                             |
 --                                  |    ________________    ___    |                             |
 --                                  |   |                |  |   |   |                             |
 --                 ACAM chip <-->   |   |    TDC core    |  |   |   |   <-->                      |
@@ -31,30 +41,27 @@
 --                                  |   |                |  |   |   |                             |
 --               EEPROM chip <-->   |   |    I2C core    |  |   |   |   <-->                      |
 --                                  |   |________________|  |   |   |                             |
---                                  |    ________________   | D |   |          GNUM/VME core      |
+--                                  |    ________________   | D |   |          GN4124/VME core    |
 --                                  |   |                |  |   |   |                             |
 --                   1W chip <-->   |   |     1W core    |  |   |   |   <-->                      |
 --                                  |   |________________|  |   |   |                             |
 --                                  |    ________________   |   |   |                             |
 --                                  |   |                |  | B |   |                             |
---                                  |   |   IRQ ctrler   |  |   |   |   <-->                      |
+--                                  |   |       EIC      |  |   |   |   <-->                      |
 --                                  |   |________________|  |___|   |                             |
 --                                  |                               |                             |
 --                                  |_______________________________|                             |
---                                                 FMC TDC mezzanine                              |
---                                   _______________________________                              |
+--                                     ^                        ^                                 |
+--                                     | 125 MHz            rst |                                 |
+--                                   __|________________________|___                              |
 --                                  |                               |                             |
 --                   DAC chip <-->  |       clks_rsts_manager       |                             |
 --                   PLL chip       |_______________________________|                             |
 --                                                                                                |
---                               Figure 1: FMC TDC mezzanine architecture                         |
+--                         Figure 1: FMC TDC mezzanine architecture and                           |
+--                          connection with the clks_rsts_manager unit                            |
 --                                                                                                |
 --                                                                                                |
---              Note that the SPI communication with the TDC board DAC is implemented in the      |
---              clcks_rsts_manager;no access to the DAC is provided through the GNUM/VME interface|
---                                                                                                |
---              Note that the TDC core uses word addressing, whereas the GNUM/VME cores use byte  |
---              addressing                                                                        |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
@@ -66,6 +73,7 @@
 -- Last changes                                                                                   |
 --     07/2013  v1  EG  First version                                                             |
 --     01/2014  v2  EG  Different output for the timestamp data                                   |
+--     01/2014  v3  EG  Removed option for timestamps retrieval through DMA                       |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -102,12 +110,14 @@ entity fmc_tdc_mezzanine is
      g_width                : integer := 32;
      values_for_simul       : boolean := FALSE);
   port
-    (-- TDC core
+    -- TDC core
+    (-- Signals from the clks_rsts_manager unit
      clk_125m_i             : in    std_logic;
      rst_i                  : in    std_logic;
      acam_refclk_r_edge_p_i : in    std_logic;
      send_dac_word_p_o      : out   std_logic;
      dac_word_o             : out   std_logic_vector(23 downto 0);
+     -- Interface with ACAM
      start_from_fpga_o      : out   std_logic;
      err_flag_i             : in    std_logic;
      int_flag_i             : in    std_logic;
@@ -121,25 +131,28 @@ entity fmc_tdc_mezzanine is
      wr_n_o                 : out   std_logic;
      ef1_i                  : in    std_logic;
      ef2_i                  : in    std_logic;
-     tdc_in_fpga_1_i        : in    std_logic;
-     tdc_in_fpga_2_i        : in    std_logic;
-     tdc_in_fpga_3_i        : in    std_logic;
-     tdc_in_fpga_4_i        : in    std_logic;
-     tdc_in_fpga_5_i        : in    std_logic;
+     -- Channels termination 
      enable_inputs_o        : out   std_logic;
      term_en_1_o            : out   std_logic;
      term_en_2_o            : out   std_logic;
      term_en_3_o            : out   std_logic;
      term_en_4_o            : out   std_logic;
      term_en_5_o            : out   std_logic;
+     -- TDC board LEDs
      tdc_led_status_o       : out   std_logic;
      tdc_led_trig1_o        : out   std_logic;
      tdc_led_trig2_o        : out   std_logic;
      tdc_led_trig3_o        : out   std_logic;
      tdc_led_trig4_o        : out   std_logic;
      tdc_led_trig5_o        : out   std_logic;
-     -- WISHBONE interface with the GNUM/VME_core
-     -- for the core configuration | core interrupts | 1Wire | I2C 
+     -- Input pulses arriving also to the FPGA, currently not treated
+     tdc_in_fpga_1_i        : in    std_logic;
+     tdc_in_fpga_2_i        : in    std_logic;
+     tdc_in_fpga_3_i        : in    std_logic;
+     tdc_in_fpga_4_i        : in    std_logic;
+     tdc_in_fpga_5_i        : in    std_logic;
+     -- WISHBONE interface with the GN4124/VME_core
+     -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C 
      wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
      wb_tdc_csr_dat_i       : in    std_logic_vector(31 downto 0);
      wb_tdc_csr_cyc_i       : in    std_logic;
@@ -150,26 +163,15 @@ entity fmc_tdc_mezzanine is
      wb_tdc_csr_ack_o       : out   std_logic;
      wb_tdc_csr_stall_o     : out   std_logic;
      wb_irq_o               : out   std_logic;
-     -- WISHBONE interface with the GNUM DMA/VME_core
-     -- for the retreival of the timestamps
-     wb_tdc_mem_adr_i       : in    std_logic_vector(31 downto 0); 
-     wb_tdc_mem_dat_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_mem_cyc_i       : in    std_logic;
-     wb_tdc_mem_stb_i       : in    std_logic;
-     wb_tdc_mem_we_i        : in    std_logic;
-     wb_tdc_mem_dat_o       : out   std_logic_vector(31 downto 0);
-     wb_tdc_mem_ack_o       : out   std_logic;
-     wb_tdc_mem_stall_o     : out   std_logic;
-     -- Interrupt pulses, for debug
-     irq_tstamp_p_o         : out   std_logic;
-     irq_time_p_o           : out   std_logic;
-     irq_acam_err_p_o       : out   std_logic;
-     -- I2C EEPROM interface
+    -- I2C EEPROM interface
      sys_scl_b              : inout std_logic;
      sys_sda_b              : inout std_logic;
-     -- 1-wire UniqueID&Thermometer interface
-     one_wire_b             : inout std_logic);
-
+    -- 1-Wire interface
+     one_wire_b             : inout std_logic;
+    -- For debug: interrupt pulses from TDC core
+     irq_tstamp_p_o         : out   std_logic;
+     irq_time_p_o           : out   std_logic;
+     irq_acam_err_p_o       : out   std_logic);
 end fmc_tdc_mezzanine;
 
 
@@ -182,24 +184,28 @@ architecture rtl of fmc_tdc_mezzanine is
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
   -- Note: All address in sdb and crossbar are BYTE addresses!
+
   -- Master ports on the wishbone crossbar
   constant c_NUM_WB_MASTERS           : integer := 5;
-  constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 0;  -- TDC core configuration registers
-  constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 1;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
+  constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 0;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
+  constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 1;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_EIC         : integer := 2;  -- TDC interrupts
-  constant c_WB_SLAVE_TDC_SYS_I2C     : integer := 3;  -- TDC mezzanine board system EEPROM I2C
-  constant c_WB_SLAVE_TSTAMP_MEM      : integer := 4;  -- Access to TDC core timestamps memory
+  constant c_WB_SLAVE_TDC_I2C         : integer := 3;  -- TDC mezzanine board system EEPROM I2C
+  constant c_WB_SLAVE_TSTAMP_MEM      : integer := 4;  -- Access to TDC core memory for timestamps retrieval
 
   -- Slave port on the wishbone crossbar
   constant c_NUM_WB_SLAVES            : integer := 1;
+
   -- Wishbone master(s)
   constant c_WB_MASTER                : integer := 0;
+
   -- sdb header address
   constant c_SDB_ADDRESS              : t_wishbone_address := x"00000000";
+
   -- WISHBONE crossbar layout
   constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(4 downto 0) :=
-    (0 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00010000"),
-     1 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00011000"),
+    (0 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00010000"),
+     1 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00011000"),
      2 => f_sdb_embed_device(c_TDC_EIC_DEVICE,        x"00012000"),
      3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00013000"),
      4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00014000"));
@@ -236,31 +242,38 @@ architecture rtl of fmc_tdc_mezzanine is
 begin
 
   general_rst_n <= not(rst_i);
+
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
 ---------------------------------------------------------------------------------------------------
 -- CSR wishbone address decoder
---   0x1000 -> TDC memory for timestamps retrieval
---   0x1100 -> TDC core configuration
---   0x1200 -> TDC mezzanine board system EEPROM I2C
---   0x1300 -> TDC mezzanine board UnidueID&Thermometer 1-wire
+--   0x10000 -> TDC core configuration
+--   0x11000 -> TDC mezzanine board 1-Wire
+--   0x12000 -> EIC for TDC core
+--   0x13000 -> TDC mezzanine board EEPROM I2C
+--   0x14000 -> TDC core timestamps retreival
 
   cmp_sdb_crossbar : xwb_sdb_crossbar
   generic map
-    (g_num_masters => c_NUM_WB_SLAVES,
-     g_num_slaves  => c_NUM_WB_MASTERS,
-     g_registered  => true,
-     g_wraparound  => true,
-     g_layout      => c_INTERCONNECT_LAYOUT,
-     g_sdb_addr    => c_SDB_ADDRESS)
+    (g_num_masters   => c_NUM_WB_SLAVES,
+     g_num_slaves    => c_NUM_WB_MASTERS,
+     g_registered    => true,
+     g_wraparound    => true,
+     g_layout        => c_INTERCONNECT_LAYOUT,
+     g_sdb_addr      => c_SDB_ADDRESS)
   port map
-    (clk_sys_i     => clk_125m_i,
-     rst_n_i       => general_rst_n,
-     slave_i       => cnx_slave_in,
-     slave_o       => cnx_slave_out,
-     master_i      => cnx_master_in,
-     master_o      => cnx_master_out);
+    (clk_sys_i       => clk_125m_i,
+     rst_n_i         => general_rst_n,
+     slave_i         => cnx_slave_in,
+     slave_o         => cnx_slave_out,
+     master_i        => cnx_master_in,
+     master_o        => cnx_master_out);
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Unused wishbone signals
+  wb_tdc_csr_dat_o   <= cnx_slave_out(c_WB_MASTER).dat;
+  wb_tdc_csr_ack_o   <= cnx_slave_out(c_WB_MASTER).ack;
+  wb_tdc_csr_stall_o <= cnx_slave_out(c_WB_MASTER).stall;
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Connect crossbar slave port to entity port
   cnx_slave_in(c_WB_MASTER).adr <= wb_tdc_csr_adr_i;
@@ -270,17 +283,11 @@ begin
   cnx_slave_in(c_WB_MASTER).we  <= wb_tdc_csr_we_i;
   cnx_slave_in(c_WB_MASTER).cyc <= wb_tdc_csr_cyc_i;
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused wishbone signals
-  wb_tdc_csr_dat_o             <= cnx_slave_out(c_WB_MASTER).dat;
-  wb_tdc_csr_ack_o             <= cnx_slave_out(c_WB_MASTER).ack;
-  wb_tdc_csr_stall_o           <= cnx_slave_out(c_WB_MASTER).stall;
-
 
 ---------------------------------------------------------------------------------------------------
 --                                             TDC CORE                                          --
 ---------------------------------------------------------------------------------------------------
-  tdc_core: fmc_tdc_core
+  cmp_tdc_core: fmc_tdc_core
   generic map
     (g_span                  => g_span,
      g_width                 => g_width,
@@ -341,57 +348,27 @@ begin
      tdc_config_wb_ack_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).ack,
      -- WISHBONE for timestamps transfer
      tdc_mem_wb_adr_i        => tdc_mem_wb_adr,--wb_tdc_mem_adr_i,
-     tdc_mem_wb_dat_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).dat,--wb_tdc_mem_dat_i,
-     tdc_mem_wb_stb_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).stb,--wb_tdc_mem_stb_i,
-     tdc_mem_wb_we_i         => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).we,--wb_tdc_mem_we_i,
-     tdc_mem_wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).cyc,--wb_tdc_mem_cyc_i,
-     tdc_mem_wb_ack_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).ack,--wb_tdc_mem_ack_o,
-     tdc_mem_wb_dat_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).dat,--wb_tdc_mem_dat_o,
-     tdc_mem_wb_stall_o      => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).stall);--wb_tdc_mem_stall_o);
+     tdc_mem_wb_dat_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).dat,
+     tdc_mem_wb_stb_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).stb,
+     tdc_mem_wb_we_i         => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).we,
+     tdc_mem_wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).cyc,
+     tdc_mem_wb_ack_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).ack,
+     tdc_mem_wb_dat_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).dat,
+     tdc_mem_wb_stall_o      => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).stall);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Convert byte address into word address
   tdc_core_wb_adr <= "00" & cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).adr(31 downto 2);
-
   tdc_mem_wb_adr  <= "00" & cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).adr(31 downto 2);
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).err   <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).rty   <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).stall <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).int   <= '0';
-
-  wb_tdc_mem_ack_o   <= '0';
-  wb_tdc_mem_dat_o   <= (others => '0');
-  wb_tdc_mem_stall_o <= '0';
-
-
----------------------------------------------------------------------------------------------------
---                                TDC Mezzanine Board EEPROM I2C                                 --
----------------------------------------------------------------------------------------------------
-  mezzanine_I2C_master_EEPROM : xwb_i2c_master
-  generic map
-    (g_interface_mode      => PIPELINED,
-     g_address_granularity => BYTE)
-  port map
-    (clk_sys_i             => clk_125m_i,
-     rst_n_i               => general_rst_n,
-     slave_i               => cnx_master_out(c_WB_SLAVE_TDC_SYS_I2C),
-     slave_o               => cnx_master_in(c_WB_SLAVE_TDC_SYS_I2C),
-     desc_o                => open,
-     scl_pad_i             => sys_scl_in,
-     scl_pad_o             => sys_scl_out,
-     scl_padoen_o          => sys_scl_oe_n,
-     sda_pad_i             => sys_sda_in,
-     sda_pad_o             => sys_sda_out,
-     sda_padoen_o          => sys_sda_oe_n);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Tri-state buffer for SDA and SCL
-  sys_scl_b                <= sys_scl_out when sys_scl_oe_n = '0' else 'Z';
-  sys_scl_in               <= sys_scl_b;
-  sys_sda_b                <= sys_sda_out when sys_sda_oe_n = '0' else 'Z';
-  sys_sda_in               <= sys_sda_b;
+  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).err        <= '0';
+  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).rty        <= '0';
+  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).int        <= '0';
 
 
 ---------------------------------------------------------------------------------------------------
@@ -425,7 +402,6 @@ begin
 -- 0 -> number of accumulated timestamps reached threshold
 -- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
 -- 2 -> ACAM error
-
   cmp_tdc_eic : tdc_eic
   port map
     (clk_sys_i          => clk_125m_i,
@@ -443,15 +419,45 @@ begin
      irq_tdc_tstamps_i  => irq_tstamp_p,
      irq_tdc_time_i     => irq_time_p,
      irq_tdc_acam_err_i => irq_acam_err_p);
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).rty <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).int <= '0';
-  -- for debug
-  irq_tstamp_p_o     <= irq_tstamp_p;
-  irq_time_p_o       <= irq_time_p;
-  irq_acam_err_p_o   <= irq_acam_err_p;
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Only for debug
+  irq_tstamp_p_o        <= irq_tstamp_p;
+  irq_time_p_o          <= irq_time_p;
+  irq_acam_err_p_o      <= irq_acam_err_p;
+
+
+---------------------------------------------------------------------------------------------------
+--                                TDC Mezzanine Board EEPROM I2C                                 --
+---------------------------------------------------------------------------------------------------
+  cmp_I2C_master : xwb_i2c_master
+  generic map
+    (g_interface_mode      => PIPELINED,
+     g_address_granularity => BYTE)
+  port map
+    (clk_sys_i             => clk_125m_i,
+     rst_n_i               => general_rst_n,
+     slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
+     slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
+     desc_o                => open,
+     scl_pad_i             => sys_scl_in,
+     scl_pad_o             => sys_scl_out,
+     scl_padoen_o          => sys_scl_oe_n,
+     sda_pad_i             => sys_sda_in,
+     sda_pad_o             => sys_sda_out,
+     sda_padoen_o          => sys_sda_oe_n);
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Tri-state buffer for SDA and SCL
+  sys_scl_b                <= sys_scl_out when sys_scl_oe_n = '0' else 'Z';
+  sys_scl_in               <= sys_scl_b;
+  sys_sda_b                <= sys_sda_out when sys_sda_oe_n = '0' else 'Z';
+  sys_sda_in               <= sys_sda_b;
+
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

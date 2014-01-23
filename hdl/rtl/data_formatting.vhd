@@ -89,7 +89,7 @@ entity data_formatting is
                                                                   -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
 
      -- Signals from the reg_ctrl unit
-     dacapo_c_rst_p_i        : in std_logic;                      -- instruction from PCIe/VME to clear dacapo flag
+     dacapo_c_rst_p_i        : in std_logic;                      -- instruction from GN4124/VME to clear dacapo flag
 
      -- Signals from the one_hz_gen unit
      local_utc_i             : in std_logic_vector(31 downto 0);  -- local UTC time
@@ -118,7 +118,7 @@ entity data_formatting is
      -- Signal to the reg_ctrl unit
      wr_index_o              : out std_logic_vector(31 downto 0)); -- index of last byte written
                                                                    -- note that the index is provided
-                                                                   -- #bytes, as the PCIe/VME expects
+                                                                   -- #bytes, as the GN4124/VME expects
                                                                    -- (not in #128-bits-words)
 
 end data_formatting;
@@ -136,7 +136,7 @@ architecture rtl of data_formatting is
   signal acam_start_nb                                        : std_logic_vector(7 downto 0);
   -- timestamp manipulations
   signal un_acam_start_nb, un_clk_i_cycles_offset             : unsigned(31 downto 0);
-  signal un_nb_of_retrig, un_retrig_nb_offset                 : unsigned(31 downto 0);
+  signal un_roll_over, un_nb_of_retrig, un_retrig_nb_offset   : unsigned(31 downto 0);
   signal un_nb_of_cycles, un_retrig_from_roll_over            : unsigned(31 downto 0);
   signal acam_start_nb_32                                     : std_logic_vector(31 downto 0);
   -- final timestamp fields
@@ -148,6 +148,8 @@ architecture rtl of data_formatting is
   signal dacapo_counter                                       : unsigned(19 downto 0);
   signal wr_index                                             : unsigned(7 downto 0); 
   -- coarse time calculations
+  signal tstamp_on_first_retrig_case1                         : std_logic;
+  signal tstamp_on_first_retrig_case2                         : std_logic;
   signal un_previous_clk_i_cycles_offset                      : unsigned(31 downto 0);
   signal un_previous_retrig_nb_offset                         : unsigned(31 downto 0);
   signal un_previous_roll_over_nb                             : unsigned(31 downto 0);
@@ -205,7 +207,7 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- tstamp_wr_wb_adr: the process keeps track of the place in the memory the next timestamp is to be
 -- written; wr_index indicates which one is the next address to write to.
--- The index is also used by the PCIe host to configure the DMA coherently (DMALENR register)
+-- The index is also used by the GN4124 host to configure the DMA coherently (DMALENR register)
   tstamp_wr_wb_adr: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -235,7 +237,7 @@ begin
 --                                         Da Capo flag                                          --
 ---------------------------------------------------------------------------------------------------     
 -- dacapo_counter_update: the Da Capo counter indicates the number of times the circular buffer
--- has been written completely; it can be cleared by the PCIe/VME host.
+-- has been written completely; it can be cleared by the GN4124/VME host.
   dacapo_counter_update: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -355,12 +357,12 @@ begin
   -- The following process makes essential calculations for the definition of the coarse time.
   -- Regarding the signals: un_clk_i_cycles_offset, un_retrig_nb_offset, local_utc it has to be difined
   -- if the values that characterize the current second or the one previous to it should be used.
-  -- In the case where: a timestamp came on the same retrigger after a new second
+  -- In the case where: a timestamp came on the same retgigger after a new second
   -- (un_current_retrig_from_roll_over is 0 and un_acam_start_nb = un_current_retrig_nb_offset)
   -- the values of the previous second should be used.
   -- Also, according to the ACAM documentation there is an indeterminacy to whether the fine time refers
-  -- to the previous retrigger or the current one. The equation described on line 392 describes
-  -- the case where: a timestamp came on the same retrigger after a new second but the ACAM assigned
+  -- to the previous retrigger or the current one. The equation described on line 386 describes
+  -- the case where: a timestamp came on the same retgigger after a new second but the ACAM assigned
   -- it to the previous retrigger (the "un_current_retrig_from_roll_over = 0" describes that a new second
   -- has arrived; the "un_acam_fine_time > 6318" desribes a fine time that is referred to the previous retrigger;
   -- 6318 * 81ps = 512ns which is a complete ACAM retrigger).
