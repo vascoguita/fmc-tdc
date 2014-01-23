@@ -69,45 +69,11 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
---                              Constants regarding the SDB crossbar                             --
+--                        Constants regarding the SDB Devices Definitions                        --
 ---------------------------------------------------------------------------------------------------
 -- Note: All address in sdb and crossbar are BYTE addresses!
--- Note: All address in sdb and crossbar are BYTE addresses!
-
--- Master ports on the wishbone crossbar
-  constant c_NUM_WB_MASTERS    : integer := 7;
-  constant c_SLAVE_DMA         : integer := 0;  -- DMA controller in the Gennum core
-  constant c_SLAVE_SPEC_ONEWIRE: integer := 1;  -- Carrier onewire interface
-  constant c_SLAVE_SPEC_CSR    : integer := 2;  -- Info on SPEC control and status registers
-  constant c_SLAVE_TDC_CORE    : integer := 3;  -- TDC core
-  constant c_SLAVE_INT         : integer := 4;  -- Interrupt controller
-  constant c_SLAVE_FMC_SYS_I2C : integer := 5;  -- Mezzanine system I2C interface (EEPROM)
-  constant c_SLAVE_FMC_ONEWIRE : integer := 6;  -- Mezzanine onewire interface 
-
--- Slave port on the wishbone crossbar
-  constant c_NUM_WB_SLAVES     : integer := 1;
-  constant c_MASTER_GENNUM     : integer := 0;
-
-  -- SDB header address
-  constant c_SDB_ADDRESS : t_wishbone_address := x"00000000";
 
   -- Devices sdb description
-  constant c_DMA_SDB_DEVICE : t_sdb_device :=
-    (abi_class     => x"0000",               -- undocumented device
-     abi_ver_major => x"01",
-     abi_ver_minor => x"01",
-     wbd_endian    => c_sdb_endian_big,
-     wbd_width     => x"4",                  -- 32-bit port granularity
-     sdb_component =>
-       (addr_first  => x"0000000000000000",
-        addr_last   => x"000000000000003F",
-        product     =>
-          (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000601",
-           version   => x"00000001",
-           date      => x"20121116",
-           name      => "WB-DMA.Control     ")));
-
   constant c_ONEWIRE_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
@@ -119,12 +85,12 @@ package tdc_core_pkg is
         addr_last   => x"0000000000000007",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000602",
+           device_id => x"00000602",         -- "WB-Onewire.Control " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
            name      => "WB-Onewire.Control ")));
 
-  constant c_SPEC_CSR_SDB_DEVICE : t_sdb_device :=
+  constant c_SPEC_INFO_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -135,26 +101,10 @@ package tdc_core_pkg is
         addr_last   => x"000000000000001F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000603",
+           device_id => x"00000603",         -- "WB-SPEC.CSR        " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
-           name      => "WB-SPEC-CSR        ")));
-
-  constant c_TDC_SDB_DEVICE : t_sdb_device :=
-    (abi_class     => x"0000",               -- undocumented device
-     abi_ver_major => x"01",
-     abi_ver_minor => x"01",
-     wbd_endian    => c_sdb_endian_big,
-     wbd_width     => x"4",                  -- 32-bit port granularity
-     sdb_component =>
-       (addr_first  => x"0000000000000000",
-        addr_last   => x"00000000000001FF",
-        product     =>
-          (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000604",
-           version   => x"00000001",
-           date      => x"20130429",
-           name      => "WB-TDC-Core        ")));
+           name      => "WB-SPEC.CSR        ")));
 
   constant c_TDC_EIC_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
@@ -167,7 +117,7 @@ package tdc_core_pkg is
         addr_last   => x"000000000000000F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000605",         -- !!!!!"WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
+           device_id => x"00000605",         -- "WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
            name      => "WB-FMC-TDC.EIC     ")));
@@ -184,26 +134,10 @@ package tdc_core_pkg is
         addr_last   => x"000000000000001F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000606",
+           device_id => x"00000606",         -- "WB-I2C.Control     " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
            name      => "WB-I2C.Control     ")));
-
-  constant c_DMA_EIC_SDB : t_sdb_device := (
-    abi_class     => x"0000",              -- undocumented device
-    abi_ver_major => x"01",
-    abi_ver_minor => x"01",
-    wbd_endian    => c_sdb_endian_big,
-    wbd_width     => x"4",                 -- 32-bit port granularity
-    sdb_component => (
-      addr_first  => x"0000000000000000",
-      addr_last   => x"000000000000000F",
-      product     => (
-        vendor_id => x"000000000000CE42",  -- CERN
-        device_id => x"d5735ab4",          -- echo "WB-DMA.EIC         " | md5sum | cut -c1-8
-        version   => x"00000001",
-        date      => x"20131204",
-        name      => "WB-DMA.EIC         ")));
 
   constant c_TDC_EIC_SDB : t_sdb_device := (
     abi_class     => x"0000",              -- undocumented device
@@ -216,10 +150,10 @@ package tdc_core_pkg is
       addr_last   => x"000000000000000F",
       product     => (
         vendor_id => x"000000000000CE42",  -- CERN
-        device_id => x"26ec6086",          -- "WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
+        device_id => x"26ec6086",          -- "WB-FMC-TDC.EIC     " | md5sum | cut -c1-8
         version   => x"00000001",
         date      => x"20131204",
-        name      => "WB-FMC-ADC.EIC     ")));
+        name      => "WB-FMC-TDC.EIC     ")));
 
   constant c_TDC_CONFIG_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
@@ -232,7 +166,7 @@ package tdc_core_pkg is
         addr_last   => x"00000000000000FF",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000604",
+           device_id => x"00000604",         -- "WB-TDC-Core-Config " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20130429",
            name      => "WB-TDC-Core-Config ")));
@@ -248,10 +182,10 @@ package tdc_core_pkg is
         addr_last   => x"0000000000000FFF",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000601",
+           device_id => x"00000601",         -- "WB-TDC-Mem         " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
-           name      => "WB-TDC-MEM         ")));
+           name      => "WB-TDC-Mem         ")));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -279,17 +213,17 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 -- Addresses of ACAM configuration registers to be written by the PCIe host
                                                                      -- corresponds to:
-  constant c_ACAM_REG0_ADR  : std_logic_vector(7 downto 0) := x"00"; -- address 5000 of gnum BAR 0
-  constant c_ACAM_REG1_ADR  : std_logic_vector(7 downto 0) := x"01"; -- address 5004 of gnum BAR 0
-  constant c_ACAM_REG2_ADR  : std_logic_vector(7 downto 0) := x"02"; -- address 5008 of gnum BAR 0
-  constant c_ACAM_REG3_ADR  : std_logic_vector(7 downto 0) := x"03"; -- address 500C of gnum BAR 0
-  constant c_ACAM_REG4_ADR  : std_logic_vector(7 downto 0) := x"04"; -- address 5010 of gnum BAR 0
-  constant c_ACAM_REG5_ADR  : std_logic_vector(7 downto 0) := x"05"; -- address 5014 of gnum BAR 0
-  constant c_ACAM_REG6_ADR  : std_logic_vector(7 downto 0) := x"06"; -- address 5018 of gnum BAR 0
-  constant c_ACAM_REG7_ADR  : std_logic_vector(7 downto 0) := x"07"; -- address 501C of gnum BAR 0
-  constant c_ACAM_REG11_ADR : std_logic_vector(7 downto 0) := x"0B"; -- address 502C of gnum BAR 0
-  constant c_ACAM_REG12_ADR : std_logic_vector(7 downto 0) := x"0C"; -- address 5030 of gnum BAR 0
-  constant c_ACAM_REG14_ADR : std_logic_vector(7 downto 0) := x"0E"; -- address 5038 of gnum BAR 0
+  constant c_ACAM_REG0_ADR  : std_logic_vector(7 downto 0) := x"00"; -- address 0x51000 of GN4124 BAR 0
+  constant c_ACAM_REG1_ADR  : std_logic_vector(7 downto 0) := x"01"; -- address 0x51004 of GN4124 BAR 0
+  constant c_ACAM_REG2_ADR  : std_logic_vector(7 downto 0) := x"02"; -- address 0x51008 of GN4124 BAR 0
+  constant c_ACAM_REG3_ADR  : std_logic_vector(7 downto 0) := x"03"; -- address 0x5100C of GN4124 BAR 0
+  constant c_ACAM_REG4_ADR  : std_logic_vector(7 downto 0) := x"04"; -- address 0x51010 of GN4124 BAR 0
+  constant c_ACAM_REG5_ADR  : std_logic_vector(7 downto 0) := x"05"; -- address 0x51014 of GN4124 BAR 0
+  constant c_ACAM_REG6_ADR  : std_logic_vector(7 downto 0) := x"06"; -- address 0x51018 of GN4124 BAR 0
+  constant c_ACAM_REG7_ADR  : std_logic_vector(7 downto 0) := x"07"; -- address 0x5101C of GN4124 BAR 0
+  constant c_ACAM_REG11_ADR : std_logic_vector(7 downto 0) := x"0B"; -- address 0x5102C of GN4124 BAR 0
+  constant c_ACAM_REG12_ADR : std_logic_vector(7 downto 0) := x"0C"; -- address 0x51030 of GN4124 BAR 0
+  constant c_ACAM_REG14_ADR : std_logic_vector(7 downto 0) := x"0E"; -- address 0x51038 of GN4124 BAR 0
 
 
 ---------------------------------------------------------------------------------------------------
@@ -302,20 +236,20 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 -- Addresses of ACAM configuration readback registers, to be written by the ACAM 
                                                                           -- corresponds to:
-  constant c_ACAM_REG0_RDBK_ADR  : std_logic_vector(7 downto 0) := x"10"; -- address 5040 of the gnum BAR 0
-  constant c_ACAM_REG1_RDBK_ADR  : std_logic_vector(7 downto 0) := x"11"; -- address 5044 of the gnum BAR 0
-  constant c_ACAM_REG2_RDBK_ADR  : std_logic_vector(7 downto 0) := x"12"; -- address 5048 of the gnum BAR 0
-  constant c_ACAM_REG3_RDBK_ADR  : std_logic_vector(7 downto 0) := x"13"; -- address 504C of the gnum BAR 0
-  constant c_ACAM_REG4_RDBK_ADR  : std_logic_vector(7 downto 0) := x"14"; -- address 5050 of the gnum BAR 0
-  constant c_ACAM_REG5_RDBK_ADR  : std_logic_vector(7 downto 0) := x"15"; -- address 5054 of the gnum BAR 0
-  constant c_ACAM_REG6_RDBK_ADR  : std_logic_vector(7 downto 0) := x"16"; -- address 5058 of the gnum BAR 0
-  constant c_ACAM_REG7_RDBK_ADR  : std_logic_vector(7 downto 0) := x"17"; -- address 505C of the gnum BAR 0
-  constant c_ACAM_REG8_RDBK_ADR  : std_logic_vector(7 downto 0) := x"18"; -- address 5060 of the gnum BAR 0
-  constant c_ACAM_REG9_RDBK_ADR  : std_logic_vector(7 downto 0) := x"19"; -- address 5064 of the gnum BAR 0
-  constant c_ACAM_REG10_RDBK_ADR : std_logic_vector(7 downto 0) := x"1A"; -- address 5068 of the gnum BAR 0
-  constant c_ACAM_REG11_RDBK_ADR : std_logic_vector(7 downto 0) := x"1B"; -- address 506C of the gnum BAR 0
-  constant c_ACAM_REG12_RDBK_ADR : std_logic_vector(7 downto 0) := x"1C"; -- address 5070 of the gnum BAR 0
-  constant c_ACAM_REG14_RDBK_ADR : std_logic_vector(7 downto 0) := x"1E"; -- address 5078 of the gnum BAR 0
+  constant c_ACAM_REG0_RDBK_ADR  : std_logic_vector(7 downto 0) := x"10"; -- address 0x51040 of the GN4124 BAR 0
+  constant c_ACAM_REG1_RDBK_ADR  : std_logic_vector(7 downto 0) := x"11"; -- address 0x51044 of the GN4124 BAR 0
+  constant c_ACAM_REG2_RDBK_ADR  : std_logic_vector(7 downto 0) := x"12"; -- address 0x51048 of the GN4124 BAR 0
+  constant c_ACAM_REG3_RDBK_ADR  : std_logic_vector(7 downto 0) := x"13"; -- address 0x5104C of the GN4124 BAR 0
+  constant c_ACAM_REG4_RDBK_ADR  : std_logic_vector(7 downto 0) := x"14"; -- address 0x51050 of the GN4124 BAR 0
+  constant c_ACAM_REG5_RDBK_ADR  : std_logic_vector(7 downto 0) := x"15"; -- address 0x51054 of the GN4124 BAR 0
+  constant c_ACAM_REG6_RDBK_ADR  : std_logic_vector(7 downto 0) := x"16"; -- address 0x51058 of the GN4124 BAR 0
+  constant c_ACAM_REG7_RDBK_ADR  : std_logic_vector(7 downto 0) := x"17"; -- address 0x5105C of the GN4124 BAR 0
+  constant c_ACAM_REG8_RDBK_ADR  : std_logic_vector(7 downto 0) := x"18"; -- address 0x51060 of the GN4124 BAR 0
+  constant c_ACAM_REG9_RDBK_ADR  : std_logic_vector(7 downto 0) := x"19"; -- address 0x51064 of the GN4124 BAR 0
+  constant c_ACAM_REG10_RDBK_ADR : std_logic_vector(7 downto 0) := x"1A"; -- address 0x51068 of the GN4124 BAR 0
+  constant c_ACAM_REG11_RDBK_ADR : std_logic_vector(7 downto 0) := x"1B"; -- address 0x5106C of the GN4124 BAR 0
+  constant c_ACAM_REG12_RDBK_ADR : std_logic_vector(7 downto 0) := x"1C"; -- address 0x51070 of the GN4124 BAR 0
+  constant c_ACAM_REG14_RDBK_ADR : std_logic_vector(7 downto 0) := x"1E"; -- address 0x51078 of the GN4124 BAR 0
 
 
 ---------------------------------------------------------------------------------------------------
@@ -325,29 +259,29 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 -- Addresses of TDC core Configuration registers to be written by the PCIe host
                                                                            -- corresponds to:
-  constant c_STARTING_UTC_ADR     : std_logic_vector(7 downto 0) := x"20"; -- address 5080 of gnum BAR 0
-  constant c_ACAM_INPUTS_EN_ADR   : std_logic_vector(7 downto 0) := x"21"; -- address 5084 of gnum BAR 0
-  constant c_START_PHASE_ADR      : std_logic_vector(7 downto 0) := x"22"; -- address 5088 of gnum BAR 0
-  constant c_ONE_HZ_PHASE_ADR     : std_logic_vector(7 downto 0) := x"23"; -- address 508C of gnum BAR 0
+  constant c_STARTING_UTC_ADR     : std_logic_vector(7 downto 0) := x"20"; -- address 0x51080 of GN4124 BAR 0
+  constant c_ACAM_INPUTS_EN_ADR   : std_logic_vector(7 downto 0) := x"21"; -- address 0x51084 of GN4124 BAR 0
+  constant c_START_PHASE_ADR      : std_logic_vector(7 downto 0) := x"22"; -- address 0x51088 of GN4124 BAR 0
+  constant c_ONE_HZ_PHASE_ADR     : std_logic_vector(7 downto 0) := x"23"; -- address 0x5108C of GN4124 BAR 0
 
-  constant c_IRQ_TSTAMP_THRESH_ADR: std_logic_vector(7 downto 0) := x"24"; -- address 5090 of gnum BAR 0
-  constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 5094 of gnum BAR 0
-  constant c_DAC_WORD_ADR         : std_logic_vector(7 downto 0) := x"26"; -- address 5098 of gnum BAR 0
+  constant c_IRQ_TSTAMP_THRESH_ADR: std_logic_vector(7 downto 0) := x"24"; -- address 0x51090 of GN4124 BAR 0
+  constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 0x51094 of GN4124 BAR 0
+  constant c_DAC_WORD_ADR         : std_logic_vector(7 downto 0) := x"26"; -- address 0x51098 of GN4124 BAR 0
 
---  constant c_RESERVED1          : std_logic_vector(7 downto 0) := x"27"; -- address 509C of gnum BAR 0
+--  constant c_RESERVED1          : std_logic_vector(7 downto 0) := x"27"; -- address 0x5109C of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Addresses of TDC core Status registers to be written by the different core units
                                                                            -- corresponds to:
-  constant c_LOCAL_UTC_ADR        : std_logic_vector(7 downto 0) := x"28"; -- address 50A0 of gnum BAR 0
-  constant c_IRQ_CODE_ADR         : std_logic_vector(7 downto 0) := x"29"; -- address 50A4 of gnum BAR 0
-  constant c_WR_INDEX_ADR         : std_logic_vector(7 downto 0) := x"2A"; -- address 50A8 of gnum BAR 0
-  constant c_CORE_STATUS_ADR      : std_logic_vector(7 downto 0) := x"2B"; -- address 50AC of gnum BAR 0
+  constant c_LOCAL_UTC_ADR        : std_logic_vector(7 downto 0) := x"28"; -- address 0x510A0 of GN4124 BAR 0
+  constant c_IRQ_CODE_ADR         : std_logic_vector(7 downto 0) := x"29"; -- address 0x510A4 of GN4124 BAR 0
+  constant c_WR_INDEX_ADR         : std_logic_vector(7 downto 0) := x"2A"; -- address 0x510A8 of GN4124 BAR 0
+  constant c_CORE_STATUS_ADR      : std_logic_vector(7 downto 0) := x"2B"; -- address 0x510AC of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Address of TDC core Control register
                                                                            -- corresponds to:
-  constant c_CTRL_REG_ADR         : std_logic_vector(7 downto 0) := x"3F"; -- address 50FC of gnum BAR 0
+  constant c_CTRL_REG_ADR         : std_logic_vector(7 downto 0) := x"3F"; -- address 0x510FC of GN4124 BAR 0
 
 
 ---------------------------------------------------------------------------------------------------
@@ -391,8 +325,6 @@ package tdc_core_pkg is
 --                            Constants regarding the Carrier CSR info                           --
 ---------------------------------------------------------------------------------------------------
   constant c_CARRIER_TYPE   : std_logic_vector(15 downto 0) := X"0001";
-
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -441,10 +373,10 @@ package tdc_core_pkg is
      tdc_led_trig3_o        : out   std_logic;
      tdc_led_trig4_o        : out   std_logic;
      tdc_led_trig5_o        : out   std_logic;
-     -- WISHBONE interface with the GNUM/VME_core
+     -- WISHBONE interface with the GN4124/VME_core
      -- for the core configuration | core interrupts | 1Wire | I2C 
      wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_dat_i      : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_dat_i       : in    std_logic_vector(31 downto 0);
      wb_tdc_csr_cyc_i       : in    std_logic;
      wb_tdc_csr_sel_i       : in    std_logic_vector(3 downto 0);
      wb_tdc_csr_stb_i       : in    std_logic;
@@ -453,16 +385,6 @@ package tdc_core_pkg is
      wb_tdc_csr_ack_o       : out   std_logic;
      wb_tdc_csr_stall_o     : out   std_logic;
      wb_irq_o               : out   std_logic;
-     -- WISHBONE interface with the GNUM DMA/VME_core
-     -- for the retreival of the timestamps
-     wb_tdc_mem_adr_i       : in    std_logic_vector(31 downto 0); 
-     wb_tdc_mem_dat_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_mem_cyc_i       : in    std_logic;
-     wb_tdc_mem_stb_i       : in    std_logic;
-     wb_tdc_mem_we_i        : in    std_logic;
-     wb_tdc_mem_dat_o       : out   std_logic_vector(31 downto 0);
-     wb_tdc_mem_ack_o       : out   std_logic;
-     wb_tdc_mem_stall_o     : out   std_logic;
      -- Interrupt pulses, for debug
      irq_tstamp_p_o         : out   std_logic;
      irq_time_p_o           : out   std_logic;
@@ -478,63 +400,63 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component fmc_tdc_core
   generic
-    (g_span              : integer := 32;
-     g_width             : integer := 32;
-     values_for_simul    : boolean := FALSE);
+    (g_span                 : integer := 32;
+     g_width                : integer := 32;
+     values_for_simul       : boolean := FALSE);
   port
-    (clk_125m_i          : in std_logic;
-     rst_i               : in  std_logic;
-     acam_refclk_r_edge_p_i :in  std_logic;
-     send_dac_word_p_o   : out  std_logic;
-     dac_word_o          : out std_logic_vector(23 downto 0);
-     start_from_fpga_o   : out std_logic;
-     err_flag_i          : in std_logic; 
-     int_flag_i          : in std_logic; 
-     start_dis_o         : out std_logic;
-     stop_dis_o          : out std_logic;
-     data_bus_io         : inout std_logic_vector(27 downto 0);
-     address_o           : out std_logic_vector(3 downto 0);
-     cs_n_o              : out std_logic;
-     oe_n_o              : out std_logic;
-     rd_n_o              : out std_logic;
-     wr_n_o              : out std_logic;
-     ef1_i               : in std_logic;
-     ef2_i               : in std_logic;
-     tdc_in_fpga_1_i     : in std_logic;
-     tdc_in_fpga_2_i     : in std_logic;
-     tdc_in_fpga_3_i     : in std_logic;
-     tdc_in_fpga_4_i     : in std_logic;
-     tdc_in_fpga_5_i     : in std_logic;
-     enable_inputs_o     : out std_logic;
-     term_en_1_o         : out std_logic;
-     term_en_2_o         : out std_logic;
-     term_en_3_o         : out std_logic;
-     term_en_4_o         : out std_logic;
-     term_en_5_o         : out std_logic;
-     tdc_led_status_o    : out std_logic;
-     tdc_led_trig1_o     : out std_logic;
-     tdc_led_trig2_o     : out std_logic;
-     tdc_led_trig3_o     : out std_logic;
-     tdc_led_trig4_o     : out std_logic;
-     tdc_led_trig5_o     : out std_logic;
-     irq_tstamp_p_o      : out std_logic;
-     irq_time_p_o        : out std_logic;
-     irq_acam_err_p_o    : out std_logic;
-     tdc_config_wb_adr_i : in std_logic_vector(g_span-1 downto 0);
-     tdc_config_wb_dat_i : in std_logic_vector(g_width-1 downto 0);
-     tdc_config_wb_stb_i : in std_logic;
-     tdc_config_wb_we_i  : in std_logic;
-     tdc_config_wb_cyc_i : in std_logic;
-     tdc_config_wb_dat_o : out std_logic_vector(g_width-1 downto 0);
-     tdc_config_wb_ack_o : out std_logic;
-     tdc_mem_wb_adr_i    : in std_logic_vector(31 downto 0);
-     tdc_mem_wb_dat_i    : in std_logic_vector(31 downto 0);
-     tdc_mem_wb_stb_i    : in std_logic;
-     tdc_mem_wb_we_i     : in std_logic;
-     tdc_mem_wb_cyc_i    : in std_logic;
-     tdc_mem_wb_ack_o    : out std_logic;
-     tdc_mem_wb_dat_o    : out std_logic_vector(31 downto 0);
-     tdc_mem_wb_stall_o  : out std_logic); 
+    (clk_125m_i             : in   std_logic;
+     rst_i                  : in    std_logic;
+     acam_refclk_r_edge_p_i : in    std_logic;
+     send_dac_word_p_o      : out   std_logic;
+     dac_word_o             : out   std_logic_vector(23 downto 0);
+     start_from_fpga_o      : out   std_logic;
+     err_flag_i             : in    std_logic; 
+     int_flag_i             : in    std_logic; 
+     start_dis_o            : out   std_logic;
+     stop_dis_o             : out   std_logic;
+     data_bus_io            : inout std_logic_vector(27 downto 0);
+     address_o              : out   std_logic_vector(3 downto 0);
+     cs_n_o                 : out   std_logic;
+     oe_n_o                 : out   std_logic;
+     rd_n_o                 : out   std_logic;
+     wr_n_o                 : out   std_logic;
+     ef1_i                  : in    std_logic;
+     ef2_i                  : in    std_logic;
+     tdc_in_fpga_1_i        : in    std_logic;
+     tdc_in_fpga_2_i        : in    std_logic;
+     tdc_in_fpga_3_i        : in    std_logic;
+     tdc_in_fpga_4_i        : in    std_logic;
+     tdc_in_fpga_5_i        : in    std_logic;
+     enable_inputs_o        : out   std_logic;
+     term_en_1_o            : out   std_logic;
+     term_en_2_o            : out   std_logic;
+     term_en_3_o            : out   std_logic;
+     term_en_4_o            : out   std_logic;
+     term_en_5_o            : out   std_logic;
+     tdc_led_status_o       : out   std_logic;
+     tdc_led_trig1_o        : out   std_logic;
+     tdc_led_trig2_o        : out   std_logic;
+     tdc_led_trig3_o        : out   std_logic;
+     tdc_led_trig4_o        : out   std_logic;
+     tdc_led_trig5_o        : out   std_logic;
+     irq_tstamp_p_o         : out   std_logic;
+     irq_time_p_o           : out   std_logic;
+     irq_acam_err_p_o       : out   std_logic;
+     tdc_config_wb_adr_i    : in    std_logic_vector(g_span-1 downto 0);
+     tdc_config_wb_dat_i    : in    std_logic_vector(g_width-1 downto 0);
+     tdc_config_wb_stb_i    : in    std_logic;
+     tdc_config_wb_we_i     : in    std_logic;
+     tdc_config_wb_cyc_i    : in    std_logic;
+     tdc_config_wb_dat_o    : out   std_logic_vector(g_width-1 downto 0);
+     tdc_config_wb_ack_o    : out   std_logic;
+     tdc_mem_wb_adr_i       : in    std_logic_vector(31 downto 0);
+     tdc_mem_wb_dat_i       : in    std_logic_vector(31 downto 0);
+     tdc_mem_wb_stb_i       : in    std_logic;
+     tdc_mem_wb_we_i        : in    std_logic;
+     tdc_mem_wb_cyc_i       : in    std_logic;
+     tdc_mem_wb_ack_o       : out   std_logic;
+     tdc_mem_wb_dat_o       : out   std_logic_vector(31 downto 0);
+     tdc_mem_wb_stall_o     : out   std_logic); 
   end component;
 
 
@@ -633,9 +555,9 @@ package tdc_core_pkg is
        clk_i                 : in std_logic;
        rst_i                 : in std_logic;
        acam_ef1_i            : in std_logic;
-       acam_ef1_meta_i     : in std_logic;
+       acam_ef1_meta_i       : in std_logic;
        acam_ef2_i            : in std_logic;
-       acam_ef2_meta_i     : in std_logic;
+       acam_ef2_meta_i       : in std_logic;
        activate_acq_p_i      : in std_logic;
        deactivate_acq_p_i    : in std_logic;
        acam_wr_config_p_i    : in std_logic;
@@ -653,7 +575,6 @@ package tdc_core_pkg is
        acam_stb_o            : out std_logic;
        acam_we_o             : out std_logic;
        acam_config_rdbk_o    : out config_vector;
-       acam_status_o         : out std_logic_vector(31 downto 0);
        acam_ififo1_o         : out std_logic_vector(31 downto 0);
        acam_ififo2_o         : out std_logic_vector(31 downto 0);
        acam_start01_o        : out std_logic_vector(31 downto 0);
@@ -680,7 +601,6 @@ package tdc_core_pkg is
        tdc_config_wb_stb_i    : in std_logic;
        tdc_config_wb_we_i     : in std_logic;
        acam_config_rdbk_i     : in config_vector;
-       acam_status_i          : in std_logic_vector(g_width-1 downto 0);
        acam_ififo1_i          : in std_logic_vector(g_width-1 downto 0);
        acam_ififo2_i          : in std_logic_vector(g_width-1 downto 0);
        acam_start01_i         : in std_logic_vector(g_width-1 downto 0);
@@ -769,19 +689,18 @@ package tdc_core_pkg is
     generic
       (g_width                : integer := 32);
     port
-      (clk_i                  : in std_logic;
-       rst_i                  : in std_logic;
-       irq_tstamp_threshold_i : in std_logic_vector(g_width-1 downto 0);
-       irq_time_threshold_i   : in std_logic_vector(g_width-1 downto 0);
-       activate_acq_p_i       : in std_logic;
-       deactivate_acq_p_i     : in std_logic;
-       tstamp_wr_p_i          : in std_logic;
-       one_hz_p_i             : in std_logic;
-       acam_errflag_r_edge_p_i: in std_logic;
+      (clk_i                   : in std_logic;
+       rst_i                   : in std_logic;
+       irq_tstamp_threshold_i  : in std_logic_vector(g_width-1 downto 0);
+       irq_time_threshold_i    : in std_logic_vector(g_width-1 downto 0);
+       activate_acq_p_i        : in std_logic;
+       deactivate_acq_p_i      : in std_logic;
+       tstamp_wr_p_i           : in std_logic;
+       acam_errflag_r_edge_p_i : in std_logic;
       ----------------------------------------------------------------------
-       irq_tstamp_p_o         : out std_logic;
-       irq_acam_err_p_o       : out std_logic;
-       irq_time_p_o           : out std_logic);
+       irq_tstamp_p_o          : out std_logic;
+       irq_acam_err_p_o        : out std_logic;
+       irq_time_p_o            : out std_logic);
       ----------------------------------------------------------------------
   end component;
 
@@ -789,21 +708,21 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component tdc_eic
     port
-      (rst_n_i             : in     std_logic;
-       clk_sys_i           : in     std_logic;
-       wb_adr_i            : in     std_logic_vector(1 downto 0);
-       wb_dat_i            : in     std_logic_vector(31 downto 0);
-       wb_dat_o            : out    std_logic_vector(31 downto 0);
-       wb_cyc_i            : in     std_logic;
-       wb_sel_i            : in     std_logic_vector(3 downto 0);
-       wb_stb_i            : in     std_logic;
-       wb_we_i             : in     std_logic;
-       wb_ack_o            : out    std_logic;
-       wb_stall_o          : out    std_logic;
-       wb_int_o            : out    std_logic;
-       irq_tdc_tstamps_i   : in     std_logic;
-       irq_tdc_time_i      : in     std_logic;
-       irq_tdc_acam_err_i  : in     std_logic);
+      (rst_n_i            : in  std_logic;
+       clk_sys_i          : in  std_logic;
+       wb_adr_i           : in  std_logic_vector(1 downto 0);
+       wb_dat_i           : in  std_logic_vector(31 downto 0);
+       wb_dat_o           : out std_logic_vector(31 downto 0);
+       wb_cyc_i           : in  std_logic;
+       wb_sel_i           : in  std_logic_vector(3 downto 0);
+       wb_stb_i           : in  std_logic;
+       wb_we_i            : in  std_logic;
+       wb_ack_o           : out std_logic;
+       wb_stall_o         : out std_logic;
+       wb_int_o           : out std_logic;
+       irq_tdc_tstamps_i  : in  std_logic;
+       irq_tdc_time_i     : in  std_logic;
+       irq_tdc_acam_err_i : in  std_logic);
   end component tdc_eic;
 
 
@@ -874,31 +793,36 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-  component carrier_csr
+  component carrier_info
     port
-      (rst_n_i                          : in  std_logic;
-       wb_clk_i                         : in  std_logic;
-       wb_addr_i                        : in  std_logic_vector(1 downto 0);
-       wb_data_i                        : in  std_logic_vector(31 downto 0);
-       wb_data_o                        : out std_logic_vector(31 downto 0);
-       wb_cyc_i                         : in  std_logic;
-       wb_sel_i                         : in  std_logic_vector(3 downto 0);
-       wb_stb_i                         : in  std_logic;
-       wb_we_i                          : in  std_logic;
-       wb_ack_o                         : out std_logic;
-       carrier_csr_carrier_pcb_rev_i    : in  std_logic_vector(3 downto 0);
-       carrier_csr_carrier_reserved_i   : in  std_logic_vector(11 downto 0);
-       carrier_csr_carrier_type_i       : in  std_logic_vector(15 downto 0);
-       carrier_csr_stat_fmc_pres_i      : in  std_logic;
-       carrier_csr_stat_p2l_pll_lck_i   : in  std_logic;
-       carrier_csr_stat_sys_pll_lck_i   : in  std_logic;
-       carrier_csr_stat_ddr3_cal_done_i : in  std_logic;
-       carrier_csr_stat_reserved_i      : in  std_logic_vector(27 downto 0);
-       carrier_csr_ctrl_led_green_o     : out std_logic;
-       carrier_csr_ctrl_led_red_o       : out std_logic;
-       carrier_csr_ctrl_dac_clr_n_o     : out std_logic;
-       carrier_csr_ctrl_reserved_o      : out std_logic_vector(28 downto 0));
-  end component carrier_csr;
+      (rst_n_i                           : in  std_logic;
+       clk_sys_i                         : in  std_logic;
+       wb_adr_i                          : in  std_logic_vector(1 downto 0);
+       wb_dat_i                          : in  std_logic_vector(31 downto 0);
+       wb_dat_o                          : out std_logic_vector(31 downto 0);
+       wb_cyc_i                          : in  std_logic;
+       wb_sel_i                          : in  std_logic_vector(3 downto 0);
+       wb_stb_i                          : in  std_logic;
+       wb_we_i                           : in  std_logic;
+       wb_ack_o                          : out std_logic;
+       wb_stall_o                        : out std_logic;
+       carrier_info_carrier_pcb_rev_i    : in  std_logic_vector(3 downto 0);
+       carrier_info_carrier_reserved_i   : in  std_logic_vector(11 downto 0);
+       carrier_info_carrier_type_i       : in  std_logic_vector(15 downto 0);
+       carrier_info_stat_fmc_pres_i      : in  std_logic;
+       carrier_info_stat_p2l_pll_lck_i   : in  std_logic;
+       carrier_info_stat_sys_pll_lck_i   : in  std_logic;
+       carrier_info_stat_ddr3_cal_done_i : in  std_logic;
+       carrier_info_stat_reserved_i      : in  std_logic_vector(27 downto 0);
+       carrier_info_ctrl_led_green_o     : out std_logic;
+       carrier_info_ctrl_led_red_o       : out std_logic;
+       carrier_info_ctrl_dac_clr_n_o     : out std_logic;
+       carrier_info_ctrl_reserved_o      : out std_logic_vector(28 downto 0);
+       carrier_info_rst_fmc0_n_o         : out std_logic;
+       carrier_info_rst_fmc0_n_i         : in  std_logic;
+       carrier_info_rst_fmc0_n_load_o    : out std_logic;
+       carrier_info_rst_reserved_o       : out std_logic_vector(30 downto 0));
+  end component carrier_info;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -926,28 +850,28 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component acam_databus_interface
     port
-      (ef1_i        : in std_logic;
-       ef2_i        : in std_logic;
-       data_bus_io  : inout std_logic_vector(27 downto 0);
-       clk_i        : in std_logic;
-       rst_i        : in std_logic;
-       adr_i        : in std_logic_vector(7 downto 0);
-       cyc_i        : in std_logic;
-       dat_i        : in std_logic_vector(31 downto 0);
-       stb_i        : in std_logic;
-       we_i         : in std_logic;
+      (ef1_i       : in std_logic;
+       ef2_i       : in std_logic;
+       data_bus_io : inout std_logic_vector(27 downto 0);
+       clk_i       : in std_logic;
+       rst_i       : in std_logic;
+       adr_i       : in std_logic_vector(7 downto 0);
+       cyc_i       : in std_logic;
+       dat_i       : in std_logic_vector(31 downto 0);
+       stb_i       : in std_logic;
+       we_i        : in std_logic;
       ----------------------------------------------------------------------
-       adr_o        : out std_logic_vector(3 downto 0);
-       cs_n_o       : out std_logic;
-       oe_n_o       : out std_logic;
-       rd_n_o       : out std_logic;
-       wr_n_o       : out std_logic;
-       ack_o        : out std_logic;
-       ef1_o        : out std_logic;
-       ef1_meta_o   : out std_logic;
-       ef2_o        : out std_logic;
-       ef2_meta_o   : out std_logic;
-       dat_o        : out std_logic_vector(31 downto 0));
+       adr_o       : out std_logic_vector(3 downto 0);
+       cs_n_o      : out std_logic;
+       oe_n_o      : out std_logic;
+       rd_n_o      : out std_logic;
+       wr_n_o      : out std_logic;
+       ack_o       : out std_logic;
+       ef1_o       : out std_logic;
+       ef1_meta_o  : out std_logic;
+       ef2_o       : out std_logic;
+       ef2_meta_o  : out std_logic;
+       dat_o       : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
 
@@ -981,19 +905,19 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component blk_mem_circ_buff_v6_4
     port
-      (clka : in std_logic;
-       addra  : in std_logic_vector(7 downto 0);
-       dina   : in std_logic_vector(127 downto 0);
-       ena    : in std_logic;
-       wea    : in std_logic_vector(0 downto 0);
-       clkb   : in std_logic;
-       addrb  : in std_logic_vector(9 downto 0);
-       dinb   : in std_logic_vector(31 downto 0);
-       enb    : in std_logic;
-       web    : in std_logic_vector(0 downto 0);
+      (clka  : in std_logic;
+       addra : in std_logic_vector(7 downto 0);
+       dina  : in std_logic_vector(127 downto 0);
+       ena   : in std_logic;
+       wea   : in std_logic_vector(0 downto 0);
+       clkb  : in std_logic;
+       addrb : in std_logic_vector(9 downto 0);
+       dinb  : in std_logic_vector(31 downto 0);
+       enb   : in std_logic;
+       web   : in std_logic_vector(0 downto 0);
      --------------------------------------------------
-       douta  : out std_logic_vector(127 downto 0);
-       doutb  : out std_logic_vector(31 downto 0));
+       douta : out std_logic_vector(127 downto 0);
+       doutb : out std_logic_vector(31 downto 0));
      --------------------------------------------------
   end component;
 
