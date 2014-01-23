@@ -12,10 +12,10 @@
 NET "acam_refclk_p_i" TNM_NET = "acam_refclk_p_i"; 
 TIMESPEC "TS_acam_refclk_p_i" = PERIOD "acam_refclk_p_i" 32.000 ns HIGH 50.00%; 
 
-# 1004 : define_clock {n:gnum_interface_block.cmp_clk_in.rx_bufg_pll_x1} -name {gnum_clk200} -freq {200} -clockgroup {default_clkgroup31__4}
-# c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
-NET "gnum_interface_block.sys_clk" TNM_NET = "gnum_interface_block_sys_clk"; 
-TIMESPEC "TS_gnum_interface_block_sys_clk" = PERIOD "gnum_interface_block_sys_clk" 5.000 ns HIGH 50.00%; 
+# 1233 : define_clock {n:cmp_GN4124.cmp_clk_in.buf_P_clk} -name {serdes_1_to_n_clk_pll_s2_diff_work_spec_top_fmc_tdc_rtl_6layer0|buf_P_clk_inferred_clock} -ref_rise {0.000000} -ref_fall {2.500000} -uncertainty {0.000000} -period {5.000000} -clockgroup {Inferred_clkgroup_0} -rise {0.000000} -fall {2.500000}
+
+NET "cmp_GN4124.cmp_clk_in.buf_P_clk" TNM_NET = "cmp_GN4124_cmp_clk_in_buf_P_clk"; 
+TIMESPEC "TS_cmp_GN4124_cmp_clk_in_buf_P_clk" = PERIOD "cmp_GN4124_cmp_clk_in_buf_P_clk" 5.000 ns HIGH 50.00%; 
 
 # 1002 : define_clock {p:spec_clk_i} -name {spec_clk20} -freq {20} -clockgroup {default_clkgroup29__2}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
@@ -29,70 +29,55 @@ TIMESPEC "TS_tdc_clk_p_i" = PERIOD "tdc_clk_p_i" 8.000 ns HIGH 50.00%;
 #End clock constraints
 
 
-# 1018 : define_false_path -to {p:tdc_led_status_o}
+# 1007 : define_false_path -to {p:tdc_led_status_o}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "tdc_led_status_o" TNM = "to_1018_0";
-TIMESPEC "TS_1018_0" = TO "to_1018_0" TIG;
+NET "tdc_led_status_o" TNM = "to_1007_0";
+TIMESPEC "TS_1007_0" = TO "to_1007_0" TIG;
 
-# 1019 : define_false_path -to {p:tdc_led_trig1_o}
+# 1008 : define_false_path -to {p:tdc_led_trig1_o}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "tdc_led_trig1_o" TNM = "to_1019_0";
-TIMESPEC "TS_1019_0" = TO "to_1019_0" TIG;
+NET "tdc_led_trig1_o" TNM = "to_1008_0";
+TIMESPEC "TS_1008_0" = TO "to_1008_0" TIG;
 
-# 1020 : define_false_path -to {p:tdc_led_trig2_o}
+# 1009 : define_false_path -to {p:tdc_led_trig2_o}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "tdc_led_trig2_o" TNM = "to_1020_0";
-TIMESPEC "TS_1020_0" = TO "to_1020_0" TIG;
+NET "tdc_led_trig2_o" TNM = "to_1009_0";
+TIMESPEC "TS_1009_0" = TO "to_1009_0" TIG;
 
-# 1021 : define_false_path -to {p:tdc_led_trig3_o}
+# 1010 : define_false_path -to {p:tdc_led_trig3_o}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "tdc_led_trig3_o" TNM = "to_1021_0";
-TIMESPEC "TS_1021_0" = TO "to_1021_0" TIG;
+NET "tdc_led_trig3_o" TNM = "to_1010_0";
+TIMESPEC "TS_1010_0" = TO "to_1010_0" TIG;
 
-# 1022 : define_false_path -to {p:tdc_led_trig4_o}
+# 1011 : define_false_path -to {p:tdc_led_trig4_o}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "tdc_led_trig4_o" TNM = "to_1022_0";
-TIMESPEC "TS_1022_0" = TO "to_1022_0" TIG;
+NET "tdc_led_trig4_o" TNM = "to_1011_0";
+TIMESPEC "TS_1011_0" = TO "to_1011_0" TIG;
 
-# 1023 : define_false_path -to {p:tdc_led_trig5_o}
+# 1012 : define_false_path -to {p:tdc_led_trig5_o}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "tdc_led_trig5_o" TNM = "to_1023_0";
-TIMESPEC "TS_1023_0" = TO "to_1023_0" TIG;
+NET "tdc_led_trig5_o" TNM = "to_1012_0";
+TIMESPEC "TS_1012_0" = TO "to_1012_0" TIG;
 
-# 1024 : define_false_path -from {p:rst_n_a_i}
+# 1013 : define_false_path -from {p:rst_n_a_i}
 # c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
 
-NET "rst_n_a_i" TNM = "from_1024_0";
-TIMESPEC "TS_1024_0" = FROM "from_1024_0" TIG;
-
-# 1025 : define_false_path -from {i:gnum_interface_block.rst_reg}
-# c:\ohwr-fmc-tdc\hdl\syn\spec\tdc_syn_constraints.sdc
-
-INST "gnum_interface_block.rst_reg" TNM = "from_1025_0";
-TIMESPEC "TS_1025_0" = FROM "from_1025_0" TIG;
+NET "rst_n_a_i" TNM = "from_1013_0";
+TIMESPEC "TS_1013_0" = FROM "from_1013_0" TIG;
 
 
 # Unused constraints (intentionally commented out)
-# define_multicycle_path -from { p:data_bus_io[27:0] } { 3 }
-# define_multicycle_path -to { p:data_bus_io[27:0] } { 3 }
-# define_multicycle_path -to { p:address_o[3:0] } { 3 }
-# define_false_path -from { p:spec_aux0_i }
-# define_false_path -from { p:spec_aux1_i }
-# define_false_path -to { p:spec_aux2_o }
-# define_false_path -to { p:spec_aux3_o }
-# define_false_path -to { p:spec_aux4_o }
-# define_false_path -to { p:spec_aux5_o }
-# define_false_path -to { p:spec_led_green_o }
-# define_false_path -to { p:spec_led_red_o }
+# define_false_path -from { i:gnum_interface_block.rst_reg }
 
 # Location Constraints
 PIN "svec_clk_ibuf_cb.O" CLOCK_DEDICATED_ROUTE = FALSE;
+PIN "cmp_GN4124.cmp_clk_in.bufg_135.O" CLOCK_DEDICATED_ROUTE = FALSE;
 PIN "cmp_tdc_clks_rsts_mgment.tdc_clk125_gbuf.O" CLOCK_DEDICATED_ROUTE = FALSE;
 
 # End of generated constraints

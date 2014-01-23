@@ -69,7 +69,7 @@ add_file -vhdl -lib work "../../ip_cores/wishbone/wb_vic/wb_vic.vhd"
 add_file -vhdl -lib work "../../ip_cores/wishbone/wb_vic/xwb_vic.vhd"
 
 
-add_file -vhdl -lib work "../../ip_cores/wishbone/carrier_csr.vhd"
+add_file -vhdl -lib work "../../rtl/carrier_info.vhd"
 
 add_file -vhdl -lib work "../../rtl/fmc_tdc_core.vhd"
 
@@ -90,8 +90,7 @@ add_file -vhdl -lib work "../../rtl/irq_generator.vhd"
 add_file -vhdl -lib work "../../rtl/reg_ctrl.vhd"
 add_file -vhdl -lib work "../../rtl/leds_manager.vhd" 
 
-add_file -vhdl -lib work "../../top/spec/dma_eic.vhd"
-add_file -vhdl -lib work "../../top/spec/top_tdc.vhd"
+add_file -vhdl -lib work "../../top/spec/spec_top_fmc_tdc.vhd"
 
 add_file -constraint -lib work "./tdc_syn_constraints.sdc"
 
@@ -122,7 +121,7 @@ set_option -no_sequential_opt 0
 
 #compilation/mapping options
 set_option -use_fsm_explorer 0
-set_option -top_module "top_tdc"
+set_option -top_module "spec_top_fmc_tdc"
 
 # mapper_options
 set_option -frequency 200

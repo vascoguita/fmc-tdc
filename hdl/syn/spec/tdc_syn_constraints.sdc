@@ -32,17 +32,6 @@ define_output_delay -disable     -default  2.00 -improve 0.00 -route 0.00 -ref {
 #
 # Delay Paths
 #
-define_multicycle_path  -from {{p:data_bus_io[27:0]}}  3
-define_multicycle_path  -to {{p:data_bus_io[27:0]}}  3
-define_multicycle_path  -to {{p:address_o[3:0]}}  3
-define_false_path  -from {{p:spec_aux0_i}} 
-define_false_path  -from {{p:spec_aux1_i}} 
-define_false_path  -to {{p:spec_aux2_o}} 
-define_false_path  -to {{p:spec_aux3_o}} 
-define_false_path  -to {{p:spec_aux4_o}} 
-define_false_path  -to {{p:spec_aux5_o}} 
-define_false_path  -to {{p:spec_led_green_o}} 
-define_false_path  -to {{p:spec_led_red_o}} 
 define_false_path  -to {{p:tdc_led_status_o}} 
 define_false_path  -to {{p:tdc_led_trig1_o}} 
 define_false_path  -to {{p:tdc_led_trig2_o}} 
@@ -79,7 +68,6 @@ define_attribute {p:pll_sclk_o} {syn_loc} {AA16}
 define_attribute {p:pll_dac_sync_o} {syn_loc} {AB16}
 define_attribute {p:pll_cs_o} {syn_loc} {Y17}
 define_attribute {p:cs_n_o} {syn_loc} {AB17}
-define_attribute {p:prsnt_m2c_n_i} {syn_loc} {AB14}
 define_attribute {p:err_flag_i} {syn_loc} {V11}
 define_attribute {p:int_flag_i} {syn_loc} {W11}
 define_attribute {p:start_dis_o} {syn_loc} {T15}
@@ -192,8 +180,8 @@ define_attribute {p:spec_led_red_o} {syn_loc} {D5}
 define_attribute {p:spec_clk_i} {syn_loc} {H12}
 define_attribute {p:carrier_one_wire_b} {syn_loc} {D4}
 define_attribute {p:mezz_one_wire_b} {syn_loc} {A19}
-define_attribute {p:sys_scl_b} {syn_loc} {F7}
-define_attribute {p:sys_sda_b} {syn_loc} {F8}
+define_attribute {p:mezz_sys_scl_b} {syn_loc} {F7}
+define_attribute {p:mezz_sys_sda_b} {syn_loc} {F8}
 define_attribute {p:pcb_ver_i[0]} {syn_loc} {P5}
 define_attribute {p:pcb_ver_i[1]} {syn_loc} {P4}
 define_attribute {p:pcb_ver_i[2]} {syn_loc} {AA2}
@@ -224,7 +212,6 @@ define_io_standard               {pll_sclk_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {pll_dac_sync_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {pll_cs_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {cs_n_o} syn_pad_type {LVCMOS_25}
-define_io_standard               {prsnt_m2c_n_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {rst_n_a_i} syn_pad_type {LVCMOS18}
 define_io_standard               {p2l_clk_p_i} syn_pad_type {DIFF_SSTL_18_Class_II}
 define_io_standard               {p2l_clk_n_i} syn_pad_type {DIFF_SSTL_18_Class_II}
@@ -276,8 +263,8 @@ define_io_standard               {spec_led_green_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {spec_led_red_o} syn_pad_type {LVCMOS_25}
 define_io_standard               {spec_clk_i} syn_pad_type {LVCMOS_25}
 define_io_standard               {carrier_one_wire_b} syn_pad_type {LVCMOS_25}
-define_io_standard               {sys_scl_b} syn_pad_type {LVCMOS_25}
-define_io_standard               {sys_sda_b} syn_pad_type {LVCMOS_25}
+define_io_standard               {mezz_sys_scl_b} syn_pad_type {LVCMOS_25}
+define_io_standard               {mezz_sys_sda_b} syn_pad_type {LVCMOS_25}
 define_io_standard               {mezz_one_wire_b} syn_pad_type {LVCMOS_25}
 
 #
