@@ -257,8 +257,9 @@ architecture rtl of fmc_tdc_core is
   signal circ_buff_class_data_wr, circ_buff_class_data_rd   : std_logic_vector(4*g_width-1 downto 0);
   -- LEDs
   signal fordebug                                           : std_logic_vector(5 downto 0);
-  -- signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3     : std_logic_vector(1 downto 0);
-  -- signal tdc_in_fpga_4, tdc_in_fpga_5                    : std_logic_vector(1 downto 0);
+  signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3        : std_logic_vector(1 downto 0);
+  signal tdc_in_fpga_4, tdc_in_fpga_5                       : std_logic_vector(1 downto 0);
+  signal acam_channel                                       : std_logic_vector(2 downto 0);
   
 
 --=================================================================================================
@@ -483,6 +484,7 @@ begin
      one_hz_p_i              => one_hz_p,
      local_utc_i             => local_utc,
      tstamp_wr_p_o           => tstamp_wr_p,
+     acam_channel_o          => acam_channel,
      wr_index_o              => wr_index);
 
 
@@ -544,6 +546,7 @@ begin
      one_hz_p_i       => one_hz_p,
      acam_inputs_en_i => acam_inputs_en,
      fordebug_i       => fordebug,
+     tstamp_wr_p_i    => tstamp_wr_p,
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
      tdc_led_trig2_o  => tdc_led_trig2_o,
@@ -570,7 +573,8 @@ begin
     -- end if;
   -- end process;
   -- fordebug <= '0' & tdc_in_fpga_5(1) & tdc_in_fpga_4(1) & tdc_in_fpga_3(1) & tdc_in_fpga_2(1) & tdc_in_fpga_1(1);
-  fordebug <= "000000";
+  --fordebug <= "000000";
+  fordebug <= "000" & acam_channel;
 
 ---------------------------------------------------------------------------------------------------
 --                               ACAM start_dis/ stop_dis, not used                              --

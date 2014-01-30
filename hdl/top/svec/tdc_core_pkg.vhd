@@ -579,7 +579,6 @@ package tdc_core_pkg is
        acam_stb_o            : out std_logic;
        acam_we_o             : out std_logic;
        acam_config_rdbk_o    : out config_vector;
-       acam_status_o         : out std_logic_vector(31 downto 0);
        acam_ififo1_o         : out std_logic_vector(31 downto 0);
        acam_ififo2_o         : out std_logic_vector(31 downto 0);
        acam_start01_o        : out std_logic_vector(31 downto 0);
@@ -606,7 +605,6 @@ package tdc_core_pkg is
        tdc_config_wb_stb_i    : in std_logic;
        tdc_config_wb_we_i     : in std_logic;
        acam_config_rdbk_i     : in config_vector;
-       acam_status_i          : in std_logic_vector(g_width-1 downto 0);
        acam_ififo1_i          : in std_logic_vector(g_width-1 downto 0);
        acam_ififo2_i          : in std_logic_vector(g_width-1 downto 0);
        acam_start01_i         : in std_logic_vector(g_width-1 downto 0);
@@ -703,7 +701,6 @@ package tdc_core_pkg is
        activate_acq_p_i        : in std_logic;
        deactivate_acq_p_i      : in std_logic;
        tstamp_wr_p_i           : in std_logic;
-       one_hz_p_i              : in std_logic;
       ----------------------------------------------------------------------
        irq_tstamp_p_o          : out std_logic;
        irq_time_p_o            : out std_logic;

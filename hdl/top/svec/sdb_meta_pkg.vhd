@@ -57,7 +57,7 @@ package sdb_meta_pkg is
     -- Top module name (string, 16 char)
     syn_module_name  => "svec_top_fmc_tdc",
     -- Commit ID (hex string, 128-bit = 32 char)
-    -- git log -1 --format="%H" | cut -c1-320
+    -- git log -1 --format="%H" | cut -c1-32
     syn_commit_id    => x"00000000",
     -- Synthesis tool name (string, 8 char)
     syn_tool_name    => "ISE_13_4",
@@ -72,7 +72,7 @@ package sdb_meta_pkg is
   constant c_SDB_INTEGRATION : t_sdb_integration := (
     product     => (
       vendor_id => x"000000000000CE42",  -- CERN
-      device_id => x"47c786a2",          -- echo "spec_fmc-adc-100m14b4cha" | md5sum | cut -c1-8
+      device_id => x"c7b577a1",          -- echo "spec_fmc-adc-100m14b4cha" | md5sum | cut -c1-8
       version   => x"00010001",          -- bcd encoded, [31:16] = major, [15:0] = minor
       date      => x"20131113",          -- yyyymmdd
       name      => "svec_fmctdc1ns5cha "));

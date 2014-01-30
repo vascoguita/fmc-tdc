@@ -167,8 +167,8 @@ entity spec_top_fmc_tdc is
      pll_dac_sync_o     : out   std_logic;                    -- DAC chip select
      pll_sdo_i          : in    std_logic;                    -- not used for the moment
      pll_status_i       : in    std_logic;                    -- PLL Digital Lock Detect, active high
-     tdc_clk_p_i        : in    std_logic;                    -- 125 MHz differential clock: system clock
-     tdc_clk_n_i        : in    std_logic;                    -- 125 MHz differential clock: system clock
+     tdc_clk_125m_p_i   : in    std_logic;                    -- 125 MHz differential clock: system clock
+     tdc_clk_125m_n_i   : in    std_logic;                    -- 125 MHz differential clock: system clock
      acam_refclk_p_i    : in    std_logic;                    -- 31.25 MHz differential clock: ACAM ref clock
      acam_refclk_n_i    : in    std_logic;                    -- 31.25 MHz differential clock: ACAM ref clock
 
@@ -224,15 +224,15 @@ entity spec_top_fmc_tdc is
      carrier_one_wire_b : inout std_logic;
      -- Carrier other signals
      pcb_ver_i          : in    std_logic_vector(3 downto 0); -- PCB version
-     prsnt_m2c_n_i      : in    std_logic;                    -- Mezzanine presence (active low)
-     spec_led_green_o   : out   std_logic;                    -- Green LED on SPEC front pannel, PLL status
-     spec_led_red_o     : out   std_logic;                    -- Red LED on SPEC front pannel
-     spec_aux0_i        : in    std_logic;                    -- Button on SPEC board
-     spec_aux1_i        : in    std_logic;                    -- Button on SPEC board
-     spec_aux2_o        : out   std_logic;                    -- Red LED on spec board
-     spec_aux3_o        : out   std_logic;                    -- Red LED on spec board
-     spec_aux4_o        : out   std_logic;                    -- Red LED on spec board
-     spec_aux5_o        : out   std_logic);                   -- Red LED on spec board
+     prsnt_m2c_n_i      : in    std_logic);                    -- Mezzanine presence (active low)
+     -- spec_led_green_o   : out   std_logic;                    -- Green LED on SPEC front pannel, PLL status
+     -- spec_led_red_o     : out   std_logic;                    -- Red LED on SPEC front pannel
+     -- spec_aux0_i        : in    std_logic;                    -- Button on SPEC board
+     -- spec_aux1_i        : in    std_logic;                    -- Button on SPEC board
+     -- spec_aux2_o        : out   std_logic;                    -- Red LED on spec board
+     -- spec_aux3_o        : out   std_logic;                    -- Red LED on spec board
+     -- spec_aux4_o        : out   std_logic;                    -- Red LED on spec board
+     -- spec_aux5_o        : out   std_logic);                   -- Red LED on spec board
 
 end spec_top_fmc_tdc;
 
@@ -276,7 +276,7 @@ architecture rtl of spec_top_fmc_tdc is
 --                                         VIC CONSTANT                                          --
 ---------------------------------------------------------------------------------------------------
   constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 0) :=
-    (0 => x"00040000");
+    (0 => x"00052000");
 
 
 ---------------------------------------------------------------------------------------------------
@@ -326,8 +326,8 @@ begin
     (clk_20m_vcxo_i         => clk_20m_vcxo_buf,
      acam_refclk_p_i        => acam_refclk_p_i,
      acam_refclk_n_i        => acam_refclk_n_i,
-     tdc_125m_clk_p_i       => tdc_clk_p_i,
-     tdc_125m_clk_n_i       => tdc_clk_n_i,
+     tdc_125m_clk_p_i       => tdc_clk_125m_p_i,
+     tdc_125m_clk_n_i       => tdc_clk_125m_n_i,
      rst_n_i                => rst_n_a_i,
      pll_sdo_i              => pll_sdo_i,
      pll_status_i           => pll_status_i,
@@ -378,7 +378,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                           GN4124 CORE                                           --
 ---------------------------------------------------------------------------------------------------
-  cmp_GN4124: gn4124_core
+  cmp_gn4124_core: gn4124_core
   port map
     (rst_n_a_i       => rst_n_a_i,
 	 status_o        => gn4124_status,
@@ -515,9 +515,6 @@ begin
      -- TDC board 1-wire UniqueID&Thermometer interface
      one_wire_b             => mezz_one_wire_b);
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Convert byte address into word address
-  tdc_core_wb_adr           <= "00" & cnx_master_out(c_WB_SLAVE_TDC).adr(31 downto 2);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC).err   <= '0';

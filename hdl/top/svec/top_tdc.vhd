@@ -13,16 +13,19 @@
 -- File         top_tdc.vhd                                                                       |
 --                                                                                                |
 -- Description  TDC top level for SVEC. Figure 1 shows the architecture of this unit.             |
---                o Two TDC mezzanine cores are instanciated, for the boards on FMC1 and FMC2     |
---                o The IRQ controller is managing the interrupts coming from both TDC cores      |
---                o The carrier_csr module provides general information on the SVEC PCB version,  |
---                  PLLs locking state etc                                                        |
---                o The 1-Wire core provides communication with the SVEC Thermometer&UniqueID chip|
+--                                                                                                |
+--              For the communication with the VME bus, the ohwr.org vme64x_core is instantiated. |
+--                                                                                                |
+--              Two TDC mezzanine cores are instanciated, for the boards on FMC1 and FMC2.        |
+--              The IRQ controller is managing the interrupts coming from both TDC cores.         |
+--              The carrier_csr module provides general information on the SVEC PCB version,      |
+--               PLLs locking state etc.                                                          |
+--              The 1-Wire core provides communication with the SVEC Thermometer&UniqueID chip.   |
 --              All these cores communicate with the VME core through the SDB crossbar. The SDB   |
---              crossbar is responsible for managing the acess to the VME core.                   |
+--              crossbar is responsible for managing the access to the VME core.                  |
 --                                                                                                |
 --              The speed for the VME core is 62.5MHz. The TDC mezzanine cores however operate at |
---              125MHz. The crossing from the 62.5MHz world to the 125MHz world takes place       | 
+--              125MHz. The crossing from the 62.5MHz world to the 125MHz world takes place       |
 --              through dedicated clock_crossing cores.                                           |
 --                                                                                                |
 --              The 62.5MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of |
@@ -291,9 +294,9 @@ architecture rtl of top_tdc is
   constant c_CARRIER_TYPE   : std_logic_vector(15 downto 0) := x"0002";
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Constants regarding the SDB crossbar
-  constant c_NUM_WB_SLAVES  : integer := 1;
-  constant c_NUM_WB_MASTERS : integer := 5;
-  constant c_MASTER_VME     : integer := 0;
+  constant c_NUM_WB_SLAVES   : integer := 1;
+  constant c_NUM_WB_MASTERS  : integer := 5;
+  constant c_MASTER_VME      : integer := 0;
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   constant c_SLAVE_SVEC_1W   : integer := 0;  -- SVEC 1wire interface
   constant c_SLAVE_SVEC_INFO : integer := 1;  -- SVEC control and status registers

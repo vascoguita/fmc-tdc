@@ -107,7 +107,9 @@
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="WarningsGenerated"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForInputs"/>
       <status xil_pn:value="OutOfDateForOutputs"/>
+      <status xil_pn:value="InputChanged"/>
       <status xil_pn:value="OutputChanged"/>
       <outfile xil_pn:name="_xmsgs/xst.xmsgs"/>
       <outfile xil_pn:name="top_tdc.lso"/>
@@ -129,6 +131,7 @@
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="WarningsGenerated"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
       <outfile xil_pn:name="_ngo"/>
       <outfile xil_pn:name="_xmsgs/ngdbuild.xmsgs"/>
       <outfile xil_pn:name="top_tdc.bld"/>
@@ -138,6 +141,7 @@
     <transform xil_pn:end_ts="1385649562" xil_pn:in_ck="-7440346353620165565" xil_pn:name="TRANEXT_map_spartan6" xil_pn:prop_ck="7568465460566446564" xil_pn:start_ts="1385649353">
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
       <outfile xil_pn:name="_xmsgs/map.xmsgs"/>
       <outfile xil_pn:name="top_tdc.pcf"/>
       <outfile xil_pn:name="top_tdc_map.map"/>
@@ -152,6 +156,7 @@
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="WarningsGenerated"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
       <outfile xil_pn:name="_xmsgs/par.xmsgs"/>
       <outfile xil_pn:name="top_tdc.ncd"/>
       <outfile xil_pn:name="top_tdc.pad"/>
@@ -166,6 +171,7 @@
     <transform xil_pn:end_ts="1385649768" xil_pn:in_ck="182976557419624816" xil_pn:name="TRANEXT_bitFile_spartan6" xil_pn:prop_ck="-5293564962942599218" xil_pn:start_ts="1385649703">
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
       <outfile xil_pn:name="_xmsgs/bitgen.xmsgs"/>
       <outfile xil_pn:name="top_tdc.bgn"/>
       <outfile xil_pn:name="top_tdc.bin"/>
@@ -178,6 +184,7 @@
     <transform xil_pn:end_ts="1385649703" xil_pn:in_ck="-7440346353620165697" xil_pn:name="TRAN_postRouteTrce" xil_pn:prop_ck="445577401284416185" xil_pn:start_ts="1385649681">
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="ReadyToRun"/>
+      <status xil_pn:value="OutOfDateForPredecessor"/>
       <outfile xil_pn:name="_xmsgs/trce.xmsgs"/>
       <outfile xil_pn:name="top_tdc.twr"/>
       <outfile xil_pn:name="top_tdc.twx"/>

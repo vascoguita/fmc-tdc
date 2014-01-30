@@ -60,9 +60,9 @@ package sdb_meta_pkg is
     -- git log -1 --format="%H" | cut -c1-320
     syn_commit_id    => x"00000000",
     -- Synthesis tool name (string, 8 char)
-    syn_tool_name    => "SynpliDP",
+    syn_tool_name    => "ISE     ",
     -- Synthesis tool version (bcd encoded, 32-bit)
-    syn_tool_version => x"00201203",
+    syn_tool_version => x"00000134",
     -- Synthesis date (bcd encoded, 32-bit)
     syn_date         => x"20140121",
     -- Synthesised by (string, 15 char)

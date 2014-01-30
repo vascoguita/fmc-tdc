@@ -679,6 +679,7 @@ package tdc_core_pkg is
        tstamp_wr_wb_stb_o      : out std_logic;
        tstamp_wr_wb_we_o       : out std_logic;
        tstamp_wr_p_o           : out std_logic;
+       acam_channel_o          : out std_logic_vector(2 downto 0);
        wr_index_o              : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
@@ -836,6 +837,7 @@ package tdc_core_pkg is
        one_hz_p_i       : in std_logic;
        acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
        fordebug_i       : in std_logic_vector(5 downto 0);
+       tstamp_wr_p_i    : in std_logic;
       ----------------------------------------------------------------------
        tdc_led_status_o : out std_logic;
        tdc_led_trig1_o  : out std_logic;

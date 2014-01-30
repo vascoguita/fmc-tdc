@@ -114,6 +114,7 @@ entity data_formatting is
 
      -- Signal to the irq_generator unit
      tstamp_wr_p_o           : out std_logic;                      -- pulse upon storage of a new tstamp
+     acam_channel_o          : out std_logic_vector(2 downto 0);   -- 
 
      -- Signal to the reg_ctrl unit
      wr_index_o              : out std_logic_vector(31 downto 0)); -- index of last byte written
@@ -457,6 +458,8 @@ begin
    tstamp_wr_wb_cyc_o      <= tstamp_wr_cyc;
    tstamp_wr_wb_stb_o      <= tstamp_wr_stb;
    tstamp_wr_wb_we_o       <= tstamp_wr_we;
+
+   acam_channel_o <= acam_channel;
     
 end rtl;
 ----------------------------------------------------------------------------------------------------
