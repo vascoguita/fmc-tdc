@@ -187,10 +187,6 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="43"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="41"/>
     </file>
-    <file xil_pn:name="../../ip_cores/gnum_core/genram_pkg.vhd" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="44"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
     <file xil_pn:name="../../ip_cores/gnum_core/gn4124_core.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="45"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="62"/>
@@ -375,10 +371,10 @@
     <file xil_pn:name="spec_top_fmc_tdc.ucf" xil_pn:type="FILE_UCF">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../ip_cores/gnum_core/xilinx_cores/fifo_32x512.xise" xil_pn:type="FILE_ISE">
+    <file xil_pn:name="../../ip_cores/gnum_core/xilinx_cores/fifo_32x512.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../ip_cores/gnum_core/xilinx_cores/fifo_64x512.xise" xil_pn:type="FILE_ISE">
+    <file xil_pn:name="../../ip_cores/gnum_core/xilinx_cores/fifo_64x512.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>

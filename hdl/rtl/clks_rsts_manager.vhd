@@ -425,7 +425,7 @@ begin
   pll_dac_initialization_seq: process (clk_20m_vcxo_i)
   begin
     if rising_edge (clk_20m_vcxo_i) then
-      if rst_in_synch(1)  = '1' then
+      if rst_in_synch(1)  = '1' or send_dac_word_r_edge_p = '1' then
         config_st <= config_start;
       else
         config_st <= nxt_config_st;

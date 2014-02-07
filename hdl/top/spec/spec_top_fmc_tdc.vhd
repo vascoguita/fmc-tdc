@@ -224,9 +224,9 @@ entity spec_top_fmc_tdc is
      carrier_one_wire_b : inout std_logic;
      -- Carrier other signals
      pcb_ver_i          : in    std_logic_vector(3 downto 0); -- PCB version
-     prsnt_m2c_n_i      : in    std_logic);                    -- Mezzanine presence (active low)
-     -- spec_led_green_o   : out   std_logic;                    -- Green LED on SPEC front pannel, PLL status
-     -- spec_led_red_o     : out   std_logic;                    -- Red LED on SPEC front pannel
+     prsnt_m2c_n_i      : in    std_logic;                    -- Mezzanine presence (active low)
+     spec_led_green_o   : out   std_logic;                    -- Green LED on SPEC front pannel, PLL status
+     spec_led_red_o     : out   std_logic);                   -- Red LED on SPEC front pannel
      -- spec_aux0_i        : in    std_logic;                    -- Button on SPEC board
      -- spec_aux1_i        : in    std_logic;                    -- Button on SPEC board
      -- spec_aux2_o        : out   std_logic;                    -- Red LED on spec board
@@ -285,6 +285,7 @@ architecture rtl of spec_top_fmc_tdc is
   -- clocks and resets
   signal general_rst_n, general_rst, clk_125m   : std_logic;
   signal clk_20m_vcxo_buf, acam_refclk_r_edge_p : std_logic;
+  signal pll_status                             : std_logic;
   -- DAC configuration
   signal send_dac_word_p                        : std_logic;
   signal dac_word                               : std_logic_vector(23 downto 0);
@@ -340,10 +341,10 @@ begin
      pll_sdi_o              => pll_sdi_o,
      pll_sclk_o             => pll_sclk_o,
      tdc_125m_clk_o         => clk_125m,
-     pll_status_o           => open);
+     pll_status_o           => pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   general_rst_n             <= not general_rst;
-
+  spec_led_green_o          <= pll_status;
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
@@ -599,9 +600,6 @@ begin
      carrier_info_rst_fmc0_n_i         => '1',
      carrier_info_rst_fmc0_n_load_o    => open,
      carrier_info_rst_reserved_o       => open);
-
-
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).err   <= '0';

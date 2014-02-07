@@ -67,22 +67,7 @@ package tdc_core_pkg is
 -- Note: All address in sdb and crossbar are BYTE addresses!
 
 -- Devices sdb description
-  constant c_TDC_MEM_SDB_DEVICE : t_sdb_device :=
-    (abi_class     => x"0000",               -- undocumented device
-     abi_ver_major => x"01",
-     abi_ver_minor => x"01",
-     wbd_endian    => c_sdb_endian_big,
-     wbd_width     => x"4",                  -- 32-bit port granularity
-     sdb_component =>
-       (addr_first  => x"0000000000000000",
-        addr_last   => x"0000000000000FFF",
-        product     =>
-          (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000601",
-           version   => x"00000001",
-           date      => x"20121116",
-           name      => "WB-TDC-MEM         ")));
-
+  -- Devices sdb description
   constant c_ONEWIRE_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
@@ -94,12 +79,12 @@ package tdc_core_pkg is
         addr_last   => x"0000000000000007",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000602",
+           device_id => x"00000602",         -- "WB-Onewire.Control " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
            name      => "WB-Onewire.Control ")));
 
-  constant c_SPEC_CSR_SDB_DEVICE : t_sdb_device :=
+  constant c_SVEC_INFO_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -110,28 +95,12 @@ package tdc_core_pkg is
         addr_last   => x"000000000000001F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000603",
+           device_id => x"00000603",         -- "WB-SPEC.CSR        " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
-           name      => "WB-SPEC-CSR        ")));
+           name      => "WB-SPEC.CSR        ")));
 
-  constant c_TDC_CONFIG_SDB_DEVICE : t_sdb_device :=
-    (abi_class     => x"0000",               -- undocumented device
-     abi_ver_major => x"01",
-     abi_ver_minor => x"01",
-     wbd_endian    => c_sdb_endian_big,
-     wbd_width     => x"4",                  -- 32-bit port granularity
-     sdb_component =>
-       (addr_first  => x"0000000000000000",
-        addr_last   => x"00000000000000FF",
-        product     =>
-          (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000604",
-           version   => x"00000001",
-           date      => x"20130429",
-           name      => "WB-TDC-Core-Config ")));
-
-  constant c_INT_SDB_DEVICE : t_sdb_device :=
+  constant c_TDC_EIC_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -142,10 +111,11 @@ package tdc_core_pkg is
         addr_last   => x"000000000000000F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000605",
+           device_id => x"00000605",         -- "WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
-           name      => "WB-Int.Control     ")));
+           name      => "WB-FMC-TDC.EIC     ")));
+
 
   constant c_I2C_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
@@ -158,11 +128,58 @@ package tdc_core_pkg is
         addr_last   => x"000000000000001F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000606",
+           device_id => x"00000606",         -- "WB-I2C.Control     " | md5sum | cut -c1-8
            version   => x"00000001",
            date      => x"20121116",
            name      => "WB-I2C.Control     ")));
 
+  constant c_TDC_EIC_SDB : t_sdb_device := (
+    abi_class     => x"0000",              -- undocumented device
+    abi_ver_major => x"01",
+    abi_ver_minor => x"01",
+    wbd_endian    => c_sdb_endian_big,
+    wbd_width     => x"4",                 -- 32-bit port granularity
+    sdb_component => (
+      addr_first  => x"0000000000000000",
+      addr_last   => x"000000000000000F",
+      product     => (
+        vendor_id => x"000000000000CE42",  -- CERN
+        device_id => x"26ec6086",          -- "WB-FMC-TDC.EIC     " | md5sum | cut -c1-8
+        version   => x"00000001",
+        date      => x"20131204",
+        name      => "WB-FMC-TDC.EIC     ")));
+
+  constant c_TDC_CONFIG_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"00000000000000FF",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000604",         -- "WB-TDC-Core-Config " | md5sum | cut -c1-8
+           version   => x"00000001",
+           date      => x"20130429",
+           name      => "WB-TDC-Core-Config ")));
+
+  constant c_TDC_MEM_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"0000000000000FFF",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000601",         -- "WB-TDC-Mem         " | md5sum | cut -c1-8
+           version   => x"00000001",
+           date      => x"20121116",
+           name      => "WB-TDC-Mem         ")));
 
 ---------------------------------------------------------------------------------------------------
 --                      Constant regarding the Mezzanine DAC configuration                       --
@@ -310,121 +327,130 @@ package tdc_core_pkg is
 
   component fmc_tdc_mezzanine is
   generic
-    (g_span              : integer := 32;
-     g_width             : integer := 32;
-     values_for_simul    : boolean := FALSE);
+    (g_span                 : integer := 32;
+     g_width                : integer := 32;
+     values_for_simul       : boolean := FALSE);
   port
-    (clk_125m_i          : in    std_logic;
-     rst_i               : in    std_logic;
-     acam_refclk_r_edge_p_i: in    std_logic;
-     send_dac_word_p_o   : out  std_logic;
-     dac_word_o          : out std_logic_vector(23 downto 0);
-     start_from_fpga_o   : out   std_logic;
-     err_flag_i          : in    std_logic;
-     int_flag_i          : in    std_logic;
-     start_dis_o         : out   std_logic;
-     stop_dis_o          : out   std_logic;
-     data_bus_io         : inout std_logic_vector(27 downto 0);
-     address_o           : out   std_logic_vector(3 downto 0);
-     cs_n_o              : out   std_logic;
-     oe_n_o              : out   std_logic;
-     rd_n_o              : out   std_logic;
-     wr_n_o              : out   std_logic;
-     ef1_i               : in    std_logic;
-     ef2_i               : in    std_logic;
-     tdc_in_fpga_1_i     : in    std_logic;
-     tdc_in_fpga_2_i     : in    std_logic;
-     tdc_in_fpga_3_i     : in    std_logic;
-     tdc_in_fpga_4_i     : in    std_logic;
-     tdc_in_fpga_5_i     : in    std_logic;
-     enable_inputs_o     : out   std_logic;
-     term_en_1_o         : out   std_logic;
-     term_en_2_o         : out   std_logic;
-     term_en_3_o         : out   std_logic;
-     term_en_4_o         : out   std_logic;
-     term_en_5_o         : out   std_logic;
-     tdc_led_status_o    : out   std_logic;
-     tdc_led_trig1_o     : out   std_logic;
-     tdc_led_trig2_o     : out   std_logic;
-     tdc_led_trig3_o     : out   std_logic;
-     tdc_led_trig4_o     : out   std_logic;
-     tdc_led_trig5_o     : out   std_logic;
-     wb_tdc_mezz_adr_i   : in    std_logic_vector(31 downto 0);
-     wb_tdc_mezz_dat_i   : in    std_logic_vector(31 downto 0);
-     wb_tdc_mezz_dat_o   : out   std_logic_vector(31 downto 0);
-     wb_tdc_mezz_cyc_i   : in    std_logic;
-     wb_tdc_mezz_sel_i   : in    std_logic_vector(3 downto 0);
-     wb_tdc_mezz_stb_i   : in    std_logic;
-     wb_tdc_mezz_we_i    : in    std_logic;
-     wb_tdc_mezz_ack_o   : out   std_logic;
-     wb_tdc_mezz_stall_o : out   std_logic;
-     wb_irq_o            : out   std_logic;
-     sys_scl_b           : inout std_logic;
-     sys_sda_b           : inout std_logic;
-     mezz_one_wire_b     : inout std_logic);
+    (-- TDC core
+     clk_125m_i             : in    std_logic;
+     rst_i                  : in    std_logic;
+     acam_refclk_r_edge_p_i : in    std_logic;
+     send_dac_word_p_o      : out   std_logic;
+     dac_word_o             : out   std_logic_vector(23 downto 0);
+     start_from_fpga_o      : out   std_logic;
+     err_flag_i             : in    std_logic;
+     int_flag_i             : in    std_logic;
+     start_dis_o            : out   std_logic;
+     stop_dis_o             : out   std_logic;
+     data_bus_io            : inout std_logic_vector(27 downto 0);
+     address_o              : out   std_logic_vector(3 downto 0);
+     cs_n_o                 : out   std_logic;
+     oe_n_o                 : out   std_logic;
+     rd_n_o                 : out   std_logic;
+     wr_n_o                 : out   std_logic;
+     ef1_i                  : in    std_logic;
+     ef2_i                  : in    std_logic;
+     tdc_in_fpga_1_i        : in    std_logic;
+     tdc_in_fpga_2_i        : in    std_logic;
+     tdc_in_fpga_3_i        : in    std_logic;
+     tdc_in_fpga_4_i        : in    std_logic;
+     tdc_in_fpga_5_i        : in    std_logic;
+     enable_inputs_o        : out   std_logic;
+     term_en_1_o            : out   std_logic;
+     term_en_2_o            : out   std_logic;
+     term_en_3_o            : out   std_logic;
+     term_en_4_o            : out   std_logic;
+     term_en_5_o            : out   std_logic;
+     tdc_led_status_o       : out   std_logic;
+     tdc_led_trig1_o        : out   std_logic;
+     tdc_led_trig2_o        : out   std_logic;
+     tdc_led_trig3_o        : out   std_logic;
+     tdc_led_trig4_o        : out   std_logic;
+     tdc_led_trig5_o        : out   std_logic;
+     -- WISHBONE interface with the GN4124/VME_core
+     -- for the core configuration | core interrupts | 1Wire | I2C 
+     wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_dat_i       : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_cyc_i       : in    std_logic;
+     wb_tdc_csr_sel_i       : in    std_logic_vector(3 downto 0);
+     wb_tdc_csr_stb_i       : in    std_logic;
+     wb_tdc_csr_we_i        : in    std_logic;
+     wb_tdc_csr_dat_o       : out   std_logic_vector(31 downto 0);
+     wb_tdc_csr_ack_o       : out   std_logic;
+     wb_tdc_csr_stall_o     : out   std_logic;
+     wb_irq_o               : out   std_logic;
+     -- Interrupt pulses, for debug
+     irq_tstamp_p_o         : out   std_logic;
+     irq_time_p_o           : out   std_logic;
+     irq_acam_err_p_o       : out   std_logic;
+     -- I2C EEPROM interface
+     sys_scl_b              : inout std_logic;
+     sys_sda_b              : inout std_logic;
+     -- 1-wire UniqueID&Thermometer interface
+     one_wire_b             : inout std_logic);
   end component;
 
 
 ---------------------------------------------------------------------------------------------------
   component fmc_tdc_core
   generic
-    (g_span              : integer := 32;
-     g_width             : integer := 32;
-     values_for_simul    : boolean := FALSE);
+    (g_span                 : integer := 32;
+     g_width                : integer := 32;
+     values_for_simul       : boolean := FALSE);
   port
-    (clk_125m_i          : in std_logic;
-     rst_i               : in  std_logic;
-     acam_refclk_r_edge_p_i :in  std_logic;
-     send_dac_word_p_o   : out  std_logic;
-     dac_word_o          : out std_logic_vector(23 downto 0);
-     start_from_fpga_o   : out std_logic;
-     err_flag_i          : in std_logic; 
-     int_flag_i          : in std_logic; 
-     start_dis_o         : out std_logic;
-     stop_dis_o          : out std_logic;
-     data_bus_io         : inout std_logic_vector(27 downto 0);
-     address_o           : out std_logic_vector(3 downto 0);
-     cs_n_o              : out std_logic;
-     oe_n_o              : out std_logic;
-     rd_n_o              : out std_logic;
-     wr_n_o              : out std_logic;
-     ef1_i               : in std_logic;
-     ef2_i               : in std_logic;
-     tdc_in_fpga_1_i     : in std_logic;
-     tdc_in_fpga_2_i     : in std_logic;
-     tdc_in_fpga_3_i     : in std_logic;
-     tdc_in_fpga_4_i     : in std_logic;
-     tdc_in_fpga_5_i     : in std_logic;
-     enable_inputs_o     : out std_logic;
-     term_en_1_o         : out std_logic;
-     term_en_2_o         : out std_logic;
-     term_en_3_o         : out std_logic;
-     term_en_4_o         : out std_logic;
-     term_en_5_o         : out std_logic;
-     tdc_led_status_o    : out std_logic;
-     tdc_led_trig1_o     : out std_logic;
-     tdc_led_trig2_o     : out std_logic;
-     tdc_led_trig3_o     : out std_logic;
-     tdc_led_trig4_o     : out std_logic;
-     tdc_led_trig5_o     : out std_logic;
-     irq_tstamp_p_o      : out std_logic;
-     irq_time_p_o        : out std_logic;
-     irq_acam_err_p_o    : out std_logic;
-     tdc_config_wb_adr_i : in std_logic_vector(g_span-1 downto 0);
-     tdc_config_wb_dat_i : in std_logic_vector(g_width-1 downto 0);
-     tdc_config_wb_stb_i : in std_logic;
-     tdc_config_wb_we_i  : in std_logic;
-     tdc_config_wb_cyc_i : in std_logic;
-     tdc_config_wb_dat_o : out std_logic_vector(g_width-1 downto 0);
-     tdc_config_wb_ack_o : out std_logic;
-     tdc_mem_wb_adr_i    : in std_logic_vector(31 downto 0);
-     tdc_mem_wb_dat_i    : in std_logic_vector(31 downto 0);
-     tdc_mem_wb_stb_i    : in std_logic;
-     tdc_mem_wb_we_i     : in std_logic;
-     tdc_mem_wb_cyc_i    : in std_logic;
-     tdc_mem_wb_ack_o    : out std_logic;
-     tdc_mem_wb_dat_o    : out std_logic_vector(31 downto 0);
-     tdc_mem_wb_stall_o  : out std_logic); 
+    (clk_125m_i             : in   std_logic;
+     rst_i                  : in    std_logic;
+     acam_refclk_r_edge_p_i : in    std_logic;
+     send_dac_word_p_o      : out   std_logic;
+     dac_word_o             : out   std_logic_vector(23 downto 0);
+     start_from_fpga_o      : out   std_logic;
+     err_flag_i             : in    std_logic; 
+     int_flag_i             : in    std_logic; 
+     start_dis_o            : out   std_logic;
+     stop_dis_o             : out   std_logic;
+     data_bus_io            : inout std_logic_vector(27 downto 0);
+     address_o              : out   std_logic_vector(3 downto 0);
+     cs_n_o                 : out   std_logic;
+     oe_n_o                 : out   std_logic;
+     rd_n_o                 : out   std_logic;
+     wr_n_o                 : out   std_logic;
+     ef1_i                  : in    std_logic;
+     ef2_i                  : in    std_logic;
+     tdc_in_fpga_1_i        : in    std_logic;
+     tdc_in_fpga_2_i        : in    std_logic;
+     tdc_in_fpga_3_i        : in    std_logic;
+     tdc_in_fpga_4_i        : in    std_logic;
+     tdc_in_fpga_5_i        : in    std_logic;
+     enable_inputs_o        : out   std_logic;
+     term_en_1_o            : out   std_logic;
+     term_en_2_o            : out   std_logic;
+     term_en_3_o            : out   std_logic;
+     term_en_4_o            : out   std_logic;
+     term_en_5_o            : out   std_logic;
+     tdc_led_status_o       : out   std_logic;
+     tdc_led_trig1_o        : out   std_logic;
+     tdc_led_trig2_o        : out   std_logic;
+     tdc_led_trig3_o        : out   std_logic;
+     tdc_led_trig4_o        : out   std_logic;
+     tdc_led_trig5_o        : out   std_logic;
+     irq_tstamp_p_o         : out   std_logic;
+     irq_time_p_o           : out   std_logic;
+     irq_acam_err_p_o       : out   std_logic;
+     tdc_config_wb_adr_i    : in    std_logic_vector(g_span-1 downto 0);
+     tdc_config_wb_dat_i    : in    std_logic_vector(g_width-1 downto 0);
+     tdc_config_wb_stb_i    : in    std_logic;
+     tdc_config_wb_we_i     : in    std_logic;
+     tdc_config_wb_cyc_i    : in    std_logic;
+     tdc_config_wb_dat_o    : out   std_logic_vector(g_width-1 downto 0);
+     tdc_config_wb_ack_o    : out   std_logic;
+     tdc_mem_wb_adr_i       : in    std_logic_vector(31 downto 0);
+     tdc_mem_wb_dat_i       : in    std_logic_vector(31 downto 0);
+     tdc_mem_wb_stb_i       : in    std_logic;
+     tdc_mem_wb_we_i        : in    std_logic;
+     tdc_mem_wb_cyc_i       : in    std_logic;
+     tdc_mem_wb_ack_o       : out   std_logic;
+     tdc_mem_wb_dat_o       : out   std_logic_vector(31 downto 0);
+     tdc_mem_wb_stall_o     : out   std_logic); 
   end component;
 
 
@@ -559,9 +585,9 @@ package tdc_core_pkg is
        clk_i                 : in std_logic;
        rst_i                 : in std_logic;
        acam_ef1_i            : in std_logic;
-       acam_ef1_meta_i     : in std_logic;
+       acam_ef1_meta_i       : in std_logic;
        acam_ef2_i            : in std_logic;
-       acam_ef2_meta_i     : in std_logic;
+       acam_ef2_meta_i       : in std_logic;
        activate_acq_p_i      : in std_logic;
        deactivate_acq_p_i    : in std_logic;
        acam_wr_config_p_i    : in std_logic;
@@ -588,6 +614,7 @@ package tdc_core_pkg is
        acam_tstamp2_ok_p_o   : out std_logic);
       ----------------------------------------------------------------------
   end component;
+
 
 
 
@@ -683,6 +710,7 @@ package tdc_core_pkg is
        tstamp_wr_wb_stb_o      : out std_logic;
        tstamp_wr_wb_we_o       : out std_logic;
        tstamp_wr_p_o           : out std_logic;
+       acam_channel_o          : out std_logic_vector(2 downto 0);
        wr_index_o              : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
@@ -697,37 +725,37 @@ package tdc_core_pkg is
        rst_i                   : in std_logic;
        irq_tstamp_threshold_i  : in std_logic_vector(g_width-1 downto 0);
        irq_time_threshold_i    : in std_logic_vector(g_width-1 downto 0);
-       acam_errflag_r_edge_p_i : in std_logic;
        activate_acq_p_i        : in std_logic;
        deactivate_acq_p_i      : in std_logic;
        tstamp_wr_p_i           : in std_logic;
+       acam_errflag_r_edge_p_i : in std_logic;
       ----------------------------------------------------------------------
        irq_tstamp_p_o          : out std_logic;
-       irq_time_p_o            : out std_logic;
-       irq_acam_err_p_o        : out std_logic);
+       irq_acam_err_p_o        : out std_logic;
+       irq_time_p_o            : out std_logic);
       ----------------------------------------------------------------------
   end component;
 
 
 ---------------------------------------------------------------------------------------------------
-  component irq_controller
+  component tdc_eic
     port
-      (rst_n_i             : in     std_logic;
-       clk_sys_i           : in     std_logic;
-       wb_adr_i            : in     std_logic_vector(1 downto 0);
-       wb_dat_i            : in     std_logic_vector(31 downto 0);
-       wb_dat_o            : out    std_logic_vector(31 downto 0);
-       wb_cyc_i            : in     std_logic;
-       wb_sel_i            : in     std_logic_vector(3 downto 0);
-       wb_stb_i            : in     std_logic;
-       wb_we_i             : in     std_logic;
-       wb_ack_o            : out    std_logic;
-       wb_stall_o          : out    std_logic;
-       wb_int_o            : out    std_logic;
-       irq_tdc_tstamps_i   : in     std_logic;
-       irq_tdc_time_i      : in     std_logic;
-       irq_tdc_acam_err_i  : in     std_logic);
-  end component irq_controller;
+      (rst_n_i            : in  std_logic;
+       clk_sys_i          : in  std_logic;
+       wb_adr_i           : in  std_logic_vector(1 downto 0);
+       wb_dat_i           : in  std_logic_vector(31 downto 0);
+       wb_dat_o           : out std_logic_vector(31 downto 0);
+       wb_cyc_i           : in  std_logic;
+       wb_sel_i           : in  std_logic_vector(3 downto 0);
+       wb_stb_i           : in  std_logic;
+       wb_we_i            : in  std_logic;
+       wb_ack_o           : out std_logic;
+       wb_stall_o         : out std_logic;
+       wb_int_o           : out std_logic;
+       irq_tdc_tstamps_i  : in  std_logic;
+       irq_tdc_time_i     : in  std_logic;
+       irq_tdc_acam_err_i : in  std_logic);
+  end component tdc_eic;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -759,31 +787,37 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-  component carrier_csr
+  component carrier_info
     port
-      (rst_n_i                          : in  std_logic;
-       wb_clk_i                         : in  std_logic;
-       wb_addr_i                        : in  std_logic_vector(1 downto 0);
-       wb_data_i                        : in  std_logic_vector(31 downto 0);
-       wb_data_o                        : out std_logic_vector(31 downto 0);
-       wb_cyc_i                         : in  std_logic;
-       wb_sel_i                         : in  std_logic_vector(3 downto 0);
-       wb_stb_i                         : in  std_logic;
-       wb_we_i                          : in  std_logic;
-       wb_ack_o                         : out std_logic;
-       carrier_csr_carrier_pcb_rev_i    : in  std_logic_vector(3 downto 0);
-       carrier_csr_carrier_reserved_i   : in  std_logic_vector(11 downto 0);
-       carrier_csr_carrier_type_i       : in  std_logic_vector(15 downto 0);
-       carrier_csr_stat_fmc_pres_i      : in  std_logic;
-       carrier_csr_stat_p2l_pll_lck_i   : in  std_logic;
-       carrier_csr_stat_sys_pll_lck_i   : in  std_logic;
-       carrier_csr_stat_ddr3_cal_done_i : in  std_logic;
-       carrier_csr_stat_reserved_i      : in  std_logic_vector(27 downto 0);
-       carrier_csr_ctrl_led_green_o     : out std_logic;
-       carrier_csr_ctrl_led_red_o       : out std_logic;
-       carrier_csr_ctrl_dac_clr_n_o     : out std_logic;
-       carrier_csr_ctrl_reserved_o      : out std_logic_vector(28 downto 0));
-  end component carrier_csr;
+      (rst_n_i                           : in  std_logic;
+       clk_sys_i                         : in  std_logic;
+       wb_adr_i                          : in  std_logic_vector(1 downto 0);
+       wb_dat_i                          : in  std_logic_vector(31 downto 0);
+       wb_dat_o                          : out std_logic_vector(31 downto 0);
+       wb_cyc_i                          : in  std_logic;
+       wb_sel_i                          : in  std_logic_vector(3 downto 0);
+       wb_stb_i                          : in  std_logic;
+       wb_we_i                           : in  std_logic;
+       wb_ack_o                          : out std_logic;
+       wb_stall_o                        : out std_logic;
+       carrier_info_carrier_pcb_rev_i    : in  std_logic_vector(3 downto 0);
+       carrier_info_carrier_reserved_i   : in  std_logic_vector(11 downto 0);
+       carrier_info_carrier_type_i       : in  std_logic_vector(15 downto 0);
+       carrier_info_stat_fmc_pres_i      : in  std_logic;
+       carrier_info_stat_p2l_pll_lck_i   : in  std_logic;
+       carrier_info_stat_sys_pll_lck_i   : in  std_logic;
+       carrier_info_stat_ddr3_cal_done_i : in  std_logic;
+       carrier_info_stat_reserved_i      : in  std_logic_vector(27 downto 0);
+       carrier_info_ctrl_led_green_o     : out std_logic;
+       carrier_info_ctrl_led_red_o       : out std_logic;
+       carrier_info_ctrl_dac_clr_n_o     : out std_logic;
+       carrier_info_ctrl_reserved_o      : out std_logic_vector(28 downto 0);
+       carrier_info_rst_fmc0_n_o         : out std_logic;
+       carrier_info_rst_fmc0_n_i         : in  std_logic;
+       carrier_info_rst_fmc0_n_load_o    : out std_logic;
+       carrier_info_rst_reserved_o       : out std_logic_vector(30 downto 0));
+  end component carrier_info;
+
 
 
 ---------------------------------------------------------------------------------------------------
@@ -797,6 +831,7 @@ package tdc_core_pkg is
        one_hz_p_i       : in std_logic;
        acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
        fordebug_i       : in std_logic_vector(5 downto 0);
+       tstamp_wr_p_i    : in std_logic;
       ----------------------------------------------------------------------
        tdc_led_status_o : out std_logic;
        tdc_led_trig1_o  : out std_logic;
@@ -806,6 +841,7 @@ package tdc_core_pkg is
        tdc_led_trig5_o  : out std_logic);
       ----------------------------------------------------------------------
   end component;
+
 
 
 ---------------------------------------------------------------------------------------------------
