@@ -35,6 +35,7 @@ architecture behavioral of tb_tdc is
     port(
         -- interface with GNUM circuit
         rst_n_a_i      : in  std_logic;
+		  spec_clk_i     : in  std_logic;
         -- P2L Direction
         p2l_clk_p_i : in  std_logic;                      -- Receiver Source Synchronous Clock+
         p2l_clk_n_i : in  std_logic;                      -- Receiver Source Synchronous Clock-
@@ -395,6 +396,7 @@ begin
     port map(
         -- interface with GNUM circuit
         rst_n_a_i               => rst_n,
+		  spec_clk_i              => spec_clk_i,
         p2l_clk_p_i             => p2l_clkp,
         p2l_clk_n_i             => p2l_clkn,
         p2l_data_i              => p2l_data,

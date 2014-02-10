@@ -86,13 +86,25 @@ wr 00000000000510FC F 00000001
 wait   %d540000
 
 -- read circular buffer wr pointer
-rd 000000000005109C F 00000000
+rd 00000000000510A8 F 00000000
 wait   %d200
 
 
 -- deactivate acquisition
 wr 00000000000510FC F 00000002
 wait   %d200
+
+
+-- read a timestamps from memory
+rd 0000000000054000 F 00000000
+wait   %d100
+rd 0000000000054004 F 00000000
+wait   %d100
+rd 0000000000054008 F 00000000
+wait   %d100
+rd 000000000005400C F 00000000
+wait   %d100
+
 
 -- read acam status
 wr 00000000000510FC F 00000010
@@ -136,35 +148,3 @@ wait   %d200
 --wr 00000000000510FC F 00000002
 --wait   %d100
 
-
-
------------------------------------------------------------------------------
-
----- Gonzalo: registers inside Matthieu's core memory space are written with the
----- settings for DMA transfer
---
----- Start address on the carrier local memory
---wr 0000000000000008 F 00000000
---wait   %d20
---
----- Start addresses on the PCI host memory
---wr 000000000000000C F 0000A0A4
---wait   %d20
---wr 0000000000000010 F 0000A0A5
---wait   %d20
---
----- Transfer length
---wr 0000000000000014 F 00000060
---wait   %d20
---
----- Chain control
---wr 0000000000000020 F 00000000
---wait   %d60
---
----- Start transfer through the Control register and check through the status register
---wr 0000000000000000 F 00000001
---wait   %d100
---rd 0000000000000004 F 00000001
---wait   %d100
---
---
