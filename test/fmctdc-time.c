@@ -13,6 +13,12 @@
 
 #include "test-common.h"
 
+void perror_hint ( const char *func )
+{
+	perror(func);
+	fprintf(stderr, "Hint: are trying to change time while acquisition is enabled?\n");
+}
+
 int main(int argc, char **argv)
 {
 	struct fmctdc_time ts;
@@ -21,12 +27,15 @@ int main(int argc, char **argv)
 	init(argc, argv);
 
 	check_help(argc, argv, 3,
-		   "[-h] <device> <command> [timeval]",
-		   "Gets/sets the mezzanine TAI time.",
-		   "Commands are:"
-		   "get     		- prints current TAI time"
-		   "set <seconds>		- sets TAI time"
-		   "host			- sets TAI time to current host time");
+		   	"[-h] <device> <command> [timeval]",
+		   	"Gets/sets the mezzanine TAI time and controls White Rabbit timing.",
+		   	"Commands are:\n"
+			"     get                    - shows current time and White Rabbit status.\n"
+			"     set <seconds>          - sets current board time.\n"
+		   	"     local                  - sets the time source to the card's local oscillator.\n"
+			"     wr                     - sets the time source to White Rabbit.\n"
+			"     host                   - sets the time source to local oscillator and coarsely\n"
+			"                              synchronizes the card to the system clock.\n");
 
 	open_board(argv[1]);
 
@@ -37,7 +46,18 @@ int main(int argc, char **argv)
 			perror("fmctdc_get_time()");
 			return -1;
 		}
-		printf("Current TAI time is %lld.%09d s\n", ts.seconds,
+
+		int err = fmctdc_check_wr_mode(brd);
+		printf("WR Status: ");
+		switch(err)
+		{
+			case ENODEV:	printf("disabled.\n"); break;
+			case ENOLINK:	printf("link down.\n"); break;
+			case EAGAIN:	printf("synchronization in progress.\n"); break;
+			case 0:		printf("synchronized.\n"); break;
+			default:	printf("error: %s\n", strerror(err)); break;
+		}
+		printf("Current TAI time is %llu.%09d s\n", (unsigned long long) ts.seconds,
 		       ts.coarse * 8);
 	} else if (!strcmp(cmd, "set")) {
 		if (argc < 4) {
@@ -48,18 +68,51 @@ int main(int argc, char **argv)
 		ts.seconds = atoi(argv[3]);
 
 		if (fmctdc_set_time(brd, &ts) < 0) {
-			perror("fmctdc_set_time()");
-			fprintf(stderr,
-				"Hint: are trying to change time while acquisition is enabled?\n");
+			perror_hint("fmctdc_set_time()");
 			return -1;
 		}
 	} else if (!strcmp(cmd, "host")) {
 		if (fmctdc_set_host_time(brd) < 0) {
-			perror("fmctdc_set_host_time()");
-			fprintf(stderr,
-				"Hint: are trying to change time while acquisition is enabled?\n");
+			perror_hint("fmctdc_set_host_time()");
 			return -1;
 		}
+	} else if (!strcmp(cmd, "wr")) {
+		
+		int err = fmctdc_wr_mode(brd, 1);
+
+		if(err == ENOTSUP)
+		{
+			fprintf(stderr, "%s: no support for White Rabbit (check the gateware).\n",
+				argv[0]);
+			exit(1);
+		} else if (err) {
+			perror_hint("fmctdc_wr_mode()");
+			exit(1);
+		}
+
+		setbuf(stdout, NULL);
+		printf("Locking the card to WR: ");
+
+		while ((err = fmctdc_check_wr_mode(brd)) != 0) {
+			if( err == ENOLINK ) {
+				fprintf(stderr, "\n%s: no White Rabbit link (check the cable and the switch).\n",
+					argv[0]);
+				return -1;
+			}
+			printf(".");
+			sleep(1);
+		}
+
+		printf(" locked!\n");
+	} else if (!strcmp(cmd, "local"))
+	{
+		int err = fmctdc_wr_mode(brd, 0);
+		if(err < 0) {
+			perror_hint("fmctdc_wr_mode()");
+			return -1;
+		}
+
+		return 0;
 	} else {
 		fprintf(stderr, "%s: unrecognized command.\n", cmd);
 		return -1;
