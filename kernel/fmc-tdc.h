@@ -85,8 +85,6 @@ struct ft_carrier_specific {
 
 	int (*init) (struct fmctdc_dev *);
 	int (*reset_core) (struct fmctdc_dev *);
-	int (*copy_timestamps) (struct fmctdc_dev *, int base_addr, int size,
-				void *dst);
 	void (*exit) (struct fmctdc_dev *);
 };
 
@@ -139,7 +137,6 @@ struct fmctdc_dev {
 	int ft_core_base;
 	int ft_i2c_base;
 	int ft_owregs_base;
-	int ft_dma_base;
 	int ft_carrier_base;
 	int ft_irq_base;
 	int ft_buffer_base;
@@ -168,10 +165,9 @@ struct fmctdc_dev {
 	/* output lots of debug stuff? */
 	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
+	int flags;
 	/* hardware buffer pointers / dacapo regs */
 	uint32_t cur_wr_ptr, prev_wr_ptr;
-	/* DMA buffer */
-	struct ft_hw_timestamp *raw_events;
 };
 
 extern struct ft_carrier_specific ft_carrier_spec;

@@ -203,14 +203,6 @@ int ft_probe(struct fmc_device *fmc)
 		return -ENOMEM;
 	}
 
-	ft->raw_events =
-	    kzalloc(sizeof(struct ft_hw_timestamp) * FT_BUFFER_EVENTS,
-		    GFP_KERNEL);
-	if (!ft->raw_events) {
-		dev_err(dev, "can't allocate buffer\n");
-		return -ENOMEM;
-	}
-
 	index = fmc->op->validate(fmc, &ft_drv);
 	if (index < 0) {
 		dev_info(dev, "not using \"%s\" according to "
@@ -290,8 +282,6 @@ int ft_probe(struct fmc_device *fmc)
 	ft->ft_owregs_base =
 	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x602, fmc->slot_id + 1,
 				    NULL);
-
-	ft->ft_dma_base = fmc_find_sdb_device(fmc->sdb, 0xce42, 0x601, NULL);
 
 	ft->ft_buffer_base =
 	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x601, fmc->slot_id,

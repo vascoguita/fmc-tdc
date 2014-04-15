@@ -18,32 +18,6 @@
 
 #include "hw/tdc_regs.h"
 
-struct ft_spec_data {
-	void *buffer;
-	dma_addr_t dma_addr;
-	size_t buffer_size;
-};
-
-static inline uint32_t dma_readl(struct fmctdc_dev *ft, unsigned long reg)
-{
-	return fmc_readl(ft->fmc, ft->ft_dma_base + reg);
-}
-
-static inline void dma_writel(struct fmctdc_dev *ft, uint32_t v,
-			      unsigned long reg)
-{
-	fmc_writel(ft->fmc, v, ft->ft_dma_base + reg);
-}
-
-static int ft_spec_init(struct fmctdc_dev *ft)
-{
-	ft->carrier_data = kzalloc(sizeof(struct ft_spec_data), GFP_KERNEL);
-
-	if (!ft->carrier_data)
-		return -ENOMEM;
-	return 0;
-}
-
 static int ft_spec_reset(struct fmctdc_dev *ft)
 {
 	struct spec_dev *spec = (struct spec_dev *)ft->fmc->carrier_data;
@@ -69,84 +43,7 @@ static int ft_spec_reset(struct fmctdc_dev *ft)
 	return 0;
 }
 
-static int ft_spec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
-				   int size, void *dst)
-{
-	struct ft_spec_data *cspec = ft->carrier_data;
-	uint32_t status;
-	int i, ret = 0;
-
-	cspec->dma_addr =
-	    dma_map_single(ft->fmc->hwdev, (char *)dst, size, DMA_FROM_DEVICE);
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29)
-	if (dma_mapping_error(cspec->dma_addr)) {
-#else
-	if (dma_mapping_error(ft->fmc->hwdev, cspec->dma_addr)) {
-#endif
-		dev_err(&ft->fmc->dev, "dma_map_single failed\n");
-		return -ENOMEM;
-	}
-
-	dma_writel(ft, 0, TDC_REG_DMA_CTRL);
-	dma_writel(ft, base_addr, TDC_REG_DMA_C_START);
-
-	dma_writel(ft, cspec->dma_addr & 0xffffffff, TDC_REG_DMA_H_START_L);
-	dma_writel(ft, ((uint64_t) cspec->dma_addr >> 32) & 0x00ffffffff,
-		   TDC_REG_DMA_H_START_H);
-
-	dma_writel(ft, 0, TDC_REG_DMA_NEXT_L);
-	dma_writel(ft, 0, TDC_REG_DMA_NEXT_H);
-
-	/* Write the DMA length */
-	dma_writel(ft, size, TDC_REG_DMA_LEN);
-
-	/* No chained xfers, PCIe to host */
-	dma_writel(ft, 0, TDC_REG_DMA_ATTRIB);
-
-	/* Start the transfer */
-	dma_writel(ft, 1, TDC_REG_DMA_CTRL);
-	udelay(1);
-	dma_writel(ft, 0, TDC_REG_DMA_CTRL);
-
-	/* Don't bother about end-of-DMA IRQ, it only makes the driver unnecessarily complicated. */
-	for (i = 0; i < 1000; i++) {
-		status = dma_readl(ft, TDC_REG_DMA_STAT) & TDC_DMA_STAT_MASK;
-
-		if (status == TDC_DMA_STAT_DONE) {
-			ret = 0;
-			break;
-		} else if (status == TDC_DMA_STAT_ERROR) {
-			ret = -EIO;
-			break;
-		}
-
-		udelay(1);
-	}
-
-	if (i == 1000) {
-		dev_err(&ft->fmc->dev,
-			"%s: DMA transfer taking way too long. Something's really weird.\n",
-			__func__);
-		ret = -EIO;
-	}
-
-	dma_sync_single_for_cpu(ft->fmc->hwdev, cspec->dma_addr, size,
-				DMA_FROM_DEVICE);
-	dma_unmap_single(ft->fmc->hwdev, cspec->dma_addr, size,
-			 DMA_FROM_DEVICE);
-	return ret;
-}
-
-static void ft_spec_exit(struct fmctdc_dev *ft)
-{
-	kfree(ft->carrier_data);
-}
-
 struct ft_carrier_specific ft_carrier_spec = {
 	FT_GATEWARE_SPEC,
-	ft_spec_init,
-	ft_spec_reset,
-	ft_spec_copy_timestamps,
-	ft_spec_exit,
+	ft_spec_reset
 };

@@ -30,6 +30,22 @@
 
 static void ft_readout_tasklet(unsigned long arg);
 
+static void copy_timestamps(struct fmctdc_dev *ft, int base_addr, int size, void *dst)
+{
+	int i;
+	uint32_t addr;
+	uint32_t *dptr;
+
+	BUG_ON(size & 3 || base_addr & 3);	/* no unaligned reads, please. */
+
+	/* FIXME: use SDB to determine buffer base address (after fixing the HDL) */
+	addr = ft->ft_buffer_base + base_addr;
+
+	for (i = 0, dptr = (uint32_t *) dst; i < size / 4; i++, dptr++)
+		*dptr = fmc_readl(ft->fmc, addr + i * 4);
+}
+
+
 int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 		    struct zio_channel *chan)
 {
@@ -122,7 +138,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 
 	/* first, convert the timestamp from the HDL units (81 ps bins)
 	   to the WR format (where fractional part is 8 ns rescaled to 4096 units) */
-
+		
 	ts.channel = channel;
 	ts.seconds = hwts->utc;
 	frac = hwts->bins * 81 * 64 / 125;	/* 64/125 = 4096/8000: reduce fraction to avoid 64-bit division */
@@ -153,6 +169,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 			if (likely
 			    (diff.seconds || diff.coarse > 12
 			     || (diff.coarse == 12 && diff.frac >= 2048))) {
+			        ts = st->prev_ts;
 				ft_ts_apply_offset(&ts,
 						   ft->calib.
 						   zero_offset[channel - 1]);
@@ -245,16 +262,6 @@ static void ft_readout_tasklet(unsigned long arg)
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
 	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
 
-	/* read the timestamps via DMA - we read the whole buffer, it doesn't really matter
-	   for the HW if it's 16 bytes or a 4k page */
-
-	if (ft->carrier_specific->copy_timestamps(ft, 0,
-						  FT_BUFFER_EVENTS *
-						  sizeof(struct
-							 ft_hw_timestamp),
-						  ft->raw_events) < 0)
-		return;		/* we can do nothing about this */
-
 	dacapo = check_lost_events(ft->cur_wr_ptr, ft->prev_wr_ptr, &count);
 
 	/* Start reading from the oldest event */
@@ -264,7 +271,10 @@ static void ft_readout_tasklet(unsigned long arg)
 		rd_ptr = (ft->prev_wr_ptr >> 4) & 0x000ff;	/* The oldest is prev_wr_ptr */
 
 	for (; count > 0; count--) {
-		process_timestamp(ft, &ft->raw_events[rd_ptr], dacapo);
+		struct ft_hw_timestamp hwts;
+		copy_timestamps( ft, rd_ptr * sizeof(struct ft_hw_timestamp),
+				sizeof(struct ft_hw_timestamp), &hwts );
+		process_timestamp(ft, &hwts, dacapo);
 		rd_ptr = (rd_ptr + 1) % FT_BUFFER_EVENTS;
 	}
 

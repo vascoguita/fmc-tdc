@@ -20,18 +20,6 @@
 
 #include "hw/tdc_regs.h"
 
-/*
-static int ft_poll_interval = 200;
-module_param_named(poll_interval, ft_poll_interval, int, 0444);
-MODULE_PARM_DESC(poll_interval,
-		 "Buffer polling interval in milliseconds. Applies to SVEC version only.");
-*/
-
-static int ft_svec_init(struct fmctdc_dev *ft)
-{
-	return 0;
-}
-
 static int ft_svec_reset(struct fmctdc_dev *ft)
 {
 	unsigned long tmo;
@@ -66,6 +54,7 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 	return -EIO;
 }
 
+#if 0
 static int ft_svec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 				   int size, void *dst)
 {
@@ -84,15 +73,10 @@ static int ft_svec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 
 	return 0;
 }
+#endif
 
-static void ft_svec_exit(struct fmctdc_dev *ft)
-{
-}
 
 struct ft_carrier_specific ft_carrier_svec = {
 	FT_GATEWARE_SVEC,
-	ft_svec_init,
-	ft_svec_reset,
-	ft_svec_copy_timestamps,
-	ft_svec_exit
+	ft_svec_reset
 };
