@@ -69,19 +69,22 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 	memcpy(calib, &default_calibration, sizeof(struct ft_calibration));
 
 	i = ft_read_calibration_eeprom(ft->fmc, raw_calib, sizeof(raw_calib));
+	
+	if(i < 0)
+	{
+		dev_err(d, "Failed to read the calibration EEPROM. Using default calibration parameters.\n");
+		for (i =0; i < FT_NUM_CHANNELS; i++)
+			calib->zero_offset[i] = 0;
+			calib->vcxo_default_tune = 32000;
+	} else {
+		calib->zero_offset[0] = 0;
+		for (i = FT_CH_1 + 1; i < FT_NUM_CHANNELS; i++)
+			calib->zero_offset[i] =
+				le32_to_cpu(raw_calib[i - 1]) / 100 - calib->zero_offset[0];
 
-	/* fixme: there is no calibration validation. Change format?  */
-
-	/* Translate offsets (they are referenced to channel 0 and in 1/100s of picosecond) to 
-	   offsets that could be added to TDC timestamps right away (picoseconds, referenced to WR) */
-
-	calib->zero_offset[0] = 0;
-	for (i = FT_CH_1 + 1; i < FT_NUM_CHANNELS; i++)
-		calib->zero_offset[i] =
-		    le32_to_cpu(raw_calib[i - 1]) / 100 - calib->zero_offset[0];
-
-	calib->vcxo_default_tune = le32_to_cpu(raw_calib[4]);
-
+		calib->vcxo_default_tune = le32_to_cpu(raw_calib[4]);
+	}
+	
 	for (i = 0; i < ARRAY_SIZE(calib->zero_offset); i++)
 		dev_info(d, "calib: zero_offset[%i] = %li\n", i,
 			 (long)calib->zero_offset[i]);
