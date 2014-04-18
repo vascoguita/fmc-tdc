@@ -404,23 +404,16 @@ int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 {
 	__define_board(b, userb);
 	if (on)
-		return __fmctdc_command(b, FT_CMD_WR_ENABLE);
+		__fmctdc_command(b, FT_CMD_WR_ENABLE);
 	else
-		return __fmctdc_command(b, FT_CMD_WR_DISABLE);
+		__fmctdc_command(b, FT_CMD_WR_DISABLE);
+	return errno;
 }
 
 extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 {
-	int ret;
 	__define_board(b, userb);
-	ret = __fmctdc_command(b, FT_CMD_WR_QUERY);
-
-	switch (ret) {
-	case 0:
-		return 1;	/* no error: locked to WR */
-	case -EAGAIN:
-		return 0;	/* EAGAIN: not locked yet */
-	default:
-		return ret;	/* other error code: just an error ;) */
-	}
+	if (__fmctdc_command(b, FT_CMD_WR_QUERY) == 0)
+		return 0;
+	return errno;
 }
