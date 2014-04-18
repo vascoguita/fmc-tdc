@@ -318,7 +318,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 	/* pass the core's base addr as the VIC IRQ vector. */
 	/* fixme: vector table points to the bridge instead of the core's base address */
-	ft->fmc->irq = ft->ft_core_base - 0x10000;
+	ft->fmc->irq = ft->ft_irq_base;
 	ret = ft->fmc->op->irq_request(ft->fmc, ft_irq_handler, "fmc-tdc", 0);
 
 	if (ret < 0) {

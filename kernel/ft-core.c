@@ -246,10 +246,6 @@ int ft_probe(struct fmc_device *fmc)
 
 	dev_info(dev, "Gateware successfully loaded \n");
 
-	ret = ft->carrier_specific->init(ft);
-	if (ret < 0)
-		return ret;
-
 	ret = ft->carrier_specific->reset_core(ft);
 	if (ret < 0)
 		return ret;
@@ -349,9 +345,6 @@ int ft_remove(struct fmc_device *fmc)
 		if (m->exit)
 			m->exit(ft);
 	}
-
-	ft->carrier_specific->exit(ft);
-
 	return 0;
 }
 
