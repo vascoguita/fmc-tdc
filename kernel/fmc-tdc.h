@@ -82,10 +82,7 @@ struct fmctdc_dev;
 
 struct ft_carrier_specific {
 	char *gateware_name;
-
-	int (*init) (struct fmctdc_dev *);
 	int (*reset_core) (struct fmctdc_dev *);
-	void (*exit) (struct fmctdc_dev *);
 };
 
 struct ft_calibration {		/* All of these are big endian in the EEPROM */
@@ -165,7 +162,7 @@ struct fmctdc_dev {
 	/* output lots of debug stuff? */
 	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
-	int flags;
+	int wr_mode;
 	/* hardware buffer pointers / dacapo regs */
 	uint32_t cur_wr_ptr, prev_wr_ptr;
 };
@@ -204,8 +201,8 @@ int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,
 		    uint32_t * coarse);
 int ft_set_host_time(struct fmctdc_dev *ft);
 
-int ft_enable_wr_mode(struct fmctdc_dev *ft, int enable);
-int ft_check_wr_mode(struct fmctdc_dev *ft);
+int ft_wr_mode(struct fmctdc_dev *ft, int on);
+int ft_wr_query(struct fmctdc_dev *ft);
 
 int ft_handle_eeprom_calibration(struct fmctdc_dev *ft);
 
@@ -221,6 +218,8 @@ int ft_zio_register(void);
 void ft_zio_unregister(void);
 int ft_zio_init(struct fmctdc_dev *ft);
 void ft_zio_exit(struct fmctdc_dev *ft);
+
+void ft_set_vcxo_tune (struct fmctdc_dev *ft, int value);
 
 struct zio_channel;
 

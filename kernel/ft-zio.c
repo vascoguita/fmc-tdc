@@ -62,9 +62,6 @@ enum ft_devtype {
 	FT_TYPE_INPUT
 };
 
-static int ft_wr_mode(struct fmctdc_dev *fd, int on);
-static int ft_wr_query(struct fmctdc_dev *ft);
-
 static enum ft_devtype __ft_get_type(struct device *dev)
 {
 	struct zio_obj_head *head = to_zio_head(dev);
@@ -269,51 +266,6 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	}
 }
 
-static int ft_wr_mode(struct fmctdc_dev *fd, int on)
-{
-#if 0
-	unsigned long flags;
-	uint32_t tcr;
-
-	spin_lock_irqsave(&ft->lock, flags);
-//	tcr = fd_readl(fd, FD_REG_TCR);
-
-	if (on) {
-		fd_writel(fd, FD_TCR_WR_ENABLE, FD_REG_TCR);
-		set_bit(FD_FLAG_WR_MODE, &fd->flags);
-	} else {
-		fd_writel(fd, 0, FD_REG_TCR);
-		clear_bit(FD_FLAG_WR_MODE, &fd->flags);
-		/* not white-rabbit: write default to DAC for VCXO */
-		fd_spi_xfer(fd, FD_CS_DAC, 24,
-		ft->calib.vcxo_default_tune & 0xffff, NULL);
-	}
-
-	spin_unlock_irqrestore(&fd->lock, flags);
-	if(! (tcr & FD_TCR_WR_PRESENT))
-		return -EOPNOTSUPP;
-	else if( ! (tcr & FD_TCR_WR_LINK))
-		return -ENOLINK;
-	else
-		return 0;
-#endif
-	return 0;
-}
-
-static int ft_wr_query(struct fmctdc_dev *ft)
-{
-#if 0
-	int ena = test_bit(FD_FLAG_WR_MODE, &fd->flags);
-	if (!ena)
-		return -ENODEV;
-	if (! (fd_readl(fd, FD_REG_TCR) & FD_TCR_WR_LINK))
-		return -ENOLINK;
-	if (fd_readl(fd, FD_REG_TCR) & FD_TCR_WR_LOCKED)
-		return 0;
-	return -EAGAIN;
-#endif
-	return 0;
-}
 
 
 /*

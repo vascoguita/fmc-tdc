@@ -124,22 +124,54 @@ int ft_set_host_time(struct fmctdc_dev *ft)
 	return 0;
 }
 
-int ft_enable_wr_mode(struct fmctdc_dev *ft, int enable)
+void ft_set_vcxo_tune (struct fmctdc_dev *ft, int value)
 {
-	return -ENOTSUPP;
+	ft_writel(ft, value, TDC_REG_DAC_TUNE);
+	ft_writel(ft, TDC_CTRL_CONFIG_DAC, TDC_REG_CTRL);
 }
 
-int ft_check_wr_mode(struct fmctdc_dev *ft)
+int ft_wr_mode(struct fmctdc_dev *ft, int on)
 {
-	return -ENOTSUPP;
+	unsigned long flags;
+	uint32_t wr_stat;
+
+	spin_lock_irqsave(&ft->lock, flags);
+
+	if (on) {
+		ft_writel(ft, TDC_WR_CTRL_ENABLE, TDC_REG_WR_CTRL);
+		ft->wr_mode = 1;
+	} else {
+		ft_writel(ft, 0, TDC_REG_WR_CTRL);
+		ft->wr_mode = 0;
+		ft_set_vcxo_tune (ft, ft->calib.vcxo_default_tune & 0xffff);
+	}
+
+	spin_unlock_irqrestore(&ft->lock, flags);
+	
+	wr_stat = ft_readl(ft, TDC_REG_WR_STAT);
+	if( ! (wr_stat & TDC_WR_STAT_LINK))
+		return -ENOLINK;
+	return 0;
+}
+
+int ft_wr_query(struct fmctdc_dev *ft)
+{
+	uint32_t wr_stat;
+	wr_stat = ft_readl(ft, TDC_REG_WR_STAT);
+
+	if (!ft->wr_mode)
+		return -ENODEV;
+	if (! (wr_stat & TDC_WR_STAT_LINK))
+		return -ENOLINK;
+	if (wr_stat & TDC_WR_STAT_AUX_LOCKED)
+		return 0;
+	return -EAGAIN;
 }
 
 int ft_time_init(struct fmctdc_dev *ft)
 {
 	/* program the VCXO DAC to the default calibration value */
-	ft_writel(ft, ft->calib.vcxo_default_tune, TDC_REG_DAC_TUNE);
-	ft_writel(ft, TDC_CTRL_CONFIG_DAC, TDC_REG_CTRL);
-
+	ft_set_vcxo_tune(ft, ft->calib.vcxo_default_tune);
 	return ft_set_tai_time(ft, 0, 0);
 }
 

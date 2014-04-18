@@ -25,6 +25,15 @@
 #define TDC_REG_CURRENT_UTC 0x00a0
 #define TDC_REG_BUFFER_PTR 0x00a8
 #define TDC_REG_CTRL 0x00fc
+#define TDC_REG_WR_CTRL 0x00b4
+#define TDC_REG_WR_STAT 0x00b0
+
+#define TDC_WR_CTRL_ENABLE		BIT(0)
+
+#define TDC_WR_STAT_ENABLED		BIT(6)
+#define TDC_WR_STAT_LINK		BIT(2)
+#define TDC_WR_STAT_TIME_VALID		BIT(8)
+#define TDC_WR_STAT_AUX_LOCKED		BIT(4)
 
 /* TDC_REG_CTRL bits */
 #define TDC_CTRL_EN_ACQ						BIT(0)
