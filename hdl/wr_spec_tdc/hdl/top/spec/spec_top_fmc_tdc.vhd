@@ -891,7 +891,7 @@ begin
      wrabbit_time_valid_i      => tm_time_valid,
      wrabbit_cycles_i          => tm_cycles,
      wrabbit_utc_i             => tm_utc(31 downto 0),
-     wrabbit_utc_p_o           => tdc_led_trig1_o,
+     wrabbit_utc_p_o           => open,
      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en,
      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked,
      wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore
