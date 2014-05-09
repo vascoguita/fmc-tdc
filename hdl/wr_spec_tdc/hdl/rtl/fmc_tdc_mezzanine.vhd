@@ -240,6 +240,9 @@ architecture rtl of fmc_tdc_mezzanine is
   -- Wishbone buse(s) to crossbar slave port(s)
   signal cnx_slave_out             : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
   signal cnx_slave_in              : t_wishbone_slave_in_array (c_NUM_WB_SLAVES-1 downto 0);
+  -- Wishbone bus from additional registers
+  signal xreg_slave_out            : t_wishbone_slave_out;
+  signal xreg_slave_in             : t_wishbone_slave_in;
   -- WISHBONE addresses
   signal tdc_core_wb_adr           : std_logic_vector(31 downto 0);
   signal tdc_mem_wb_adr            : std_logic_vector(31 downto 0);
@@ -275,6 +278,31 @@ begin
 --   0x13000 -> TDC mezzanine board EEPROM I2C
 --   0x14000 -> TDC core timestamps retreival
 
+  -- Additional register to help timing
+  cmp_xwb_reg : xwb_register_link
+  port map
+    (clk_sys_i => clk_ref_0_i,
+     rst_n_i   => rst_ref_0_n,
+     slave_i   => xreg_slave_in,
+     slave_o   => xreg_slave_out,
+     master_i  => cnx_slave_out(c_WB_MASTER),
+     master_o  => cnx_slave_in(c_WB_MASTER));
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Unused wishbone signals
+  wb_tdc_csr_dat_o   <= xreg_slave_out.dat;
+  wb_tdc_csr_ack_o   <= xreg_slave_out.ack;
+  wb_tdc_csr_stall_o <= xreg_slave_out.stall;
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Connect crossbar slave port to entity port
+  xreg_slave_in.adr <= wb_tdc_csr_adr_i;
+  xreg_slave_in.dat <= wb_tdc_csr_dat_i;
+  xreg_slave_in.sel <= wb_tdc_csr_sel_i;
+  xreg_slave_in.stb <= wb_tdc_csr_stb_i;
+  xreg_slave_in.we  <= wb_tdc_csr_we_i;
+  xreg_slave_in.cyc <= wb_tdc_csr_cyc_i;
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sdb_crossbar : xwb_sdb_crossbar
   generic map
     (g_num_masters   => c_NUM_WB_SLAVES,
@@ -291,21 +319,7 @@ begin
      master_i        => cnx_master_in,
      master_o        => cnx_master_out);
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused wishbone signals
-  wb_tdc_csr_dat_o   <= cnx_slave_out(c_WB_MASTER).dat;
-  wb_tdc_csr_ack_o   <= cnx_slave_out(c_WB_MASTER).ack;
-  wb_tdc_csr_stall_o <= cnx_slave_out(c_WB_MASTER).stall;
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Connect crossbar slave port to entity port
-  cnx_slave_in(c_WB_MASTER).adr <= wb_tdc_csr_adr_i;
-  cnx_slave_in(c_WB_MASTER).dat <= wb_tdc_csr_dat_i;
-  cnx_slave_in(c_WB_MASTER).sel <= wb_tdc_csr_sel_i;
-  cnx_slave_in(c_WB_MASTER).stb <= wb_tdc_csr_stb_i;
-  cnx_slave_in(c_WB_MASTER).we  <= wb_tdc_csr_we_i;
-  cnx_slave_in(c_WB_MASTER).cyc <= wb_tdc_csr_cyc_i;
-
-
+  
 ---------------------------------------------------------------------------------------------------
 --                                             TDC CORE                                          --
 ---------------------------------------------------------------------------------------------------
@@ -506,28 +520,32 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                TDC Mezzanine Board EEPROM I2C                                 --
 ---------------------------------------------------------------------------------------------------
-   cmp_I2C_master : xwb_i2c_master
-   generic map
-     (g_interface_mode      => PIPELINED,
-      g_address_granularity => BYTE)
-   port map
-     (clk_sys_i             => clk_ref_0_i,
-      rst_n_i               => rst_ref_0_n,
-      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
-      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
-      desc_o                => open,
-      scl_pad_i             => i2c_scl_i,
-      scl_pad_o             => sys_scl_out,
-      scl_padoen_o          => sys_scl_oe_n,
-      sda_pad_i             => i2c_sda_i,
-      sda_pad_o             => sys_sda_out,
-      sda_padoen_o          => sys_sda_oe_n);
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  i2c_sda_oen_o            <= sys_sda_oe_n;
-  i2c_sda_o                <= sys_sda_out;
-  i2c_scl_oen_o            <= sys_scl_oe_n;
-  i2c_scl_o                <= sys_scl_out;
+--   cmp_I2C_master : xwb_i2c_master
+--   generic map
+--     (g_interface_mode      => PIPELINED,
+--      g_address_granularity => BYTE)
+--   port map
+--     (clk_sys_i             => clk_ref_0_i,
+--      rst_n_i               => rst_ref_0_n,
+--      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
+--      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
+--      desc_o                => open,
+--      scl_pad_i             => i2c_scl_i,
+--      scl_pad_o             => sys_scl_out,
+--      scl_padoen_o          => sys_scl_oe_n,
+--      sda_pad_i             => i2c_sda_i,
+--      sda_pad_o             => sys_sda_out,
+--      sda_padoen_o          => sys_sda_oe_n);
+--
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+--  i2c_sda_oen_o            <= sys_sda_oe_n;
+--  i2c_sda_o                <= sys_sda_out;
+--  i2c_scl_oen_o            <= sys_scl_oe_n;
+--  i2c_scl_o                <= sys_scl_out;
+  i2c_sda_oen_o            <= '0';
+  i2c_sda_o                <= '0';
+  i2c_scl_oen_o            <= '0';
+  i2c_scl_o                <= '0';
 
 
 end rtl;

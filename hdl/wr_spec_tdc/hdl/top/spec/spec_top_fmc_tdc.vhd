@@ -700,8 +700,8 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
      -- Tristates for Carrier EEPROM
-  mezz_sys_scl_b      <= tdc_scl_out when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
-  mezz_sys_sda_b      <= tdc_sda_out when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
+  mezz_sys_scl_b      <= '0' when (wrc_scl_out = '0') else 'Z';--tdc_scl_out when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
+  mezz_sys_sda_b      <= '0' when (wrc_sda_out = '0') else 'Z';--tdc_sda_out when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
   wrc_scl_in          <= mezz_sys_scl_b;
   wrc_sda_in          <= mezz_sys_sda_b;
   tdc_scl_in          <= mezz_sys_scl_b;
@@ -891,7 +891,7 @@ begin
      wrabbit_time_valid_i      => tm_time_valid,
      wrabbit_cycles_i          => tm_cycles,
      wrabbit_utc_i             => tm_utc(31 downto 0),
-     wrabbit_utc_p_o           => open,
+     wrabbit_utc_p_o           => open, -- for debug
      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en,
      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked,
      wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore

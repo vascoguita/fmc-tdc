@@ -136,8 +136,9 @@ entity reg_ctrl is
 
      -- Signal to the data_formatting unit
      dacapo_c_rst_p_o      : out std_logic;                            -- clears the dacapo counter
+	 deactivate_chan_o     : out std_logic_vector(4 downto 0);         -- stops registering timestamps from a specific channel
 
-     -- Signals to the clks_resets_manager ubit
+     -- Signals to the clks_resets_manager unit
      send_dac_word_p_o     : out std_logic;                            -- initiates the reconfiguration of the DAC
      dac_word_o            : out std_logic_vector(23 downto 0);
 
@@ -174,7 +175,7 @@ architecture rtl of reg_ctrl is
   signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out, wrabbit_ctrl_reg                    : std_logic_vector(g_span-1 downto 0);
+  signal dat_out, wrabbit_ctrl_reg, deactivate_chan   : std_logic_vector(g_span-1 downto 0);
   signal tdc_config_wb_ack_o_pipe0                    : std_logic;
 
 
@@ -347,6 +348,10 @@ begin
         if reg_adr = c_WRABBIT_CTRL_ADR then
           wrabbit_ctrl_reg    <= tdc_config_wb_dat_i;
         end if;
+		
+		if reg_adr = c_DEACT_CHAN_ADR then
+          deactivate_chan     <= tdc_config_wb_dat_i;
+        end if;
 
       end if;
     end if;
@@ -360,6 +365,7 @@ begin
   irq_time_threshold_o         <= irq_time_threshold;
   dac_word_o                   <= dac_word;
   wrabbit_ctrl_reg_o           <= wrabbit_ctrl_reg;
+  deactivate_chan_o            <= deactivate_chan(4 downto 0);
 
 ---------------------------------------------------------------------------------------------------
 --                             Reception of TDC core Control Register                            --
@@ -486,7 +492,8 @@ begin
     core_status_i          when c_CORE_STATUS_ADR,
     -- White Rabbit regs
     wrabbit_status_reg_i   when c_WRABBIT_STATUS_ADR,
-    wrabbit_ctrl_reg       when c_WRABBIT_CTRL_ADR,
+    wrabbit_ctrl_reg       when c_WRABBIT_CTRL_ADR, 
+    deactivate_chan        when c_DEACT_CHAN_ADR,
     -- others
     x"C0FFEEEE"            when others;
 

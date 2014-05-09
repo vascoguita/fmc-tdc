@@ -269,7 +269,7 @@ package tdc_core_pkg is
   constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 0x51094 of GN4124 BAR 0
   constant c_DAC_WORD_ADR         : std_logic_vector(7 downto 0) := x"26"; -- address 0x51098 of GN4124 BAR 0
 
---  constant c_RESERVED1          : std_logic_vector(7 downto 0) := x"27"; -- address 0x5109C of GN4124 BAR 0
+  constant c_DEACT_CHAN_ADR       : std_logic_vector(7 downto 0) := x"27"; -- address 0x5109C of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Addresses of TDC core Status registers to be written by the different core units
@@ -677,6 +677,7 @@ package tdc_core_pkg is
        tdc_config_wb_dat_o    : out std_logic_vector(g_width-1 downto 0);
        activate_acq_p_o       : out std_logic;
        deactivate_acq_p_o     : out std_logic;
+       deactivate_chan_o      : out std_logic_vector(4 downto 0);
        acam_wr_config_p_o     : out std_logic;
        acam_rdbk_config_p_o   : out std_logic;
        acam_rdbk_status_p_o   : out std_logic;
@@ -734,6 +735,7 @@ package tdc_core_pkg is
        acam_tstamp2_ok_p_i     : in std_logic;
        clk_i                   : in std_logic;
        dacapo_c_rst_p_i        : in std_logic;
+       deactivate_chan_i       : in std_logic_vector(4 downto 0);
        rst_i                   : in std_logic;
        roll_over_incr_recent_i : in std_logic;
        clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);

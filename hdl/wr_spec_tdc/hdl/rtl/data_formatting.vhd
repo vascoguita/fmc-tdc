@@ -90,7 +90,8 @@ entity data_formatting is
 
      -- Signals from the reg_ctrl unit
      dacapo_c_rst_p_i        : in std_logic;                      -- instruction from GN4124/VME to clear dacapo flag
-
+	 deactivate_chan_i       : in std_logic_vector(4 downto 0);   -- instruction from GN4124/VME to stop registering tstamps from a specific channel
+	 
      -- Signals from the one_hz_gen unit
      utc_i                   : in std_logic_vector(31 downto 0);  -- local UTC time
 
@@ -153,7 +154,7 @@ architecture rtl of data_formatting is
   signal tstamp_on_first_retrig_case2                         : std_logic;
   signal un_previous_clk_i_cycles_offset                      : unsigned(31 downto 0);
   signal un_previous_retrig_nb_offset                         : unsigned(31 downto 0);
-  signal un_previous_roll_over_nb, un_previous_roll_over_nb2, un_previous_roll_over_nb3                             : unsigned(31 downto 0);
+  signal un_previous_roll_over_nb                             : unsigned(31 downto 0);
   signal un_current_retrig_nb_offset, un_current_roll_over_nb : unsigned(31 downto 0);
   signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
   signal un_acam_fine_time :unsigned(31 downto 0);
@@ -193,10 +194,45 @@ begin
         tstamp_wr_cyc <= '0';
         tstamp_wr_we  <= '0';
 
-      elsif acam_tstamp1_ok_p_i ='1' or acam_tstamp2_ok_p_i ='1' then
-        tstamp_wr_stb <= '1';
-        tstamp_wr_cyc <= '1';
-        tstamp_wr_we  <= '1';
+      elsif acam_tstamp1_ok_p_i = '1' then
+	    if deactivate_chan_i = "00000" then
+          tstamp_wr_stb <= '1';
+          tstamp_wr_cyc <= '1';
+          tstamp_wr_we  <= '1';
+		else
+		  if deactivate_chan_i = "00001" and acam_tstamp1_i(27 downto 26) = "00" then
+		    tstamp_wr_stb <= '0';
+            tstamp_wr_cyc <= '0';
+            tstamp_wr_we  <= '0';
+		  elsif deactivate_chan_i = "00010" and acam_tstamp1_i(27 downto 26) = "01" then
+		    tstamp_wr_stb <= '0';
+            tstamp_wr_cyc <= '0';
+            tstamp_wr_we  <= '0';
+		  elsif deactivate_chan_i = "00100" and acam_tstamp1_i(27 downto 26) = "10" then
+		    tstamp_wr_stb <= '0';
+            tstamp_wr_cyc <= '0';
+            tstamp_wr_we  <= '0';
+		  elsif deactivate_chan_i = "01000" and acam_tstamp1_i(27 downto 26) = "11" then
+		    tstamp_wr_stb <= '0';
+            tstamp_wr_cyc <= '0';
+            tstamp_wr_we  <= '0';
+          else			
+		    tstamp_wr_stb <= '1';
+            tstamp_wr_cyc <= '1';
+            tstamp_wr_we  <= '1';
+		  end if; 
+        end if;		  
+
+      elsif acam_tstamp2_ok_p_i = '1' then
+	    if deactivate_chan_i = "10000" then
+          tstamp_wr_stb <= '0';
+          tstamp_wr_cyc <= '0';
+          tstamp_wr_we  <= '0';
+		else
+		  tstamp_wr_stb <= '1';
+          tstamp_wr_cyc <= '1';
+          tstamp_wr_we  <= '1';
+        end if;
 
       elsif tstamp_wr_wb_ack_i = '1' then
         tstamp_wr_stb <= '0';
@@ -321,8 +357,6 @@ begin
         un_previous_retrig_nb_offset    <= (others => '0');
         un_previous_roll_over_nb        <= (others => '0');
         previous_utc                    <= (others => '0');
-        un_previous_roll_over_nb2       <= unsigned(roll_over_nb_i);
-		un_previous_roll_over_nb3       <= un_previous_roll_over_nb2;
       elsif utc_p_i = '1' then
         un_previous_clk_i_cycles_offset <= unsigned(clk_i_cycles_offset_i);
         un_previous_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
@@ -444,8 +478,8 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
   metadata                      <= std_logic_vector(acam_start_nb(7 downto 0)) & -- std_logic_vector(un_previous_retrig_nb_offset(7 downto 0)) & -- for debugging (24 MSbits)
-                                   std_logic_vector(un_retrig_from_roll_over(4 downto 0)) & --acam_fifo_ef & roll_over_incr_recent_i & "0" &    -- for debugging (3 bits)
-                                   std_logic_vector(un_retrig_nb_offset(7 downto 0)) & std_logic_vector(un_clk_i_cycles_offset(5 downto 0)) &
+                                   coarse_zero &--acam_fifo_ef & roll_over_incr_recent_i & "0" &    -- for debugging (3 bits)
+                                   std_logic_vector(un_retrig_nb_offset(7 downto 0)) & std_logic_vector(roll_over_nb_i(9 downto 0)) &
                                    acam_slope & roll_over_incr_recent_i & acam_channel;               -- 5 LSbits-----------
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

@@ -43,7 +43,7 @@
 -- Last changes                                                                                   |
 --     06/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     14/2014  v1    EG  added state RD_START01                                                |
+--     14/2014  v1    EG  added state RD_START01                                                  |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -384,7 +384,10 @@ begin
                         acam_we         <= '0';
                   -----------------------------------------------
 
-                        if acam_ack_i ='1' then
+                        if deactivate_acq_p_i = '1' then
+                          nxt_engine_st   <= INACTIVE;
+
+                        elsif acam_ack_i ='1' then
 
                           if acam_ef2_i = '0' then
                             nxt_engine_st <= GET_STAMP2;
@@ -408,7 +411,10 @@ begin
                         acam_we         <= '0';
                   -----------------------------------------------
 
-                        if acam_ack_i ='1' then                   -- idem.
+                        if deactivate_acq_p_i = '1' then
+                          nxt_engine_st   <= INACTIVE;
+
+                        elsif acam_ack_i ='1' then
 
                           if acam_ef1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
