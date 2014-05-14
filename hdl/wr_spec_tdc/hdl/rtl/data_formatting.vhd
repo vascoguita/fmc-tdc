@@ -387,7 +387,7 @@ begin
   un_acam_start_nb                 <= unsigned(acam_start_nb_32);
   un_current_retrig_nb_offset      <= unsigned(retrig_nb_offset_i);
   un_current_roll_over_nb          <= unsigned(roll_over_nb_i);
-  un_current_retrig_from_roll_over <= shift_left(un_current_roll_over_nb-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192
+  un_current_retrig_from_roll_over <= shift_left(un_current_roll_over_nb-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 and un_current_roll_over_nb > 0
                                       else shift_left(un_current_roll_over_nb, 8);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -426,8 +426,10 @@ begin
         coarse_zero              <= '0';
       else
          -- ACAM tstamp arrived on the same retgigger after a new second
-        if (un_acam_start_nb+un_current_retrig_from_roll_over =  un_current_retrig_nb_offset) or
+         if (un_acam_start_nb+un_current_retrig_from_roll_over =  un_current_retrig_nb_offset) or
           (un_acam_start_nb =  un_current_retrig_nb_offset-1 and  un_acam_fine_time > 6318 and (un_current_retrig_from_roll_over = 0) ) then
+		  --if (un_acam_start_nb =  un_current_retrig_nb_offset) or
+        --  (un_acam_start_nb =  un_current_retrig_nb_offset-1 and  un_acam_fine_time > 6318) then
           coarse_zero            <= '1';
           un_clk_i_cycles_offset <= un_previous_clk_i_cycles_offset;
           un_retrig_nb_offset    <= un_previous_retrig_nb_offset;
@@ -479,7 +481,7 @@ begin
   -- metadata: information about the timestamp
   metadata                      <= std_logic_vector(acam_start_nb(7 downto 0)) & -- std_logic_vector(un_previous_retrig_nb_offset(7 downto 0)) & -- for debugging (24 MSbits)
                                    coarse_zero &--acam_fifo_ef & roll_over_incr_recent_i & "0" &    -- for debugging (3 bits)
-                                   std_logic_vector(un_retrig_nb_offset(7 downto 0)) & std_logic_vector(roll_over_nb_i(9 downto 0)) &
+                                   std_logic_vector(un_retrig_nb_offset(7 downto 0)) & std_logic_vector(roll_over_nb_i(2 downto 0)) & std_logic_vector(un_clk_i_cycles_offset(6 downto 0)) &
                                    acam_slope & roll_over_incr_recent_i & acam_channel;               -- 5 LSbits-----------
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

@@ -617,35 +617,34 @@ begin
 --                                           CHIPSCOPE                                           --
 ---------------------------------------------------------------------------------------------------   
   
-   chipscope_ila_1 : chipscope_ila
-   port map (
-     CONTROL => CONTROL,
-     CLK     => clk_125m_i,
-     TRIG0   => TRIG0,
-     TRIG1   => TRIG1,
-     TRIG2   => TRIG2,
-     TRIG3   => TRIG3);
-
-  chipscope_icon_1 : chipscope_icon
-   port map (
-     CONTROL0 => CONTROL);
- 
-  TRIG0(0)            <= utc_p;
-  TRIG0(1)            <= ef1_i;
-  TRIG0(2)            <= int_flag_i;
-  TRIG0(3)            <= acam_intflag_f_edge_p;
-  TRIG0(16 downto 4)  <= roll_over_nb(12 downto 0);
-  TRIG0(17)           <= start_from_fpga;  
-  TRIG0(25 downto 18) <= retrig_nb_offset(7 downto 0);
-  TRIG0(31 downto 26) <= clk_i_cycles_offset(5 downto 0);  
-
-  TRIG1(30 downto 0)  <= acam_tstamp1(30 downto 0);
-  TRIG1(31)           <= acam_tstamp1_ok_p;
-
-  TRIG2(31 downto 0)  <= utc(31 downto 0); 
-  
-  TRIG3(0)            <= tdc_in_fpga_1_i;
-  TRIG3(31 downto 1)  <= current_retrig_nb(30 downto 0);
+--   chipscope_ila_1 : chipscope_ila
+--   port map (
+--     CONTROL => CONTROL,
+--     CLK     => clk_125m_i,
+--     TRIG0   => TRIG0,
+--     TRIG1   => TRIG1,
+--     TRIG2   => TRIG2,
+--     TRIG3   => TRIG3);
+--
+--  chipscope_icon_1 : chipscope_icon
+--   port map (
+--     CONTROL0 => CONTROL);
+-- 
+--  TRIG0(0)            <= utc_p;
+--  TRIG0(1)            <= ef1_i;
+--  TRIG0(2)            <= acam_intflag_f_edge_p;
+--  TRIG0(15 downto 3)  <= roll_over_nb(12 downto 0);
+--  TRIG0(16)           <= start_from_fpga;  
+--  TRIG0(24 downto 17) <= retrig_nb_offset(7 downto 0);
+--  TRIG0(31 downto 25) <= clk_i_cycles_offset(6 downto 0);  
+--
+--  TRIG1(30 downto 0)  <= acam_tstamp1(30 downto 0);
+--  TRIG1(31)           <= acam_tstamp1_ok_p;
+--
+--  TRIG2(31 downto 0)  <= utc(31 downto 0); 
+--  
+--  TRIG3(0)            <= tdc_in_fpga_1_i;
+--  TRIG3(31 downto 1)  <= current_retrig_nb(30 downto 0);
   
 end rtl;
 ----------------------------------------------------------------------------------------------------

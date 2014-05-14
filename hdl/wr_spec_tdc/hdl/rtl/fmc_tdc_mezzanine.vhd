@@ -520,32 +520,32 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                TDC Mezzanine Board EEPROM I2C                                 --
 ---------------------------------------------------------------------------------------------------
---   cmp_I2C_master : xwb_i2c_master
---   generic map
---     (g_interface_mode      => PIPELINED,
---      g_address_granularity => BYTE)
---   port map
---     (clk_sys_i             => clk_ref_0_i,
---      rst_n_i               => rst_ref_0_n,
---      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
---      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
---      desc_o                => open,
---      scl_pad_i             => i2c_scl_i,
---      scl_pad_o             => sys_scl_out,
---      scl_padoen_o          => sys_scl_oe_n,
---      sda_pad_i             => i2c_sda_i,
---      sda_pad_o             => sys_sda_out,
---      sda_padoen_o          => sys_sda_oe_n);
---
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
---  i2c_sda_oen_o            <= sys_sda_oe_n;
---  i2c_sda_o                <= sys_sda_out;
---  i2c_scl_oen_o            <= sys_scl_oe_n;
---  i2c_scl_o                <= sys_scl_out;
-  i2c_sda_oen_o            <= '0';
-  i2c_sda_o                <= '0';
-  i2c_scl_oen_o            <= '0';
-  i2c_scl_o                <= '0';
+   cmp_I2C_master : xwb_i2c_master
+   generic map
+     (g_interface_mode      => PIPELINED,
+      g_address_granularity => BYTE)
+   port map
+     (clk_sys_i             => clk_ref_0_i,
+      rst_n_i               => rst_ref_0_n,
+      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
+      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
+      desc_o                => open,
+      scl_pad_i             => i2c_scl_i,
+      scl_pad_o             => sys_scl_out,
+      scl_padoen_o          => sys_scl_oe_n,
+      sda_pad_i             => i2c_sda_i,
+      sda_pad_o             => sys_sda_out,
+      sda_padoen_o          => sys_sda_oe_n);
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  i2c_sda_oen_o            <= sys_sda_oe_n;
+  i2c_sda_o                <= sys_sda_out;
+  i2c_scl_oen_o            <= sys_scl_oe_n;
+  i2c_scl_o                <= sys_scl_out;
+--  i2c_sda_oen_o            <= '0';
+--  i2c_sda_o                <= '0';
+--  i2c_scl_oen_o            <= '0';
+--  i2c_scl_o                <= '0';
 
 
 end rtl;

@@ -700,8 +700,8 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
      -- Tristates for Carrier EEPROM
-  mezz_sys_scl_b      <= '0' when (wrc_scl_out = '0') else 'Z';--tdc_scl_out when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
-  mezz_sys_sda_b      <= '0' when (wrc_sda_out = '0') else 'Z';--tdc_sda_out when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
+  mezz_sys_scl_b      <= tdc_scl_out when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
+  mezz_sys_sda_b      <= tdc_sda_out when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
   wrc_scl_in          <= mezz_sys_scl_b;
   wrc_sda_in          <= mezz_sys_sda_b;
   tdc_scl_in          <= mezz_sys_scl_b;
