@@ -177,8 +177,8 @@ NET "wr_n_o" LOC = "Y13";
 NET "wr_n_o" IOSTANDARD = "LVCMOS25";
 NET "enable_inputs_o" LOC = "C19";
 NET "enable_inputs_o" IOSTANDARD = "LVCMOS25";
-NET "mezz_one_wire_b" LOC = "A19";
-NET "mezz_one_wire_b" IOSTANDARD = "LVCMOS25";
+NET "mezz_onewire_b" LOC = "A19";
+NET "mezz_onewire_b" IOSTANDARD = "LVCMOS25";
 # <ucfgen_end>
 NET "mezz_sys_scl_b" LOC = "F7";
 NET "mezz_sys_scl_b" IOSTANDARD = "LVCMOS25";

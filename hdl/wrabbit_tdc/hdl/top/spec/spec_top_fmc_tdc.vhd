@@ -157,9 +157,9 @@ entity spec_top_fmc_tdc is
      sfp_txn_o          : out   std_logic;
      sfp_rxp_i          : in    std_logic := '0';
      sfp_rxn_i          : in    std_logic := '1';
-     sfp_mod_def0_b     : in    std_logic; -- SFP detect pin
-     sfp_mod_def1_b     : inout std_logic; -- SFP scl
-     sfp_mod_def2_b     : inout std_logic; -- SFP sda
+     sfp_mod_def0_b     : in    std_logic;                    -- SFP detect pin
+     sfp_mod_def1_b     : inout std_logic;                    -- SFP scl
+     sfp_mod_def2_b     : inout std_logic;                    -- SFP sda
      sfp_rate_select_b  : inout std_logic := '0';
      sfp_tx_fault_i     : in    std_logic := '0';
      sfp_tx_disable_o   : out   std_logic;
@@ -168,7 +168,7 @@ entity spec_top_fmc_tdc is
      uart_rxd_i         : in    std_logic := '1';             -- UART
      uart_txd_o         : out   std_logic;
 
-     carrier_scl_b      : inout std_logic;             -- SPEC EEPROM
+     carrier_scl_b      : inout std_logic;                    -- SPEC EEPROM
      carrier_sda_b      : inout std_logic;
 
      carrier_onewire_b  : inout std_logic;                    -- SPEC 1-wire
@@ -259,7 +259,7 @@ entity spec_top_fmc_tdc is
      mezz_sys_sda_b     : inout std_logic := '1';             -- Mezzanine system EEPROM I2C data
 
      -- 1-wire interface on TDC mezzanine
-     mezz_one_wire_b    : inout std_logic;
+     mezz_onewire_b    : inout std_logic;
 
      -- font panel leds
      led_red   : out std_logic;
@@ -347,7 +347,7 @@ architecture rtl of spec_top_fmc_tdc is
   -- Carrier CSR info
   signal gn4124_status                                   : std_logic_vector(31 downto 0);
   -- Carrier 1-wire
-  signal carrier_owr_en, carrier_owr_i                   : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
+  signal carrier_owr_en, carrier_owr_i                   : std_logic_vector(c_FMC_ONEWIRE_NB - 1 downto 0);
   -- VIC
   signal fmc_eic_irq, irq_to_gn4124                      : std_logic;
   signal fmc_eic_irq_synch                               : std_logic_vector (1 downto 0);
@@ -375,8 +375,33 @@ architecture rtl of spec_top_fmc_tdc is
   -- Carrier 1-Wire
   signal wrc_owr_en, wrc_owr_in                          : std_logic_vector(1 downto 0);
   -- aux
-  signal pll_sclk, pll_sdi, pll_dac_sync                 : std_logic;
+  signal pll_sclk, pll_sdi, pll_dac_sync, pll_cs         : std_logic;
 
+---------------------------------------------------------------------------------------------------
+--                                          Chipscope                                            --
+---------------------------------------------------------------------------------------------------
+ -- -- Chipscope
+  -- component chipscope_ila
+    -- port (
+      -- CONTROL : inout std_logic_vector(35 downto 0);
+      -- CLK     : in    std_logic;
+      -- TRIG0   : in    std_logic_vector(31 downto 0);
+      -- TRIG1   : in    std_logic_vector(31 downto 0);
+      -- TRIG2   : in    std_logic_vector(31 downto 0);
+      -- TRIG3   : in    std_logic_vector(31 downto 0));
+  -- end component;
+
+  -- component chipscope_icon
+    -- port (
+      -- CONTROL0 : inout std_logic_vector (35 downto 0));
+  -- end component;
+
+  -- signal CONTROL : std_logic_vector(35 downto 0);
+  -- signal CLK     : std_logic;
+  -- signal TRIG0   : std_logic_vector(31 downto 0);
+  -- signal TRIG1   : std_logic_vector(31 downto 0);
+  -- signal TRIG2   : std_logic_vector(31 downto 0);
+  -- signal TRIG3   : std_logic_vector(31 downto 0);
 
 
 --=================================================================================================
@@ -440,7 +465,7 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                   Reset for 62M5 clk domain                                   --
+--                                 Reset for 62.5 MHz clk domain                                 --
 ---------------------------------------------------------------------------------------------------
 
   U_Reset_Generator : spec_reset_gen
@@ -476,7 +501,7 @@ begin
      wrabbit_dac_value_i    => tm_dac_value,
      wrabbit_dac_wr_p_i     => tm_dac_wr_p,
      internal_rst_o         => rst_125m_mezz,
-     pll_cs_n_o             => pll_cs_o,
+     pll_cs_n_o             => pll_cs,
      pll_dac_sync_n_o       => pll_dac_sync,
      pll_sdi_o              => pll_sdi,
      pll_sclk_o             => pll_sclk,
@@ -487,6 +512,31 @@ begin
   pll_dac_sync_o            <= pll_dac_sync;
   pll_sdi_o                 <= pll_sdi;
   pll_sclk_o                <= pll_sclk;
+  pll_cs_o                  <= pll_cs;
+	 
+  -- chipscope_ila_1 : chipscope_ila
+  -- port map (
+   -- CONTROL => CONTROL,
+   -- CLK     => clk_62m5_sys,
+   -- TRIG0   => TRIG0,
+   -- TRIG1   => TRIG1,
+   -- TRIG2   => TRIG2,
+   -- TRIG3   => TRIG3);
+
+  -- chipscope_icon_1 : chipscope_icon
+  -- port map (
+   -- CONTROL0 => CONTROL);
+ 
+  -- TRIG0(23 downto 0) <= tm_dac_value;
+  -- TRIG0(24)          <= tm_dac_wr_p;
+  -- TRIG0(25)          <= pll_dac_sync;
+  -- TRIG0(26)          <= pll_sdi;
+  -- TRIG0(27)          <= pll_sclk;
+  -- TRIG0(28)          <= pll_sdo_i;
+  -- TRIG0(29)          <= pll_status_i;
+  -- TRIG0(30)          <= pll_cs;
+  -- TRIG0(31)          <= tm_clk_aux_lock_en;
+  
 
 ---------------------------------------------------------------------------------------------------
 --                                      62.5 MHz DMTD clock                                      --
@@ -699,7 +749,7 @@ begin
      -- dac_clr_n_o   <= '1';
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-     -- Tristates for Carrier EEPROM
+  -- Tristates for TDC mezzanine EEPROM
   mezz_sys_scl_b      <= tdc_scl_out when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
   mezz_sys_sda_b      <= tdc_sda_out when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
   wrc_scl_in          <= mezz_sys_scl_b;
@@ -891,7 +941,6 @@ begin
      wrabbit_time_valid_i      => tm_time_valid,
      wrabbit_cycles_i          => tm_cycles,
      wrabbit_utc_i             => tm_utc(31 downto 0),
-     wrabbit_utc_p_o           => open, -- for debug
      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en,
      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked,
      wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore
@@ -907,7 +956,7 @@ begin
      i2c_scl_o                 => tdc_scl_out,
      i2c_sda_o                 => tdc_sda_out,
     -- 1-Wire on TDC mezzanine
-     one_wire_b                => mezz_one_wire_b);
+     onewire_b                 => mezz_onewire_b);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Domains crossing: clk_125m_mezz <-> clk_62m5_sys

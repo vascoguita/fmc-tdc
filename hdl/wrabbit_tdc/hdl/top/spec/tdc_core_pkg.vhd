@@ -322,7 +322,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 --                           Constants regarding the One-Wire interface                          --
 ---------------------------------------------------------------------------------------------------
-  constant c_FMC_ONE_WIRE_NB   : integer := 1;
+  constant c_FMC_ONEWIRE_NB   : integer := 1;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -332,7 +332,7 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
---                                      Components Declarations:                                 --
+--                                      Components Declarations                                  --
 ---------------------------------------------------------------------------------------------------
 
   component fmc_tdc_mezzanine is
@@ -385,7 +385,6 @@ package tdc_core_pkg is
      wrabbit_time_valid_i      : in    std_logic;
      wrabbit_cycles_i          : in    std_logic_vector(27 downto 0);
      wrabbit_utc_i             : in    std_logic_vector(31 downto 0);
-     wrabbit_utc_p_o           : out   std_logic;
      wrabbit_clk_aux_lock_en_o : out   std_logic;
      wrabbit_clk_aux_locked_i  : in    std_logic;
      wrabbit_clk_dmtd_locked_i : in    std_logic;
@@ -408,14 +407,14 @@ package tdc_core_pkg is
      irq_time_p_o           : out   std_logic;
      irq_acam_err_p_o       : out   std_logic;
      -- I2C EEPROM interface
-     i2c_scl_o                  : out std_logic;
-     i2c_scl_oen_o              : out std_logic;
-     i2c_scl_i                  : in  std_logic;
-     i2c_sda_o                  : out std_logic;
-     i2c_sda_oen_o              : out std_logic;
-     i2c_sda_i                  : in  std_logic;
+     i2c_scl_o              : out std_logic;
+     i2c_scl_oen_o          : out std_logic;
+     i2c_scl_i              : in  std_logic;
+     i2c_sda_o              : out std_logic;
+     i2c_sda_oen_o          : out std_logic;
+     i2c_sda_i              : in  std_logic;
      -- 1-wire UniqueID&Thermometer interface
-     one_wire_b             : inout std_logic);
+     onewire_b              : inout std_logic);
   end component;
 
 
@@ -487,7 +486,6 @@ package tdc_core_pkg is
   end component;
 
 
-
 ---------------------------------------------------------------------------------------------------
   component wrabbit_sync is
   generic
@@ -499,7 +497,7 @@ package tdc_core_pkg is
      clk_ref_i                 : in  std_logic;
      rst_n_ref_i               : in  std_logic;
      wrabbit_dac_value_i       : in  std_logic_vector(23 downto 0);
-     wrabbit_dac_wr_p_i        : in    std_logic;
+     wrabbit_dac_wr_p_i        : in  std_logic;
      wrabbit_link_up_i         : in  std_logic;
      wrabbit_time_valid_i      : in  std_logic; -- this is i te clk_ref_0 domain, no??
      wrabbit_clk_aux_lock_en_o : out std_logic;
@@ -511,7 +509,6 @@ package tdc_core_pkg is
   end component;
 
 
-
 ---------------------------------------------------------------------------------------------------
   component spec_reset_gen is
   port
@@ -520,6 +517,7 @@ package tdc_core_pkg is
      rst_button_n_a_i : in std_logic;
      rst_n_o          : out std_logic);
   end component;
+
 
 ---------------------------------------------------------------------------------------------------
   component decr_counter
@@ -647,7 +645,6 @@ package tdc_core_pkg is
        acam_tstamp2_ok_p_o   : out std_logic);
       ----------------------------------------------------------------------
   end component;
-
 
 
 ---------------------------------------------------------------------------------------------------

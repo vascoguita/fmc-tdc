@@ -331,7 +331,7 @@ begin
      acam_rst_p_o          => reset_acam,
      load_utc_p_o          => load_utc,
      dacapo_c_rst_p_o      => clear_dacapo_counter,
-	 deactivate_chan_o     => deactivate_chan,
+	  deactivate_chan_o     => deactivate_chan,
      acam_config_rdbk_i    => acam_config_rdbk,
      acam_ififo1_i         => acam_ififo1,
      acam_ififo2_i         => acam_ififo2,

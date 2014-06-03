@@ -159,7 +159,6 @@ entity fmc_tdc_mezzanine is
      wrabbit_time_valid_i      : in    std_logic;
      wrabbit_cycles_i          : in    std_logic_vector(27 downto 0);
      wrabbit_utc_i             : in    std_logic_vector(31 downto 0);
-     wrabbit_utc_p_o           : out   std_logic;
      wrabbit_clk_aux_lock_en_o : out   std_logic;
      wrabbit_clk_aux_locked_i  : in    std_logic;
      wrabbit_clk_dmtd_locked_i : in    std_logic;
@@ -178,14 +177,14 @@ entity fmc_tdc_mezzanine is
      wb_tdc_csr_stall_o        : out   std_logic;
      wb_irq_o                  : out   std_logic;
     -- I2C EEPROM interface
-     i2c_scl_o                  : out std_logic;
-     i2c_scl_oen_o              : out std_logic;
-     i2c_scl_i                  : in  std_logic;
-     i2c_sda_oen_o              : out std_logic;
-     i2c_sda_o                  : out std_logic;
-     i2c_sda_i                  : in  std_logic;
+     i2c_scl_o                 : out std_logic;
+     i2c_scl_oen_o             : out std_logic;
+     i2c_scl_i                 : in  std_logic;
+     i2c_sda_oen_o             : out std_logic;
+     i2c_sda_o                 : out std_logic;
+     i2c_sda_i                 : in  std_logic;
     -- 1-Wire interface
-     one_wire_b                : inout std_logic;
+     onewire_b                 : inout std_logic;
     -- For debug: interrupt pulses from TDC core
      irq_tstamp_p_o            : out   std_logic;
      irq_time_p_o              : out   std_logic;
@@ -452,8 +451,6 @@ begin
       end if;
     end if;
   end process;
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  wrabbit_utc_p_o           <= wrabbit_utc_p;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -476,8 +473,8 @@ begin
      owr_en_o              => mezz_owr_en,
      owr_i                 => mezz_owr_i);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  one_wire_b               <= '0' when mezz_owr_en(0) = '1' else 'Z';
-  mezz_owr_i(0)            <= one_wire_b;
+  onewire_b                <= '0' when mezz_owr_en(0) = '1' else 'Z';
+  mezz_owr_i(0)            <= onewire_b;
 
 
 ---------------------------------------------------------------------------------------------------

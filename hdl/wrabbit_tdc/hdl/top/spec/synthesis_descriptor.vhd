@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
--- Title      : Fine Delay FMC SPEC (Simple PCIe FMC Carrier) SDB descriptor
--- Project    : Fine Delay FMC (fmc-delay-1ns-4cha)
+-- Title      : TDC FMC SPEC (Simple VME FMC Carrier) SDB descriptor
+-- Project    : TDC FMC (fmc-tdc-1ns-5cha)
 -------------------------------------------------------------------------------
 -- File       : synthesis_descriptor.vhd
 -- Author     : Evangelia Gousiou
