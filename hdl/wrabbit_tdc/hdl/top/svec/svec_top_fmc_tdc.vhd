@@ -389,7 +389,7 @@ architecture rtl of svec_top_fmc_tdc is
 ---------------------------------------------------------------------------------------------------
  -- Resets
   -- asynchronous reset from the FPGA inputs VME_RST_n_i and por_n_i
-  signal por_rst_n_a, rst_sys_n               : std_logic;
+  signal por_rst_n_a                          : std_logic;
   signal powerup_rst_cnt                      : unsigned(7 downto 0) := "00000000";
   -- system reset, synched with 62.5 MHz clock,driven by the VME reset and power-up reset pins.
   signal rst_n_sys                            : std_logic;
@@ -472,6 +472,7 @@ architecture rtl of svec_top_fmc_tdc is
   signal tdc1_ef, tdc2_ef, led_tdc1_ef        : std_logic;
   signal led_tdc2_ef, led_tdc2_pll_status     : std_logic;
   signal led_tdc1_pll_status, led_vme_access  : std_logic;
+  signal wrabbit_led_red, wrabbit_led_green   : std_logic;
   signal led_clk_62m5_divider                 : unsigned(22 downto 0);
   signal led_clk_62m5_aux                     : std_logic_vector(7 downto 0);
   signal led_clk_62m5                         : std_logic;
@@ -717,7 +718,7 @@ begin
      clk_ref_i                   => clk_125m_pllref,
      clk_aux_i(0)                => tdc1_clk_125m,
      clk_aux_i(1)                => tdc2_clk_125m,
-     rst_n_i                     => rst_sys_n,
+     rst_n_i                     => rst_n_sys,
      -- DAC
      dac_hpll_load_p1_o          => dac_hpll_load_p1,
      dac_hpll_data_o             => dac_hpll_data,
@@ -737,8 +738,8 @@ begin
      phy_rst_o                   => phy_rst,
      phy_loopen_o                => phy_loopen,
      -- SPEC LEDs
-     led_act_o                   => open,--------LED_RED,
-     led_link_o                  => open,--------LED_GREEN,
+     led_act_o                   => wrabbit_led_red,
+     led_link_o                  => wrabbit_led_green,
      -- SFP
      scl_o                       => wrc_scl_out,
      scl_i                       => wrc_scl_in,
@@ -749,6 +750,7 @@ begin
      sfp_sda_o                   => sfp_sda_out,
      sfp_sda_i                   => sfp_sda_in,
      sfp_det_i                   => sfp_mod_def0_b,
+
      uart_rxd_i                  => uart_rxd_i,
      uart_txd_o                  => uart_txd_o,
      -- 1-wire
@@ -822,7 +824,7 @@ begin
      g_num_cs_select  => 1)
   port map
     (clk_i            => clk_62m5_sys,
-     rst_n_i          => rst_sys_n,
+     rst_n_i          => rst_n_sys,
      value_i          => dac_hpll_data,
      cs_sel_i         => "1",
      load_i           => dac_hpll_load_p1,
@@ -839,7 +841,7 @@ begin
      g_num_cs_select  => 1)
   port map
     (clk_i         => clk_62m5_sys,
-     rst_n_i       => rst_sys_n,
+     rst_n_i       => rst_n_sys,
      value_i       => dac_dpll_data,
      cs_sel_i      => "1",
      load_i        => dac_dpll_load_p1,
@@ -852,12 +854,16 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for mezzanine EEPROM
-  -- tdc1_scl_b   <= tdc_scl_out when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
-  -- tdc1_sda_b   <= tdc_sda_out when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
-  -- wrc_scl_in   <= tdc1_scl_b;
-  -- wrc_sda_in   <= tdc1_sda_b;
-  -- tdc1_scl_in  <= tdc1_scl_b;
-  -- tdc1_sda_in  <= tdc1_sda_b;
+  tdc1_scl_b   <= tdc1_scl_out when (tdc1_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
+  tdc1_sda_b   <= tdc1_sda_out when (tdc1_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
+  wrc_scl_in   <= tdc1_scl_b;
+  wrc_sda_in   <= tdc1_sda_b;
+  tdc1_scl_in  <= tdc1_scl_b;
+  tdc1_sda_in  <= tdc1_sda_b;
+
+  tdc2_scl_b   <= tdc2_scl_out when (tdc2_scl_oen = '0') else 'Z';
+  tdc2_sda_b   <= tdc2_sda_out when (tdc2_sda_oen = '0') else 'Z';
+
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for SFP EEPROM
@@ -953,7 +959,7 @@ begin
      values_for_simul          => values_for_simul)
   port map
     (clk_sys_i                 => clk_62m5_sys,
-     rst_sys_n_i               => rst_sys_n,
+     rst_sys_n_i               => rst_n_sys,
      -- 125M clk and reset
      clk_ref_0_i               => tdc1_clk_125m,
      rst_ref_0_i               => tdc1_general_rst,
@@ -1051,7 +1057,7 @@ begin
      values_for_simul          => values_for_simul)
   port map
     (clk_sys_i                 => clk_62m5_sys,
-     rst_sys_n_i               => rst_sys_n,
+     rst_sys_n_i               => rst_n_sys,
      -- 125M clk and reset
      clk_ref_0_i               => tdc2_clk_125m,
      rst_ref_0_i               => tdc2_general_rst,
@@ -1249,22 +1255,22 @@ begin
   --                   ---------------------------------
   -- fp led number  :  | 5 | 6 | 7 | 8 | 1 | 2 | 3 | 4 |
 
-  -- LED 1: TDC1 PLL status
-  led_state(7  downto  6) <= c_LED_RED when led_tdc1_pll_status = '1' else c_LED_OFF;
-  -- LED 2: TDC2 PLL status
-  led_state(5  downto  4) <= c_LED_RED when led_tdc2_pll_status = '1' else c_LED_OFF;
+  -- LED 1: White Rabbit act
+  led_state(7  downto  6) <= c_LED_RED   when wrabbit_led_red      = '1' else c_LED_OFF;
+  -- LED 2: White Rabbit link
+  led_state(5  downto  4) <= c_LED_GREEN when wrabbit_led_green    = '1' else c_LED_OFF;
   -- LED 3: TDC1 empty flag
-  led_state(3  downto  2) <= c_LED_GREEN when led_tdc1_ef       = '1' else c_LED_OFF;
+  led_state(3  downto  2) <= c_LED_GREEN when led_tdc1_ef          = '1' else c_LED_OFF;
   -- LED 4: TDC2 empty flag
-  led_state(1  downto  0) <= c_LED_GREEN when led_tdc2_ef       = '1' else c_LED_OFF;
+  led_state(1  downto  0) <= c_LED_GREEN when led_tdc2_ef          = '1' else c_LED_OFF;
   -- LED 5: VME access
-  led_state(15 downto 14) <= c_LED_GREEN when led_vme_access    = '1' else c_LED_OFF;
+  led_state(15 downto 14) <= c_LED_GREEN when led_vme_access       = '1' else c_LED_OFF;
   -- LED 6: blinking using clk_62m5_sys
-  led_state(13 downto 12) <= c_LED_GREEN when led_clk_62m5      = '1' else c_LED_OFF;
-  -- LED 7: not used, permanently green
-  led_state(11 downto 10) <= c_LED_GREEN;
-  -- LED 8: not used, permanently red
-  led_state(9  downto  8) <= c_LED_RED;
+  led_state(13 downto 12) <= c_LED_GREEN when led_clk_62m5         = '1' else c_LED_OFF;
+  -- LED 7: TDC1 locked to White Rabbit
+  led_state(11 downto 10) <= c_LED_GREEN when tm_clk_aux_locked(0) = '1' else c_LED_OFF;
+  -- LED 8: TDC2 locked to White Rabbit
+  led_state(9  downto  8) <= c_LED_GREEN when tm_clk_aux_locked(1) = '1' else c_LED_OFF;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_drive_VME_access_LED: gc_extend_pulse
