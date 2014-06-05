@@ -336,7 +336,7 @@ architecture rtl of svec_top_fmc_tdc is
   constant c_SDB_ADDRESS         : t_wishbone_address := x"00000000";
   constant c_FMC_TDC0_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
   constant c_FMC_TDC1_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
-  constant c_WRCORE_BRIDGE_SDB   : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0003ffff", x"00000000");
+  constant c_WRCORE_BRIDGE_SDB   : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0003ffff", x"00030000");
 
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(7 downto 0) :=
     (0 => f_sdb_embed_device     (c_ONEWIRE_SDB_DEVICE,   x"00010000"),
@@ -877,6 +877,8 @@ begin
   wrc_owr_in(0)       <= carrier_onewire_b;
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
+  -- The SFP is permanently enabled.
+  sfp_tx_disable_o <= '0';
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --

@@ -546,6 +546,22 @@ NET "tdc2_onewire_b" IOSTANDARD = "LVCMOS25";
 #----------------------------------------
 # SFP slot
 #----------------------------------------
+NET "sfp_txp_o" LOC = B23;
+NET "sfp_txn_o" LOC = A23;
+NET "sfp_rxp_i" LOC = D22;
+NET "sfp_rxn_i" LOC = C22;
+
+NET "clk_125m_gtp_p_i" LOC = B19;
+NET "clk_125m_gtp_n_i" LOC = A19;
+
+NET "sfp_los_i" LOC = W25;
+NET "sfp_mod_def0_b" LOC = Y26;
+NET "sfp_mod_def1_b" LOC = Y27;
+NET "sfp_mod_def2_b" LOC = AA24;
+#NET "sfp_rate_select_o" LOC = W24;
+NET "sfp_tx_disable_o" LOC = AA25;
+NET "sfp_tx_fault_i" LOC = AA27;
+
 NET "sfp_los_i" IOSTANDARD = "LVCMOS33";
 NET "sfp_mod_def0_b" IOSTANDARD = "LVCMOS33";
 NET "sfp_mod_def1_b" IOSTANDARD = "LVCMOS33";
@@ -553,6 +569,13 @@ NET "sfp_mod_def2_b" IOSTANDARD = "LVCMOS33";
 #NET "sfp_rate_select_o" IOSTANDARD = "LVCMOS33";
 NET "sfp_tx_disable_o" IOSTANDARD = "LVCMOS33";
 NET "sfp_tx_fault_i" IOSTANDARD = "LVCMOS33";
+
+NET "pll20dac_din_o" LOC = U28;
+NET "pll20dac_sclk_o" LOC = AA28;
+NET "pll20dac_sync_n_o" LOC = N28;
+NET "pll25dac_din_o" LOC = P25;
+NET "pll25dac_sclk_o" LOC = N27;
+NET "pll25dac_sync_n_o" LOC = P26;
 
 NET "pll20dac_din_o" IOSTANDARD = "LVCMOS33";
 NET "pll20dac_sclk_o" IOSTANDARD = "LVCMOS33";
@@ -564,6 +587,8 @@ NET "pll25dac_sync_n_o" IOSTANDARD = "LVCMOS33";
 #----------------------------------------
 # UART
 #----------------------------------------
+NET "uart_txd_o" LOC = U27;
+NET "uart_rxd_i" LOC = U25;
 NET "uart_txd_o" IOSTANDARD = "LVCMOS33";
 NET "uart_rxd_i" IOSTANDARD = "LVCMOS33";
 
