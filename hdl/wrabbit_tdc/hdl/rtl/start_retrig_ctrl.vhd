@@ -4,6 +4,7 @@
 --                                                                                                |
 --                                         CERN,BE/CO-HT                                          |
 --________________________________________________________________________________________________|
+
 ---------------------------------------------------------------------------------------------------
 --                                                                                                |
 --                                       start_retrig_ctrl                                        |
@@ -90,14 +91,16 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
+-- Date         04/2014                                                                           |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     07/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--     04/2014  v1    EG  Changed roll_over_counter to add rare case where utc_p_i and            |
+--                        acam_intflag_f_edge_p_i arrive at the same time                         |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -152,6 +155,7 @@ entity start_retrig_ctrl is
      retrig_nb_offset_o      : out std_logic_vector(g_width-1 downto 0));
 end start_retrig_ctrl;
 
+
 --=================================================================================================
 --                                    architecture declaration
 --=================================================================================================
@@ -165,6 +169,7 @@ architecture rtl of start_retrig_ctrl is
   signal retrig_nb_offset    : std_logic_vector(g_width-1 downto 0);
   signal retrig_p            : std_logic;
   signal roll_over_c         : unsigned(g_width-1 downto 0);
+
 
 --=================================================================================================
 --                                       architecture begin
@@ -256,22 +261,14 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- This counter keeps track of the number of overflows of the ACAM counter within one second
---  roll_over_counter: incr_counter
---    generic map
---      (width             => g_width)
---    port map
---      (clk_i             => clk_i,
---       rst_i             => roll_over_c_rst,  
---       counter_top_i     => x"FFFFFFFF",
---       counter_incr_en_i => acam_intflag_f_edge_p_i,
---       counter_is_full_o => open,
---       counter_o         => roll_over_c);
   roll_over_counter: process (clk_i)
   begin
     if rising_edge (clk_i) then
       if utc_p_i = '1' and acam_intflag_f_edge_p_i = '0' then
         roll_over_c   <= x"00000000";
 
+       -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
+       -- arrive on the exact same moment 
 	   elsif utc_p_i = '1' and acam_intflag_f_edge_p_i = '1' then
         roll_over_c   <= x"00000001";
 		
@@ -305,9 +302,11 @@ begin
   clk_i_cycles_offset_o   <= clk_i_cycles_offset;
   retrig_nb_offset_o      <= retrig_nb_offset;
   roll_over_nb_o          <= std_logic_vector(roll_over_c);
-  current_retrig_nb_o     <= current_retrig_nb; ----------------
+  current_retrig_nb_o     <= current_retrig_nb; -- for debug
 
 end architecture rtl;
+
+
 --=================================================================================================
 --                                        architecture end
 --=================================================================================================

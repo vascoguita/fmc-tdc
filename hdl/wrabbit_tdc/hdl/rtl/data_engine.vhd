@@ -35,15 +35,15 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
+-- Date         04/2014                                                                           |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     06/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     14/2014  v1    EG  added state RD_START01                                                  |
+--     04/2014  v1    EG  added state RD_START01                                                  |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -680,12 +680,12 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                      Aquisition of ACAM Timestamps or Reedback Registers                      --
+--                      Acquisition of ACAM Timestamps or Reedback Registers                     --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- data_readback_decoder: after reading accesses to the ACAM (acam_we=0), the process recuperates
 -- the ACAM data and according to the acam_adr_o stores them to the corresponding registers.
--- In the case of timestamps aquisition, the acam_tstamp1_ok_p_o, acam_tstamp2_ok_p_o pulses are
+-- In the case of timestamps acquisition, the acam_tstamp1_ok_p_o, acam_tstamp2_ok_p_o pulses are
 -- generated that when active, indicate a valid timestamp. Note that for timing reasons
 -- the signals acam_tstamp1_o, acam_tstamp2_o are not the outputs of flip-flops.
 

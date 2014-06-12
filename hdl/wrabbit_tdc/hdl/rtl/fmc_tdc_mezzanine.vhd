@@ -14,9 +14,11 @@
 --                                                                                                |
 -- Description  The unit combines                                                                 |
 --                o the TDC core                                                                  |
+--                o the wrabbit_sync unit that is managing the White Rabbit synchronization  and  |
+--                  control signals                                                               |
 --                o the I2C core for the communication with the TDC board EEPROM                  |
 --                o the OneWire core for the communication with the TDC board UniqueID&Thermeter  |
---                o the Embedded Ibterrupt Controller core that concentrates several interrupt    |
+--                o the Embedded Interrupt Controller core that concentrates several interrupt    |
 --                  sources into one WISHBONE interrupt request line.                             |
 --                                                                                                |
 --              For the interconnection between the GN4124/VME core and the different cores (TDC, |
@@ -32,25 +34,29 @@
 --              Note that the TDC core uses word addressing, whereas the GN4124/VME cores use byte|
 --              addressing                                                                        |
 --                                   _______________________________                              |
---                                  |      FMC TDC mezzanine        |                             |
---                                  |    ________________    ___    |                             |
---                                  |   |                |  |   |   |                             |
---                 ACAM chip <-->   |   |    TDC core    |  |   |   |   <-->                      |
---                                  |   |________________|  | S |   |                             |
---                                  |    ________________   |   |   |                             |
---                                  |   |                |  |   |   |                             |
---               EEPROM chip <-->   |   |    I2C core    |  |   |   |   <-->                      |
---                                  |   |________________|  |   |   |                             |
---                                  |    ________________   | D |   |          GN4124/VME core    |
---                                  |   |                |  |   |   |                             |
---                   1W chip <-->   |   |     1W core    |  |   |   |   <-->                      |
---                                  |   |________________|  |   |   |                             |
---                                  |    ________________   |   |   |                             |
---                                  |   |                |  | B |   |                             |
---                                  |   |       EIC      |  |   |   |   <-->                      |
---                                  |   |________________|  |___|   |                             |
---                                  |                               |                             |
---                                  |_______________________________|                             |
+--                                 |       FMC TDC mezzanine        |                             |
+--                                 |                                |                             |
+--                                 |     ________________           |                             |
+--                                 | |--|  WRabbit_sync  |          |                             |
+--                                 | |  |________________|          |                             |
+--                                 | |   ________________    ___    |                             |
+--                                 | |->|                |  |   |   |                             |
+--                 ACAM chip <-->  |    |    TDC core    |  |   |   |   <-->                      |
+--                                 | |--|________________|  | S |   |                             |
+--                                 | |   ________________   |   |   |                             |
+--                                 | |  |                |  |   |   |                             |
+--               EEPROM chip <-->  | |  |    I2C core    |  |   |   |   <-->                      |
+--                                 | |  |________________|  |   |   |                             |
+--                                 | |   ________________   | D |   |          GN4124/VME core    |
+--                                 | |  |                |  |   |   |                             |
+--                   1W chip <-->  | |  |     1W core    |  |   |   |   <-->                      |
+--                                 | |  |________________|  |   |   |                             |
+--                                 | |   ________________   |   |   |                             |
+--                                 | |  |                |  | B |   |                             |
+--                                 | |->|       EIC      |  |   |   |   <-->                      |
+--                                 |    |________________|  |___|   |                             |
+--                                 |                                |                             |
+--                                 |________________________________|                             |
 --                                     ^                        ^                                 |
 --                                     | 125 MHz            rst |                                 |
 --                                   __|________________________|___                              |
@@ -111,12 +117,12 @@ entity fmc_tdc_mezzanine is
      values_for_simul          : boolean := FALSE);
   port
     -- TDC core
-    (-- Closk reset62.5
-     clk_sys_i                 : in    std_logic;
-     rst_sys_n_i               : in    std_logic;
+    (-- Clock & reset 62M5
+     clk_sys_i                 : in    std_logic; -- 62.5 MHz clock
+     rst_sys_n_i               : in    std_logic; -- reset for 62.5 MHz logic
      -- Signals from the clks_rsts_manager unit
-     clk_ref_0_i               : in    std_logic;
-     rst_ref_0_i               : in    std_logic;
+     clk_ref_0_i               : in    std_logic; -- 125 MHz clock
+     rst_ref_0_i               : in    std_logic; -- reset for 125 MHz logic
      acam_refclk_r_edge_p_i    : in    std_logic;
      send_dac_word_p_o         : out   std_logic;
      dac_word_o                : out   std_logic_vector(23 downto 0);
@@ -184,11 +190,7 @@ entity fmc_tdc_mezzanine is
      i2c_sda_o                 : out std_logic;
      i2c_sda_i                 : in  std_logic;
     -- 1-Wire interface
-     onewire_b                 : inout std_logic;
-    -- For debug: interrupt pulses from TDC core
-     irq_tstamp_p_o            : out   std_logic;
-     irq_time_p_o              : out   std_logic;
-     irq_acam_err_p_o          : out   std_logic);
+     onewire_b                 : inout std_logic);
 end fmc_tdc_mezzanine;
 
 
@@ -275,7 +277,7 @@ begin
 --   0x11000 -> TDC mezzanine board 1-Wire
 --   0x12000 -> EIC for TDC core
 --   0x13000 -> TDC mezzanine board EEPROM I2C
---   0x14000 -> TDC core timestamps retreival
+--   0x14000 -> TDC core timestamps retrieval
 
   -- Additional register to help timing
   cmp_xwb_reg : xwb_register_link
@@ -415,7 +417,6 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                       WHITE RABBIT STUFF                                      --
 ---------------------------------------------------------------------------------------------------
-
   cmp_wrabbit_synch: wrabbit_sync
   generic map
    (g_simulation               => false,
@@ -440,7 +441,7 @@ begin
   wrabbit_one_hz_pulse : process(clk_ref_0_i)
   begin
     if rising_edge(clk_ref_0_i) then
-      if((wrabbit_clk_aux_locked_i = '1')) then --and g_with_wrabbit_core) then
+      if((wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core = '1') then
         if unsigned(wrabbit_cycles_i) = unsigned(c_SYN_CLK_PERIOD) -1 then
           wrabbit_utc_p <= '1';
         else
@@ -507,11 +508,6 @@ begin
   cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).rty <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).int <= '0';
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Only for debug
-  irq_tstamp_p_o        <= irq_tstamp_p;
-  irq_time_p_o          <= irq_time_p;
-  irq_acam_err_p_o      <= irq_acam_err_p;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -539,10 +535,6 @@ begin
   i2c_sda_o                <= sys_sda_out;
   i2c_scl_oen_o            <= sys_scl_oe_n;
   i2c_scl_o                <= sys_scl_out;
---  i2c_sda_oen_o            <= '0';
---  i2c_sda_o                <= '0';
---  i2c_scl_oen_o            <= '0';
---  i2c_scl_o                <= '0';
 
 
 end rtl;
