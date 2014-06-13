@@ -416,7 +416,6 @@ begin
 	 state_active_p_i        => state_active_p,
 	 deactivate_acq_p_i      => deactivate_acq_p,
      rst_i                   => rst_i,
-     window_delay_i          => window_delay,
      acam_errflag_f_edge_p_o => acam_errflag_f_edge_p,
      acam_errflag_r_edge_p_o => acam_errflag_r_edge_p,
      acam_intflag_f_edge_p_o => acam_intflag_f_edge_p);
@@ -463,7 +462,7 @@ begin
      clk_i                   => clk_125m_i,
      utc_p_i                 => utc_p,
      rst_i                   => rst_i,
-	 current_retrig_nb_o     => current_retrig_nb,
+	 current_retrig_nb_o     => current_retrig_nb, -- for debug
      roll_over_incr_recent_o => roll_over_incr_recent,
      clk_i_cycles_offset_o   => clk_i_cycles_offset,
      roll_over_nb_o          => roll_over_nb,

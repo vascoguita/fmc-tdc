@@ -12,7 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 -- File         sdb_meta_pkg.vhd                                                                  |
 --                                                                                                |
--- Description  Sdb meta-information for the FMC TDC design for SPEC.                             |
+-- Description  Sdb meta-information for the FMC TDC design for SVEC.                             |
 --                                                                                                |
 -- Authors      Matthieu Cattin (matthieu.cattin@cern.ch)                                         |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
@@ -50,12 +50,12 @@ package sdb_meta_pkg is
   -- Top module repository url
   constant c_SDB_REPO_URL : t_sdb_repo_url := (
     -- url (string, 63 char)
-    repo_url => "http://svn.ohwr.org/fmc-tdc/hdl/spec/                          ");
+    repo_url => "http://svn.ohwr.org/fmc-tdc/hdl/                               ");
 
   -- Synthesis informations
   constant c_SDB_SYNTHESIS : t_sdb_synthesis := (
     -- Top module name (string, 16 char)
-    syn_module_name  => "spec_top_fmc_tdc",
+    syn_module_name  => "svec_top_fmc_tdc",
     -- Commit ID (hex string, 128-bit = 32 char)
     -- git log -1 --format="%H" | cut -c1-320
     syn_commit_id    => x"00000000",

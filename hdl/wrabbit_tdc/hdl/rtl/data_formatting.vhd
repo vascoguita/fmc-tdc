@@ -135,7 +135,7 @@ architecture rtl of data_formatting is
   constant c_MULTIPLY_BY_SIXTEEN                              : std_logic_vector(3 downto 0) := "0000";
   -- ACAM timestamp fields
   signal acam_channel                                         : std_logic_vector(2 downto 0);
-  signal acam_slope, acam_fifo_ef                             : std_logic;
+  signal acam_slope                                           : std_logic;
   signal acam_fine_timestamp                                  : std_logic_vector(16 downto 0);
   signal acam_start_nb                                        : unsigned(7 downto 0);
   -- timestamp manipulations
@@ -328,21 +328,18 @@ begin
     if rising_edge (clk_i) then
       if rst_i ='1' then  
         acam_channel        <= (others => '0');
-        acam_fifo_ef        <= '0';
         acam_fine_timestamp <= (others => '0');
         acam_slope          <= '0';
         acam_start_nb       <= (others => '0');
 
       elsif acam_tstamp1_ok_p_i = '1' then
         acam_channel        <= "0" & acam_tstamp1_i(27 downto 26);
-        acam_fifo_ef        <= acam_tstamp1_i(31);
         acam_fine_timestamp <= acam_tstamp1_i(16 downto 0);
         acam_slope          <= acam_tstamp1_i(17);
         acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18))-1;
 
       elsif acam_tstamp2_ok_p_i ='1' then
         acam_channel        <= "1" & acam_tstamp2_i(27 downto 26);
-        acam_fifo_ef        <= acam_tstamp2_i(30);
         acam_fine_timestamp <= acam_tstamp2_i(16 downto 0);
         acam_slope          <= acam_tstamp2_i(17);
         acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18))-1;

@@ -22,14 +22,7 @@
 --                  sources into one WISHBONE interrupt request line.                             |
 --                                                                                                |
 --              For the interconnection between the GN4124/VME core and the different cores (TDC, |
---              I2C, 1W, EIC) the unit instantiates an SDB crossbar.                              |
---                                                                                                |
---              Note that the TDC core has two WISHBONE buses, one for the configuration (of the  |
---              core itself and of the ACAM) and one for the retrieval of the timestamps from the |
---              memory.                                                                           |
---                                                                                                |
---              Note that the SPI interface for the DAC on the TDC board is implemented in the    |
---              clcks_rsts_manager;no access to the DAC is provided through GN4124/VME interface  |
+--              I2C, 1W, EIC, timestamps memory) the unit instantiates an SDB crossbar.           |
 --                                                                                                |
 --              Note that the TDC core uses word addressing, whereas the GN4124/VME cores use byte|
 --              addressing                                                                        |
@@ -112,7 +105,8 @@ use work.wishbone_pkg.all;
 --=================================================================================================
 entity fmc_tdc_mezzanine is
   generic
-    (g_span                    : integer := 32;
+    (g_with_wrabbit_core       : boolean := FALSE;
+     g_span                    : integer := 32;
      g_width                   : integer := 32;
      values_for_simul          : boolean := FALSE);
   port
@@ -183,12 +177,12 @@ entity fmc_tdc_mezzanine is
      wb_tdc_csr_stall_o        : out   std_logic;
      wb_irq_o                  : out   std_logic;
     -- I2C EEPROM interface
-     i2c_scl_o                 : out std_logic;
-     i2c_scl_oen_o             : out std_logic;
-     i2c_scl_i                 : in  std_logic;
-     i2c_sda_oen_o             : out std_logic;
-     i2c_sda_o                 : out std_logic;
-     i2c_sda_i                 : in  std_logic;
+     i2c_scl_o                 : out   std_logic;
+     i2c_scl_oen_o             : out   std_logic;
+     i2c_scl_i                 : in    std_logic;
+     i2c_sda_oen_o             : out   std_logic;
+     i2c_sda_o                 : out   std_logic;
+     i2c_sda_i                 : in    std_logic;
     -- 1-Wire interface
      onewire_b                 : inout std_logic);
 end fmc_tdc_mezzanine;
@@ -306,19 +300,19 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sdb_crossbar : xwb_sdb_crossbar
   generic map
-    (g_num_masters   => c_NUM_WB_SLAVES,
-     g_num_slaves    => c_NUM_WB_MASTERS,
-     g_registered    => true,
-     g_wraparound    => true,
-     g_layout        => c_INTERCONNECT_LAYOUT,
-     g_sdb_addr      => c_SDB_ADDRESS)
+    (g_num_masters  => c_NUM_WB_SLAVES,
+     g_num_slaves   => c_NUM_WB_MASTERS,
+     g_registered   => true,
+     g_wraparound   => true,
+     g_layout       => c_INTERCONNECT_LAYOUT,
+     g_sdb_addr     => c_SDB_ADDRESS)
   port map
-    (clk_sys_i       => clk_ref_0_i,
-     rst_n_i         => rst_ref_0_n,
-     slave_i         => cnx_slave_in,
-     slave_o         => cnx_slave_out,
-     master_i        => cnx_master_in,
-     master_o        => cnx_master_out);
+    (clk_sys_i      => clk_ref_0_i,
+     rst_n_i        => rst_ref_0_n,
+     slave_i        => cnx_slave_in,
+     slave_o        => cnx_slave_out,
+     master_i       => cnx_master_in,
+     master_o       => cnx_master_out);
 
   
 ---------------------------------------------------------------------------------------------------
@@ -420,7 +414,7 @@ begin
   cmp_wrabbit_synch: wrabbit_sync
   generic map
    (g_simulation               => false,
-    g_with_wrabbit_core        => true)
+    g_with_wrabbit_core        => g_with_wrabbit_core)
   port map
     (clk_sys_i                 => clk_sys_i,
      rst_n_sys_i               => rst_sys_n_i,
@@ -441,7 +435,7 @@ begin
   wrabbit_one_hz_pulse : process(clk_ref_0_i)
   begin
     if rising_edge(clk_ref_0_i) then
-      if((wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core = '1') then
+      if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
         if unsigned(wrabbit_cycles_i) = unsigned(c_SYN_CLK_PERIOD) -1 then
           wrabbit_utc_p <= '1';
         else

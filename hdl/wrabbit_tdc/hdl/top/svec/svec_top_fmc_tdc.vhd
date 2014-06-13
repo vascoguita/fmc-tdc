@@ -10,12 +10,16 @@
 --                                        svec_top_fmc_tdc                                        |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
--- File         top_tdc.vhd                                                                       |
+-- File         svec_top_fmc_tdc.vhd                                                              |
 --                                                                                                |
 -- Description  TDC top level for SVEC. Figure 1 shows the architecture of this unit.             |
 --                o Two TDC mezzanine cores are instantiated, for the boards on FMC1 and FMC2     |
+--                o The White Rabbit core is controlling the DAC on each TDC mezzanine; the DAC   |
+--                  is in turn controlling the PLL frequency. Once the PLL is synchronized to     |
+--                  White Rabbit, the TDC core starts using the White Rabbit UTC for the          |
+--                  timestamps calculations.                                                      |
 --                o The VIC is managing the interrupts coming from both TDC EIC cores             |
---                o The carrier_info module prinstanciatedovides general information on the SVEC PCB version, |
+--                o The carrier_info module provides general information on the SVEC PCB version, |
 --                  PLLs locking state etc                                                        |
 --                o The 1-Wire core provides communication with the SVEC Thermometer&UniqueID chip|
 --              All these cores communicate with the VME core through the WISHBONE.               |
@@ -30,8 +34,8 @@
 --                                                                                                |
 --              The 125MHz clock for each TDC mezzanine comes from the PLL located on it.         |
 --              A clks_rsts_manager unit is responsible for automatically configuring the PLL upon|
---              the FPGA startup, using the 20MHz VCXO on the SVEC board. The clks_rsts_manager is|
---              keeping the TDC mezzanine core under reset until the respective PLL gets locked.  |
+--              the FPGA startup, using the 62.5MHz clock. The clks_rsts_manager is keeping the   |
+--              the TDC mezzanine core under reset until the respective PLL gets locked.          |
 --                                                                                                |
 --              Upon powering up of the FPGA as well as after a VME reset, the whole logic gets   |
 --              reset (FMC1 125MHz, FMC2 125MHz and 62.5MHz). This also triggers a reprogramming  |
@@ -41,24 +45,32 @@
 --              of the mezzanines' PLL.                                                           |
 --                                                                                                |
 --                __________________________________________________________________              |
---               |       ____________________________        ___        _____       |             |
---               |      |   ____________   _______   |      |   |      |     |      |             |
---               |      |  |            | | clk   |  | \    |   |      |     |      |             |
---               |      |  | TDC mezz 1 | | cross |  |  \   |   |      |     |      |             |
---         FMC1  |      |  |____________| |_______|  |   \  |   |      |     |      |             |
---               |      |     ___________________    |    \ |   |      |     |      |             |
---               |      |    |_clks_rsts_manager_|   |      |   |      |     |      |             |
---               |      |____________________________|      |   |      |     |      |             |
---               |                        FMC1 125MHz       |   |      |     |      |             |
---               |       ____________________________       |   |      |     |      |             |
---               |      |   ____________   _______   |      |   |      |     |      |             |
---               |      |  |            | | clk   |  |      |   |      |     |      |             |
---               |      |  | TDC mezz 2 | | cross |  |      | S |      |  V  |      |             |
---         FMC2  |      |  |____________| |_______|  | ---- |   |      |     |      |             |
---               |      |     ___________________    |      |   |      |     |      |             |
---               |      |    |_clks_rsts_manager_|   |      |   |      |     |      |             |
+--               |                                                                  |             |
+--               |       ____________________________                               |             |
+--               |      |                            |       ___                    |             |
+--               |  |---|  WRabbit core, PHY, DAC    |\     |   |                   |             |
+--               |  |   |____________________________| \    |   |                   |             |
+--               |                             62.5MHz   \  |   |                   |             |
+--               |  |    ____________________________      \|   |       _____       |             |
+--               |  |   |   ____________   _______   |      |   |      |     |      |             |
+--               |  |---|->|            | | clk   |  |      |   |      |     |      |             |
+--               |  |   |  | TDC mezz 1 | | cross |  |      |   |      |     |      |             |
+--         FMC1  |  |   |  |____________| |_______|  |\     |   |      |     |      |             |
+--               |  |   |    FMC1 125MHz             | \    |   |      |     |      |             |
+--               |  |   |     ___________________    |   \  |   |      |     |      |             |
+--               |  |---|--->|_clks_rsts_manager_|   |    \ |   |      |     |      |             |
+--               |  |   |____________________________|     \|   |      |     |      |             |
+--               |  |                                       |   |      |     |      |             |
+--               |  |    ____________________________       |   |      |     |      |             |
+--               |  |   |   ____________   _______   |      |   |      |     |      |             |
+--               |  |   |  |            | | clk   |  |      |   |      |     |      |             |
+--               |  |---|->| TDC mezz 2 | | cross |  |      | S |      |  V  |      |             |
+--         FMC2  |  |   |  |____________| |_______|  | ---- |   |      |     |      |             |
+--               |  |   |    FMC2 125MHz             |      |   |      |     |      |             |
+--               |  |   |     ___________________    |      |   |      |     |      |             |
+--               |  |---|--->|_clks_rsts_manager_|   |      |   |      |     |      |             |
 --               |      |____________________________|      | D | <--> |  M  |      |             |
---               |                        FMC2 125MHz       |   |      |     |      |             |
+--               |                                          |   |      |     |      |             |
 --               |       ____________________________       |   |      |     |      |             |
 --               |      |                            |      |   |      |     |      |             |
 --               |      |             VIC            | ---- | B |      |  E  |      |             |
@@ -73,7 +85,7 @@
 --               |      |                            |  /   |   |      |     |      |             |
 --               |      |        carrier_info        | /    |   |      |     |      |             |
 --               |      |____________________________|      |   |      |     |      |             |
---               |                                          |___|      |_____|      |             |
+--               |                            62.5MHz       |___|      |_____|      |             |
 --               |                                         62.5MHZ     62.5MHz      |             |
 --               |      ______________________________________________              |             |
 --               |     |___________________LEDs_______________________|             |             |
@@ -83,13 +95,14 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         08/2013                                                                           |
--- Version      v4                                                                                |
+-- Date         05/2014                                                                           |
+-- Version      v5                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     08/2013  v4  EG  design for SVEC; two cores; synchronizer between vme and the cores        |
+--     05/2014  v5  EG  added White Rabbit                                                        |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -134,17 +147,17 @@ entity svec_top_fmc_tdc is
                                                        -- when instantiated in a test-bench
   port
     (-- SVEC carrier
+      -- VCXO clock, PoR
       por_n_i                : in    std_logic;        -- PoR
-
       clk_20m_vcxo_i         : in    std_logic;        -- 20 MHz VCXO
-
-      clk_125m_pllref_p_i    : in    std_logic;        -- 125 MHz PLL reference
+      -- 125 MHz PLL reference
+      clk_125m_pllref_p_i    : in    std_logic;
       clk_125m_pllref_n_i    : in    std_logic;
-
-      clk_125m_gtp_p_i       : in    std_logic;        -- 125 MHz GTP reference
+      -- 125 MHz GTP reference
+      clk_125m_gtp_p_i       : in    std_logic;
       clk_125m_gtp_n_i       : in    std_logic;
-
-      sfp_txp_o              : out   std_logic;        -- SFP
+      -- SFP
+      sfp_txp_o              : out   std_logic;
       sfp_txn_o              : out   std_logic;
       sfp_rxp_i              : in    std_logic := '0';
       sfp_rxn_i              : in    std_logic := '1';
@@ -155,20 +168,20 @@ entity svec_top_fmc_tdc is
       sfp_tx_fault_i         : in    std_logic := '0';
       sfp_tx_disable_o       : out   std_logic;
       sfp_los_i              : in    std_logic := '0';
-
+      -- Serial DAC
       pll20dac_din_o         : out   std_logic;
       pll20dac_sclk_o        : out   std_logic;
       pll20dac_sync_n_o      : out   std_logic;
       pll25dac_din_o         : out   std_logic;
       pll25dac_sclk_o        : out   std_logic;
       pll25dac_sync_n_o      : out   std_logic;
-
-      uart_rxd_i             : in    std_logic := '1'; -- UART
+      -- UART
+      uart_rxd_i             : in    std_logic := '1';
       uart_txd_o             : out   std_logic;
-
-      carrier_onewire_b      : inout std_logic;        -- SVEC 1-wire
-
-      pcb_ver_i              : in    std_logic_vector(3 downto 0); -- SVEC PCB version
+      -- 1-wire
+      carrier_onewire_b      : inout std_logic;        
+      -- SVEC PCB version
+      pcb_ver_i              : in    std_logic_vector(3 downto 0);
       -- Mezzanines presence
       tdc1_prsntm2c_n_i      : in    std_logic;        -- Presence of mezzanine #1
       tdc2_prsntm2c_n_i      : in    std_logic;        -- Presence of mezzanine #1
@@ -176,7 +189,6 @@ entity svec_top_fmc_tdc is
       fp_led_line_oen_o      : out   std_logic_vector(1 downto 0);
       fp_led_line_o          : out   std_logic_vector(1 downto 0);
       fp_led_column_o        : out   std_logic_vector(3 downto 0);
-
 
      -- VME interface
       VME_AS_n_i             : in    std_logic;
@@ -327,10 +339,10 @@ architecture rtl of svec_top_fmc_tdc is
   constant c_MASTER_VME     : integer := 0;
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   constant c_SLAVE_SVEC_1W   : integer := 0;  -- SVEC 1wire interface
-  constant c_SLAVE_SVEC_INFO : integer := 1;  -- SVEC control and status registers
-  constant c_SLAVE_VIC       : integer := 2;  -- Interrupt controller
-  constant c_SLAVE_TDC0      : integer := 3;  -- TIMETAG core for time-tagging
-  constant c_SLAVE_TDC1      : integer := 4;  -- TIMETAG core for time-tagging
+  constant c_SLAVE_SVEC_INFO : integer := 1;  -- SVEC carrier info
+  constant c_SLAVE_VIC       : integer := 2;  -- Vector Interrupt controller
+  constant c_SLAVE_TDC0      : integer := 3;  -- TDC mezzanine #1
+  constant c_SLAVE_TDC1      : integer := 4;  -- TDC mezzanine #2
   constant c_SLAVE_WRCORE    : integer := 5;  -- White Rabbit PTP core
 
   constant c_SDB_ADDRESS         : t_wishbone_address := x"00000000";
@@ -361,14 +373,15 @@ architecture rtl of svec_top_fmc_tdc is
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
 
+---------------------------------------------------------------------------------------------------
  -- Clocks
   -- CLOCK DOMAIN: 20 MHz VCXO clock on SVEC carrier board: clk_20m_vcxo_i
   signal clk_20m_vcxo_buf, clk_20m_vcxo       : std_logic;
   -- CLOCK DOMAIN: 62.5 MHz system clock derived from clk_20m_vcxo_i by a Xilinx PLL: clk_62m5_sys
   signal clk_62m5_sys, pllout_clk_sys         : std_logic;
   signal pllout_clk_sys_fb, sys_locked        : std_logic;
-  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1: tdc1_clk_125m
-  signal tdc1_clk_125m                        : std_logic;
+  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1: tdc1_125m_clk
+  signal tdc1_125m_clk                        : std_logic;
   signal tdc1_acam_refclk_r_edge_p            : std_logic;
   signal tdc1_send_dac_word_p                 : std_logic;
   signal tdc1_dac_word                        : std_logic_vector(23 downto 0);
@@ -376,8 +389,8 @@ architecture rtl of svec_top_fmc_tdc is
   signal tdc1_slave_out                       : t_wishbone_slave_out;
   signal tdc1_irq_acam_err_p                  : std_logic;
   signal tdc1_irq_tstamp_p, tdc1_irq_time_p   : std_logic;
-  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC2: tdc2_clk_125m
-  signal tdc2_clk_125m                        : std_logic;
+  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC2: tdc2_125m_clk
+  signal tdc2_125m_clk                        : std_logic;
   signal tdc2_acam_refclk_r_edge_p            : std_logic;
   signal tdc2_send_dac_word_p                 : std_logic;
   signal tdc2_dac_word                        : std_logic_vector(23 downto 0);
@@ -385,6 +398,13 @@ architecture rtl of svec_top_fmc_tdc is
   signal tdc2_slave_out                       : t_wishbone_slave_out;
   signal tdc2_irq_acam_err_p                  : std_logic;
   signal tdc2_irq_tstamp_p, tdc2_irq_time_p   : std_logic;
+  -- WHITE RABBIT CLOCKS:
+  signal pllout_clk_dmtd, pllout_clk_fb_dmtd  : std_logic;
+  signal pllout_clk_fb_pllref                 : std_logic;
+  signal clk_125m_pllref, clk_125m_gtp        : std_logic;
+  signal clk_dmtd                             : std_logic;
+  attribute buffer_type                       : string;  --" {bufgdll | ibufg | bufgp | ibuf | bufr | none}";
+  attribute buffer_type of clk_125m_pllref    : signal is "BUFG";
 
 ---------------------------------------------------------------------------------------------------
  -- Resets
@@ -413,35 +433,31 @@ architecture rtl of svec_top_fmc_tdc is
   signal VME_ADDR_DIR_int                     : std_logic;
 
 ---------------------------------------------------------------------------------------------------
-  -- WRabbit clocks
-  signal pllout_clk_dmtd                 : std_logic;
-  signal pllout_clk_fb_pllref, pllout_clk_fb_dmtd        : std_logic;
-  signal clk_125m_pllref, clk_125m_gtp                   : std_logic;
-  signal clk_dmtd                                        : std_logic;
-  attribute buffer_type                                  : string;  --" {bufgdll | ibufg | bufgp | ibuf | bufr | none}";
-  attribute buffer_type of clk_125m_pllref               : signal is "BUFG";
-  -- WRabbit time
+  -- White Rabbit signals to TDC mezzanine
   signal tm_link_up, tm_time_valid            : std_logic;
   signal tm_utc                               : std_logic_vector(39 downto 0);
   signal tm_cycles                            : std_logic_vector(27 downto 0);
-  signal tm_dac_value, tm_dac_value_reg       : std_logic_vector(23 downto 0);
   signal tm_clk_aux_lock_en, tm_clk_aux_locked: std_logic_vector(1 downto 0);
+  -- White Rabbit signals to clks_rsts_manager
+  signal tm_dac_value                         : std_logic_vector(23 downto 0);
   signal tm_dac_wr_p                          : std_logic_vector(1 downto 0);
-  -- WRabbit PHY
+  -- White Rabbit PHY
   signal phy_tx_data, phy_rx_data             : std_logic_vector(7 downto 0);
   signal phy_tx_k, phy_tx_disparity, phy_rx_k : std_logic;
   signal phy_tx_enc_err, phy_rx_rbclk         : std_logic;
   signal phy_rx_enc_err, phy_rst, phy_loopen  : std_logic;
   signal phy_rx_bitslide                      : std_logic_vector(3 downto 0);
-  -- DAC configuration through WRabbit
+  -- White Rabbit serial DAC
   signal dac_hpll_load_p1, dac_dpll_load_p1   : std_logic;
   signal dac_hpll_data, dac_dpll_data         : std_logic_vector(15 downto 0);
-
-  signal wrc_scl_out, wrc_scl_in, wrc_sda_out, wrc_sda_in: std_logic;
-  -- SFP EEPROM on mezzanine  
-  signal sfp_scl_out, sfp_scl_in, sfp_sda_out, sfp_sda_in: std_logic;
-  -- Carrier 1-Wire
-  signal wrc_owr_en, wrc_owr_in                          : std_logic_vector(1 downto 0);
+  -- White Rabbit to mezzanine EEPROM
+  signal wrc_scl_out, wrc_scl_in              : std_logic;
+  signal wrc_sda_out, wrc_sda_in              : std_logic;
+  -- White Rabbit to SFP EEPROM
+  signal sfp_scl_out, sfp_scl_in              : std_logic;
+  signal sfp_sda_out, sfp_sda_in              : std_logic;
+  -- White Rabbit Carrier 1-Wire
+  signal wrc_owr_en, wrc_owr_in               : std_logic_vector(1 downto 0);
 
 ---------------------------------------------------------------------------------------------------
  -- Crossbar
@@ -458,10 +474,14 @@ architecture rtl of svec_top_fmc_tdc is
   signal tdc1_irq, tdc2_irq                   : std_logic;
   signal tdc1_irq_synch, tdc2_irq_synch       : std_logic_vector (1 downto 0);
 
-  signal tdc1_scl_out, tdc1_scl_in, tdc1_sda_out, tdc1_sda_in : std_logic;
-  signal tdc1_scl_oen, tdc1_sda_oen                           : std_logic;
-  signal tdc2_scl_out, tdc2_scl_in, tdc2_sda_out, tdc2_sda_in : std_logic;
-  signal tdc2_scl_oen, tdc2_sda_oen                           : std_logic;
+---------------------------------------------------------------------------------------------------
+-- Mezzanines EEPROM
+  signal tdc1_scl_out, tdc1_scl_in            : std_logic; 
+  signal tdc1_sda_out, tdc1_sda_in            : std_logic;
+  signal tdc1_scl_oen, tdc1_sda_oen           : std_logic;
+  signal tdc2_scl_out, tdc2_scl_in            : std_logic;
+  signal tdc2_sda_out, tdc2_sda_in            : std_logic;
+  signal tdc2_scl_oen, tdc2_sda_oen           : std_logic;
 
 ---------------------------------------------------------------------------------------------------
  -- Carrier other signals
@@ -472,10 +492,10 @@ architecture rtl of svec_top_fmc_tdc is
   signal tdc1_ef, tdc2_ef, led_tdc1_ef        : std_logic;
   signal led_tdc2_ef, led_tdc2_pll_status     : std_logic;
   signal led_tdc1_pll_status, led_vme_access  : std_logic;
-  signal wrabbit_led_red, wrabbit_led_green   : std_logic;
   signal led_clk_62m5_divider                 : unsigned(22 downto 0);
   signal led_clk_62m5_aux                     : std_logic_vector(7 downto 0);
   signal led_clk_62m5                         : std_logic;
+  signal wrabbit_led_red, wrabbit_led_green   : std_logic;
 
 
 --=================================================================================================
@@ -573,7 +593,7 @@ begin
      acam_refclk_n_i           => tdc1_acam_refclk_n_i,
      tdc_125m_clk_p_i          => tdc1_125m_clk_p_i,
      tdc_125m_clk_n_i          => tdc1_125m_clk_n_i,
-     rst_n_i                   => tdc1_soft_rst_n, -- just use the system-wide reset to boostrap PLLs
+     rst_n_i                   => tdc1_soft_rst_n, -- software reset; needs to be released for TDC core to startup
      pll_sdo_i                 => tdc1_pll_sdo_i,
      pll_status_i              => tdc1_pll_status_i,
      send_dac_word_p_i         => tdc1_send_dac_word_p,
@@ -586,7 +606,7 @@ begin
      pll_dac_sync_n_o          => tdc1_pll_dac_sync_n_o,
      pll_sdi_o                 => tdc1_pll_sdi_o,
      pll_sclk_o                => tdc1_pll_sclk_o,
-     tdc_125m_clk_o            => tdc1_clk_125m,
+     tdc_125m_clk_o            => tdc1_125m_clk,
      pll_status_o              => open);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc1_general_rst_n          <= not tdc1_general_rst;
@@ -605,7 +625,7 @@ begin
      acam_refclk_n_i           => tdc2_acam_refclk_n_i,
      tdc_125m_clk_p_i          => tdc2_125m_clk_p_i,
      tdc_125m_clk_n_i          => tdc2_125m_clk_n_i,
-     rst_n_i                   => tdc2_soft_rst_n,
+     rst_n_i                   => tdc2_soft_rst_n, -- software reset; needs to be released for TDC core to startup
      pll_sdo_i                 => tdc2_pll_sdo_i,
      pll_status_i              => tdc2_pll_status_i,
      send_dac_word_p_i         => tdc2_send_dac_word_p,
@@ -618,7 +638,7 @@ begin
      pll_dac_sync_n_o          => tdc2_pll_dac_sync_n_o,
      pll_sdi_o                 => tdc2_pll_sdi_o,
      pll_sclk_o                => tdc2_pll_sclk_o,
-     tdc_125m_clk_o            => tdc2_clk_125m,
+     tdc_125m_clk_o            => tdc2_125m_clk,
      pll_status_o              => open);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc2_general_rst_n           <= not tdc2_general_rst;
@@ -716,8 +736,8 @@ begin
     (clk_sys_i                   => clk_62m5_sys,
      clk_dmtd_i                  => clk_dmtd,
      clk_ref_i                   => clk_125m_pllref,
-     clk_aux_i(0)                => tdc1_clk_125m,
-     clk_aux_i(1)                => tdc2_clk_125m,
+     clk_aux_i(0)                => tdc1_125m_clk,
+     clk_aux_i(1)                => tdc2_125m_clk,
      rst_n_i                     => rst_n_sys,
      -- DAC
      dac_hpll_load_p1_o          => dac_hpll_load_p1,
@@ -956,14 +976,15 @@ begin
 
   cmp_tdc1 : fmc_tdc_mezzanine
   generic map
-    (g_span                    => g_span,
+    (g_with_wrabbit_core       => TRUE,
+     g_span                    => g_span,
      g_width                   => g_width,
      values_for_simul          => values_for_simul)
   port map
     (clk_sys_i                 => clk_62m5_sys,
      rst_sys_n_i               => rst_n_sys,
      -- 125M clk and reset
-     clk_ref_0_i               => tdc1_clk_125m,
+     clk_ref_0_i               => tdc1_125m_clk,
      rst_ref_0_i               => tdc1_general_rst,
      acam_refclk_r_edge_p_i    => tdc1_acam_refclk_r_edge_p,
      send_dac_word_p_o         => tdc1_send_dac_word_p,
@@ -1020,8 +1041,8 @@ begin
      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en(0),
      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked(0),
      wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore
-     wrabbit_dac_value_i       => tm_dac_value_reg,
-     wrabbit_dac_wr_p_i        => tm_dac_wr_p(0),
+     wrabbit_dac_value_i       => tm_dac_value,   -- only for debug
+     wrabbit_dac_wr_p_i        => tm_dac_wr_p(0), -- only for debug
      -- Interrupts
      wb_irq_o                  => tdc1_irq,
     -- EEPROM I2C on TDC mezzanine
@@ -1034,8 +1055,9 @@ begin
      -- 1-wire UniqueID&Thermometer interface
      onewire_b                 => tdc1_onewire_b);
 
+
 ---------------------------------------------------------------------------------------------------
---                      TDC1 domains crossing: tdc1_clk_125m <-> clk_62m5_sys                    --
+--                      TDC1 domains crossing: tdc1_125m_clk <-> clk_62m5_sys                    --
 ---------------------------------------------------------------------------------------------------
   cmp_tdc1_clks_crossing : xwb_clock_crossing
   port map
@@ -1043,7 +1065,7 @@ begin
      slave_rst_n_i  => rst_n_sys,
      slave_i        => cnx_master_out(c_SLAVE_TDC0),
      slave_o        => cnx_master_in(c_SLAVE_TDC0),
-     master_clk_i   => tdc1_clk_125m, -- Master reader port: TDC core at 125 MHz
+     master_clk_i   => tdc1_125m_clk, -- Master reader port: TDC core at 125 MHz
      master_rst_n_i => tdc1_general_rst_n,
      master_i       => tdc1_slave_out,
      master_o       => tdc1_slave_in);
@@ -1054,14 +1076,15 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_tdc2 : fmc_tdc_mezzanine
   generic map
-    (g_span                    => g_span,
+    (g_with_wrabbit_core       => TRUE,
+     g_span                    => g_span,
      g_width                   => g_width,
      values_for_simul          => values_for_simul)
   port map
     (clk_sys_i                 => clk_62m5_sys,
      rst_sys_n_i               => rst_n_sys,
      -- 125M clk and reset
-     clk_ref_0_i               => tdc2_clk_125m,
+     clk_ref_0_i               => tdc2_125m_clk,
      rst_ref_0_i               => tdc2_general_rst,
      acam_refclk_r_edge_p_i    => tdc2_acam_refclk_r_edge_p,
      send_dac_word_p_o         => tdc2_send_dac_word_p,
@@ -1118,8 +1141,8 @@ begin
      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en(1),
      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked(1),
      wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore
-     wrabbit_dac_value_i       => tm_dac_value_reg,
-     wrabbit_dac_wr_p_i        => tm_dac_wr_p(1),
+     wrabbit_dac_value_i       => tm_dac_value,   -- only for debug
+     wrabbit_dac_wr_p_i        => tm_dac_wr_p(1), -- only for debug
      -- Interrupts
      wb_irq_o                  => tdc2_irq,
     -- EEPROM I2C on TDC mezzanine
@@ -1139,7 +1162,7 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                     TDC2 domains crossing: tdc2_clk_125m <-> clk_62m5_sys                     --
+--                     TDC2 domains crossing: tdc2_125m_clk <-> clk_62m5_sys                     --
 ---------------------------------------------------------------------------------------------------
   cmp_tdc2_clks_crossing : xwb_clock_crossing
   port map
@@ -1147,7 +1170,7 @@ begin
      slave_rst_n_i  => rst_n_sys,
      slave_i        => cnx_master_out(c_SLAVE_TDC1),
      slave_o        => cnx_master_in(c_SLAVE_TDC1),
-     master_clk_i   => tdc2_clk_125m, -- Master reader port: TDC core at 125 MHz
+     master_clk_i   => tdc2_125m_clk, -- Master reader port: TDC core at 125 MHz
      master_rst_n_i => tdc2_general_rst_n,
      master_i       => tdc2_slave_out,
      master_o       => tdc2_slave_in);
@@ -1173,7 +1196,7 @@ begin
      irq_master_o          => irq_to_vmecore);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- since the TDC cores work in their PLL clock domains (tdc1_clk_125m and tdc2_clk_125m)
+  -- since the TDC cores work in their PLL clock domains (tdc1_125m_clk and tdc2_125m_clk)
   -- and the rest works with the system clock (clk_62m5_sys) interrupt pulses need to be
   -- synchronized
   irq_pulse_synchronizer: process (clk_62m5_sys)
@@ -1194,6 +1217,7 @@ begin
 --                                    Carrier CSR information                                    --
 ---------------------------------------------------------------------------------------------------
 -- Information on carrier type, mezzanine presence, pcb version
+-- Also added software resets for the clks_rsts_manager units
   cmp_carrier_info : carrier_info
   port map
     (rst_n_i                           => rst_n_sys,
@@ -1225,9 +1249,6 @@ begin
      carrier_info_rst_reserved_o       => carrier_info_fmc_rst);  -- TDC mezzanine cores reset
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  --carrier_info_stat_reserv(2 downto 0)  <= tdc2_pll_status_i & tdc1_pll_status_i & '0'; -- should be tdc2_pll_status_i & tdc1_pll_status_i & tdc2_prsnt_m2c_n_i
-  --carrier_info_stat_reserv(27 downto 3) <= (others => '0');
-
   -- Unused wishbone signals
   cnx_master_in(c_SLAVE_SVEC_INFO).err   <= '0';
   cnx_master_in(c_SLAVE_SVEC_INFO).rty   <= '0';

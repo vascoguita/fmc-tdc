@@ -37,7 +37,7 @@
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
 -- Date         02/2014                                                                           |
--- Version      v0.4                                                                              |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -48,7 +48,7 @@
 --                        on the pll_status activation                                            |
 --                        General revamping, comments added, signals renamed                      |
 --     05/2012  v0.3  EG  Added logic for DAC configuration                                       |
---     02/2014  v0.4  EG  Correction for the DAC on rising edges; added wrabbit support           |
+--     02/2014  v1    EG  Correction for the DAC on rising edges; added wrabbit support           |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -462,7 +462,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
   pll_dac_initialization_comb: process (config_st, dac_bit_index, pll_byte_index, pll_bit_index, sclk,
-                                        sclk_r_edge, sclk_f_edge)
+                                        sclk_r_edge, sclk_f_edge, dac_only)
   begin
     case config_st is
 

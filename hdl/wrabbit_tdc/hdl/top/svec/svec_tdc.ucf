@@ -1,73 +1,71 @@
-#
-# Clocks
-#
-NET "clk_62m5_sys" TNM_NET = "clk_62m5_sys";
-NET "clk_20m_vcxo_i" TNM_NET = "clk_20m_vcxo_i";
-NET "tdc1_clk_125m" TNM_NET = "tdc1_clk_125m";
-NET "tdc2_clk_125m" TNM_NET = "tdc2_clk_125m";
-NET "clk_125m_pllref_n_i" IOSTANDARD = "LVDS_25";
-NET "clk_125m_pllref_n_i" IOSTANDARD = "LVDS_25";
-
-TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_sys" TO "tdc1_clk_125m" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock2 = FROM "tdc1_clk_125m" TO "clk_62m5_sys" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock3 = FROM "clk_62m5_sys" TO "tdc1_clk_125m" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock4 = FROM "tdc1_clk_125m" TO "clk_62m5_sys" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock4 = FROM "clk_20m_vcxo_i" TO "clk_62m5_sys" 200ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock4 = FROM "clk_62m5_sys" TO "clk_20m_vcxo_i" 200ns DATAPATHONLY;
-
-# SVEC clock/reset
-NET "clk_20m_vcxo_i" LOC = V26;
-NET "por_n_i" LOC = AD28;
-NET "clk_20m_vcxo_i" IOSTANDARD="LVCMOS33";
-NET "por_n_i" IOSTANDARD="LVCMOS33";
-
-# mezzanine detection / i2c
+#----------------------------------------
+# FMC1/FMC2 detection
+#----------------------------------------
 NET "tdc1_prsntm2c_n_i" LOC = N30;
+NET "tdc2_prsntm2c_n_i" LOC = AE29;
+
+NET "tdc1_prsntm2c_n_i" IOSTANDARD = "LVCMOS33";
+NET "tdc2_prsntm2c_n_i" IOSTANDARD = "LVCMOS33";
+
+#----------------------------------------
+# FMC1/FMC2 I2C
+#----------------------------------------
 NET "tdc1_scl_b" LOC = P28;
 NET "tdc1_sda_b" LOC = P30;
 
-NET "tdc2_prsntm2c_n_i" LOC = AE29;
 NET "tdc2_scl_b" LOC = W29;
 NET "tdc2_sda_b" LOC = V30;
 
-NET "tdc2_prsntm2c_n_i" IOSTANDARD = "LVCMOS33";
+NET "tdc1_scl_b" IOSTANDARD = "LVCMOS33";
+NET "tdc1_sda_b" IOSTANDARD = "LVCMOS33";
+
 NET "tdc2_scl_b" IOSTANDARD = "LVCMOS33";
 NET "tdc2_sda_b" IOSTANDARD = "LVCMOS33";
 
-NET "tdc1_prsntm2c_n_i" IOSTANDARD = "LVCMOS33";
-NET "tdc1_scl_b" IOSTANDARD = "LVCMOS33";
-NET "tdc1_sda_b" IOSTANDARD = "LVCMOS33";
+#----------------------------------------
+# Carrier 1-Wire
+#----------------------------------------
 
 NET "carrier_onewire_b" LOC = AC30;
 NET "carrier_onewire_b" IOSTANDARD = "LVCMOS33";
 
-
+#----------------------------------------
+# PCB version
+#----------------------------------------
 NET "pcb_ver_i[0]" LOC = AD20;
 NET "pcb_ver_i[1]" LOC = AE20;
 NET "pcb_ver_i[2]" LOC = AD18;
 NET "pcb_ver_i[3]" LOC = AE17;
+
 NET "pcb_ver_i[0]" IOSTANDARD="LVCMOS33";
 NET "pcb_ver_i[1]" IOSTANDARD="LVCMOS33";
 NET "pcb_ver_i[2]" IOSTANDARD="LVCMOS33";
 NET "pcb_ver_i[3]" IOSTANDARD="LVCMOS33";
 
+#----------------------------------------
+# SVEC front panel LEDs
+#----------------------------------------
 NET "fp_led_line_oen_o[0]" LOC = AD26;
-NET "fp_led_line_oen_o[0]" IOSTANDARD="LVCMOS33";
 NET "fp_led_line_oen_o[1]" LOC = AD27;
-NET "fp_led_line_oen_o[1]" IOSTANDARD="LVCMOS33";
 NET "fp_led_line_o[0]" LOC = AC27;
-NET "fp_led_line_o[0]" IOSTANDARD="LVCMOS33";
 NET "fp_led_line_o[1]" LOC = AC28;
-NET "fp_led_line_o[1]" IOSTANDARD="LVCMOS33";
 NET "fp_led_column_o[0]" LOC = AE30;
-NET "fp_led_column_o[0]" IOSTANDARD="LVCMOS33";
 NET "fp_led_column_o[1]" LOC = AE27;
-NET "fp_led_column_o[1]" IOSTANDARD="LVCMOS33";
 NET "fp_led_column_o[2]" LOC = AE28;
-NET "fp_led_column_o[2]" IOSTANDARD="LVCMOS33";
 NET "fp_led_column_o[3]" LOC = AF28;
+
+NET "fp_led_line_oen_o[0]" IOSTANDARD="LVCMOS33";
+NET "fp_led_line_oen_o[1]" IOSTANDARD="LVCMOS33";
+NET "fp_led_line_o[0]" IOSTANDARD="LVCMOS33";
+NET "fp_led_line_o[1]" IOSTANDARD="LVCMOS33";
+NET "fp_led_column_o[0]" IOSTANDARD="LVCMOS33";
+NET "fp_led_column_o[1]" IOSTANDARD="LVCMOS33";
+NET "fp_led_column_o[2]" IOSTANDARD="LVCMOS33";
 NET "fp_led_column_o[3]" IOSTANDARD="LVCMOS33";
 
+#----------------------------------------
+# VME interface
+#----------------------------------------
 NET "vme_write_n_i" LOC = R1;
 NET "vme_rst_n_i" LOC = P4;
 #NET "vme_sysclk_i" LOC = P3;
@@ -273,6 +271,9 @@ NET "vme_addr_b[2]" IOSTANDARD = "LVCMOS33";
 NET "vme_addr_b[1]" IOSTANDARD = "LVCMOS33";
 
 
+#----------------------------------------
+# FMC1
+#----------------------------------------
 # <ucfgen_start>
 # This section has bee generated automatically by ucfgen.py. Do not hand-modify if not really necessary.
 # ucfgen pin assignments for mezzanine fmc-tdc-v3 slot 0
@@ -408,6 +409,10 @@ NET "tdc1_enable_inputs_o" LOC = "J12";
 NET "tdc1_enable_inputs_o" IOSTANDARD = "LVCMOS25";
 NET "tdc1_onewire_b" LOC = "H12";
 NET "tdc1_onewire_b" IOSTANDARD = "LVCMOS25";
+
+#----------------------------------------
+# FMC2
+#----------------------------------------
 # ucfgen pin assignments for mezzanine fmc-tdc-v3 slot 1
 NET "tdc2_acam_refclk_p_i" LOC = "AF16";
 NET "tdc2_acam_refclk_p_i" IOSTANDARD = "LVDS_25";
@@ -542,17 +547,20 @@ NET "tdc2_enable_inputs_o" IOSTANDARD = "LVCMOS25";
 NET "tdc2_onewire_b" LOC = "AB19";
 NET "tdc2_onewire_b" IOSTANDARD = "LVCMOS25";
 
-
 #----------------------------------------
 # SFP slot
 #----------------------------------------
+NET "clk_125m_gtp_p_i" LOC = B19;
+NET "clk_125m_gtp_n_i" LOC = A19;
+NET "clk_125m_gtp_n_i" TNM_NET = clk_125m_gtp_n_i;
+TIMESPEC TS_clk_125m_gtp_n_i = PERIOD "clk_125m_gtp_n_i" 8 ns HIGH 50%;
+NET "clk_125m_gtp_p_i" TNM_NET = clk_125m_gtp_p_i;
+TIMESPEC TS_clk_125m_gtp_p_i = PERIOD "clk_125m_gtp_p_i" 8 ns HIGH 50%;
+
 NET "sfp_txp_o" LOC = B23;
 NET "sfp_txn_o" LOC = A23;
 NET "sfp_rxp_i" LOC = D22;
 NET "sfp_rxn_i" LOC = C22;
-
-NET "clk_125m_gtp_p_i" LOC = B19;
-NET "clk_125m_gtp_n_i" LOC = A19;
 
 NET "sfp_los_i" LOC = W25;
 NET "sfp_mod_def0_b" LOC = Y26;
@@ -592,11 +600,35 @@ NET "uart_rxd_i" LOC = U25;
 NET "uart_txd_o" IOSTANDARD = "LVCMOS33";
 NET "uart_rxd_i" IOSTANDARD = "LVCMOS33";
 
+
+#----------------------------------------
+# Clock stuff
+#----------------------------------------
+# SVEC VCXO clock/reset
+NET "clk_20m_vcxo_i" LOC = V26;
+NET "por_n_i" LOC = AD28;
+NET "clk_20m_vcxo_i" IOSTANDARD="LVCMOS33";
+NET "por_n_i" IOSTANDARD="LVCMOS33";
+NET "clk_20m_vcxo_i" TNM_NET = "clk_20m_vcxo_i";
+
+# 62.5MHz Xilinx PLL clock/reset
+NET "clk_62m5_sys" TNM_NET = "clk_62m5_sys";
+
+# 125MHz PLL ref
+NET "clk_125m_pllref_n_i" LOC = AB30;
+NET "clk_125m_pllref_p_i" LOC = AB28;
+
+# 125MHz TDC PLL clock
+NET "tdc1_125m_clk" TNM_NET = "tdc1_125m_clk";
+NET "tdc2_125m_clk" TNM_NET = "tdc2_125m_clk";
+
 # <ucfgen_end>
 #Created by Constraints Editor (xc6slx150t-fgg900-3) - 2013/07/19
 NET "clk_20m_vcxo_i" TNM_NET = clk_20m_vcxo_i;
 TIMESPEC TS_clk_20m_vcxo_i = PERIOD "clk_20m_vcxo_i" 50 ns HIGH 50%;
 
+NET "clk_125m_pllref_n_i" IOSTANDARD = "LVDS_25";
+NET "clk_125m_pllref_n_i" IOSTANDARD = "LVDS_25";
 NET "clk_125m_pllref_n_i" TNM_NET = clk_125m_pllref_n_i;
 TIMESPEC TS_clk_125m_pllref_n_i = PERIOD "clk_125m_pllref_n_i" 8 ns HIGH 50%;
 NET "clk_125m_pllref_p_i" TNM_NET = clk_125m_pllref_p_i;
@@ -612,7 +644,16 @@ TIMESPEC TS_tdc2_tdc_125m_clk_p_i = PERIOD "tdc2_125m_clk_p_i" 8 ns HIGH 50%;
 NET "tdc2_125m_clk_n_i" TNM_NET = tdc2_125m_clk_n_i;
 TIMESPEC TS_tdc2_tdc_125m_clk_n_i = PERIOD "tdc2_125m_clk_n_i" 8 ns HIGH 50%;
 
-NET "clk_125m_gtp_n_i" TNM_NET = clk_125m_gtp_n_i;
-TIMESPEC TS_clk_125m_gtp_n_i = PERIOD "clk_125m_gtp_n_i" 8 ns HIGH 50%;
-NET "clk_125m_gtp_p_i" TNM_NET = clk_125m_gtp_p_i;
-TIMESPEC TS_clk_125m_gtp_p_i = PERIOD "clk_125m_gtp_p_i" 8 ns HIGH 50%;
+# TS_IGNORE
+TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_sys" TO "tdc1_125m_clk" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "tdc1_125m_clk" TO "clk_62m5_sys" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock3 = FROM "clk_62m5_sys" TO "tdc1_125m_clk" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "tdc1_125m_clk" TO "clk_62m5_sys" 20ns DATAPATHONLY;
+
+TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_sys" TO "tdc2_125m_clk" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "tdc2_125m_clk" TO "clk_62m5_sys" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock3 = FROM "clk_62m5_sys" TO "tdc2_125m_clk" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "tdc2_125m_clk" TO "clk_62m5_sys" 20ns DATAPATHONLY;
+
+TIMESPEC ts_ignore_xclock4 = FROM "clk_20m_vcxo_i" TO "clk_62m5_sys" 200ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "clk_62m5_sys" TO "clk_20m_vcxo_i" 200ns DATAPATHONLY;
