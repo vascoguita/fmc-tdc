@@ -2,10 +2,10 @@
 #----------------------------------------
 # Clocks
 #----------------------------------------
-NET "spec_clk_i" LOC = H12;
-NET "spec_clk_i" IOSTANDARD = "LVCMOS25";
-NET "spec_clk_i" TNM_NET = "spec_clk_i";
-TIMESPEC TS_spec_clk_i = PERIOD "spec_clk_i" 50 ns HIGH 50%;
+NET "clk_20m_vcxo_i" LOC = H12;
+NET "clk_20m_vcxo_i" IOSTANDARD = "LVCMOS25";
+NET "clk_20m_vcxo_i" TNM_NET = "clk_20m_vcxo_i";
+TIMESPEC TS_clk_20m_vcxo_i = PERIOD "clk_20m_vcxo_i" 50 ns HIGH 50%;
 
 
 NET "tdc_clk_125m_p_i" LOC = "L20";
@@ -160,8 +160,8 @@ NET "wr_n_o" LOC = "Y13";
 NET "wr_n_o" IOSTANDARD = "LVCMOS25";
 NET "enable_inputs_o" LOC = "C19";
 NET "enable_inputs_o" IOSTANDARD = "LVCMOS25";
-NET "mezz_one_wire_b" LOC = "A19";
-NET "mezz_one_wire_b" IOSTANDARD = "LVCMOS25";
+NET "mezz_onewire_b" LOC = "A19";
+NET "mezz_onewire_b" IOSTANDARD = "LVCMOS25";
 # <ucfgen_end>
 NET "mezz_sys_scl_b" LOC = "F7";
 NET "mezz_sys_scl_b" IOSTANDARD = "LVCMOS25";
@@ -172,8 +172,8 @@ NET "mezz_sys_sda_b" IOSTANDARD = "LVCMOS25";
 #----------------------------------------
 # 1-wire thermometer w/ ID
 #----------------------------------------
-NET "carrier_one_wire_b" LOC = D4;
-NET "carrier_one_wire_b" IOSTANDARD = "LVCMOS25";
+NET "carrier_onewire_b" LOC = D4;
+NET "carrier_onewire_b" IOSTANDARD = "LVCMOS25";
 
 #----------------------------------------
 # GN4124 interface
@@ -328,10 +328,10 @@ NET "prsnt_m2c_n_i" IOSTANDARD = "LVCMOS25";
 #NET "spec_aux4_o" IOSTANDARD = "LVCMOS18";
 #NET "spec_aux5_o" LOC = C20;
 #NET "spec_aux5_o" IOSTANDARD = "LVCMOS18";
-NET "spec_led_green_o" LOC = E5;
-NET "spec_led_green_o" IOSTANDARD = "LVCMOS25";
-#NET "spec_led_red_o" LOC = D5;
-#NET "spec_led_red_o" IOSTANDARD = "LVCMOS25";
+NET "led_green_o" LOC = E5;
+NET "led_green_o" IOSTANDARD = "LVCMOS25";
+#NET "led_red_o" LOC = D5;
+#NET "led_red_o" IOSTANDARD = "LVCMOS25";
 
 #----------------------------------------
 # False Path

@@ -52,8 +52,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
 use IEEE.NUMERIC_STD.all;    -- conversion functions
 use work.wishbone_pkg.all;
-use work.sdb_meta_pkg.all;
-
+use work.gencores_pkg.all;
 
 
 --=================================================================================================
@@ -268,7 +267,7 @@ package tdc_core_pkg is
   constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 0x51094 of GN4124 BAR 0
   constant c_DAC_WORD_ADR         : std_logic_vector(7 downto 0) := x"26"; -- address 0x51098 of GN4124 BAR 0
 
---  constant c_RESERVED1          : std_logic_vector(7 downto 0) := x"27"; -- address 0x5109C of GN4124 BAR 0
+  constant c_DEACT_CHAN_ADR       : std_logic_vector(7 downto 0) := x"27"; -- address 0x5109C of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Addresses of TDC core Status registers to be written by the different core units
@@ -277,6 +276,12 @@ package tdc_core_pkg is
   constant c_IRQ_CODE_ADR         : std_logic_vector(7 downto 0) := x"29"; -- address 0x510A4 of GN4124 BAR 0
   constant c_WR_INDEX_ADR         : std_logic_vector(7 downto 0) := x"2A"; -- address 0x510A8 of GN4124 BAR 0
   constant c_CORE_STATUS_ADR      : std_logic_vector(7 downto 0) := x"2B"; -- address 0x510AC of GN4124 BAR 0
+
+---------------------------------------------------------------------------------------------------
+-- Addresses of the White Rabbit control and status registers
+
+  constant c_WRABBIT_STATUS_ADR   : std_logic_vector(7 downto 0) := x"2C"; -- address 0x510B0 of GN4124 BAR 0
+  constant c_WRABBIT_CTRL_ADR     : std_logic_vector(7 downto 0) := x"2D"; -- address 0x510B4 of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Address of TDC core Control register
@@ -318,7 +323,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 --                           Constants regarding the One-Wire interface                          --
 ---------------------------------------------------------------------------------------------------
-  constant c_FMC_ONE_WIRE_NB   : integer := 1;
+  constant c_FMC_ONEWIRE_NB   : integer := 1;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -328,72 +333,88 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
---                                      Components Declarations:                                 --
+--                                      Components Declarations                                  --
 ---------------------------------------------------------------------------------------------------
 
+---------------------------------------------------------------------------------------------------
   component fmc_tdc_mezzanine is
   generic
-    (g_span                 : integer := 32;
-     g_width                : integer := 32;
-     values_for_simul       : boolean := FALSE);
+    (g_with_wrabbit_core       : boolean := FALSE;
+     g_span                    : integer := 32;
+     g_width                   : integer := 32;
+     values_for_simul          : boolean := FALSE);
   port
-    (-- TDC core
-     clk_125m_i             : in    std_logic;
-     rst_i                  : in    std_logic;
-     acam_refclk_r_edge_p_i : in    std_logic;
-     send_dac_word_p_o      : out   std_logic;
-     dac_word_o             : out   std_logic_vector(23 downto 0);
-     start_from_fpga_o      : out   std_logic;
-     err_flag_i             : in    std_logic;
-     int_flag_i             : in    std_logic;
-     start_dis_o            : out   std_logic;
-     stop_dis_o             : out   std_logic;
-     data_bus_io            : inout std_logic_vector(27 downto 0);
-     address_o              : out   std_logic_vector(3 downto 0);
-     cs_n_o                 : out   std_logic;
-     oe_n_o                 : out   std_logic;
-     rd_n_o                 : out   std_logic;
-     wr_n_o                 : out   std_logic;
-     ef1_i                  : in    std_logic;
-     ef2_i                  : in    std_logic;
-     tdc_in_fpga_1_i        : in    std_logic;
-     tdc_in_fpga_2_i        : in    std_logic;
-     tdc_in_fpga_3_i        : in    std_logic;
-     tdc_in_fpga_4_i        : in    std_logic;
-     tdc_in_fpga_5_i        : in    std_logic;
-     enable_inputs_o        : out   std_logic;
-     term_en_1_o            : out   std_logic;
-     term_en_2_o            : out   std_logic;
-     term_en_3_o            : out   std_logic;
-     term_en_4_o            : out   std_logic;
-     term_en_5_o            : out   std_logic;
-     tdc_led_status_o       : out   std_logic;
-     tdc_led_trig1_o        : out   std_logic;
-     tdc_led_trig2_o        : out   std_logic;
-     tdc_led_trig3_o        : out   std_logic;
-     tdc_led_trig4_o        : out   std_logic;
-     tdc_led_trig5_o        : out   std_logic;
+     -- 62.5MHz clock and synchronous reset
+    (clk_sys_i                 : in    std_logic;
+     rst_sys_n_i               : in    std_logic;
+     -- Signals from the clks_rsts_manager unit
+     clk_ref_0_i               : in    std_logic;
+     rst_ref_0_i               : in    std_logic;
+     -- TDC core
+     acam_refclk_r_edge_p_i    : in    std_logic;
+     send_dac_word_p_o         : out   std_logic;
+     dac_word_o                : out   std_logic_vector(23 downto 0);
+     start_from_fpga_o         : out   std_logic;
+     err_flag_i                : in    std_logic;
+     int_flag_i                : in    std_logic;
+     start_dis_o               : out   std_logic;
+     stop_dis_o                : out   std_logic;
+     data_bus_io               : inout std_logic_vector(27 downto 0);
+     address_o                 : out   std_logic_vector(3 downto 0);
+     cs_n_o                    : out   std_logic;
+     oe_n_o                    : out   std_logic;
+     rd_n_o                    : out   std_logic;
+     wr_n_o                    : out   std_logic;
+     ef1_i                     : in    std_logic;
+     ef2_i                     : in    std_logic;
+     tdc_in_fpga_1_i           : in    std_logic;
+     tdc_in_fpga_2_i           : in    std_logic;
+     tdc_in_fpga_3_i           : in    std_logic;
+     tdc_in_fpga_4_i           : in    std_logic;
+     tdc_in_fpga_5_i           : in    std_logic;
+     enable_inputs_o           : out   std_logic;
+     term_en_1_o               : out   std_logic;
+     term_en_2_o               : out   std_logic;
+     term_en_3_o               : out   std_logic;
+     term_en_4_o               : out   std_logic;
+     term_en_5_o               : out   std_logic;
+     tdc_led_status_o          : out   std_logic;
+     tdc_led_trig1_o           : out   std_logic;
+     tdc_led_trig2_o           : out   std_logic;
+     tdc_led_trig3_o           : out   std_logic;
+     tdc_led_trig4_o           : out   std_logic;
+     tdc_led_trig5_o           : out   std_logic;
+     -- White Rabbit core
+     wrabbit_link_up_i         : in    std_logic;
+     wrabbit_time_valid_i      : in    std_logic;
+     wrabbit_cycles_i          : in    std_logic_vector(27 downto 0);
+     wrabbit_utc_i             : in    std_logic_vector(31 downto 0);
+     wrabbit_clk_aux_lock_en_o : out   std_logic;
+     wrabbit_clk_aux_locked_i  : in    std_logic;
+     wrabbit_clk_dmtd_locked_i : in    std_logic;
+     wrabbit_dac_value_i       : in    std_logic_vector(23 downto 0);
+     wrabbit_dac_wr_p_i        : in    std_logic;
      -- WISHBONE interface with the GN4124/VME_core
-     -- for the core configuration | core interrupts | 1Wire | I2C 
-     wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_dat_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_cyc_i       : in    std_logic;
-     wb_tdc_csr_sel_i       : in    std_logic_vector(3 downto 0);
-     wb_tdc_csr_stb_i       : in    std_logic;
-     wb_tdc_csr_we_i        : in    std_logic;
-     wb_tdc_csr_dat_o       : out   std_logic_vector(31 downto 0);
-     wb_tdc_csr_ack_o       : out   std_logic;
-     wb_tdc_csr_stall_o     : out   std_logic;
-     wb_irq_o               : out   std_logic;
-     -- Interrupt pulses, for debug
-     irq_tstamp_p_o         : out   std_logic;
-     irq_time_p_o           : out   std_logic;
-     irq_acam_err_p_o       : out   std_logic;
+     -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C
+     wb_tdc_csr_adr_i          : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_dat_i          : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_cyc_i          : in    std_logic;
+     wb_tdc_csr_sel_i          : in    std_logic_vector(3 downto 0);
+     wb_tdc_csr_stb_i          : in    std_logic;
+     wb_tdc_csr_we_i           : in    std_logic;
+     wb_tdc_csr_dat_o          : out   std_logic_vector(31 downto 0);
+     wb_tdc_csr_ack_o          : out   std_logic;
+     wb_tdc_csr_stall_o        : out   std_logic;
+     wb_irq_o                  : out   std_logic;
      -- I2C EEPROM interface
-     sys_scl_b              : inout std_logic;
-     sys_sda_b              : inout std_logic;
+     i2c_scl_o                 : out   std_logic;
+     i2c_scl_oen_o             : out   std_logic;
+     i2c_scl_i                 : in    std_logic;
+     i2c_sda_o                 : out   std_logic;
+     i2c_sda_oen_o             : out   std_logic;
+     i2c_sda_i                 : in    std_logic;
      -- 1-wire UniqueID&Thermometer interface
-     one_wire_b             : inout std_logic);
+     onewire_b                 : inout std_logic);
   end component;
 
 
@@ -404,7 +425,7 @@ package tdc_core_pkg is
      g_width                : integer := 32;
      values_for_simul       : boolean := FALSE);
   port
-    (clk_125m_i             : in   std_logic;
+    (clk_125m_i             : in    std_logic;
      rst_i                  : in    std_logic;
      acam_refclk_r_edge_p_i : in    std_logic;
      send_dac_word_p_o      : out   std_logic;
@@ -439,6 +460,11 @@ package tdc_core_pkg is
      tdc_led_trig3_o        : out   std_logic;
      tdc_led_trig4_o        : out   std_logic;
      tdc_led_trig5_o        : out   std_logic;
+     wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
+     wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
+     wrabbit_synched_i      : in    std_logic;
+     wrabbit_tai_p_i        : in    std_logic;
+     wrabbit_tai_i          : in    std_logic_vector(31 downto 0);
      irq_tstamp_p_o         : out   std_logic;
      irq_time_p_o           : out   std_logic;
      irq_acam_err_p_o       : out   std_logic;
@@ -459,6 +485,85 @@ package tdc_core_pkg is
      tdc_mem_wb_stall_o     : out   std_logic); 
   end component;
 
+
+---------------------------------------------------------------------------------------------------
+  component wrabbit_sync is
+  generic
+    (g_simulation        : boolean;
+     g_with_wrabbit_core : boolean);
+  port
+    (clk_sys_i                 : in  std_logic;
+     rst_n_sys_i               : in  std_logic;
+     clk_ref_i                 : in  std_logic;
+     rst_n_ref_i               : in  std_logic;
+     wrabbit_dac_value_i       : in  std_logic_vector(23 downto 0);
+     wrabbit_dac_wr_p_i        : in  std_logic;
+     wrabbit_link_up_i         : in  std_logic;
+     wrabbit_time_valid_i      : in  std_logic; -- this is i te clk_ref_0 domain, no??
+     wrabbit_clk_aux_lock_en_o : out std_logic;
+     wrabbit_clk_aux_locked_i  : in  std_logic;
+     wrabbit_clk_dmtd_locked_i : in  std_logic;
+     wrabbit_synched_o         : out std_logic;
+     wrabbit_reg_i             : in  std_logic_vector(31 downto 0);
+     wrabbit_reg_o             : out std_logic_vector(31 downto 0));
+  end component;
+
+
+---------------------------------------------------------------------------------------------------
+  component spec_serial_dac -- for White Rabbit
+  generic
+    (g_num_data_bits  : integer;
+     g_num_extra_bits : integer;
+     g_num_cs_select  : integer);
+  port
+    (clk_i         : in  std_logic;
+     rst_n_i       : in  std_logic;
+     value_i       : in  std_logic_vector(g_num_data_bits-1 downto 0);
+     cs_sel_i      : in  std_logic_vector(g_num_cs_select-1 downto 0);
+     load_i        : in  std_logic;
+     sclk_divsel_i : in  std_logic_vector(2 downto 0);
+     dac_cs_n_o    : out std_logic_vector(g_num_cs_select-1 downto 0);
+     dac_sclk_o    : out std_logic;
+     dac_sdata_o   : out std_logic;
+     xdone_o       : out std_logic);
+  end component;
+
+
+---------------------------------------------------------------------------------------------------
+  component xvme64x_core
+    port (
+      clk_i           : in  std_logic;
+      rst_n_i         : in  std_logic;
+      VME_AS_n_i      : in  std_logic;
+      VME_RST_n_i     : in  std_logic;
+      VME_WRITE_n_i   : in  std_logic;
+      VME_AM_i        : in  std_logic_vector(5 downto 0);
+      VME_DS_n_i      : in  std_logic_vector(1 downto 0);
+      VME_GA_i        : in  std_logic_vector(5 downto 0);
+      VME_BERR_o      : out std_logic;
+      VME_DTACK_n_o   : out std_logic;
+      VME_RETRY_n_o   : out std_logic;
+      VME_RETRY_OE_o  : out std_logic;
+      VME_LWORD_n_b_i : in  std_logic;
+      VME_LWORD_n_b_o : out std_logic;
+      VME_ADDR_b_i    : in  std_logic_vector(31 downto 1);
+      VME_ADDR_b_o    : out std_logic_vector(31 downto 1);
+      VME_DATA_b_i    : in  std_logic_vector(31 downto 0);
+      VME_DATA_b_o    : out std_logic_vector(31 downto 0);
+      VME_IRQ_n_o     : out std_logic_vector(6 downto 0);
+      VME_IACKIN_n_i  : in  std_logic;
+      VME_IACK_n_i    : in  std_logic;
+      VME_IACKOUT_n_o : out std_logic;
+      VME_DTACK_OE_o  : out std_logic;
+      VME_DATA_DIR_o  : out std_logic;
+      VME_DATA_OE_N_o : out std_logic;
+      VME_ADDR_DIR_o  : out std_logic;
+      VME_ADDR_OE_N_o : out std_logic;
+      master_o        : out t_wishbone_master_out;
+      master_i        : in  t_wishbone_master_in;
+      irq_i           : in  std_logic;
+      irq_ack_o       : out std_logic);
+  end component;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -518,8 +623,9 @@ package tdc_core_pkg is
       (clk_i                   : in std_logic;
        rst_i                   : in std_logic;
        acam_intflag_f_edge_p_i : in std_logic;
-       one_hz_p_i              : in std_logic;
+       utc_p_i                 : in std_logic;
       ----------------------------------------------------------------------
+       current_retrig_nb_o     : out std_logic_vector(g_width-1 downto 0);
        roll_over_incr_recent_o : out std_logic;
        clk_i_cycles_offset_o   : out std_logic_vector(g_width-1 downto 0);
        roll_over_nb_o          : out std_logic_vector(g_width-1 downto 0);
@@ -529,7 +635,7 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-  component one_hz_gen
+  component local_pps_gen
     generic
       (g_width                : integer := 32);
     port
@@ -542,7 +648,7 @@ package tdc_core_pkg is
        starting_utc_i         : in std_logic_vector(g_width-1 downto 0);
       ----------------------------------------------------------------------
        local_utc_o            : out std_logic_vector(g_width-1 downto 0);
-       one_hz_p_o             : out std_logic);
+       local_utc_p_o          : out std_logic);
       ----------------------------------------------------------------------
   end component;
 
@@ -568,8 +674,10 @@ package tdc_core_pkg is
        acam_rdbk_start01_p_i : in std_logic;
        acam_rst_p_i          : in std_logic;
        acam_config_i         : in config_vector;
+	   start_from_fpga_i     : in  std_logic;
       ----------------------------------------------------------------------
-       acam_adr_o            : out std_logic_vector(7 downto 0);
+       state_active_p_o      : out std_logic;
+	   acam_adr_o            : out std_logic_vector(7 downto 0);
        acam_cyc_o            : out std_logic;
        acam_dat_o            : out std_logic_vector(31 downto 0);
        acam_stb_o            : out std_logic;
@@ -584,7 +692,6 @@ package tdc_core_pkg is
        acam_tstamp2_ok_p_o   : out std_logic);
       ----------------------------------------------------------------------
   end component;
-
 
 
 ---------------------------------------------------------------------------------------------------
@@ -608,11 +715,13 @@ package tdc_core_pkg is
        irq_code_i             : in std_logic_vector(g_width-1 downto 0);
        wr_index_i             : in std_logic_vector(g_width-1 downto 0);
        core_status_i          : in std_logic_vector(g_width-1 downto 0);
+       wrabbit_status_reg_i   : in std_logic_vector(g_width-1 downto 0);
       ----------------------------------------------------------------------
        tdc_config_wb_ack_o    : out std_logic;
        tdc_config_wb_dat_o    : out std_logic_vector(g_width-1 downto 0);
        activate_acq_p_o       : out std_logic;
        deactivate_acq_p_o     : out std_logic;
+       deactivate_chan_o      : out std_logic_vector(4 downto 0);
        acam_wr_config_p_o     : out std_logic;
        acam_rdbk_config_p_o   : out std_logic;
        acam_rdbk_status_p_o   : out std_logic;
@@ -630,7 +739,8 @@ package tdc_core_pkg is
        starting_utc_o         : out std_logic_vector(g_width-1 downto 0);
        acam_inputs_en_o       : out std_logic_vector(g_width-1 downto 0);
        start_phase_o          : out std_logic_vector(g_width-1 downto 0);
-       one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0));
+       one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0);
+       wrabbit_ctrl_reg_o     : out std_logic_vector(g_width-1 downto 0));
       ----------------------------------------------------------------------
   end component;
 
@@ -641,12 +751,15 @@ package tdc_core_pkg is
       (err_flag_i              : in std_logic;
        int_flag_i              : in std_logic;
        acam_refclk_r_edge_p_i  : in std_logic;
+       utc_p_i                 : in std_logic;
        clk_i                   : in std_logic;
        activate_acq_p_i        : in std_logic;
        rst_i                   : in std_logic;
-       window_delay_i          : in std_logic_vector(31 downto 0);
+	   state_active_p_i        : in std_logic;
+	   deactivate_acq_p_i      : in std_logic;
       ----------------------------------------------------------------------
        start_from_fpga_o       : out std_logic;
+       stop_dis_o              : out   std_logic;
        acam_errflag_r_edge_p_o : out std_logic;
        acam_errflag_f_edge_p_o : out std_logic;
        acam_intflag_f_edge_p_o : out std_logic);
@@ -665,13 +778,14 @@ package tdc_core_pkg is
        acam_tstamp2_ok_p_i     : in std_logic;
        clk_i                   : in std_logic;
        dacapo_c_rst_p_i        : in std_logic;
+       deactivate_chan_i       : in std_logic_vector(4 downto 0);
        rst_i                   : in std_logic;
        roll_over_incr_recent_i : in std_logic;
        clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
        roll_over_nb_i          : in std_logic_vector(31 downto 0);
-       local_utc_i             : in std_logic_vector(31 downto 0);
+       utc_i                   : in std_logic_vector(31 downto 0);
        retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
-       one_hz_p_i              : in std_logic;
+       utc_p_i                 : in std_logic;
       ----------------------------------------------------------------------
        tstamp_wr_wb_adr_o      : out std_logic_vector(7 downto 0);
        tstamp_wr_wb_cyc_o      : out std_logic;
@@ -688,7 +802,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component irq_generator is
     generic
-      (g_width                : integer := 32);
+      (g_width                 : integer := 32);
     port
       (clk_i                   : in std_logic;
        rst_i                   : in std_logic;
@@ -728,49 +842,11 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-  component dma_eic
-    port
-      (rst_n_i         : in  std_logic;
-       clk_sys_i       : in  std_logic;
-       wb_adr_i        : in  std_logic_vector(1 downto 0);
-       wb_dat_i        : in  std_logic_vector(31 downto 0);
-       wb_dat_o        : out std_logic_vector(31 downto 0);
-       wb_cyc_i        : in  std_logic;
-       wb_sel_i        : in  std_logic_vector(3 downto 0);
-       wb_stb_i        : in  std_logic;
-       wb_we_i         : in  std_logic;
-       wb_ack_o        : out std_logic;
-       wb_stall_o      : out std_logic;
-       wb_int_o        : out std_logic;
-       irq_dma_done_i  : in  std_logic;
-       irq_dma_error_i : in  std_logic);
-  end component dma_eic;
-
----------------------------------------------------------------------------------------------------
-  component irq_controller
-    port
-      (clk_i       : in  std_logic;
-       rst_n_i     : in  std_logic;
-       irq_src_p_i : in  std_logic_vector(31 downto 0);
-       wb_adr_i    : in  std_logic_vector(1 downto 0);
-       wb_dat_i    : in  std_logic_vector(31 downto 0);
-       wb_cyc_i    : in  std_logic;
-       wb_sel_i    : in  std_logic_vector(3 downto 0);
-       wb_stb_i    : in  std_logic;
-       wb_we_i     : in  std_logic;
-      ----------------------------------------------------------------------
-       wb_dat_o    : out std_logic_vector(31 downto 0);
-       wb_ack_o    : out std_logic;
-       irq_p_o     : out std_logic);
-  end component irq_controller;
-
-
----------------------------------------------------------------------------------------------------
   component clks_rsts_manager
     generic
       (nb_of_reg              : integer := 68);
     port
-      (clk_20m_vcxo_i         : in std_logic;
+      (clk_sys_i              : in std_logic;
        acam_refclk_p_i        : in std_logic;
        acam_refclk_n_i        : in std_logic;
        tdc_125m_clk_p_i       : in std_logic;
@@ -780,6 +856,8 @@ package tdc_core_pkg is
        pll_sdo_i              : in std_logic;
        send_dac_word_p_i      : in std_logic;
        dac_word_i             : in std_logic_vector(23 downto 0);
+       wrabbit_dac_wr_p_i     : in std_logic;
+       wrabbit_dac_value_i    : in std_logic_vector(23 downto 0);
       ----------------------------------------------------------------------
        tdc_125m_clk_o         : out std_logic;
        internal_rst_o         : out std_logic;
@@ -834,9 +912,9 @@ package tdc_core_pkg is
     port
       (clk_i            : in std_logic;
        rst_i            : in std_logic;
-       one_hz_p_i       : in std_logic;
+       utc_p_i          : in std_logic;
        acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
-       fordebug_i       : in std_logic_vector(5 downto 0);
+       acam_channel_i       : in std_logic_vector(5 downto 0);
        tstamp_wr_p_i    : in std_logic;
       ----------------------------------------------------------------------
        tdc_led_status_o : out std_logic;
@@ -852,28 +930,28 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component acam_databus_interface
     port
-      (ef1_i       : in std_logic;
-       ef2_i       : in std_logic;
-       data_bus_io : inout std_logic_vector(27 downto 0);
-       clk_i       : in std_logic;
-       rst_i       : in std_logic;
-       adr_i       : in std_logic_vector(7 downto 0);
-       cyc_i       : in std_logic;
-       dat_i       : in std_logic_vector(31 downto 0);
-       stb_i       : in std_logic;
-       we_i        : in std_logic;
+      (ef1_i        : in std_logic;
+       ef2_i        : in std_logic;
+       data_bus_io  : inout std_logic_vector(27 downto 0);
+       clk_i        : in std_logic;
+       rst_i        : in std_logic;
+       adr_i        : in std_logic_vector(7 downto 0);
+       cyc_i        : in std_logic;
+       dat_i        : in std_logic_vector(31 downto 0);
+       stb_i        : in std_logic;
+       we_i         : in std_logic;
       ----------------------------------------------------------------------
-       adr_o       : out std_logic_vector(3 downto 0);
-       cs_n_o      : out std_logic;
-       oe_n_o      : out std_logic;
-       rd_n_o      : out std_logic;
-       wr_n_o      : out std_logic;
-       ack_o       : out std_logic;
-       ef1_o       : out std_logic;
-       ef1_meta_o  : out std_logic;
-       ef2_o       : out std_logic;
-       ef2_meta_o  : out std_logic;
-       dat_o       : out std_logic_vector(31 downto 0));
+       adr_o        : out std_logic_vector(3 downto 0);
+       cs_n_o       : out std_logic;
+       oe_n_o       : out std_logic;
+       rd_n_o       : out std_logic;
+       wr_n_o       : out std_logic;
+       ack_o        : out std_logic;
+       ef1_o        : out std_logic;
+       ef1_meta_o   : out std_logic;
+       ef2_o        : out std_logic;
+       ef2_meta_o   : out std_logic;
+       dat_o        : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
 
@@ -907,21 +985,70 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   component blk_mem_circ_buff_v6_4
     port
-      (clka  : in std_logic;
-       addra : in std_logic_vector(7 downto 0);
-       dina  : in std_logic_vector(127 downto 0);
-       ena   : in std_logic;
-       wea   : in std_logic_vector(0 downto 0);
-       clkb  : in std_logic;
-       addrb : in std_logic_vector(9 downto 0);
-       dinb  : in std_logic_vector(31 downto 0);
-       enb   : in std_logic;
-       web   : in std_logic_vector(0 downto 0);
+      (clka   : in std_logic;
+       addra  : in std_logic_vector(7 downto 0);
+       dina   : in std_logic_vector(127 downto 0);
+       ena    : in std_logic;
+       wea    : in std_logic_vector(0 downto 0);
+       clkb   : in std_logic;
+       addrb  : in std_logic_vector(9 downto 0);
+       dinb   : in std_logic_vector(31 downto 0);
+       enb    : in std_logic;
+       web    : in std_logic_vector(0 downto 0);
      --------------------------------------------------
-       douta : out std_logic_vector(127 downto 0);
-       doutb : out std_logic_vector(31 downto 0));
+       douta  : out std_logic_vector(127 downto 0);
+       doutb  : out std_logic_vector(31 downto 0));
      --------------------------------------------------
   end component;
+
+
+---------------------------------------------------------------------------------------------------
+  component spec_reset_gen is
+  port
+    (clk_sys_i        : in std_logic;
+     rst_pcie_n_a_i   : in std_logic;
+     rst_button_n_a_i : in std_logic;
+     rst_n_o          : out std_logic);
+  end component;
+
+
+---------------------------------------------------------------------------------------------------
+  component dma_eic
+    port
+      (rst_n_i         : in  std_logic;
+       clk_sys_i       : in  std_logic;
+       wb_adr_i        : in  std_logic_vector(1 downto 0);
+       wb_dat_i        : in  std_logic_vector(31 downto 0);
+       wb_dat_o        : out std_logic_vector(31 downto 0);
+       wb_cyc_i        : in  std_logic;
+       wb_sel_i        : in  std_logic_vector(3 downto 0);
+       wb_stb_i        : in  std_logic;
+       wb_we_i         : in  std_logic;
+       wb_ack_o        : out std_logic;
+       wb_stall_o      : out std_logic;
+       wb_int_o        : out std_logic;
+       irq_dma_done_i  : in  std_logic;
+       irq_dma_error_i : in  std_logic);
+  end component dma_eic;
+
+
+---------------------------------------------------------------------------------------------------
+  component irq_controller
+    port
+      (clk_i       : in  std_logic;
+       rst_n_i     : in  std_logic;
+       irq_src_p_i : in  std_logic_vector(31 downto 0);
+       wb_adr_i    : in  std_logic_vector(1 downto 0);
+       wb_dat_i    : in  std_logic_vector(31 downto 0);
+       wb_cyc_i    : in  std_logic;
+       wb_sel_i    : in  std_logic_vector(3 downto 0);
+       wb_stb_i    : in  std_logic;
+       wb_we_i     : in  std_logic;
+      ----------------------------------------------------------------------
+       wb_dat_o    : out std_logic_vector(31 downto 0);
+       wb_ack_o    : out std_logic;
+       irq_p_o     : out std_logic);
+  end component irq_controller;
 
 
 end tdc_core_pkg;
@@ -930,7 +1057,6 @@ end tdc_core_pkg;
 --=================================================================================================
 package body tdc_core_pkg is
 
-
 end tdc_core_pkg;
 --=================================================================================================
 --                                         package end
@@ -938,3 +1064,4 @@ end tdc_core_pkg;
 ---------------------------------------------------------------------------------------------------
 --                                      E N D   O F   F I L E
 ---------------------------------------------------------------------------------------------------
+

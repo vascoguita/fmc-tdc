@@ -12,7 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 -- File         fmc_tdc_core.vhd                                                                  |
 --                                                                                                |
--- Description  The TDC core top level instanciates all the modules needed to provide to the      |
+-- Description  The TDC core top level instantiates all the modules needed to provide to the      |
 --              GN4124/VME interface the timestamps generated in the ACAM chip.                   |
 --                                                                                                |
 --              Figure 1 shows the architecture of this core.                                     |
@@ -25,10 +25,11 @@
 --                                                                                                |
 --              As the structure indicates, each timestamp is referred to a UTC second; the coarse|
 --              and fine time indicate with 81.03 ps resolution the amount of time passed after   |
---              the last UTC second. The one_hz_gen unit is responsible for keeping the UTC time; |
---              currently this timekeeping depends on a TDC local oscillator, but future upgrades | 
---              of the core would provide White Rabbit accuracy.                                  |
---              Timestamps are formated to the structure above within the data_formatting unit and|
+--              the last UTC second.                                                              |
+--              If the White Rabbit synchronization has been established, the UTC time comes from |
+--              the White Rabbit core. Otherwise, the one_hz_gen unit is responsible for keeping  |
+--              the local UTC time relaying on the local TDC oscillator.                          |
+--              Timestamps are formatted to the structure above within the data_formatting unit & |
 --              are stored in the circular_buffer, where the GN4124/VME core have direct access   |
 --                                                                                                |
 --              In this application, the ACAM is used in I-Mode which provides unlimited measuring|
@@ -37,20 +38,20 @@
 --              start_retrig_ctrl unit is responsible for that.                                   |
 --                                                                                                |
 --              The acam_databus_interface implements the communication with the ACAM for its     |
---              configuration as well as for the timestamps retreival.                            |
+--              configuration as well as for the timestamps retrieval.                            |
 --              The acam_timecontrol_interface is mainly responsible for delivering to the ACAM   |
 --              the start pulse, to which all timestamps are related.                             |
 --                                                                                                |
 --              The regs_ctrl implements the communication with the GN4124/VME interface for the  |
 --              configuration of this core and of the ACAM.                                       |
---              The data_engine is managing the transfering of the configuration registers from   |
+--              The data_engine is managing the transferring of the configuration registers from  |
 --              the regs_ctrl to the ACAM chip; it is also managing the timestamps'               |
 --              acquisition from the ACAM chip, making it available to the data_formatting unit.  |
 --                                                                                                |
 --              The core is providing an interrupt in any of the following 3 cases:               |
 --               o accumulation of timestamps larger than the settable threshold                  |
 --               o more time passed than the settable time threshold and >=1 timestamps arrived   |
---               o error occured in the ACAM chip                                                 |
+--               o error occurred in the ACAM chip                                                |
 --                                                                                                |
 --              The clks_rsts_manager unit is providing 125 MHz clock and resets to the core.     |
 --             _________________________________________________________                          |
@@ -68,18 +69,19 @@
 --            |   | |____________| |   |            |   |   regs    |   |  -->  |      |          |
 --            |   |________________|   |            |   |   ctrl    |   |  <--  |      |          |
 --  ACAM <--  |       fine time        |            |   |           |   |       |      |          |
---  chip -->  |      ____________      |            |   |           |   |       | VME/ |          |
---            |     |            |     |            |   |           |   |       |GN4124|          |
---            |     |   start    |     |            |   |           |   |       | core |          |
---            |     |   retrig   |     |            |   |           |   |       |      |          |
---            |     |____________|     |            |   |           |   |       |      |          |
---            |      coarse time       |            |   |           |   |       |      |          |
+--  chip -->  |    ____________        |            |   |           |   |       | VME/ |          |
+--            |   |            |       |            |   |           |   |       |GN4124|          |
+--            |   |   start    |       |            |   |           |   |       | core |          |
+--            |   |   retrig   |       |            |   |           |   |       |      |          |
+--            |   |____________|       |            |   |           |   |       |      |          |
+--            |    coarse time         |            |   |           |   |       |      |          |
 --            |                        |            |   |           |   |       |      |          |
---            |      ____________      |____________|   |___________|   |       |      |          |
---            |     |            |                       ___________    |       |      |          |
---            |     |  1 Hz gen  |      ____________    |           |   |       |      |          |
---            |     |____________|     |            |   | circular  |   |  -->  |      |          |
---            |        UTC time        |   data     |   |  buffer   |   |  <--  |      |          |
+--  WRabbit --|------------------->|\  |            |   |           |   |       |      |          |
+-- UTC time   |    ____________    |O| |____________|   |___________|   |       |      |          |
+--            |   |            |   |R|                   ___________    |       |      |          |
+--            |   |  1 Hz gen  |-->|/   ____________    |           |   |       |      |          |
+--            |   |____________|       |            |   | circular  |   |  -->  |      |          |
+--            |   local UTC time       |   data     |   |  buffer   |   |  <--  |      |          |
 --            |                        | formating  |   |           |   |       |      |          |
 --            |    _________________   |____________|   |___________|   |       |      |          |
 --            |   |____TDC LEDs_____|                                   |       |______|          |
@@ -96,8 +98,8 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         09/2013                                                                           |
--- Version      v5.1                                                                              |
+-- Date         04/2014                                                                           |
+-- Version      v6                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -118,7 +120,8 @@
 --                      no PLL_LD only PLL_STATUS                                                 |
 --     04/2013  v4  EG  created fmc_tdc_core module; before was all on fmc_tdc_core               |
 --     07/2013  v5  EG  removed the clks_rsts_manager from the core; will go to top level         |
---     09/2013  v5.1EG  added block of comments and archirecture drawing                          |
+--     09/2013  v5.1EG  added block of comments and architecture drawing                          |
+--     04/2014  v6  EG  added WRabbit support                                                     |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -144,6 +147,8 @@ use IEEE.numeric_std.all;
 use work.tdc_core_pkg.all;
 use work.gencores_pkg.all;
 use work.wishbone_pkg.all;
+use work.wrcore_pkg.all;
+use work.genram_pkg.all;
 
 
 --=================================================================================================
@@ -167,7 +172,7 @@ entity fmc_tdc_core is
      err_flag_i             : in    std_logic;                            -- error flag
      int_flag_i             : in    std_logic;                            -- interrupt flag
      start_dis_o            : out   std_logic;                            -- start disable, not used
-     stop_dis_o             : out   std_logic;                            -- stop disable, not used
+     stop_dis_o             : out   std_logic;                            -- disables all acam channels
      -- Signals for the data interface with the ACAM on TDC mezzanine
      data_bus_io            : inout std_logic_vector(27 downto 0);
      address_o              : out   std_logic_vector(3 downto 0);
@@ -201,6 +206,13 @@ entity fmc_tdc_core is
      irq_tstamp_p_o         : out   std_logic;                            -- if amount of tstamps > tstamps_threshold
      irq_time_p_o           : out   std_logic;                            -- if 0 < amount of tstamps < tstamps_threshold and time > time_threshold
      irq_acam_err_p_o       : out   std_logic;                            -- if ACAM err_flag_i is activated
+     -- White Rabbit control and status registers
+     wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
+     wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
+     -- White Rabbit timing
+     wrabbit_synched_i      : in    std_logic;
+     wrabbit_tai_p_i        : in    std_logic;
+     wrabbit_tai_i          : in    std_logic_vector(31 downto 0);
     -- WISHBONE bus interface with the GN4124/VME core for the configuration of the TDC core
      tdc_config_wb_adr_i    : in    std_logic_vector(g_span-1 downto 0);  -- WISHBONE classic address
      tdc_config_wb_dat_i    : in    std_logic_vector(g_width-1 downto 0); -- WISHBONE classic data in
@@ -240,28 +252,53 @@ architecture rtl of fmc_tdc_core is
   signal read_acam_config, read_acam_status, read_ififo1    : std_logic;
   signal read_ififo2, read_start01, reset_acam, load_utc    : std_logic;
   signal clear_dacapo_counter, roll_over_incr_recent        : std_logic;
+  signal deactivate_chan                                    : std_logic_vector(4 downto 0);
   signal pulse_delay, window_delay, clk_period              : std_logic_vector(g_width-1 downto 0);
   signal starting_utc, acam_inputs_en                       : std_logic_vector(g_width-1 downto 0);
   signal acam_ififo1, acam_ififo2, acam_start01             : std_logic_vector(g_width-1 downto 0);
   signal irq_tstamp_threshold, irq_time_threshold           : std_logic_vector(g_width-1 downto 0);
   signal local_utc, wr_index                                : std_logic_vector(g_width-1 downto 0);
   signal acam_config, acam_config_rdbk                      : config_vector;
-  signal tstamp_wr_p                                        : std_logic;
+  signal tstamp_wr_p, start_from_fpga, state_active_p       : std_logic;
   -- retrigger control
   signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset: std_logic_vector(g_width-1 downto 0);
-  signal one_hz_p                                           : std_logic;
+  signal local_utc_p                                        : std_logic;
+  signal current_retrig_nb                                  : std_logic_vector(g_width-1 downto 0);
+  -- UTC
+  signal utc_p                                              : std_logic;
+  signal utc, wrabbit_ctrl_reg                              : std_logic_vector(g_width-1 downto 0);
   -- circular buffer
   signal circ_buff_class_adr                                : std_logic_vector(7 downto 0);
   signal circ_buff_class_stb, circ_buff_class_cyc           : std_logic;
   signal circ_buff_class_we, circ_buff_class_ack            : std_logic;
   signal circ_buff_class_data_wr, circ_buff_class_data_rd   : std_logic_vector(4*g_width-1 downto 0);
   -- LEDs
-  signal fordebug                                           : std_logic_vector(5 downto 0);
+  signal acam_channel                                       : std_logic_vector(5 downto 0);
   signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3        : std_logic_vector(1 downto 0);
   signal tdc_in_fpga_4, tdc_in_fpga_5                       : std_logic_vector(1 downto 0);
-  signal acam_channel                                       : std_logic_vector(2 downto 0);
-  
+  signal acam_tstamp_channel                                : std_logic_vector(2 downto 0);
+  -- Chipscope
+  component chipscope_ila
+    port (
+      CONTROL : inout std_logic_vector(35 downto 0);
+      CLK     : in    std_logic;
+      TRIG0   : in    std_logic_vector(31 downto 0);
+      TRIG1   : in    std_logic_vector(31 downto 0);
+      TRIG2   : in    std_logic_vector(31 downto 0);
+      TRIG3   : in    std_logic_vector(31 downto 0));
+  end component;
+  component chipscope_icon
+    port (
+      CONTROL0 : inout std_logic_vector (35 downto 0));
+  end component;
+  signal CONTROL : std_logic_vector(35 downto 0);
+  signal CLK     : std_logic;
+  signal TRIG0   : std_logic_vector(31 downto 0);
+  signal TRIG1   : std_logic_vector(31 downto 0);
+  signal TRIG2   : std_logic_vector(31 downto 0);
+  signal TRIG3   : std_logic_vector(31 downto 0);
 
+  
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -295,14 +332,17 @@ begin
      acam_rst_p_o          => reset_acam,
      load_utc_p_o          => load_utc,
      dacapo_c_rst_p_o      => clear_dacapo_counter,
+	  deactivate_chan_o     => deactivate_chan,
      acam_config_rdbk_i    => acam_config_rdbk,
      acam_ififo1_i         => acam_ififo1,
      acam_ififo2_i         => acam_ififo2,
      acam_start01_i        => acam_start01,
-     local_utc_i           => local_utc,
+     local_utc_i           => utc,
      irq_code_i            => x"00000000",
      core_status_i         => x"00000000",
      wr_index_i            => wr_index,
+     wrabbit_status_reg_i  => wrabbit_status_reg_i,
+     wrabbit_ctrl_reg_o    => wrabbit_ctrl_reg,
      acam_config_o         => acam_config,
      starting_utc_o        => starting_utc,
      acam_inputs_en_o      => acam_inputs_en,
@@ -312,6 +352,9 @@ begin
      send_dac_word_p_o     => send_dac_word_p_o,
      dac_word_o            => dac_word_o,
      one_hz_phase_o        => pulse_delay);
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  wrabbit_ctrl_reg_o  <= wrabbit_ctrl_reg;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- termination enable registers
@@ -338,9 +381,9 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                       ONE HZ GENERATOR                                        --
+--                                   LOCAL ONE HZ GENERATOR                                      --
 ---------------------------------------------------------------------------------------------------
-  one_second_block: one_hz_gen
+  local_one_second_block: local_pps_gen
   generic map
     (g_width                => g_width)
   port map
@@ -352,7 +395,7 @@ begin
      rst_i                  => rst_i,
      starting_utc_i         => starting_utc,
      local_utc_o            => local_utc,
-     one_hz_p_o             => one_hz_p);
+     local_utc_p_o          => local_utc_p);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
     clk_period              <= c_SIM_CLK_PERIOD when values_for_simul else c_SYN_CLK_PERIOD;
 
@@ -364,15 +407,20 @@ begin
   port map
     (err_flag_i              => err_flag_i,
      int_flag_i              => int_flag_i,
-     start_from_fpga_o       => start_from_fpga_o,
+     start_from_fpga_o       => start_from_fpga,
+	 stop_dis_o              => stop_dis_o,
      acam_refclk_r_edge_p_i  => acam_refclk_r_edge_p_i,
+     utc_p_i                 => utc_p,
      clk_i                   => clk_125m_i,
      activate_acq_p_i        => activate_acq_p,
+	 state_active_p_i        => state_active_p,
+	 deactivate_acq_p_i      => deactivate_acq_p,
      rst_i                   => rst_i,
-     window_delay_i          => window_delay,
      acam_errflag_f_edge_p_o => acam_errflag_f_edge_p,
      acam_errflag_r_edge_p_o => acam_errflag_r_edge_p,
      acam_intflag_f_edge_p_o => acam_intflag_f_edge_p);
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  start_from_fpga_o <= start_from_fpga;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -412,8 +460,9 @@ begin
   port map
     (acam_intflag_f_edge_p_i => acam_intflag_f_edge_p,
      clk_i                   => clk_125m_i,
-     one_hz_p_i              => one_hz_p,
+     utc_p_i                 => utc_p,
      rst_i                   => rst_i,
+	 current_retrig_nb_o     => current_retrig_nb, -- for debug
      roll_over_incr_recent_o => roll_over_incr_recent,
      clk_i_cycles_offset_o   => clk_i_cycles_offset,
      roll_over_nb_o          => roll_over_nb,
@@ -448,6 +497,8 @@ begin
      acam_rdbk_start01_p_i => read_start01,
      acam_rst_p_i          => reset_acam,
      acam_config_i         => acam_config,
+     start_from_fpga_i     => start_from_fpga,
+     state_active_p_o      => state_active_p,
      acam_config_rdbk_o    => acam_config_rdbk,
      acam_ififo1_o         => acam_ififo1,
      acam_ififo2_o         => acam_ififo2,
@@ -477,15 +528,23 @@ begin
      acam_tstamp2_i          => acam_tstamp2,
      acam_tstamp2_ok_p_i     => acam_tstamp2_ok_p,
      dacapo_c_rst_p_i        => clear_dacapo_counter,
+	 deactivate_chan_i       => deactivate_chan,
      roll_over_incr_recent_i => roll_over_incr_recent,
      clk_i_cycles_offset_i   => clk_i_cycles_offset,
      roll_over_nb_i          => roll_over_nb,
      retrig_nb_offset_i      => retrig_nb_offset,
-     one_hz_p_i              => one_hz_p,
-     local_utc_i             => local_utc,
+     utc_p_i                 => utc_p,
+     utc_i                   => utc,
      tstamp_wr_p_o           => tstamp_wr_p,
-     acam_channel_o          => acam_channel,
+     acam_channel_o          => acam_tstamp_channel,
      wr_index_o              => wr_index);
+
+
+---------------------------------------------------------------------------------------------------
+--                                       UTC timing source                                       --
+---------------------------------------------------------------------------------------------------
+  utc   <= wrabbit_tai_i   when wrabbit_synched_i = '1' else local_utc;
+  utc_p <= wrabbit_tai_p_i when wrabbit_synched_i = '1' else local_utc_p;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -543,9 +602,9 @@ begin
   port map
     (clk_i            => clk_125m_i,
      rst_i            => rst_i,
-     one_hz_p_i       => one_hz_p,
+     utc_p_i          => local_utc_p,
      acam_inputs_en_i => acam_inputs_en,
-     fordebug_i       => fordebug,
+     acam_channel_i   => acam_channel,
      tstamp_wr_p_i    => tstamp_wr_p,
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
@@ -554,35 +613,46 @@ begin
      tdc_led_trig4_o  => tdc_led_trig4_o,
      tdc_led_trig5_o  => tdc_led_trig5_o);
 
-  -- input_pulse_synchronizer: process (clk_125m_i)
-  -- begin
-    -- if rising_edge (clk_125m_i) then
-      -- if rst_i = '1' then
-        -- tdc_in_fpga_1 <= (others => '0');
-        -- tdc_in_fpga_2 <= (others => '0');
-        -- tdc_in_fpga_3 <= (others => '0');
-        -- tdc_in_fpga_4 <= (others => '0');
-        -- tdc_in_fpga_5 <= (others => '0');
-      -- else
-        -- tdc_in_fpga_1 <= tdc_in_fpga_1(0) & tdc_in_fpga_1_i;
-        -- tdc_in_fpga_2 <= tdc_in_fpga_2(0) & tdc_in_fpga_2_i;
-        -- tdc_in_fpga_3 <= tdc_in_fpga_3(0) & tdc_in_fpga_3_i;
-        -- tdc_in_fpga_4 <= tdc_in_fpga_4(0) & tdc_in_fpga_4_i;
-        -- tdc_in_fpga_5 <= tdc_in_fpga_5(0) & tdc_in_fpga_5_i;
-      -- end if;
-    -- end if;
-  -- end process;
-  -- fordebug <= '0' & tdc_in_fpga_5(1) & tdc_in_fpga_4(1) & tdc_in_fpga_3(1) & tdc_in_fpga_2(1) & tdc_in_fpga_1(1);
-  --fordebug <= "000000";
-  fordebug <= "000" & acam_channel;
+  acam_channel <= "000" & acam_tstamp_channel;
 
 ---------------------------------------------------------------------------------------------------
---                               ACAM start_dis/ stop_dis, not used                              --
+--                                    ACAM start_dis, not used                                   --
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
-  stop_dis_o  <= '0';
 
-
+---------------------------------------------------------------------------------------------------
+--                                           CHIPSCOPE                                           --
+---------------------------------------------------------------------------------------------------   
+  
+--   chipscope_ila_1 : chipscope_ila
+--   port map (
+--     CONTROL => CONTROL,
+--     CLK     => clk_125m_i,
+--     TRIG0   => TRIG0,
+--     TRIG1   => TRIG1,
+--     TRIG2   => TRIG2,
+--     TRIG3   => TRIG3);
+--
+--  chipscope_icon_1 : chipscope_icon
+--   port map (
+--     CONTROL0 => CONTROL);
+-- 
+--  TRIG0(0)            <= utc_p;
+--  TRIG0(1)            <= ef1_i;
+--  TRIG0(2)            <= acam_intflag_f_edge_p;
+--  TRIG0(15 downto 3)  <= roll_over_nb(12 downto 0);
+--  TRIG0(16)           <= start_from_fpga;  
+--  TRIG0(24 downto 17) <= retrig_nb_offset(7 downto 0);
+--  TRIG0(31 downto 25) <= clk_i_cycles_offset(6 downto 0);  
+--
+--  TRIG1(30 downto 0)  <= acam_tstamp1(30 downto 0);
+--  TRIG1(31)           <= acam_tstamp1_ok_p;
+--
+--  TRIG2(31 downto 0)  <= utc(31 downto 0); 
+--  
+--  TRIG3(0)            <= tdc_in_fpga_1_i;
+--  TRIG3(31 downto 1)  <= current_retrig_nb(30 downto 0);
+  
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

@@ -7,32 +7,33 @@
 
 ---------------------------------------------------------------------------------------------------
 --                                                                                                |
---                                        spec_top_fmc_tdc                                        |
+--                                           spec_tdc                                             |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
--- File         spec_top_fmc_tdc.vhd                                                              |
+-- File         spec_tdc.vhd                                                                      |
 --                                                                                                |
--- Description  TDC top level for a SPEC carrier. Figure 1 shows the architecture of the unit.    |
+-- Description  TDC top level for a SPEC carrier, without White Rabbit support.                   |
+--              Figure 1 shows the architecture of the unit.                                      |
 --                                                                                                |
 --              For the communication with the PCIe, the ohwr.org GN4124 core is instantiated.    |
 --                                                                                                |
 --              The TDC mezzanine core is instantiated for the communication with the TDC board.  |
 --              The VIC core is forwarding the interrupts coming from the TDC mezzanine core to   |
 --                the GN4124 core.                                                                |
---              The carrier_info module provides general information on the SPEC PCB version, PLLs |
+--              The carrier_info module provides general information on the SPEC PCB version, PLLs|
 --                locking state etc.                                                              |
 --              The 1-Wire core provides communication with the SPEC Thermometer&UniqueID chip.   |
 --              All the cores communicate with the GN4124 core through the SDB crossbar. The SDB  |
---              crossbar is responsible for managing the acess to the GN4124 core.                |
+--              crossbar is responsible for managing the access to the GN4124 core.               |
 --                                                                                                |
---              The speed of all the cores (TDC mezzanine, VIC, carrier csr, 1-Wire as well as    |
---              the GN4124 core) is 125MHz.                                                       |
+--              The speed of all the cores (TDC mezzanine, VIC, carrier csr, 1-Wire, SDB as well  |
+--              as the GN4124 core) is 125 MHz.                                                   |
 --                                                                                                |
---              The 125MHz clock comes from the PLL located on the TDC mezzanine board.           |
+--              The 125 MHz clock comes from the PLL located on the TDC mezzanine board.          |
 --              The clks_rsts_manager unit is responsible for automatically configuring the PLL   |
---              upon the FPGA startup or after a PCIe reset, using the 20MHz VCXO on the SPEC     |
+--              upon the FPGA startup or after a PCIe reset, using the 20 MHz VCXO on the SPEC    |
 --              carrier board. The clks_rsts_manager is keeping all the rest of the logic under   |
---              reset until the PLL gets locked.                                                  |
+--              reset until the mezzanine PLL gets locked.                                        |
 --                                                                                                |
 --                __________________________________________________________________              |
 --   ________    |                                           ___        _____       |             |
@@ -56,7 +57,7 @@
 --               |                                        / |   |      |     |      |             |
 --               |       ____________________________    /  |   |      |     |      |             |
 --               |      |                            |  /   |   |      |     |      |             |
---               |      |        carrier_info         | /    |   |      |     |      |             |
+--               |      |        carrier_info        | /    |   |      |     |      |             |
 --               |      |____________________________|      |   |      |     |      |             |
 --               |                                          |___|      |_____|      |             |
 --               |                                                                  |             |
@@ -68,8 +69,8 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         01/2014                                                                           |
--- Version      v5 (see sdb_meta_pkg)                                                             |
+-- Date         06/2014                                                                           |
+-- Version      v6 (see sdb_meta_pkg)                                                             |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -82,7 +83,7 @@
 --                      mezzanine I2C master added                                                |
 --                      mezzanine 1 wire master added                                             |
 --                      interrupts generator added                                                |
---                      changed generation of general_rst                                         |
+--                      changed generation of rst_125m                                            |
 --                      DAC reconfiguration+needed regs added                                     |
 --     06/2012  v3  EG  Changes for v2 of TDC mezzanine                                           |
 --                      Several pinout changes,                                                   |
@@ -90,10 +91,8 @@
 --                      no PLL_LD only PLL_STATUS                                                 |
 --     04/2013  v4  EG  added SDB; fixed bugs in data_formatting; added carrier CSR information   |
 --     01/2014  v5  EG  added VIC and EIC in the TDC mezzanine                                    |
+--     06/2014  v6  EG  added possibility for White Rabbit support                                |
 --                                                                                                |
-----------------------------------------------/!\-------------------------------------------------|
--- Note for eva: Remember the design is synthesised with Synplify Premier with DP (tdc_syn.prj)   |
--- For PAR use the tdc_par_script.tcl commands in Xilinx ISE!                                     |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -119,21 +118,35 @@ use work.tdc_core_pkg.all;
 use work.gn4124_core_pkg.all;
 use work.gencores_pkg.all;
 use work.wishbone_pkg.all;
-use work.sdb_meta_pkg.all;
+use work.wrcore_pkg.all;
+use work.wr_fabric_pkg.all;
+use work.wr_xilinx_pkg.all;
+use work.synthesis_descriptor.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
 --=================================================================================================
---                            Entity declaration for spec_top_fmc_tdc
+--                            Entity declaration for spec_tdc
 --=================================================================================================
-entity spec_top_fmc_tdc is
+entity spec_tdc is
   generic
     (g_span             : integer := 32;                      -- address span in bus interfaces
      g_width            : integer := 32;                      -- data width in bus interfaces
      values_for_simul   : boolean := FALSE);                  -- this generic is set to TRUE
                                                               -- when instantiated in a test-bench
   port
-    (-- Interface with GN4124
+    (-- SPEC carrier
+     clk_20m_vcxo_i     : in    std_logic;                    -- 20 MHz VCXO
+
+     carrier_scl_b      : inout std_logic;                    -- SPEC EEPROM
+     carrier_sda_b      : inout std_logic;
+
+     carrier_onewire_b  : inout std_logic;                    -- SPEC 1-wire
+
+     button1_i          : in    std_logic := '1';
+     button2_i          : in    std_logic := '1';
+
+     -- Interface with GN4124
      rst_n_a_i          : in    std_logic;
      -- P2L Direction
      p2l_clk_p_i        : in    std_logic;                    -- Receiver Source Synchronous Clock+
@@ -212,34 +225,26 @@ entity spec_top_fmc_tdc is
      tdc_in_fpga_5_i    : in    std_logic;                    -- Ch.5 for ACAM, also received by FPGA
 
      -- I2C EEPROM interface on TDC mezzanine
-     mezz_sys_scl_b     : inout std_logic;               -- Mezzanine system EEPROM I2C clock
-     mezz_sys_sda_b     : inout std_logic;               -- Mezzanine system EEPROM I2C data
+     mezz_sys_scl_b     : inout std_logic := '1';             -- Mezzanine system EEPROM I2C clock
+     mezz_sys_sda_b     : inout std_logic := '1';             -- Mezzanine system EEPROM I2C data
 
      -- 1-wire interface on TDC mezzanine
-     mezz_one_wire_b    : inout std_logic;
+     mezz_onewire_b     : inout std_logic;
 
-     -- Clock from the SPEC carrier
-     spec_clk_i         : in    std_logic ;                   -- 20 MHz clock from VCXO on SPEC
-     -- 1-wire interface on SPEC carrier
-     carrier_one_wire_b : inout std_logic;
+     -- font panel leds (not used)
+     led_red_o          : out std_logic;
+     led_green_o        : out std_logic;
+
      -- Carrier other signals
      pcb_ver_i          : in    std_logic_vector(3 downto 0); -- PCB version
-     prsnt_m2c_n_i      : in    std_logic;                    -- Mezzanine presence (active low)
-     spec_led_green_o   : out   std_logic;                    -- Green LED on SPEC front pannel, PLL status
-     spec_led_red_o     : out   std_logic);                   -- Red LED on SPEC front pannel
-     -- spec_aux0_i        : in    std_logic;                    -- Button on SPEC board
-     -- spec_aux1_i        : in    std_logic;                    -- Button on SPEC board
-     -- spec_aux2_o        : out   std_logic;                    -- Red LED on spec board
-     -- spec_aux3_o        : out   std_logic;                    -- Red LED on spec board
-     -- spec_aux4_o        : out   std_logic;                    -- Red LED on spec board
-     -- spec_aux5_o        : out   std_logic);                   -- Red LED on spec board
+     prsnt_m2c_n_i      : in    std_logic);                   -- Mezzanine presence (active low)
 
-end spec_top_fmc_tdc;
+end spec_tdc;
 
 --=================================================================================================
 --                                    architecture declaration
 --=================================================================================================
-architecture rtl of spec_top_fmc_tdc is
+architecture rtl of spec_tdc is
 
 ---------------------------------------------------------------------------------------------------
 --                                         SDB CONSTANTS                                         --
@@ -261,48 +266,55 @@ architecture rtl of spec_top_fmc_tdc is
   constant c_MASTER_GENNUM        : integer := 0;
 
   constant c_FMC_TDC_SDB_BRIDGE   : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
+  constant c_WRCORE_BRIDGE_SDB    : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0003ffff", x"00000000");
 
-  constant c_INTERCONNECT_LAYOUT  : t_sdb_record_array(6 downto 0) :=
+  constant c_INTERCONNECT_LAYOUT  : t_sdb_record_array(5 downto 0) :=
     (0 => f_sdb_embed_device       (c_ONEWIRE_SDB_DEVICE,   x"00010000"),
      1 => f_sdb_embed_device       (c_SPEC_INFO_SDB_DEVICE, x"00020000"),
      2 => f_sdb_embed_device       (c_xwb_vic_sdb,          x"00030000"), -- c_xwb_vic_sdb described in the wishbone_pkg
      3 => f_sdb_embed_bridge       (c_FMC_TDC_SDB_BRIDGE,   x"00040000"),
-     4 => f_sdb_embed_repo_url     (c_SDB_REPO_URL),
-     5 => f_sdb_embed_synthesis    (c_SDB_SYNTHESIS),
-     6 => f_sdb_embed_integration  (c_SDB_INTEGRATION));
+     4 => f_sdb_embed_repo_url     (c_sdb_repo_url),
+     5 => f_sdb_embed_synthesis    (c_sdb_synthesis_info));
 
 
 ---------------------------------------------------------------------------------------------------
 --                                         VIC CONSTANT                                          --
 ---------------------------------------------------------------------------------------------------
-  constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 0) :=
-    (0 => x"00052000");
+  constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 0) := (0 => x"00052000");
 
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
-  -- clocks and resets
-  signal general_rst_n, general_rst, clk_125m   : std_logic;
-  signal clk_20m_vcxo_buf, acam_refclk_r_edge_p : std_logic;
-  signal pll_status                             : std_logic;
-  -- DAC configuration
-  signal send_dac_word_p                        : std_logic;
-  signal dac_word                               : std_logic_vector(23 downto 0);
+
+  -- SPEC VCXO clock
+  signal clk_20m_vcxo, clk_20m_vcxo_buf                  : std_logic;
+  -- TDC core clock and reset
+  signal clk_125m                                        : std_logic;
+  signal rst_125m_n, rst_125m                            : std_logic;
+  signal acam_refclk_r_edge_p                            : std_logic;
+  -- DAC configuration through PCIe/VME
+  signal send_dac_word_p                                 : std_logic;
+  signal dac_word                                        : std_logic_vector(23 downto 0);
   -- WISHBONE from crossbar master port
-  signal cnx_master_out                         : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
-  signal cnx_master_in                          : t_wishbone_master_in_array(c_NUM_WB_MASTERS-1 downto 0);
+  signal cnx_master_out                                  : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
+  signal cnx_master_in                                   : t_wishbone_master_in_array(c_NUM_WB_MASTERS-1 downto 0);
   -- WISHBONE to crossbar slave port
-  signal cnx_slave_out                          : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
-  signal cnx_slave_in                           : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
-  -- WISHBONE addresses
-  signal tdc_core_wb_adr, gn_wb_adr             : std_logic_vector(31 downto 0);
+  signal cnx_slave_out                                   : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
+  signal cnx_slave_in                                    : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
+  signal gn_wb_adr                                       : std_logic_vector(31 downto 0);
   -- Carrier CSR info
-  signal gn4124_status                          : std_logic_vector(31 downto 0);
+  signal gn4124_status                                   : std_logic_vector(31 downto 0);
   -- Carrier 1-wire
-  signal carrier_owr_en, carrier_owr_i          : std_logic_vector(c_FMC_ONE_WIRE_NB - 1 downto 0);
+  signal carrier_owr_en, carrier_owr_i                   : std_logic_vector(c_FMC_ONEWIRE_NB - 1 downto 0);
   -- VIC
-  signal fmc_eic_irq, irq_to_gn4124             : std_logic;
+  signal fmc_eic_irq, irq_to_gn4124                      : std_logic;
+  signal fmc_eic_irq_synch                               : std_logic_vector (1 downto 0);
+  -- EEPROM on mezzanine
+  signal tdc_scl_out, tdc_scl_in, tdc_sda_out, tdc_sda_in: std_logic;
+  signal tdc_scl_oen, tdc_sda_oen                        : std_logic;
+  -- aux
+  signal pll_sclk, pll_sdi, pll_dac_sync, pll_cs,led_red : std_logic;
 
 
 --=================================================================================================
@@ -312,11 +324,12 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                        TDC 125MHz clk                                         --
+--                               125 MHz clk and Reset for TDC core                              --
 ---------------------------------------------------------------------------------------------------
-  svec_clk_ibuf : IBUFG
+
+  spec_clk_ibuf : IBUFG
   port map
-  (I => spec_clk_i,
+  (I => clk_20m_vcxo_i,
    O => clk_20m_vcxo_buf);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -324,7 +337,7 @@ begin
   generic map
     (nb_of_reg              => 68)
   port map
-    (clk_20m_vcxo_i         => clk_20m_vcxo_buf,
+    (clk_sys_i              => clk_20m_vcxo_buf,
      acam_refclk_p_i        => acam_refclk_p_i,
      acam_refclk_n_i        => acam_refclk_n_i,
      tdc_125m_clk_p_i       => tdc_clk_125m_p_i,
@@ -335,16 +348,22 @@ begin
      send_dac_word_p_i      => send_dac_word_p,
      dac_word_i             => dac_word,
      acam_refclk_r_edge_p_o => acam_refclk_r_edge_p,
-     internal_rst_o         => general_rst,
-     pll_cs_n_o             => pll_cs_o,
-     pll_dac_sync_n_o       => pll_dac_sync_o,
-     pll_sdi_o              => pll_sdi_o,
-     pll_sclk_o             => pll_sclk_o,
+     wrabbit_dac_value_i    => (others => '0'), -- not used
+     wrabbit_dac_wr_p_i     => '0',             -- not used
+     internal_rst_o         => rst_125m,
+     pll_cs_n_o             => pll_cs,
+     pll_dac_sync_n_o       => pll_dac_sync,
+     pll_sdi_o              => pll_sdi,
+     pll_sclk_o             => pll_sclk,
      tdc_125m_clk_o         => clk_125m,
-     pll_status_o           => pll_status);
+     pll_status_o           => led_green_o);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  general_rst_n             <= not general_rst;
-  spec_led_green_o          <= pll_status;
+  rst_125m_n                <= not rst_125m;
+  pll_dac_sync_o            <= pll_dac_sync;
+  pll_sdi_o                 <= pll_sdi;
+  pll_sclk_o                <= pll_sclk;
+  pll_cs_o                  <= pll_cs;
+	 
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
@@ -374,7 +393,6 @@ begin
      slave_o       => cnx_slave_out,
      master_i      => cnx_master_in,
      master_o      => cnx_master_out);
-
 
 ---------------------------------------------------------------------------------------------------
 --                                           GN4124 CORE                                           --
@@ -454,69 +472,90 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_tdc_mezz : fmc_tdc_mezzanine
   generic map
-    (g_span                 => g_span,
-     g_width                => g_width,
-     values_for_simul       => FALSE)
+    (g_span                    => g_span,
+     g_width                   => g_width,
+     values_for_simul          => FALSE)
   port map
-    (-- clocks, resets, dac
-     clk_125m_i             => clk_125m,
-     rst_i                  => general_rst,
-     acam_refclk_r_edge_p_i => acam_refclk_r_edge_p,
-     send_dac_word_p_o      => send_dac_word_p,
-     dac_word_o             => dac_word,
-     -- Interface with ACAM
-     start_from_fpga_o      => start_from_fpga_o,
-     err_flag_i             => err_flag_i,
-     int_flag_i             => int_flag_i,
-     start_dis_o            => start_dis_o,
-     stop_dis_o             => stop_dis_o,
-     data_bus_io            => data_bus_io,
-     address_o              => address_o,
-     cs_n_o                 => cs_n_o,
-     oe_n_o                 => oe_n_o,
-     rd_n_o                 => rd_n_o,
-     wr_n_o                 => wr_n_o,
-     ef1_i                  => ef1_i,
-     ef2_i                  => ef2_i,
-     -- Input channels enable
-     enable_inputs_o        => enable_inputs_o,
-     term_en_1_o            => term_en_1_o,
-     term_en_2_o            => term_en_2_o,
-     term_en_3_o            => term_en_3_o,
-     term_en_4_o            => term_en_4_o,
-     term_en_5_o            => term_en_5_o,
-     -- LEDs on TDC mezzanine
-     tdc_led_status_o       => tdc_led_status_o,
-     tdc_led_trig1_o        => tdc_led_trig1_o,
-     tdc_led_trig2_o        => tdc_led_trig2_o,
-     tdc_led_trig3_o        => tdc_led_trig3_o,
-     tdc_led_trig4_o        => tdc_led_trig4_o,
-     tdc_led_trig5_o        => tdc_led_trig5_o,
-     -- Input channels to FPGA (not used)
-     tdc_in_fpga_1_i        => tdc_in_fpga_1_i,
-     tdc_in_fpga_2_i        => tdc_in_fpga_2_i,
-     tdc_in_fpga_3_i        => tdc_in_fpga_3_i,
-     tdc_in_fpga_4_i        => tdc_in_fpga_4_i,
-     tdc_in_fpga_5_i        => tdc_in_fpga_5_i,
-     -- WISHBONE interface with the GN4124/VME_core
-     wb_tdc_csr_adr_i       => cnx_master_out(c_WB_SLAVE_TDC).adr,
-     wb_tdc_csr_dat_i       => cnx_master_out(c_WB_SLAVE_TDC).dat,
-     wb_tdc_csr_stb_i       => cnx_master_out(c_WB_SLAVE_TDC).stb,
-     wb_tdc_csr_we_i        => cnx_master_out(c_WB_SLAVE_TDC).we,
-     wb_tdc_csr_cyc_i       => cnx_master_out(c_WB_SLAVE_TDC).cyc,
-     wb_tdc_csr_sel_i       => cnx_master_out(c_WB_SLAVE_TDC).sel,
-     wb_tdc_csr_dat_o       => cnx_master_in(c_WB_SLAVE_TDC).dat,
-     wb_tdc_csr_ack_o       => cnx_master_in(c_WB_SLAVE_TDC).ack,
-     wb_tdc_csr_stall_o     => cnx_master_in(c_WB_SLAVE_TDC).stall,
-     -- Interrupt line from EIC
-     wb_irq_o               => fmc_eic_irq,
-     -- TDC board EEPROM I2C interface
-     sys_scl_b              => mezz_sys_scl_b,
-     sys_sda_b              => mezz_sys_sda_b,
-     -- TDC board 1-wire UniqueID&Thermometer interface
-     one_wire_b             => mezz_one_wire_b);
+    (-- 125M clk and reset
+     clk_ref_0_i               => clk_125m,
+     rst_ref_0_i               => rst_125m,
+    -- not used (only for White Rabbit stuff)
+     clk_sys_i                 => clk_125m,
+     rst_sys_n_i               => rst_125m_n,
+    -- Configuration of the DAC on the TDC mezzanine, non White Rabbit
+     acam_refclk_r_edge_p_i    => acam_refclk_r_edge_p,
+     send_dac_word_p_o         => send_dac_word_p,
+     dac_word_o                => dac_word,
+    -- ACAM interface
+     start_from_fpga_o         => start_from_fpga_o,
+     err_flag_i                => err_flag_i,
+     int_flag_i                => int_flag_i,
+     start_dis_o               => start_dis_o,
+     stop_dis_o                => stop_dis_o,
+     data_bus_io               => data_bus_io,
+     address_o                 => address_o,
+     cs_n_o                    => cs_n_o,
+     oe_n_o                    => oe_n_o,
+     rd_n_o                    => rd_n_o,
+     wr_n_o                    => wr_n_o,
+     ef1_i                     => ef1_i,
+     ef2_i                     => ef2_i,
+    -- Input channels enable
+     enable_inputs_o           => enable_inputs_o,
+     term_en_1_o               => term_en_1_o,
+     term_en_2_o               => term_en_2_o,
+     term_en_3_o               => term_en_3_o,
+     term_en_4_o               => term_en_4_o,
+     term_en_5_o               => term_en_5_o,
+    -- LEDs on TDC mezzanine
+     tdc_led_status_o          => tdc_led_status_o,
+     tdc_led_trig1_o           => tdc_led_trig1_o,
+     tdc_led_trig2_o           => tdc_led_trig2_o,
+     tdc_led_trig3_o           => tdc_led_trig3_o,
+     tdc_led_trig4_o           => tdc_led_trig4_o,
+     tdc_led_trig5_o           => tdc_led_trig5_o,
+    -- Input channels to FPGA (not used)
+     tdc_in_fpga_1_i           => tdc_in_fpga_1_i,
+     tdc_in_fpga_2_i           => tdc_in_fpga_2_i,
+     tdc_in_fpga_3_i           => tdc_in_fpga_3_i,
+     tdc_in_fpga_4_i           => tdc_in_fpga_4_i,
+     tdc_in_fpga_5_i           => tdc_in_fpga_5_i,
+    -- WISHBONE interface with the GN4124 core
+     wb_tdc_csr_adr_i          => cnx_master_out(c_WB_SLAVE_TDC).adr,
+     wb_tdc_csr_dat_i          => cnx_master_out(c_WB_SLAVE_TDC).dat,
+     wb_tdc_csr_stb_i          => cnx_master_out(c_WB_SLAVE_TDC).stb,
+     wb_tdc_csr_we_i           => cnx_master_out(c_WB_SLAVE_TDC).we,
+     wb_tdc_csr_cyc_i          => cnx_master_out(c_WB_SLAVE_TDC).cyc,
+     wb_tdc_csr_sel_i          => cnx_master_out(c_WB_SLAVE_TDC).sel,
+     wb_tdc_csr_dat_o          => cnx_master_in(c_WB_SLAVE_TDC).dat,
+     wb_tdc_csr_ack_o          => cnx_master_in(c_WB_SLAVE_TDC).ack,
+     wb_tdc_csr_stall_o        => cnx_master_in(c_WB_SLAVE_TDC).stall,
+    -- White Rabbit (not used)
+     wrabbit_link_up_i         => '0',
+     wrabbit_time_valid_i      => '0',
+     wrabbit_cycles_i          => (others => '0'),
+     wrabbit_utc_i             => (others => '0'),
+     wrabbit_clk_aux_lock_en_o => open,
+     wrabbit_clk_aux_locked_i  => '0',
+     wrabbit_clk_dmtd_locked_i => '1',
+     wrabbit_dac_value_i       => (others => '0'),
+     wrabbit_dac_wr_p_i        => '0',
+    -- Interrupt line from EIC
+     wb_irq_o                  => fmc_eic_irq,
+    -- EEPROM I2C on TDC mezzanine
+     i2c_scl_oen_o             => tdc_scl_oen,
+     i2c_scl_i                 => tdc_scl_in,
+     i2c_sda_oen_o             => tdc_sda_oen,
+     i2c_sda_i                 => tdc_sda_in,
+     i2c_scl_o                 => tdc_scl_out,
+     i2c_sda_o                 => tdc_sda_out,
+    -- 1-Wire on TDC mezzanine
+     onewire_b                 => mezz_onewire_b);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  -- Tristates for TDC mezzanine EEPROM
+  mezz_sys_scl_b    <= tdc_scl_out when (tdc_scl_oen = '0') else 'Z';
+  mezz_sys_sda_b    <= tdc_sda_out when (tdc_sda_oen = '0') else 'Z';
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC).err   <= '0';
   cnx_master_in(c_WB_SLAVE_TDC).rty   <= '0';
@@ -533,13 +572,24 @@ begin
      g_num_interrupts      => 1,
      g_init_vectors        => c_VIC_VECTOR_TABLE)
   port map 
-    (clk_sys_i    => clk_125m,
-     rst_n_i      => general_rst_n,
-     slave_i      => cnx_master_out(c_WB_SLAVE_VIC),
-     slave_o      => cnx_master_in(c_WB_SLAVE_VIC),
-     irqs_i(0)    => fmc_eic_irq,
-     irq_master_o => irq_to_gn4124);
+    (clk_sys_i             => clk_125m,
+     rst_n_i               => rst_125m_n,
+     slave_i               => cnx_master_out(c_WB_SLAVE_VIC),
+     slave_o               => cnx_master_in(c_WB_SLAVE_VIC),
+     irqs_i(0)             => fmc_eic_irq,
+     irq_master_o          => irq_to_gn4124);
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  cmp_drive_SPEC_red_led: gc_extend_pulse
+  generic map
+    (g_width    => 5000000)
+  port map
+    (clk_i      => clk_125m,
+     rst_n_i    => not(rst_125m),
+     pulse_i    => irq_to_gn4124,
+     extended_o => led_red);
+  --  --  --  --  --  --  --
+  led_red_o <= led_red;
 
 ---------------------------------------------------------------------------------------------------
 --                    Carrier 1-wire MASTER DS18B20 (thermometer + unique ID)                    --
@@ -552,18 +602,18 @@ begin
      g_ow_btp_normal       => "5.0",
      g_ow_btp_overdrive    => "1.0")
   port map
-    (clk_sys_i   => clk_125m,
-     rst_n_i     => general_rst_n,
-     slave_i     => cnx_master_out(c_WB_SLAVE_SPEC_ONEWIRE),
-     slave_o     => cnx_master_in(c_WB_SLAVE_SPEC_ONEWIRE),
-     desc_o      => open,
-     owr_pwren_o => open,
-     owr_en_o    => carrier_owr_en,
-     owr_i       => carrier_owr_i);
+    (clk_sys_i             => clk_125m,
+     rst_n_i               => rst_125m_n,
+     slave_i               => cnx_master_out(c_WB_SLAVE_SPEC_ONEWIRE),
+     slave_o               => cnx_master_in(c_WB_SLAVE_SPEC_ONEWIRE),
+     desc_o                => open,
+     owr_pwren_o           => open,
+     owr_en_o              => carrier_owr_en,
+     owr_i                 => carrier_owr_i);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  carrier_one_wire_b <= '0' when carrier_owr_en(0) = '1' else 'Z';
-  carrier_owr_i(0)   <= carrier_one_wire_b;
+  carrier_onewire_b      <= '0' when carrier_owr_en(0) = '1' else 'Z';
+  carrier_owr_i(0)        <= carrier_onewire_b;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -573,17 +623,17 @@ begin
 
   cmp_carrier_info : carrier_info
   port map
-    (rst_n_i                          => general_rst_n,
-     clk_sys_i                        => clk_125m,
-     wb_adr_i                         => cnx_master_out(c_WB_SLAVE_SPEC_INFO).adr(3 downto 2),
-     wb_dat_i                         => cnx_master_out(c_WB_SLAVE_SPEC_INFO).dat,
-     wb_dat_o                         => cnx_master_in(c_WB_SLAVE_SPEC_INFO).dat,
-     wb_cyc_i                         => cnx_master_out(c_WB_SLAVE_SPEC_INFO).cyc,
-     wb_sel_i                         => cnx_master_out(c_WB_SLAVE_SPEC_INFO).sel,
-     wb_stb_i                         => cnx_master_out(c_WB_SLAVE_SPEC_INFO).stb,
-     wb_we_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).we,
-     wb_ack_o                         => cnx_master_in(c_WB_SLAVE_SPEC_INFO).ack,
-     wb_stall_o                       => cnx_master_in(c_WB_SLAVE_SPEC_INFO).stall,
+    (rst_n_i                           => rst_125m_n,
+     clk_sys_i                         => clk_125m,
+     wb_adr_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).adr(3 downto 2),
+     wb_dat_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).dat,
+     wb_dat_o                          => cnx_master_in(c_WB_SLAVE_SPEC_INFO).dat,
+     wb_cyc_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).cyc,
+     wb_sel_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).sel,
+     wb_stb_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).stb,
+     wb_we_i                           => cnx_master_out(c_WB_SLAVE_SPEC_INFO).we,
+     wb_ack_o                          => cnx_master_in(c_WB_SLAVE_SPEC_INFO).ack,
+     wb_stall_o                        => cnx_master_in(c_WB_SLAVE_SPEC_INFO).stall,
      carrier_info_carrier_pcb_rev_i    => pcb_ver_i,
      carrier_info_carrier_reserved_i   => (others => '0'),
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
@@ -602,11 +652,11 @@ begin
      carrier_info_rst_reserved_o       => open);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
-  cnx_master_in(c_WB_SLAVE_SPEC_INFO).err   <= '0';
-  cnx_master_in(c_WB_SLAVE_SPEC_INFO).rty   <= '0';
-  cnx_master_in(c_WB_SLAVE_SPEC_INFO).int   <= '0';
+  cnx_master_in(c_WB_SLAVE_SPEC_INFO).err <= '0';
+  cnx_master_in(c_WB_SLAVE_SPEC_INFO).rty <= '0';
+  cnx_master_in(c_WB_SLAVE_SPEC_INFO).int <= '0';
 
-   
+
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

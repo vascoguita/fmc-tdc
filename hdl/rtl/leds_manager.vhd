@@ -66,7 +66,6 @@ use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 use work.gencores_pkg.all;
 
 
-
 --=================================================================================================
 --                            Entity declaration for leds_manager
 --=================================================================================================
@@ -82,14 +81,14 @@ entity leds_manager is
      rst_i             : in std_logic;                            -- core internal reset, synched with 125 MHz clk
 
      -- Signal from the one_hz_generator unit
-     one_hz_p_i        : in std_logic;
+     utc_p_i           : in std_logic;
 
      -- Signal from the reg_ctrl unit
      acam_inputs_en_i  : in std_logic_vector(g_width-1 downto 0); -- enable for the ACAM channels;
                                                                   -- activation comes through dedicated reg c_ACAM_INPUTS_EN_ADR
 
      -- Signal for debugging
-     fordebug_i        : in std_logic_vector(5 downto 0);         -- for debugging, currently not used
+     acam_channel_i        : in std_logic_vector(5 downto 0);         -- for debugging, currently not used
      tstamp_wr_p_i     : in std_logic;
 
 
@@ -129,7 +128,7 @@ begin
   port map
     (clk_i             => clk_i,
      rst_i             => rst_i,
-     counter_load_i    => one_hz_p_i,
+     counter_load_i    => utc_p_i,
      counter_top_i     => visible_blink_length,
      counter_is_zero_o => tdc_led_blink_done,
      counter_o         => open);
@@ -140,7 +139,7 @@ begin
     if rising_edge (clk_i) then
       if rst_i ='1' then
         tdc_led_status_o <= '0';
-      elsif one_hz_p_i ='1' then
+      elsif utc_p_i ='1' then
         tdc_led_status_o <= '1';
       elsif tdc_led_blink_done = '1' then
         tdc_led_status_o <= '0';
@@ -157,65 +156,19 @@ begin
 ---------------------------------------------------------------------------------------------------
   rst_n <= not(rst_i);
 
-  -- cmp_extend_ch1_pulse: gc_extend_pulse
-  -- generic map
-    -- (g_width    => 5000000)
-  -- port map
-    -- (clk_i      => clk_i,
-     -- rst_n_i    => rst_n,
-     -- pulse_i    => acam_channel_i(0),
-     -- extended_o => blink_led1);
-     --  --  --  -- 
-  -- cmp_extend_ch2_pulse: gc_extend_pulse
-  -- generic map
-    -- (g_width    => 5000000)
-  -- port map
-    -- (clk_i      => clk_i,
-     -- rst_n_i    => rst_n,
-     -- pulse_i    => acam_channel_i(1),
-     -- extended_o => blink_led2);
-     --  --  --  -- 
-  -- cmp_extend_ch3_pulse: gc_extend_pulse
-  -- generic map
-    -- (g_width    => 5000000)
-  -- port map
-    -- (clk_i      => clk_i,
-     -- rst_n_i    => rst_n,
-     -- pulse_i    => acam_channel_i(2),
-     -- extended_o => blink_led3);
-     --  --  --  -- 
-  -- cmp_extend_ch4_pulse: gc_extend_pulse
-  -- generic map
-    -- (g_width    => 5000000)
-  -- port map
-    -- (clk_i      => clk_i,
-     -- rst_n_i    => rst_n,
-     -- pulse_i    => acam_channel_i(3),
-     -- extended_o => blink_led4);
-     --  --  --  -- 
-  -- cmp_extend_ch5_pulse: gc_extend_pulse
-  -- generic map
-    -- (g_width    => 5000000)
-  -- port map
-    -- (clk_i      => clk_i,
-     -- rst_n_i    => rst_n,
-     -- pulse_i    => acam_channel_i(4),
-     -- extended_o => blink_led5);
-   --  --  --  --  --  -- 
-
   led_1to5_outputs: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      tdc_led_trig1_o  <= acam_inputs_en_i(0) and blink_led1;
-      tdc_led_trig2_o  <= acam_inputs_en_i(1) and blink_led2;
-      tdc_led_trig3_o  <= acam_inputs_en_i(2) and blink_led3;
-      tdc_led_trig4_o  <= acam_inputs_en_i(3) and blink_led4;
-      tdc_led_trig5_o  <= acam_inputs_en_i(4) and blink_led5;
+      tdc_led_trig1_o  <= blink_led1; --acam_inputs_en_i(0) and blink_led1;
+      tdc_led_trig2_o  <= blink_led2; --acam_inputs_en_i(1) and blink_led2;
+      tdc_led_trig3_o  <= blink_led3; --acam_inputs_en_i(2) and blink_led3;
+      tdc_led_trig4_o  <= blink_led4; --acam_inputs_en_i(3) and blink_led4;
+      tdc_led_trig5_o  <= blink_led5; --acam_inputs_en_i(4) and blink_led5;
     end if;
   end process;
 
 
-  input_pulse_synchronizer: process (clk_i)
+  pulse_generator: process (clk_i)
   begin
     if rising_edge (clk_i) then
       if rst_i = '1' then
@@ -227,7 +180,7 @@ begin
         ch4          <= '0';
         ch5          <= '0';
       else
-        acam_channel <= fordebug_i;
+        acam_channel <= acam_channel_i;
         tstamp_wr_p  <= tstamp_wr_p_i;
         if tstamp_wr_p = '1' and acam_inputs_en_i(7) = '1' then
           if acam_channel(2 downto 0)    = "000" then

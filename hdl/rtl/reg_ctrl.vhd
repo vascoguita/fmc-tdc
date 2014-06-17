@@ -18,9 +18,9 @@
 --                                                                                                |
 --              Through WISHBONE writes, the unit receives:                                       |
 --                o the ACAM configuration registers which are then made available to the         |
---                  data_engine and acam_databus_interface units to be transfered to the ACAM chip|
---                o the local configuration registers (eg irq_thresholds, channels_enable) that   |
---                  are then made available to the different units of this design                 |
+--                  data_engine and acam_databus_interface units to be transferred to the ACAMchip|
+--                o the local configuration registers (eg irq_thresholds, channels_enable, WRabbit|
+--                  core enable) that are then made available to the different units of the design|
 --                o the control register that defines the action to be taken in the core; the     |
 --                  register is decoded and the corresponding signals are made available to the   |
 --                  different units in the design.                                                |
@@ -34,8 +34,8 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         08/2012                                                                           |
--- Version      v1                                                                                |
+-- Date         04/2014                                                                           |
+-- Version      v2                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
@@ -43,6 +43,7 @@
 --     10/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
 --     08/2012  v1    EG  added register reg_adr_pipe0 for slack timing reasons                   |
+--     04/2014  v2    EG  added WRabbit register; added channel deactivation register             |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -67,8 +68,8 @@
 
 -- Standard library
 library IEEE;
-use IEEE.std_logic_1164.all; -- std_logic definitions
-use IEEE.NUMERIC_STD.all;    -- conversion functions
+use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
+use IEEE.NUMERIC_STD.all;    -- conversion functions-- Specific library
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
@@ -86,7 +87,7 @@ entity reg_ctrl is
   -- INPUTS
      -- Signals from the clks_rsts_manager unit
     (clk_i                 : in std_logic;                             -- 125 MHz
-     rst_i                 : in std_logic;                             -- global reset, synched to clk_i
+     rst_i                 : in std_logic;                             -- global reset, synced to clk_i
 
      -- Signals from the GN4124/VME_core unit: WISHBONE for regs transfer
      tdc_config_wb_adr_i   : in std_logic_vector(g_span-1 downto 0);   -- WISHBONE address
@@ -111,6 +112,9 @@ entity reg_ctrl is
      core_status_i         : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
      irq_code_i            : in std_logic_vector(g_width-1 downto 0);  -- TDC core interrupt code word
 
+     -- White Rabbit status
+     wrabbit_status_reg_i  : in std_logic_vector(g_width-1 downto 0);  -- WRabbit status bits
+
 
   -- OUTPUTS
      -- Signals to the GN4124/VME_core unit: WISHBONE for regs transfer
@@ -121,7 +125,7 @@ entity reg_ctrl is
      acam_config_o         : out config_vector;
 
      -- Signals to the data_engine unit: TDC core functionality
-     activate_acq_p_o      : out std_logic;                            -- activates tstamps aquisition from ACAM
+     activate_acq_p_o      : out std_logic;                            -- activates tstamps acquisition from ACAM
      deactivate_acq_p_o    : out std_logic;                            -- activates ACAM configuration readings/ writings
      acam_wr_config_p_o    : out std_logic;                            -- enables writing to ACAM regs 0-7, 11, 12, 14 
      acam_rdbk_config_p_o  : out std_logic;                            -- enables reading of ACAM regs 0-7, 11, 12, 14 
@@ -133,8 +137,9 @@ entity reg_ctrl is
 
      -- Signal to the data_formatting unit
      dacapo_c_rst_p_o      : out std_logic;                            -- clears the dacapo counter
-
-     -- Signals to the clks_resets_manager ubit
+	 deactivate_chan_o     : out std_logic_vector(4 downto 0);         -- an active bit stops the registration of timestamps from the specified channel
+                                                                       -- eg: "10010": timestamps from Channel 2 and Channel 5 won't be registered
+     -- Signals to the clks_resets_manager unit
      send_dac_word_p_o     : out std_logic;                            -- initiates the reconfiguration of the DAC
      dac_word_o            : out std_logic_vector(23 downto 0);
 
@@ -147,6 +152,9 @@ entity reg_ctrl is
 
      -- Signal to the TDC mezzanine board
      acam_inputs_en_o      : out std_logic_vector(g_width-1 downto 0); -- enables all five input channels
+
+     -- White Rabbit control
+     wrabbit_ctrl_reg_o    : out std_logic_vector(g_width-1 downto 0); -- WRabbit control register; bit 0 enables the WRabbit core
 
      -- Signal to the acam_timecontrol_interface unit -- eva: i think it s not needed
      start_phase_o         : out std_logic_vector(g_width-1 downto 0));
@@ -168,7 +176,7 @@ architecture rtl of reg_ctrl is
   signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out                                      : std_logic_vector(g_span-1 downto 0);
+  signal dat_out, wrabbit_ctrl_reg, deactivate_chan   : std_logic_vector(g_span-1 downto 0);
   signal tdc_config_wb_ack_o_pipe0                    : std_logic;
 
 
@@ -177,7 +185,8 @@ architecture rtl of reg_ctrl is
 --=================================================================================================
 begin
 
-  reg_adr <= tdc_config_wb_adr_i(7 downto 0); -- we are interested in addresses 0:5000 to 0:50FC
+  reg_adr <= tdc_config_wb_adr_i(7 downto 0); -- we are interested in addresses 00 to FC
+
 
 ---------------------------------------------------------------------------------------------------
 --                                WISHBONE ACK to GN4124/VME_core                                --
@@ -291,9 +300,11 @@ begin
 --   o irq_tstamp_threshold : for the activation of GN4124/VME interrupts based on the number of timestamps
 --   o irq_time_threshold   : for the activation of GN4124/VME interrupts based on the time elapsed
 --   o starting_utc         : definition of the current UTC time
---   o starting_utc         : definition of the current UTC time
---   o one_hz_phase         : eva: think it s not used
---   o start_phase          : eva: think it s not used
+--   o dac_word             : word for the "manual" (non White Rabbit) reconfiguration of the DAC
+--   o deactivate_chan      : for the deactivation of the registration of timestamps if they come from the specified channel
+--   o wrabbit_ctrl_reg     : for the activation of the White Rabbit core (bit 0 only used so far)
+--   o one_hz_phase         : not used
+--   o start_phase          : not used
 
   TDCcore_config_reg_reception: process (clk_i)
   begin
@@ -303,10 +314,11 @@ begin
         starting_utc         <= (others =>'0');
         start_phase          <= (others =>'0');
         one_hz_phase         <= (others =>'0');
+        wrabbit_ctrl_reg     <= (others =>'0');
+        deactivate_chan      <= (others =>'0');
         irq_tstamp_threshold <= x"00000100";        -- default 256 timestamps: full memory
         irq_time_threshold   <= x"000000C8";        -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD; -- default DAC Vout = 1.65
-
 
       elsif tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '1' then -- WISHBONE writes
 
@@ -338,6 +350,14 @@ begin
           dac_word             <= tdc_config_wb_dat_i(23 downto 0);
         end if;
 
+        if reg_adr = c_WRABBIT_CTRL_ADR then
+          wrabbit_ctrl_reg    <= tdc_config_wb_dat_i;
+        end if;
+		
+		if reg_adr = c_DEACT_CHAN_ADR then
+          deactivate_chan     <= tdc_config_wb_dat_i;
+        end if;
+
       end if;
     end if;
   end process;
@@ -349,7 +369,8 @@ begin
   irq_tstamp_threshold_o       <= irq_tstamp_threshold;
   irq_time_threshold_o         <= irq_time_threshold;
   dac_word_o                   <= dac_word;
-
+  wrabbit_ctrl_reg_o           <= wrabbit_ctrl_reg;
+  deactivate_chan_o            <= deactivate_chan(4 downto 0);
 
 ---------------------------------------------------------------------------------------------------
 --                             Reception of TDC core Control Register                            --
@@ -391,7 +412,7 @@ begin
   acam_rdbk_start01_p_o  <= ctrl_reg(7);
   acam_rst_p_o           <= ctrl_reg(8);
   load_utc_p_o           <= ctrl_reg(9);
-  dacapo_c_rst_p_o       <= ctrl_reg(10);
+  dacapo_c_rst_p_o       <= ctrl_reg(10) or ctrl_reg(1); -- dacapo register reset when the acquisition is deactivated
   send_dac_word_p        <= ctrl_reg(11);
 -- ctrl_reg bits 12 to 31 not used for the moment!
 
@@ -474,6 +495,11 @@ begin
     irq_code_i             when c_IRQ_CODE_ADR,
     wr_index_i             when c_WR_INDEX_ADR,
     core_status_i          when c_CORE_STATUS_ADR,
+    -- White Rabbit regs
+    wrabbit_status_reg_i   when c_WRABBIT_STATUS_ADR,
+    wrabbit_ctrl_reg       when c_WRABBIT_CTRL_ADR, 
+    -- Deactivation of timestamps registration
+    deactivate_chan        when c_DEACT_CHAN_ADR,
     -- others
     x"C0FFEEEE"            when others;
 

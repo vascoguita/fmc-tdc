@@ -14,43 +14,42 @@
 --                                                                                                |
 -- Description  The unit combines                                                                 |
 --                o the TDC core                                                                  |
+--                o the wrabbit_sync unit that is managing the White Rabbit synchronization  and  |
+--                  control signals                                                               |
 --                o the I2C core for the communication with the TDC board EEPROM                  |
 --                o the OneWire core for the communication with the TDC board UniqueID&Thermeter  |
---                o the Embedded Ibterrupt Controller core that concentrates several interrupt    |
+--                o the Embedded Interrupt Controller core that concentrates several interrupt    |
 --                  sources into one WISHBONE interrupt request line.                             |
 --                                                                                                |
 --              For the interconnection between the GN4124/VME core and the different cores (TDC, |
---              I2C, 1W, EIC) the unit instantiates an SDB crossbar.                              |
---                                                                                                |
---              Note that the TDC core has two WISHBONE buses, one for the configuration (of the  |
---              core itself and of the ACAM) and one for the retrieval of the timestamps from the |
---              memory.                                                                           |
---                                                                                                |
---              Note that the SPI interface for the DAC on the TDC board is implemented in the    |
---              clcks_rsts_manager;no access to the DAC is provided through GN4124/VME interface  |
+--              I2C, 1W, EIC, timestamps memory) the unit instantiates an SDB crossbar.           |
 --                                                                                                |
 --              Note that the TDC core uses word addressing, whereas the GN4124/VME cores use byte|
 --              addressing                                                                        |
 --                                   _______________________________                              |
---                                  |      FMC TDC mezzanine        |                             |
---                                  |    ________________    ___    |                             |
---                                  |   |                |  |   |   |                             |
---                 ACAM chip <-->   |   |    TDC core    |  |   |   |   <-->                      |
---                                  |   |________________|  | S |   |                             |
---                                  |    ________________   |   |   |                             |
---                                  |   |                |  |   |   |                             |
---               EEPROM chip <-->   |   |    I2C core    |  |   |   |   <-->                      |
---                                  |   |________________|  |   |   |                             |
---                                  |    ________________   | D |   |          GN4124/VME core    |
---                                  |   |                |  |   |   |                             |
---                   1W chip <-->   |   |     1W core    |  |   |   |   <-->                      |
---                                  |   |________________|  |   |   |                             |
---                                  |    ________________   |   |   |                             |
---                                  |   |                |  | B |   |                             |
---                                  |   |       EIC      |  |   |   |   <-->                      |
---                                  |   |________________|  |___|   |                             |
---                                  |                               |                             |
---                                  |_______________________________|                             |
+--                                 |       FMC TDC mezzanine        |                             |
+--                                 |                                |                             |
+--                                 |     ________________           |                             |
+--                                 | |--|  WRabbit_sync  |          |                             |
+--                                 | |  |________________|          |                             |
+--                                 | |   ________________    ___    |                             |
+--                                 | |->|                |  |   |   |                             |
+--                 ACAM chip <-->  |    |    TDC core    |  |   |   |   <-->                      |
+--                                 | |--|________________|  | S |   |                             |
+--                                 | |   ________________   |   |   |                             |
+--                                 | |  |                |  |   |   |                             |
+--               EEPROM chip <-->  | |  |    I2C core    |  |   |   |   <-->                      |
+--                                 | |  |________________|  |   |   |                             |
+--                                 | |   ________________   | D |   |          GN4124/VME core    |
+--                                 | |  |                |  |   |   |                             |
+--                   1W chip <-->  | |  |     1W core    |  |   |   |   <-->                      |
+--                                 | |  |________________|  |   |   |                             |
+--                                 | |   ________________   |   |   |                             |
+--                                 | |  |                |  | B |   |                             |
+--                                 | |->|       EIC      |  |   |   |   <-->                      |
+--                                 |    |________________|  |___|   |                             |
+--                                 |                                |                             |
+--                                 |________________________________|                             |
 --                                     ^                        ^                                 |
 --                                     | 125 MHz            rst |                                 |
 --                                   __|________________________|___                              |
@@ -106,72 +105,86 @@ use work.wishbone_pkg.all;
 --=================================================================================================
 entity fmc_tdc_mezzanine is
   generic
-    (g_span                 : integer := 32;
-     g_width                : integer := 32;
-     values_for_simul       : boolean := FALSE);
+    (g_with_wrabbit_core       : boolean := FALSE;
+     g_span                    : integer := 32;
+     g_width                   : integer := 32;
+     values_for_simul          : boolean := FALSE);
   port
     -- TDC core
-    (-- Signals from the clks_rsts_manager unit
-     clk_125m_i             : in    std_logic;
-     rst_i                  : in    std_logic;
-     acam_refclk_r_edge_p_i : in    std_logic;
-     send_dac_word_p_o      : out   std_logic;
-     dac_word_o             : out   std_logic_vector(23 downto 0);
+    (-- Clock & reset 62M5
+     clk_sys_i                 : in    std_logic; -- 62.5 MHz clock
+     rst_sys_n_i               : in    std_logic; -- reset for 62.5 MHz logic
+     -- Signals from the clks_rsts_manager unit
+     clk_ref_0_i               : in    std_logic; -- 125 MHz clock
+     rst_ref_0_i               : in    std_logic; -- reset for 125 MHz logic
+     acam_refclk_r_edge_p_i    : in    std_logic;
+     send_dac_word_p_o         : out   std_logic;
+     dac_word_o                : out   std_logic_vector(23 downto 0);
      -- Interface with ACAM
-     start_from_fpga_o      : out   std_logic;
-     err_flag_i             : in    std_logic;
-     int_flag_i             : in    std_logic;
-     start_dis_o            : out   std_logic;
-     stop_dis_o             : out   std_logic;
-     data_bus_io            : inout std_logic_vector(27 downto 0);
-     address_o              : out   std_logic_vector(3 downto 0);
-     cs_n_o                 : out   std_logic;
-     oe_n_o                 : out   std_logic;
-     rd_n_o                 : out   std_logic;
-     wr_n_o                 : out   std_logic;
-     ef1_i                  : in    std_logic;
-     ef2_i                  : in    std_logic;
+     start_from_fpga_o         : out   std_logic;
+     err_flag_i                : in    std_logic;
+     int_flag_i                : in    std_logic;
+     start_dis_o               : out   std_logic;
+     stop_dis_o                : out   std_logic;
+     data_bus_io               : inout std_logic_vector(27 downto 0);
+     address_o                 : out   std_logic_vector(3 downto 0);
+     cs_n_o                    : out   std_logic;
+     oe_n_o                    : out   std_logic;
+     rd_n_o                    : out   std_logic;
+     wr_n_o                    : out   std_logic;
+     ef1_i                     : in    std_logic;
+     ef2_i                     : in    std_logic;
      -- Channels termination 
-     enable_inputs_o        : out   std_logic;
-     term_en_1_o            : out   std_logic;
-     term_en_2_o            : out   std_logic;
-     term_en_3_o            : out   std_logic;
-     term_en_4_o            : out   std_logic;
-     term_en_5_o            : out   std_logic;
+     enable_inputs_o           : out   std_logic;
+     term_en_1_o               : out   std_logic;
+     term_en_2_o               : out   std_logic;
+     term_en_3_o               : out   std_logic;
+     term_en_4_o               : out   std_logic;
+     term_en_5_o               : out   std_logic;
      -- TDC board LEDs
-     tdc_led_status_o       : out   std_logic;
-     tdc_led_trig1_o        : out   std_logic;
-     tdc_led_trig2_o        : out   std_logic;
-     tdc_led_trig3_o        : out   std_logic;
-     tdc_led_trig4_o        : out   std_logic;
-     tdc_led_trig5_o        : out   std_logic;
+     tdc_led_status_o          : out   std_logic;
+     tdc_led_trig1_o           : out   std_logic;
+     tdc_led_trig2_o           : out   std_logic;
+     tdc_led_trig3_o           : out   std_logic;
+     tdc_led_trig4_o           : out   std_logic;
+     tdc_led_trig5_o           : out   std_logic;
      -- Input pulses arriving also to the FPGA, currently not treated
-     tdc_in_fpga_1_i        : in    std_logic;
-     tdc_in_fpga_2_i        : in    std_logic;
-     tdc_in_fpga_3_i        : in    std_logic;
-     tdc_in_fpga_4_i        : in    std_logic;
-     tdc_in_fpga_5_i        : in    std_logic;
+     tdc_in_fpga_1_i           : in    std_logic;
+     tdc_in_fpga_2_i           : in    std_logic;
+     tdc_in_fpga_3_i           : in    std_logic;
+     tdc_in_fpga_4_i           : in    std_logic;
+     tdc_in_fpga_5_i           : in    std_logic;
+     -- White Rabbit core
+     wrabbit_link_up_i         : in    std_logic;
+     wrabbit_time_valid_i      : in    std_logic;
+     wrabbit_cycles_i          : in    std_logic_vector(27 downto 0);
+     wrabbit_utc_i             : in    std_logic_vector(31 downto 0);
+     wrabbit_clk_aux_lock_en_o : out   std_logic;
+     wrabbit_clk_aux_locked_i  : in    std_logic;
+     wrabbit_clk_dmtd_locked_i : in    std_logic;
+     wrabbit_dac_value_i       : in    std_logic_vector(23 downto 0);
+     wrabbit_dac_wr_p_i        : in    std_logic;
      -- WISHBONE interface with the GN4124/VME_core
      -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C 
-     wb_tdc_csr_adr_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_dat_i       : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_cyc_i       : in    std_logic;
-     wb_tdc_csr_sel_i       : in    std_logic_vector(3 downto 0);
-     wb_tdc_csr_stb_i       : in    std_logic;
-     wb_tdc_csr_we_i        : in    std_logic;
-     wb_tdc_csr_dat_o       : out   std_logic_vector(31 downto 0);
-     wb_tdc_csr_ack_o       : out   std_logic;
-     wb_tdc_csr_stall_o     : out   std_logic;
-     wb_irq_o               : out   std_logic;
+     wb_tdc_csr_adr_i          : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_dat_i          : in    std_logic_vector(31 downto 0);
+     wb_tdc_csr_cyc_i          : in    std_logic;
+     wb_tdc_csr_sel_i          : in    std_logic_vector(3 downto 0);
+     wb_tdc_csr_stb_i          : in    std_logic;
+     wb_tdc_csr_we_i           : in    std_logic;
+     wb_tdc_csr_dat_o          : out   std_logic_vector(31 downto 0);
+     wb_tdc_csr_ack_o          : out   std_logic;
+     wb_tdc_csr_stall_o        : out   std_logic;
+     wb_irq_o                  : out   std_logic;
     -- I2C EEPROM interface
-     sys_scl_b              : inout std_logic;
-     sys_sda_b              : inout std_logic;
+     i2c_scl_o                 : out   std_logic;
+     i2c_scl_oen_o             : out   std_logic;
+     i2c_scl_i                 : in    std_logic;
+     i2c_sda_oen_o             : out   std_logic;
+     i2c_sda_o                 : out   std_logic;
+     i2c_sda_i                 : in    std_logic;
     -- 1-Wire interface
-     one_wire_b             : inout std_logic;
-    -- For debug: interrupt pulses from TDC core
-     irq_tstamp_p_o         : out   std_logic;
-     irq_time_p_o           : out   std_logic;
-     irq_acam_err_p_o       : out   std_logic);
+     onewire_b                 : inout std_logic);
 end fmc_tdc_mezzanine;
 
 
@@ -215,13 +228,16 @@ architecture rtl of fmc_tdc_mezzanine is
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
   -- resets
-  signal general_rst_n             : std_logic;
+  signal general_rst_n, rst_ref_0_n: std_logic;
   -- Wishbone buse(s) from crossbar master port(s)
   signal cnx_master_out            : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
   signal cnx_master_in             : t_wishbone_master_in_array (c_NUM_WB_MASTERS-1 downto 0);
   -- Wishbone buse(s) to crossbar slave port(s)
   signal cnx_slave_out             : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
   signal cnx_slave_in              : t_wishbone_slave_in_array (c_NUM_WB_SLAVES-1 downto 0);
+  -- Wishbone bus from additional registers
+  signal xreg_slave_out            : t_wishbone_slave_out;
+  signal xreg_slave_in             : t_wishbone_slave_in;
   -- WISHBONE addresses
   signal tdc_core_wb_adr           : std_logic_vector(31 downto 0);
   signal tdc_mem_wb_adr            : std_logic_vector(31 downto 0);
@@ -234,6 +250,10 @@ architecture rtl of fmc_tdc_mezzanine is
   -- IRQ
   signal irq_tstamp_p, irq_time_p  : std_logic;
   signal irq_acam_err_p            : std_logic;
+  -- WRabbit
+  signal reg_to_wr, reg_from_wr    : std_logic_vector(31 downto 0);
+  signal wrabbit_utc_p             : std_logic;
+  signal wrabbit_synched           : std_logic;
 
 
 --=================================================================================================
@@ -241,7 +261,7 @@ architecture rtl of fmc_tdc_mezzanine is
 --=================================================================================================
 begin
 
-  general_rst_n <= not(rst_i);
+  rst_ref_0_n <= not(rst_ref_0_i);
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
@@ -251,39 +271,50 @@ begin
 --   0x11000 -> TDC mezzanine board 1-Wire
 --   0x12000 -> EIC for TDC core
 --   0x13000 -> TDC mezzanine board EEPROM I2C
---   0x14000 -> TDC core timestamps retreival
+--   0x14000 -> TDC core timestamps retrieval
 
-  cmp_sdb_crossbar : xwb_sdb_crossbar
-  generic map
-    (g_num_masters   => c_NUM_WB_SLAVES,
-     g_num_slaves    => c_NUM_WB_MASTERS,
-     g_registered    => true,
-     g_wraparound    => true,
-     g_layout        => c_INTERCONNECT_LAYOUT,
-     g_sdb_addr      => c_SDB_ADDRESS)
+  -- Additional register to help timing
+  cmp_xwb_reg : xwb_register_link
   port map
-    (clk_sys_i       => clk_125m_i,
-     rst_n_i         => general_rst_n,
-     slave_i         => cnx_slave_in,
-     slave_o         => cnx_slave_out,
-     master_i        => cnx_master_in,
-     master_o        => cnx_master_out);
+    (clk_sys_i => clk_ref_0_i,
+     rst_n_i   => rst_ref_0_n,
+     slave_i   => xreg_slave_in,
+     slave_o   => xreg_slave_out,
+     master_i  => cnx_slave_out(c_WB_MASTER),
+     master_o  => cnx_slave_in(c_WB_MASTER));
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
-  wb_tdc_csr_dat_o   <= cnx_slave_out(c_WB_MASTER).dat;
-  wb_tdc_csr_ack_o   <= cnx_slave_out(c_WB_MASTER).ack;
-  wb_tdc_csr_stall_o <= cnx_slave_out(c_WB_MASTER).stall;
+  wb_tdc_csr_dat_o   <= xreg_slave_out.dat;
+  wb_tdc_csr_ack_o   <= xreg_slave_out.ack;
+  wb_tdc_csr_stall_o <= xreg_slave_out.stall;
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Connect crossbar slave port to entity port
-  cnx_slave_in(c_WB_MASTER).adr <= wb_tdc_csr_adr_i;
-  cnx_slave_in(c_WB_MASTER).dat <= wb_tdc_csr_dat_i;
-  cnx_slave_in(c_WB_MASTER).sel <= wb_tdc_csr_sel_i;
-  cnx_slave_in(c_WB_MASTER).stb <= wb_tdc_csr_stb_i;
-  cnx_slave_in(c_WB_MASTER).we  <= wb_tdc_csr_we_i;
-  cnx_slave_in(c_WB_MASTER).cyc <= wb_tdc_csr_cyc_i;
+  xreg_slave_in.adr <= wb_tdc_csr_adr_i;
+  xreg_slave_in.dat <= wb_tdc_csr_dat_i;
+  xreg_slave_in.sel <= wb_tdc_csr_sel_i;
+  xreg_slave_in.stb <= wb_tdc_csr_stb_i;
+  xreg_slave_in.we  <= wb_tdc_csr_we_i;
+  xreg_slave_in.cyc <= wb_tdc_csr_cyc_i;
 
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  cmp_sdb_crossbar : xwb_sdb_crossbar
+  generic map
+    (g_num_masters  => c_NUM_WB_SLAVES,
+     g_num_slaves   => c_NUM_WB_MASTERS,
+     g_registered   => true,
+     g_wraparound   => true,
+     g_layout       => c_INTERCONNECT_LAYOUT,
+     g_sdb_addr     => c_SDB_ADDRESS)
+  port map
+    (clk_sys_i      => clk_ref_0_i,
+     rst_n_i        => rst_ref_0_n,
+     slave_i        => cnx_slave_in,
+     slave_o        => cnx_slave_out,
+     master_i       => cnx_master_in,
+     master_o       => cnx_master_out);
 
+  
 ---------------------------------------------------------------------------------------------------
 --                                             TDC CORE                                          --
 ---------------------------------------------------------------------------------------------------
@@ -294,8 +325,8 @@ begin
      values_for_simul        => FALSE)
   port map
     (-- clks, rst
-     clk_125m_i              => clk_125m_i,
-     rst_i                   => rst_i,
+     clk_125m_i              => clk_ref_0_i,
+     rst_i                   => rst_ref_0_i,
      acam_refclk_r_edge_p_i  => acam_refclk_r_edge_p_i,
      -- DAC configuration
      send_dac_word_p_o       => send_dac_word_p_o,
@@ -338,6 +369,12 @@ begin
      irq_tstamp_p_o          => irq_tstamp_p,
      irq_time_p_o            => irq_time_p,
      irq_acam_err_p_o        => irq_acam_err_p,
+     -- WR stuff
+     wrabbit_tai_i           => wrabbit_utc_i,
+     wrabbit_tai_p_i         => wrabbit_utc_p,
+     wrabbit_synched_i       => wrabbit_synched,
+     wrabbit_status_reg_i    => reg_from_wr,   
+     wrabbit_ctrl_reg_o      => reg_to_wr,
      -- WISHBONE CSR for core configuration
      tdc_config_wb_adr_i     => tdc_core_wb_adr,
      tdc_config_wb_dat_i     => cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).dat,
@@ -372,7 +409,47 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                        TDC Mezzanine Board UniqueID&Thermometer OneWite                       --
+--                                       WHITE RABBIT STUFF                                      --
+---------------------------------------------------------------------------------------------------
+  cmp_wrabbit_synch: wrabbit_sync
+  generic map
+   (g_simulation               => false,
+    g_with_wrabbit_core        => g_with_wrabbit_core)
+  port map
+    (clk_sys_i                 => clk_sys_i,
+     rst_n_sys_i               => rst_sys_n_i,
+     clk_ref_i                 => clk_ref_0_i,
+     rst_n_ref_i               => rst_ref_0_n,
+     wrabbit_dac_value_i       => wrabbit_dac_value_i,
+     wrabbit_dac_wr_p_i        => wrabbit_dac_wr_p_i,
+     wrabbit_link_up_i         => wrabbit_link_up_i,
+     wrabbit_time_valid_i      => wrabbit_time_valid_i,
+     wrabbit_clk_aux_lock_en_o => wrabbit_clk_aux_lock_en_o,
+     wrabbit_clk_aux_locked_i  => wrabbit_clk_aux_locked_i,
+     wrabbit_clk_dmtd_locked_i => '1', -- FIXME
+     wrabbit_synched_o         => wrabbit_synched,
+     wrabbit_reg_i             => reg_to_wr,    -- synced to 125MHz mezzanine
+     wrabbit_reg_o             => reg_from_wr); -- synced to 125MHz mezzanine
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  wrabbit_one_hz_pulse : process(clk_ref_0_i)
+  begin
+    if rising_edge(clk_ref_0_i) then
+      if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
+        if unsigned(wrabbit_cycles_i) = unsigned(c_SYN_CLK_PERIOD) -1 then
+          wrabbit_utc_p <= '1';
+        else
+          wrabbit_utc_p <= '0';
+        end if;
+      else
+        wrabbit_utc_p   <= '0';
+      end if;
+    end if;
+  end process;
+
+
+---------------------------------------------------------------------------------------------------
+--                        TDC Mezzanine Board UniqueID&Thermometer OneWire                       --
 ---------------------------------------------------------------------------------------------------
   cmp_fmc_onewire : xwb_onewire_master
   generic map
@@ -382,8 +459,8 @@ begin
      g_ow_btp_normal       => "5.0",
      g_ow_btp_overdrive    => "1.0")
   port map
-    (clk_sys_i             => clk_125m_i,
-     rst_n_i               => general_rst_n,
+    (clk_sys_i             => clk_ref_0_i,
+     rst_n_i               => rst_ref_0_n,
      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_ONEWIRE),
      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_ONEWIRE),
      desc_o                => open,
@@ -391,8 +468,8 @@ begin
      owr_en_o              => mezz_owr_en,
      owr_i                 => mezz_owr_i);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  one_wire_b               <= '0' when mezz_owr_en(0) = '1' else 'Z';
-  mezz_owr_i(0)            <= one_wire_b;
+  onewire_b                <= '0' when mezz_owr_en(0) = '1' else 'Z';
+  mezz_owr_i(0)            <= onewire_b;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -404,8 +481,8 @@ begin
 -- 2 -> ACAM error
   cmp_tdc_eic : tdc_eic
   port map
-    (clk_sys_i          => clk_125m_i,
-     rst_n_i            => general_rst_n,
+    (clk_sys_i          => clk_ref_0_i,
+     rst_n_i            => rst_ref_0_n,
      wb_adr_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(3 downto 2),
      wb_dat_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
      wb_dat_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
@@ -425,38 +502,33 @@ begin
   cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).rty <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).int <= '0';
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Only for debug
-  irq_tstamp_p_o        <= irq_tstamp_p;
-  irq_time_p_o          <= irq_time_p;
-  irq_acam_err_p_o      <= irq_acam_err_p;
 
 
 ---------------------------------------------------------------------------------------------------
 --                                TDC Mezzanine Board EEPROM I2C                                 --
 ---------------------------------------------------------------------------------------------------
-  cmp_I2C_master : xwb_i2c_master
-  generic map
-    (g_interface_mode      => PIPELINED,
-     g_address_granularity => BYTE)
-  port map
-    (clk_sys_i             => clk_125m_i,
-     rst_n_i               => general_rst_n,
-     slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
-     slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
-     desc_o                => open,
-     scl_pad_i             => sys_scl_in,
-     scl_pad_o             => sys_scl_out,
-     scl_padoen_o          => sys_scl_oe_n,
-     sda_pad_i             => sys_sda_in,
-     sda_pad_o             => sys_sda_out,
-     sda_padoen_o          => sys_sda_oe_n);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Tri-state buffer for SDA and SCL
-  sys_scl_b                <= sys_scl_out when sys_scl_oe_n = '0' else 'Z';
-  sys_scl_in               <= sys_scl_b;
-  sys_sda_b                <= sys_sda_out when sys_sda_oe_n = '0' else 'Z';
-  sys_sda_in               <= sys_sda_b;
+   cmp_I2C_master : xwb_i2c_master
+   generic map
+     (g_interface_mode      => PIPELINED,
+      g_address_granularity => BYTE)
+   port map
+     (clk_sys_i             => clk_ref_0_i,
+      rst_n_i               => rst_ref_0_n,
+      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
+      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
+      desc_o                => open,
+      scl_pad_i             => i2c_scl_i,
+      scl_pad_o             => sys_scl_out,
+      scl_padoen_o          => sys_scl_oe_n,
+      sda_pad_i             => i2c_sda_i,
+      sda_pad_o             => sys_sda_out,
+      sda_padoen_o          => sys_sda_oe_n);
+
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  i2c_sda_oen_o            <= sys_sda_oe_n;
+  i2c_sda_o                <= sys_sda_out;
+  i2c_scl_oen_o            <= sys_scl_oe_n;
+  i2c_scl_o                <= sys_scl_out;
 
 
 end rtl;

@@ -1,0 +1,250 @@
+Release 13.4 par O.87xd (nt)
+Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
+
+PCBE13136::  Tue Jun 17 19:52:40 2014
+
+par -w -intstyle ise -ol high -xe c -mt off wr_svec_tdc_map.ncd wr_svec_tdc.ncd
+wr_svec_tdc.pcf 
+
+
+Constraints file: wr_svec_tdc.pcf.
+Loading device for application Rf_Device from file '6slx150t.nph' in environment C:\EDA\Xilinx\v13_4\ISE_DS\ISE\.
+   "wr_svec_tdc" is an NCD, version 3.2, device xc6slx150t, package fgg900, speed -3
+INFO:Par:338 - 
+   Extra Effort Level "c"ontinue is not a runtime optimized effort level. It is intended to be used for designs that are
+   not meeting timing but where the designer wants the tools to continue iterating on the design until no further design
+   speed improvements are possible.  This can result in very long runtimes since the tools will continue improving the
+   design even if the time specs can not be met. If you are looking for the best possible design speed available from a
+   long but reasonable runtime use Extra Effort Level "n"ormal.  It will stop iterating on the design when the design
+   speed improvements have shrunk to the point that the time specs are not expected to be met.
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+INFO:Security:56 - Part 'xc6slx150t' is not a WebPack part.
+WARNING:Security:42 - Your software subscription period has lapsed. Your current version of Xilinx tools will continue
+to function, but you no longer qualify for Xilinx software updates or new releases.
+
+----------------------------------------------------------------------
+
+Initializing temperature to 85.000 Celsius. (default - Range: 0.000 to 85.000 Celsius)
+Initializing voltage to 1.140 Volts. (default - Range: 1.140 to 1.260 Volts)
+
+INFO:Par:282 - No user timing constraints were detected or you have set the option to ignore timing constraints ("par
+   -x"). Place and Route will run in "Performance Evaluation Mode" to automatically improve the performance of all
+   internal clocks in this design. Because there are not defined timing requirements, a timing score will not be
+   reported in the PAR report in this mode. The PAR timing summary will list the performance achieved for each clock.
+   Note: For the fastest runtime, set the effort level to "std".  For best performance, set the effort level to "high".
+
+Device speed data version:  "PRODUCTION 1.21 2012-01-07".
+
+
+
+Device Utilization Summary:
+
+Slice Logic Utilization:
+  Number of Slice Registers:                11,683 out of 184,304    6%
+    Number used as Flip Flops:              11,632
+    Number used as Latches:                      4
+    Number used as Latch-thrus:                  0
+    Number used as AND/OR logics:               47
+  Number of Slice LUTs:                     16,088 out of  92,152   17%
+    Number used as logic:                   15,786 out of  92,152   17%
+      Number using O6 output only:          11,162
+      Number using O5 output only:             844
+      Number using O5 and O6:                3,780
+      Number used as ROM:                        0
+    Number used as Memory:                      87 out of  21,680    1%
+      Number used as Dual Port RAM:             24
+        Number using O6 output only:            24
+        Number using O5 output only:             0
+        Number using O5 and O6:                  0
+      Number used as Single Port RAM:            0
+      Number used as Shift Register:            63
+        Number using O6 output only:            25
+        Number using O5 output only:             0
+        Number using O5 and O6:                 38
+    Number used exclusively as route-thrus:    215
+      Number with same-slice register load:    110
+      Number with same-slice carry load:       105
+      Number with other load:                    0
+
+Slice Logic Distribution:
+  Number of occupied Slices:                 6,165 out of  23,038   26%
+  Nummber of MUXCYs used:                    3,592 out of  46,076    7%
+  Number of LUT Flip Flop pairs used:       18,518
+    Number with an unused Flip Flop:         7,828 out of  18,518   42%
+    Number with an unused LUT:               2,430 out of  18,518   13%
+    Number of fully used LUT-FF pairs:       8,260 out of  18,518   44%
+    Number of slice register sites lost
+      to control set restrictions:               0 out of 184,304    0%
+
+  A LUT Flip Flop pair for this architecture represents one LUT paired with
+  one Flip Flop within a slice.  A control set is a unique combination of
+  clock, reset, set, and enable signals for a registered element.
+  The Slice Logic Distribution report is not meaningful if the design is
+  over-mapped for a non-slice resource or if Placement fails.
+
+IO Utilization:
+  Number of bonded IOBs:                       263 out of     540   48%
+    IOB Flip Flops:                            203
+    Number of bonded IPADs:                      4 out of      32   12%
+    Number of bonded OPADs:                      2 out of      16   12%
+
+Specific Feature Utilization:
+  Number of RAMB16BWERs:                        65 out of     268   24%
+  Number of RAMB8BWERs:                         13 out of     536    2%
+  Number of BUFIO2/BUFIO2_2CLKs:                 3 out of      32    9%
+    Number used as BUFIO2s:                      3
+    Number used as BUFIO2_2CLKs:                 0
+  Number of BUFIO2FB/BUFIO2FB_2CLKs:             0 out of      32    0%
+  Number of BUFG/BUFGMUXs:                       6 out of      16   37%
+    Number used as BUFGs:                        6
+    Number used as BUFGMUX:                      0
+  Number of DCM/DCM_CLKGENs:                     0 out of      12    0%
+  Number of ILOGIC2/ISERDES2s:                 139 out of     586   23%
+    Number used as ILOGIC2s:                   139
+    Number used as ISERDES2s:                    0
+  Number of IODELAY2/IODRP2/IODRP2_MCBs:         0 out of     586    0%
+  Number of OLOGIC2/OSERDES2s:                  64 out of     586   10%
+    Number used as OLOGIC2s:                    64
+    Number used as OSERDES2s:                    0
+  Number of BSCANs:                              1 out of       4   25%
+  Number of BUFHs:                               0 out of     384    0%
+  Number of BUFPLLs:                             0 out of       8    0%
+  Number of BUFPLL_MCBs:                         0 out of       4    0%
+  Number of DSP48A1s:                            3 out of     180    1%
+  Number of GTPA1_DUALs:                         1 out of       4   25%
+  Number of ICAPs:                               0 out of       1    0%
+  Number of MCBs:                                0 out of       4    0%
+  Number of PCIE_A1s:                            0 out of       1    0%
+  Number of PCILOGICSEs:                         0 out of       2    0%
+  Number of PLL_ADVs:                            2 out of       6   33%
+  Number of PMVs:                                0 out of       1    0%
+  Number of STARTUPs:                            0 out of       1    0%
+  Number of SUSPEND_SYNCs:                       0 out of       1    0%
+
+
+Overall effort level (-ol):   High 
+Router effort level (-rl):    High 
+
+Starting initial Timing Analysis.  REAL time: 23 secs 
+Finished initial Timing Analysis.  REAL time: 23 secs 
+
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem4_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem2_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem1_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem3_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem5_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem6_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+Starting Router
+
+
+Phase  1  : 102577 unrouted;      REAL time: 27 secs 
+
+Phase  2  : 90904 unrouted;      REAL time: 33 secs 
+
+Phase  3  : 45316 unrouted;      REAL time: 2 mins 16 secs 
+
+Phase  4  : 45331 unrouted; (Par is working to improve performance)     REAL time: 2 mins 25 secs 
+
+Updating file: wr_svec_tdc.ncd with current fully routed design.
+
+Phase  5  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 9 secs 
+
+Phase  6  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 9 secs 
+
+Phase  7  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 9 secs 
+
+Phase  8  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 9 secs 
+
+Phase  9  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 9 secs 
+
+Phase 10  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 10 secs 
+
+Phase 11  : 0 unrouted; (Par is working to improve performance)     REAL time: 4 mins 17 secs 
+Total REAL time to Router completion: 4 mins 17 secs 
+Total CPU time to Router completion: 4 mins 18 secs 
+
+Partition Implementation Status
+-------------------------------
+
+  No Partitions were found in this design.
+
+-------------------------------
+
+Generating "PAR" statistics.
+INFO:Par:459 - The Clock Report is not displayed in the non timing-driven mode.
+Timing Score: 0 (Setup: 0, Hold: 0)
+
+Asterisk (*) preceding a constraint indicates it was not met.
+   This may be due to a setup or hold violation.
+
+----------------------------------------------------------------------------------------------------------
+  Constraint                                |    Check    | Worst Case |  Best Case | Timing |   Timing   
+                                            |             |    Slack   | Achievable | Errors |    Score   
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net clk | SETUP       |         N/A|    14.784ns|     N/A|           0
+  _62m5_sys                                 | HOLD        |     0.259ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net clk | SETUP       |         N/A|     5.976ns|     N/A|           0
+  _dmtd                                     | HOLD        |     0.379ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net clk | SETUP       |         N/A|     8.701ns|     N/A|           0
+  _125m_pllref_BUFG                         | HOLD        |     0.395ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net tdc | SETUP       |         N/A|     9.616ns|     N/A|           0
+  1_125m_clk                                | HOLD        |     0.266ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net tdc | SETUP       |         N/A|    10.874ns|     N/A|           0
+  2_125m_clk                                | HOLD        |     0.268ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net phy | SETUP       |         N/A|     8.026ns|     N/A|           0
+  _rx_rbclk                                 | HOLD        |     0.322ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  Autotimespec constraint for clock net U_W | SETUP       |         N/A|     1.769ns|     N/A|           0
+  R_CORE/WRPC/LM32_CORE/gen_profile_medium_ | HOLD        |     0.452ns|            |       0|           0
+  icache_debug.U_Wrapped_LM32/jtck          |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+
+
+All constraints were met.
+INFO:Timing:2761 - N/A entries in the Constraints List may indicate that the 
+   constraint is not analyzed due to the following: No paths covered by this 
+   constraint; Other constraints intersect with this constraint; or This 
+   constraint was disabled by a Path Tracing Control. Please run the Timespec 
+   Interaction Report (TSI) via command line (trce tsi) or Timing Analyzer GUI.
+
+
+Generating Pad Report.
+
+All signals are completely routed.
+
+WARNING:Par:283 - There are 6 loadless signals in this design. This design will cause Bitgen to issue DRC warnings.
+
+Total REAL time to PAR completion: 4 mins 25 secs 
+Total CPU time to PAR completion: 4 mins 26 secs 
+
+Peak Memory Usage:  715 MB
+
+Placer: Placement generated during map.
+Routing: Completed - No errors found.
+
+Number of error messages: 0
+Number of warning messages: 8
+Number of info messages: 3
+
+Writing design to file wr_svec_tdc.ncd
+
+
+
+PAR done!

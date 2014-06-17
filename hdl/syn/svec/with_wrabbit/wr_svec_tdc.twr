@@ -1,0 +1,768 @@
+--------------------------------------------------------------------------------
+Release 13.4 Trace  (nt)
+Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
+
+C:\EDA\Xilinx\v13_4\ISE_DS\ISE\bin\nt\unwrapped\trce.exe -intstyle ise -v 3 -s
+3 -n 3 -fastpaths -xml wr_svec_tdc.twx wr_svec_tdc.ncd -o wr_svec_tdc.twr
+wr_svec_tdc.pcf
+
+Design file:              wr_svec_tdc.ncd
+Physical constraint file: wr_svec_tdc.pcf
+Device,package,speed:     xc6slx150t,fgg900,C,-3 (PRODUCTION 1.21 2012-01-07)
+Report level:             verbose report
+
+Environment Variable      Effect 
+--------------------      ------ 
+NONE                      No environment variables were set
+--------------------------------------------------------------------------------
+
+INFO:Timing:2698 - No timing constraints found, doing default enumeration.
+INFO:Timing:3412 - To improve timing, see the Timing Closure User Guide (UG612).
+INFO:Timing:2752 - To get complete path coverage, use the unconstrained paths 
+   option. All paths that are not constrained will be reported in the 
+   unconstrained paths section(s) of the report.
+INFO:Timing:3339 - The clock-to-out numbers in this timing report are based on 
+   a 50 Ohm transmission line loading model.  For the details of this model, 
+   and for more information on accounting for different loading conditions, 
+   please see the device datasheet.
+
+
+
+Data Sheet report:
+-----------------
+All values displayed in nanoseconds (ns)
+
+Setup/Hold to clock clk_20m_vcxo_i
+-----------------+------------+------------+------------+------------+------------------+--------+
+                 |Max Setup to|  Process   |Max Hold to |  Process   |                  | Clock  |
+Source           | clk (edge) |   Corner   | clk (edge) |   Corner   |Internal Clock(s) | Phase  |
+-----------------+------------+------------+------------+------------+------------------+--------+
+VME_ADDR_b<1>    |    3.175(R)|      SLOW  |    3.169(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<2>    |    2.502(R)|      SLOW  |    3.105(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<3>    |    2.777(R)|      SLOW  |    3.108(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<4>    |    2.754(R)|      SLOW  |    3.124(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<5>    |    3.636(R)|      SLOW  |    3.064(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<6>    |    2.362(R)|      SLOW  |    3.109(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<7>    |    2.652(R)|      SLOW  |    3.063(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<8>    |    2.617(R)|      SLOW  |    3.124(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<9>    |    1.772(R)|      SLOW  |    3.124(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<10>   |    2.212(R)|      SLOW  |    3.108(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<11>   |    2.014(R)|      SLOW  |    3.063(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<12>   |    1.423(R)|      SLOW  |    3.166(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<13>   |    1.605(R)|      SLOW  |    3.121(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<14>   |    1.567(R)|      SLOW  |    3.106(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<15>   |    1.787(R)|      SLOW  |    3.061(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<16>   |    2.430(R)|      SLOW  |    3.169(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<17>   |    1.638(R)|      SLOW  |    3.121(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<18>   |    1.904(R)|      SLOW  |    3.166(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<19>   |    1.526(R)|      SLOW  |    3.060(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<20>   |    0.864(R)|      FAST  |    3.060(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<21>   |    1.022(R)|      SLOW  |    3.061(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<22>   |    0.887(R)|      FAST  |    3.105(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<23>   |    0.632(R)|      FAST  |    3.121(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<24>   |    0.674(R)|      FAST  |    3.166(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<25>   |    0.755(R)|      FAST  |    3.352(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<26>   |    0.864(R)|      FAST  |    3.307(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<27>   |    2.912(R)|      SLOW  |    3.111(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<28>   |    2.426(R)|      SLOW  |    3.066(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<29>   |    2.436(R)|      SLOW  |    3.066(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<30>   |    2.620(R)|      SLOW  |    3.126(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<31>   |    2.528(R)|      SLOW  |    3.110(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AM_i<0>      |    4.342(R)|      SLOW  |    3.307(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AM_i<1>      |    4.506(R)|      SLOW  |    3.311(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AM_i<2>      |    4.887(R)|      SLOW  |    3.292(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AM_i<3>      |    4.534(R)|      SLOW  |    3.292(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AM_i<4>      |    0.864(R)|      FAST  |    3.352(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AM_i<5>      |    4.606(R)|      SLOW  |    3.352(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_AS_n_i       |    2.614(R)|      SLOW  |   -1.451(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<0>    |    3.203(R)|      SLOW  |    3.170(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<1>    |    3.354(R)|      SLOW  |    3.065(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<2>    |    2.972(R)|      SLOW  |    3.065(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<3>    |    3.320(R)|      SLOW  |    3.109(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<4>    |    2.846(R)|      SLOW  |    3.170(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<5>    |    2.401(R)|      SLOW  |    3.125(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<6>    |    3.186(R)|      SLOW  |    3.110(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<7>    |    2.587(R)|      SLOW  |    3.125(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<8>    |    5.227(R)|      SLOW  |    3.170(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<9>    |    5.600(R)|      SLOW  |    3.064(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<10>   |    6.249(R)|      SLOW  |    3.356(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<11>   |    6.129(R)|      SLOW  |    3.312(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<12>   |    5.351(R)|      SLOW  |    3.252(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<13>   |    4.174(R)|      SLOW  |    3.251(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<14>   |    5.329(R)|      SLOW  |    3.312(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<15>   |    4.436(R)|      SLOW  |    3.357(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<16>   |    0.828(R)|      SLOW  |    3.357(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<17>   |    1.230(R)|      SLOW  |    3.357(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<18>   |    1.297(R)|      SLOW  |    3.312(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<19>   |    0.817(R)|      FAST  |    3.296(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<20>   |    0.956(R)|      SLOW  |    3.251(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<21>   |    1.022(R)|      SLOW  |    3.359(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<22>   |    0.691(R)|      FAST  |    3.314(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<23>   |    0.694(R)|      FAST  |    3.299(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<24>   |    3.884(R)|      SLOW  |    3.252(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<25>   |    4.142(R)|      SLOW  |    3.312(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<26>   |    3.237(R)|      SLOW  |    3.297(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<27>   |    4.908(R)|      SLOW  |    3.254(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<28>   |    5.302(R)|      SLOW  |    3.299(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<29>   |    4.723(R)|      SLOW  |    3.357(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<30>   |    4.674(R)|      SLOW  |    3.314(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DATA_b<31>   |    5.298(R)|      SLOW  |    3.254(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DS_n_i<0>    |    1.161(R)|      SLOW  |   -0.140(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_DS_n_i<1>    |    3.360(R)|      SLOW  |   -1.910(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_GA_i<0>      |    4.534(R)|      SLOW  |   -2.585(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_GA_i<1>      |    4.436(R)|      SLOW  |   -2.537(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_GA_i<2>      |   -0.166(R)|      FAST  |    1.475(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_GA_i<3>      |   -0.321(R)|      FAST  |    1.720(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_GA_i<4>      |   -0.306(R)|      FAST  |    1.704(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_GA_i<5>      |    3.216(R)|      SLOW  |   -1.713(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IACKIN_n_i   |    1.579(R)|      SLOW  |   -0.553(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_IACK_n_i     |    2.341(R)|      SLOW  |   -1.288(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_LWORD_n_b    |    3.084(R)|      SLOW  |    3.125(R)|      SLOW  |clk_62m5_sys      |   0.000|
+VME_RST_n_i      |    5.029(R)|      SLOW  |   -2.128(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_WRITE_n_i    |    1.992(R)|      SLOW  |   -0.947(R)|      SLOW  |clk_62m5_sys      |   0.000|
+carrier_onewire_b|    3.966(R)|      SLOW  |   -2.455(R)|      FAST  |clk_62m5_sys      |   0.000|
+pcb_ver_i<0>     |    5.788(R)|      SLOW  |   -3.353(R)|      FAST  |clk_62m5_sys      |   0.000|
+pcb_ver_i<1>     |    5.822(R)|      SLOW  |   -3.486(R)|      FAST  |clk_62m5_sys      |   0.000|
+pcb_ver_i<2>     |    5.491(R)|      SLOW  |   -3.228(R)|      FAST  |clk_62m5_sys      |   0.000|
+pcb_ver_i<3>     |    6.057(R)|      SLOW  |   -3.631(R)|      FAST  |clk_62m5_sys      |   0.000|
+por_n_i          |    4.298(R)|      SLOW  |   -1.652(R)|      SLOW  |clk_62m5_sys      |   0.000|
+sfp_mod_def0_b   |    2.978(R)|      SLOW  |   -1.791(R)|      FAST  |clk_62m5_sys      |   0.000|
+sfp_mod_def1_b   |    3.822(R)|      SLOW  |   -2.252(R)|      FAST  |clk_62m5_sys      |   0.000|
+sfp_mod_def2_b   |    4.063(R)|      SLOW  |   -2.455(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_ef1_i       |    1.246(R)|      SLOW  |    1.254(R)|      SLOW  |clk_62m5_sys      |   0.000|
+tdc1_ef2_i       |    1.070(R)|      SLOW  |    1.085(R)|      SLOW  |clk_62m5_sys      |   0.000|
+tdc1_pll_status_i|   -1.113(R)|      FAST  |    3.165(R)|      SLOW  |clk_62m5_sys      |   0.000|
+tdc1_scl_b       |    4.434(R)|      SLOW  |   -2.670(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_sda_b       |    4.409(R)|      SLOW  |   -2.720(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc2_ef1_i       |    1.806(R)|      SLOW  |    0.759(R)|      SLOW  |clk_62m5_sys      |   0.000|
+tdc2_ef2_i       |    1.439(R)|      SLOW  |    0.951(R)|      SLOW  |clk_62m5_sys      |   0.000|
+tdc2_pll_status_i|   -1.028(R)|      FAST  |    3.040(R)|      SLOW  |clk_62m5_sys      |   0.000|
+uart_rxd_i       |   -1.019(R)|      FAST  |    3.017(R)|      SLOW  |clk_62m5_sys      |   0.000|
+-----------------+------------+------------+------------+------------+------------------+--------+
+
+Setup/Hold to clock tdc1_125m_clk_n_i
+--------------------+------------+------------+------------+------------+------------------+--------+
+                    |Max Setup to|  Process   |Max Hold to |  Process   |                  | Clock  |
+Source              | clk (edge) |   Corner   | clk (edge) |   Corner   |Internal Clock(s) | Phase  |
+--------------------+------------+------------+------------+------------+------------------+--------+
+tdc1_acam_refclk_n_i|   -0.728(R)|      FAST  |    2.319(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_acam_refclk_p_i|   -0.728(R)|      FAST  |    2.320(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<0> |    5.619(R)|      SLOW  |    2.316(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<1> |    5.799(R)|      SLOW  |    2.256(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<2> |    4.982(R)|      SLOW  |    2.253(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<3> |    6.944(R)|      SLOW  |    2.251(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<4> |    7.028(R)|      SLOW  |    2.323(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<5> |    5.696(R)|      SLOW  |    2.314(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<6> |    4.897(R)|      SLOW  |    2.314(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<7> |    5.532(R)|      SLOW  |    2.251(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<8> |    5.580(R)|      SLOW  |    2.255(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<9> |    6.386(R)|      SLOW  |    2.260(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<10>|    6.148(R)|      SLOW  |    2.319(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<11>|    5.565(R)|      SLOW  |    2.318(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<12>|    4.207(R)|      SLOW  |    2.321(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<13>|    6.507(R)|      SLOW  |    2.258(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<14>|    5.174(R)|      SLOW  |    2.366(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<15>|    4.658(R)|      SLOW  |    2.303(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<16>|    4.918(R)|      SLOW  |    2.372(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<17>|    3.252(R)|      SLOW  |    2.377(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<18>|    4.613(R)|      SLOW  |    2.369(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<19>|    5.013(R)|      SLOW  |    2.306(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<20>|    4.956(R)|      SLOW  |    2.314(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<21>|    3.451(R)|      SLOW  |    2.315(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<22>|    4.536(R)|      SLOW  |    2.309(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<23>|    3.776(R)|      SLOW  |    2.375(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<24>|    3.325(R)|      SLOW  |    2.378(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<25>|    4.196(R)|      SLOW  |    2.312(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<26>|    4.766(R)|      SLOW  |    2.378(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<27>|    5.528(R)|      SLOW  |    2.315(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_ef1_i          |   -0.728(R)|      FAST  |    2.265(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_ef2_i          |   -0.759(R)|      FAST  |    2.328(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_err_flag_i     |   -0.785(R)|      FAST  |    2.322(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_int_flag_i     |   -0.814(R)|      FAST  |    2.383(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_onewire_b      |    6.111(R)|      SLOW  |   -3.595(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_scl_b          |    4.688(R)|      SLOW  |   -2.804(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_sda_b          |    5.048(R)|      SLOW  |   -3.070(R)|      FAST  |tdc1_125m_clk     |   0.000|
+--------------------+------------+------------+------------+------------+------------------+--------+
+
+Setup/Hold to clock tdc1_125m_clk_p_i
+--------------------+------------+------------+------------+------------+------------------+--------+
+                    |Max Setup to|  Process   |Max Hold to |  Process   |                  | Clock  |
+Source              | clk (edge) |   Corner   | clk (edge) |   Corner   |Internal Clock(s) | Phase  |
+--------------------+------------+------------+------------+------------+------------------+--------+
+tdc1_acam_refclk_n_i|   -0.728(R)|      FAST  |    2.318(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_acam_refclk_p_i|   -0.728(R)|      FAST  |    2.319(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<0> |    5.620(R)|      SLOW  |    2.315(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<1> |    5.800(R)|      SLOW  |    2.255(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<2> |    4.983(R)|      SLOW  |    2.252(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<3> |    6.945(R)|      SLOW  |    2.250(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<4> |    7.029(R)|      SLOW  |    2.322(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<5> |    5.697(R)|      SLOW  |    2.313(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<6> |    4.898(R)|      SLOW  |    2.313(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<7> |    5.533(R)|      SLOW  |    2.250(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<8> |    5.581(R)|      SLOW  |    2.254(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<9> |    6.387(R)|      SLOW  |    2.259(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<10>|    6.149(R)|      SLOW  |    2.318(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<11>|    5.566(R)|      SLOW  |    2.317(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<12>|    4.208(R)|      SLOW  |    2.320(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<13>|    6.508(R)|      SLOW  |    2.257(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<14>|    5.175(R)|      SLOW  |    2.365(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<15>|    4.659(R)|      SLOW  |    2.302(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<16>|    4.919(R)|      SLOW  |    2.371(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<17>|    3.253(R)|      SLOW  |    2.376(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<18>|    4.614(R)|      SLOW  |    2.368(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<19>|    5.014(R)|      SLOW  |    2.305(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<20>|    4.957(R)|      SLOW  |    2.313(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<21>|    3.452(R)|      SLOW  |    2.314(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<22>|    4.537(R)|      SLOW  |    2.308(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<23>|    3.777(R)|      SLOW  |    2.374(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<24>|    3.326(R)|      SLOW  |    2.377(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<25>|    4.197(R)|      SLOW  |    2.311(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<26>|    4.767(R)|      SLOW  |    2.377(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<27>|    5.529(R)|      SLOW  |    2.314(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_ef1_i          |   -0.728(R)|      FAST  |    2.264(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_ef2_i          |   -0.759(R)|      FAST  |    2.327(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_err_flag_i     |   -0.785(R)|      FAST  |    2.321(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_int_flag_i     |   -0.814(R)|      FAST  |    2.382(R)|      SLOW  |tdc1_125m_clk     |   0.000|
+tdc1_onewire_b      |    6.112(R)|      SLOW  |   -3.595(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_scl_b          |    4.689(R)|      SLOW  |   -2.804(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_sda_b          |    5.049(R)|      SLOW  |   -3.070(R)|      FAST  |tdc1_125m_clk     |   0.000|
+--------------------+------------+------------+------------+------------+------------------+--------+
+
+Setup/Hold to clock tdc2_125m_clk_n_i
+--------------------+------------+------------+------------+------------+------------------+--------+
+                    |Max Setup to|  Process   |Max Hold to |  Process   |                  | Clock  |
+Source              | clk (edge) |   Corner   | clk (edge) |   Corner   |Internal Clock(s) | Phase  |
+--------------------+------------+------------+------------+------------+------------------+--------+
+tdc2_acam_refclk_n_i|   -0.785(R)|      FAST  |    2.376(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_acam_refclk_p_i|   -0.785(R)|      FAST  |    2.377(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<0> |    5.259(R)|      SLOW  |    2.310(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<1> |    4.029(R)|      SLOW  |    2.311(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<2> |    4.600(R)|      SLOW  |    2.299(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<3> |    3.915(R)|      SLOW  |    2.307(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<4> |    3.221(R)|      SLOW  |    2.374(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<5> |    3.355(R)|      SLOW  |    2.318(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<6> |    3.396(R)|      SLOW  |    2.322(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<7> |    3.142(R)|      SLOW  |    2.310(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<8> |    3.874(R)|      SLOW  |    2.259(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<9> |    4.274(R)|      SLOW  |    2.316(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<10>|    3.761(R)|      SLOW  |    2.255(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<11>|    3.351(R)|      SLOW  |    2.319(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<12>|    4.636(R)|      SLOW  |    2.247(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<13>|    3.264(R)|      SLOW  |    2.321(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<14>|    3.634(R)|      SLOW  |    2.253(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<15>|    3.710(R)|      SLOW  |    2.323(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<16>|    2.916(R)|      SLOW  |    2.256(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<17>|    2.723(R)|      SLOW  |    2.324(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<18>|    4.377(R)|      SLOW  |    2.258(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<19>|    3.422(R)|      SLOW  |    2.240(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<20>|    3.740(R)|      SLOW  |    2.260(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<21>|    3.253(R)|      SLOW  |    2.261(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<22>|    4.996(R)|      SLOW  |    2.177(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<23>|    4.595(R)|      SLOW  |    2.229(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<24>|    4.381(R)|      SLOW  |    2.166(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<25>|    4.791(R)|      SLOW  |    2.166(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<26>|    5.566(R)|      SLOW  |    2.173(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<27>|    7.592(R)|      SLOW  |    2.170(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_ef1_i          |   -0.678(R)|      FAST  |    2.247(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_ef2_i          |   -0.749(R)|      FAST  |    2.318(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_err_flag_i     |   -0.666(R)|      FAST  |    2.235(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_int_flag_i     |   -0.648(R)|      FAST  |    2.185(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_onewire_b      |    8.857(R)|      SLOW  |   -5.271(R)|      FAST  |tdc2_125m_clk     |   0.000|
+--------------------+------------+------------+------------+------------+------------------+--------+
+
+Setup/Hold to clock tdc2_125m_clk_p_i
+--------------------+------------+------------+------------+------------+------------------+--------+
+                    |Max Setup to|  Process   |Max Hold to |  Process   |                  | Clock  |
+Source              | clk (edge) |   Corner   | clk (edge) |   Corner   |Internal Clock(s) | Phase  |
+--------------------+------------+------------+------------+------------+------------------+--------+
+tdc2_acam_refclk_n_i|   -0.785(R)|      FAST  |    2.375(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_acam_refclk_p_i|   -0.785(R)|      FAST  |    2.376(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<0> |    5.260(R)|      SLOW  |    2.309(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<1> |    4.030(R)|      SLOW  |    2.310(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<2> |    4.601(R)|      SLOW  |    2.298(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<3> |    3.916(R)|      SLOW  |    2.306(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<4> |    3.222(R)|      SLOW  |    2.373(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<5> |    3.356(R)|      SLOW  |    2.317(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<6> |    3.397(R)|      SLOW  |    2.321(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<7> |    3.143(R)|      SLOW  |    2.309(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<8> |    3.875(R)|      SLOW  |    2.258(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<9> |    4.275(R)|      SLOW  |    2.315(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<10>|    3.762(R)|      SLOW  |    2.254(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<11>|    3.352(R)|      SLOW  |    2.318(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<12>|    4.637(R)|      SLOW  |    2.246(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<13>|    3.265(R)|      SLOW  |    2.320(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<14>|    3.635(R)|      SLOW  |    2.252(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<15>|    3.711(R)|      SLOW  |    2.322(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<16>|    2.917(R)|      SLOW  |    2.255(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<17>|    2.724(R)|      SLOW  |    2.323(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<18>|    4.378(R)|      SLOW  |    2.257(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<19>|    3.423(R)|      SLOW  |    2.239(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<20>|    3.741(R)|      SLOW  |    2.259(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<21>|    3.254(R)|      SLOW  |    2.260(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<22>|    4.997(R)|      SLOW  |    2.176(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<23>|    4.596(R)|      SLOW  |    2.228(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<24>|    4.382(R)|      SLOW  |    2.165(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<25>|    4.792(R)|      SLOW  |    2.165(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<26>|    5.567(R)|      SLOW  |    2.172(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<27>|    7.593(R)|      SLOW  |    2.169(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_ef1_i          |   -0.678(R)|      FAST  |    2.246(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_ef2_i          |   -0.749(R)|      FAST  |    2.317(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_err_flag_i     |   -0.666(R)|      FAST  |    2.234(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_int_flag_i     |   -0.648(R)|      FAST  |    2.184(R)|      SLOW  |tdc2_125m_clk     |   0.000|
+tdc2_onewire_b      |    8.858(R)|      SLOW  |   -5.271(R)|      FAST  |tdc2_125m_clk     |   0.000|
+--------------------+------------+------------+------------+------------+------------------+--------+
+
+Clock clk_20m_vcxo_i to Pad
+---------------------+-----------------+------------+-----------------+------------+------------------+--------+
+                     |Max (slowest) clk|  Process   |Min (fastest) clk|  Process   |                  | Clock  |
+Destination          |  (edge) to PAD  |   Corner   |  (edge) to PAD  |   Corner   |Internal Clock(s) | Phase  |
+---------------------+-----------------+------------+-----------------+------------+------------------+--------+
+VME_ADDR_DIR_o       |        19.234(R)|      SLOW  |        10.852(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<1>        |        13.784(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<2>        |        14.380(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<3>        |        13.707(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<4>        |        13.789(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<5>        |        13.950(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<6>        |        13.950(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<7>        |        13.707(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<8>        |        14.204(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<9>        |        13.734(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<10>       |        13.902(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<11>       |        13.911(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<12>       |        14.193(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<13>       |        14.486(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<14>       |        14.319(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<15>       |        14.307(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<16>       |        13.734(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<17>       |        14.368(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<18>       |        14.595(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<19>       |        14.613(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<20>       |        16.231(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<21>       |        16.406(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<22>       |        16.231(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<23>       |        16.495(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<24>       |        16.495(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<25>       |        17.084(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<26>       |        16.915(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<27>       |        14.965(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<28>       |        15.228(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<29>       |        14.965(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<30>       |        15.222(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_ADDR_b<31>       |        14.502(R)|      SLOW  |         3.603(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_BERR_o           |         8.176(R)|      SLOW  |         4.018(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_DIR_o       |        20.184(R)|      SLOW  |        11.099(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<0>        |        17.241(R)|      SLOW  |         6.587(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<1>        |        16.453(R)|      SLOW  |         7.150(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<2>        |        17.395(R)|      SLOW  |         7.070(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<3>        |        17.328(R)|      SLOW  |         7.811(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<4>        |        17.070(R)|      SLOW  |         7.923(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<5>        |        16.572(R)|      SLOW  |         7.040(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<6>        |        16.263(R)|      SLOW  |         6.684(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<7>        |        16.409(R)|      SLOW  |         7.827(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<8>        |        17.085(R)|      SLOW  |         6.442(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<9>        |        17.130(R)|      SLOW  |         6.248(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<10>       |        15.740(R)|      SLOW  |         7.891(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<11>       |        15.406(R)|      SLOW  |         7.582(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<12>       |        15.259(R)|      SLOW  |         7.540(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<13>       |        14.877(R)|      SLOW  |         7.403(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<14>       |        15.671(R)|      SLOW  |         7.564(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<15>       |        15.464(R)|      SLOW  |         7.635(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<16>       |        15.669(R)|      SLOW  |         7.392(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<17>       |        15.897(R)|      SLOW  |         7.627(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<18>       |        15.876(R)|      SLOW  |         6.929(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<19>       |        15.498(R)|      SLOW  |         7.286(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<20>       |        15.401(R)|      SLOW  |         7.531(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<21>       |        16.264(R)|      SLOW  |         7.484(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<22>       |        16.264(R)|      SLOW  |         7.398(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<23>       |        16.366(R)|      SLOW  |         7.685(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<24>       |        15.755(R)|      SLOW  |         7.680(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<25>       |        15.964(R)|      SLOW  |         7.676(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<26>       |        15.257(R)|      SLOW  |         7.737(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<27>       |        16.366(R)|      SLOW  |         8.188(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<28>       |        16.385(R)|      SLOW  |         7.887(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<29>       |        15.964(R)|      SLOW  |         7.637(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<30>       |        16.661(R)|      SLOW  |         7.808(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DATA_b<31>       |        16.245(R)|      SLOW  |         7.794(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DTACK_OE_o       |        20.952(R)|      SLOW  |        11.375(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_DTACK_n_o        |        21.620(R)|      SLOW  |        10.233(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IACKOUT_n_o      |        18.036(R)|      SLOW  |        10.191(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<0>       |        10.709(R)|      SLOW  |         5.834(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<1>       |        10.378(R)|      SLOW  |         5.558(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<2>       |        10.878(R)|      SLOW  |         5.845(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<3>       |        10.273(R)|      SLOW  |         5.454(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<4>       |        10.977(R)|      SLOW  |         5.916(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<5>       |        10.892(R)|      SLOW  |         5.904(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_IRQ_n_o<6>       |        12.921(R)|      SLOW  |         7.149(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_LWORD_n_b        |        14.757(R)|      SLOW  |         3.654(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_RETRY_OE_o       |         8.179(R)|      SLOW  |         4.021(R)|      FAST  |clk_62m5_sys      |   0.000|
+VME_RETRY_n_o        |         8.182(R)|      SLOW  |         4.024(R)|      FAST  |clk_62m5_sys      |   0.000|
+carrier_onewire_b    |        22.099(R)|      SLOW  |        12.203(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_column_o<0>   |        19.167(R)|      SLOW  |         7.948(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_column_o<1>   |        18.333(R)|      SLOW  |         8.002(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_column_o<2>   |        14.908(R)|      SLOW  |         6.985(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_column_o<3>   |        14.521(R)|      SLOW  |         6.696(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_line_o<0>     |        16.000(R)|      SLOW  |         8.837(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_line_o<1>     |        16.161(R)|      SLOW  |         8.934(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_line_oen_o<0> |        15.981(R)|      SLOW  |         9.104(R)|      FAST  |clk_62m5_sys      |   0.000|
+fp_led_line_oen_o<1> |        15.028(R)|      SLOW  |         8.510(R)|      FAST  |clk_62m5_sys      |   0.000|
+pll20dac_din_o       |        12.992(R)|      SLOW  |         7.135(R)|      FAST  |clk_62m5_sys      |   0.000|
+pll20dac_sclk_o      |        11.764(R)|      SLOW  |         6.288(R)|      FAST  |clk_62m5_sys      |   0.000|
+pll20dac_sync_n_o    |        16.824(R)|      SLOW  |         9.607(R)|      FAST  |clk_62m5_sys      |   0.000|
+pll25dac_din_o       |        13.119(R)|      SLOW  |         7.236(R)|      FAST  |clk_62m5_sys      |   0.000|
+pll25dac_sclk_o      |        15.375(R)|      SLOW  |         8.628(R)|      FAST  |clk_62m5_sys      |   0.000|
+pll25dac_sync_n_o    |        16.283(R)|      SLOW  |         9.274(R)|      FAST  |clk_62m5_sys      |   0.000|
+sfp_mod_def1_b       |        11.754(R)|      SLOW  |         6.342(R)|      FAST  |clk_62m5_sys      |   0.000|
+sfp_mod_def2_b       |        11.393(R)|      SLOW  |         6.113(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_pll_cs_n_o      |        15.177(R)|      SLOW  |         8.102(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_pll_dac_sync_n_o|        15.264(R)|      SLOW  |         8.345(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_pll_sclk_o      |        14.634(R)|      SLOW  |         8.223(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_pll_sdi_o       |        20.247(R)|      SLOW  |         9.356(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_scl_b           |        19.070(R)|      SLOW  |        10.879(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc1_sda_b           |        21.881(R)|      SLOW  |        12.644(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc2_pll_cs_n_o      |        15.002(R)|      SLOW  |         7.922(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc2_pll_dac_sync_n_o|        14.684(R)|      SLOW  |         7.899(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc2_pll_sclk_o      |        15.329(R)|      SLOW  |         8.604(R)|      FAST  |clk_62m5_sys      |   0.000|
+tdc2_pll_sdi_o       |        21.414(R)|      SLOW  |         8.299(R)|      FAST  |clk_62m5_sys      |   0.000|
+uart_txd_o           |         8.363(R)|      SLOW  |         4.205(R)|      FAST  |clk_62m5_sys      |   0.000|
+---------------------+-----------------+------------+-----------------+------------+------------------+--------+
+
+Clock tdc1_125m_clk_n_i to Pad
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+                      |Max (slowest) clk|  Process   |Min (fastest) clk|  Process   |                  | Clock  |
+Destination           |  (edge) to PAD  |   Corner   |  (edge) to PAD  |   Corner   |Internal Clock(s) | Phase  |
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+tdc1_address_o<0>     |        15.888(R)|      SLOW  |         8.690(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_address_o<1>     |        17.111(R)|      SLOW  |         9.614(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_address_o<2>     |        16.574(R)|      SLOW  |         8.911(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_address_o<3>     |        16.802(R)|      SLOW  |         9.470(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_cs_n_o           |         7.540(R)|      SLOW  |         3.857(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<0>   |        14.986(R)|      SLOW  |         5.677(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<1>   |        15.371(R)|      SLOW  |         6.285(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<2>   |        14.597(R)|      SLOW  |         5.839(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<3>   |        14.845(R)|      SLOW  |         6.017(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<4>   |        16.372(R)|      SLOW  |         5.895(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<5>   |        16.042(R)|      SLOW  |         5.914(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<6>   |        15.210(R)|      SLOW  |         5.701(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<7>   |        16.241(R)|      SLOW  |         6.063(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<8>   |        15.683(R)|      SLOW  |         5.895(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<9>   |        16.358(R)|      SLOW  |         5.873(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<10>  |        15.963(R)|      SLOW  |         5.526(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<11>  |        16.222(R)|      SLOW  |         5.788(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<12>  |        15.543(R)|      SLOW  |         5.816(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<13>  |        15.465(R)|      SLOW  |         5.590(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<14>  |        15.694(R)|      SLOW  |         5.765(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<15>  |        15.705(R)|      SLOW  |         5.783(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<16>  |        15.600(R)|      SLOW  |         5.660(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<17>  |        14.876(R)|      SLOW  |         5.415(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<18>  |        15.252(R)|      SLOW  |         5.179(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<19>  |        14.635(R)|      SLOW  |         5.443(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<20>  |        13.536(R)|      SLOW  |         5.286(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<21>  |        13.917(R)|      SLOW  |         5.221(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<22>  |        13.589(R)|      SLOW  |         5.213(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<23>  |        13.423(R)|      SLOW  |         5.235(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<24>  |        15.032(R)|      SLOW  |         5.631(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<25>  |        15.026(R)|      SLOW  |         6.045(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<26>  |        13.983(R)|      SLOW  |         5.648(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<27>  |        14.675(R)|      SLOW  |         5.752(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_enable_inputs_o  |         7.591(R)|      SLOW  |         3.908(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_status_o     |        12.304(R)|      SLOW  |         6.945(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig1_o      |         7.354(R)|      SLOW  |         3.671(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig2_o      |         7.540(R)|      SLOW  |         3.857(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig3_o      |         7.360(R)|      SLOW  |         3.677(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig4_o      |         7.411(R)|      SLOW  |         3.728(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig5_o      |         7.411(R)|      SLOW  |         3.728(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_onewire_b        |        15.250(R)|      SLOW  |         8.925(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_rd_n_o           |         7.591(R)|      SLOW  |         3.908(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_scl_b            |        18.492(R)|      SLOW  |        10.886(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_sda_b            |        18.930(R)|      SLOW  |        11.240(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_start_from_fpga_o|        15.012(R)|      SLOW  |         8.340(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_stop_dis_o       |        14.531(R)|      SLOW  |         8.388(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_1_o      |         7.357(R)|      SLOW  |         3.674(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_2_o      |         7.407(R)|      SLOW  |         3.724(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_3_o      |         7.408(R)|      SLOW  |         3.725(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_4_o      |         7.407(R)|      SLOW  |         3.724(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_5_o      |         7.356(R)|      SLOW  |         3.673(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_wr_n_o           |         7.404(R)|      SLOW  |         3.721(R)|      FAST  |tdc1_125m_clk     |   0.000|
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+
+Clock tdc1_125m_clk_p_i to Pad
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+                      |Max (slowest) clk|  Process   |Min (fastest) clk|  Process   |                  | Clock  |
+Destination           |  (edge) to PAD  |   Corner   |  (edge) to PAD  |   Corner   |Internal Clock(s) | Phase  |
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+tdc1_address_o<0>     |        15.887(R)|      SLOW  |         8.690(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_address_o<1>     |        17.110(R)|      SLOW  |         9.614(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_address_o<2>     |        16.573(R)|      SLOW  |         8.911(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_address_o<3>     |        16.801(R)|      SLOW  |         9.470(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_cs_n_o           |         7.539(R)|      SLOW  |         3.857(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<0>   |        14.985(R)|      SLOW  |         5.677(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<1>   |        15.370(R)|      SLOW  |         6.285(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<2>   |        14.596(R)|      SLOW  |         5.839(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<3>   |        14.844(R)|      SLOW  |         6.017(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<4>   |        16.371(R)|      SLOW  |         5.895(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<5>   |        16.041(R)|      SLOW  |         5.914(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<6>   |        15.209(R)|      SLOW  |         5.701(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<7>   |        16.240(R)|      SLOW  |         6.063(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<8>   |        15.682(R)|      SLOW  |         5.895(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<9>   |        16.357(R)|      SLOW  |         5.873(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<10>  |        15.962(R)|      SLOW  |         5.526(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<11>  |        16.221(R)|      SLOW  |         5.788(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<12>  |        15.542(R)|      SLOW  |         5.816(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<13>  |        15.464(R)|      SLOW  |         5.590(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<14>  |        15.693(R)|      SLOW  |         5.765(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<15>  |        15.704(R)|      SLOW  |         5.783(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<16>  |        15.599(R)|      SLOW  |         5.660(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<17>  |        14.875(R)|      SLOW  |         5.415(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<18>  |        15.251(R)|      SLOW  |         5.179(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<19>  |        14.634(R)|      SLOW  |         5.443(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<20>  |        13.535(R)|      SLOW  |         5.286(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<21>  |        13.916(R)|      SLOW  |         5.221(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<22>  |        13.588(R)|      SLOW  |         5.213(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<23>  |        13.422(R)|      SLOW  |         5.235(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<24>  |        15.031(R)|      SLOW  |         5.631(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<25>  |        15.025(R)|      SLOW  |         6.045(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<26>  |        13.982(R)|      SLOW  |         5.648(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_data_bus_io<27>  |        14.674(R)|      SLOW  |         5.752(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_enable_inputs_o  |         7.590(R)|      SLOW  |         3.908(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_status_o     |        12.303(R)|      SLOW  |         6.945(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig1_o      |         7.353(R)|      SLOW  |         3.671(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig2_o      |         7.539(R)|      SLOW  |         3.857(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig3_o      |         7.359(R)|      SLOW  |         3.677(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig4_o      |         7.410(R)|      SLOW  |         3.728(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_led_trig5_o      |         7.410(R)|      SLOW  |         3.728(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_onewire_b        |        15.249(R)|      SLOW  |         8.925(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_rd_n_o           |         7.590(R)|      SLOW  |         3.908(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_scl_b            |        18.491(R)|      SLOW  |        10.886(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_sda_b            |        18.929(R)|      SLOW  |        11.240(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_start_from_fpga_o|        15.011(R)|      SLOW  |         8.340(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_stop_dis_o       |        14.530(R)|      SLOW  |         8.388(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_1_o      |         7.356(R)|      SLOW  |         3.674(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_2_o      |         7.406(R)|      SLOW  |         3.724(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_3_o      |         7.407(R)|      SLOW  |         3.725(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_4_o      |         7.406(R)|      SLOW  |         3.724(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_term_en_5_o      |         7.355(R)|      SLOW  |         3.673(R)|      FAST  |tdc1_125m_clk     |   0.000|
+tdc1_wr_n_o           |         7.403(R)|      SLOW  |         3.721(R)|      FAST  |tdc1_125m_clk     |   0.000|
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+
+Clock tdc2_125m_clk_n_i to Pad
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+                      |Max (slowest) clk|  Process   |Min (fastest) clk|  Process   |                  | Clock  |
+Destination           |  (edge) to PAD  |   Corner   |  (edge) to PAD  |   Corner   |Internal Clock(s) | Phase  |
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+tdc2_address_o<0>     |        19.617(R)|      SLOW  |        10.897(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_address_o<1>     |        19.873(R)|      SLOW  |        11.121(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_address_o<2>     |        19.438(R)|      SLOW  |        10.880(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_address_o<3>     |        21.041(R)|      SLOW  |        12.021(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_cs_n_o           |         7.351(R)|      SLOW  |         3.668(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<0>   |        16.548(R)|      SLOW  |         6.943(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<1>   |        16.847(R)|      SLOW  |         6.640(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<2>   |        16.914(R)|      SLOW  |         7.071(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<3>   |        16.277(R)|      SLOW  |         6.755(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<4>   |        15.898(R)|      SLOW  |         6.640(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<5>   |        16.165(R)|      SLOW  |         6.197(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<6>   |        15.833(R)|      SLOW  |         6.418(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<7>   |        15.789(R)|      SLOW  |         5.975(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<8>   |        15.125(R)|      SLOW  |         6.418(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<9>   |        14.312(R)|      SLOW  |         5.727(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<10>  |        14.762(R)|      SLOW  |         6.197(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<11>  |        14.281(R)|      SLOW  |         5.615(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<12>  |        15.637(R)|      SLOW  |         5.975(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<13>  |        14.827(R)|      SLOW  |         5.513(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<14>  |        15.103(R)|      SLOW  |         5.727(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<15>  |        14.941(R)|      SLOW  |         5.358(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<16>  |        16.164(R)|      SLOW  |         5.472(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<17>  |        16.119(R)|      SLOW  |         5.236(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<18>  |        15.658(R)|      SLOW  |         5.340(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<19>  |        15.200(R)|      SLOW  |         5.423(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<20>  |        15.092(R)|      SLOW  |         5.358(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<21>  |        14.250(R)|      SLOW  |         5.236(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<22>  |        13.650(R)|      SLOW  |         5.291(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<23>  |        14.445(R)|      SLOW  |         5.632(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<24>  |        16.062(R)|      SLOW  |         5.668(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<25>  |        16.976(R)|      SLOW  |         5.632(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<26>  |        16.165(R)|      SLOW  |         5.410(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<27>  |        16.210(R)|      SLOW  |         5.779(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_enable_inputs_o  |         7.404(R)|      SLOW  |         3.721(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_status_o     |        10.231(R)|      SLOW  |         5.736(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig1_o      |         7.405(R)|      SLOW  |         3.722(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig2_o      |         7.404(R)|      SLOW  |         3.721(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig3_o      |         7.405(R)|      SLOW  |         3.722(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig4_o      |         7.405(R)|      SLOW  |         3.722(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig5_o      |         7.354(R)|      SLOW  |         3.671(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_onewire_b        |        17.424(R)|      SLOW  |        10.155(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_rd_n_o           |         7.588(R)|      SLOW  |         3.905(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_scl_b            |        11.853(R)|      SLOW  |         6.675(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_sda_b            |        13.115(R)|      SLOW  |         7.579(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_start_from_fpga_o|        12.582(R)|      SLOW  |         6.888(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_stop_dis_o       |        11.776(R)|      SLOW  |         6.586(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_1_o      |         7.587(R)|      SLOW  |         3.904(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_2_o      |         7.401(R)|      SLOW  |         3.718(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_3_o      |         7.537(R)|      SLOW  |         3.854(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_4_o      |         7.401(R)|      SLOW  |         3.718(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_5_o      |         7.353(R)|      SLOW  |         3.670(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_wr_n_o           |         7.400(R)|      SLOW  |         3.717(R)|      FAST  |tdc2_125m_clk     |   0.000|
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+
+Clock tdc2_125m_clk_p_i to Pad
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+                      |Max (slowest) clk|  Process   |Min (fastest) clk|  Process   |                  | Clock  |
+Destination           |  (edge) to PAD  |   Corner   |  (edge) to PAD  |   Corner   |Internal Clock(s) | Phase  |
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+tdc2_address_o<0>     |        19.616(R)|      SLOW  |        10.897(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_address_o<1>     |        19.872(R)|      SLOW  |        11.121(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_address_o<2>     |        19.437(R)|      SLOW  |        10.880(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_address_o<3>     |        21.040(R)|      SLOW  |        12.021(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_cs_n_o           |         7.350(R)|      SLOW  |         3.668(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<0>   |        16.547(R)|      SLOW  |         6.943(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<1>   |        16.846(R)|      SLOW  |         6.640(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<2>   |        16.913(R)|      SLOW  |         7.071(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<3>   |        16.276(R)|      SLOW  |         6.755(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<4>   |        15.897(R)|      SLOW  |         6.640(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<5>   |        16.164(R)|      SLOW  |         6.197(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<6>   |        15.832(R)|      SLOW  |         6.418(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<7>   |        15.788(R)|      SLOW  |         5.975(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<8>   |        15.124(R)|      SLOW  |         6.418(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<9>   |        14.311(R)|      SLOW  |         5.727(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<10>  |        14.761(R)|      SLOW  |         6.197(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<11>  |        14.280(R)|      SLOW  |         5.615(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<12>  |        15.636(R)|      SLOW  |         5.975(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<13>  |        14.826(R)|      SLOW  |         5.513(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<14>  |        15.102(R)|      SLOW  |         5.727(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<15>  |        14.940(R)|      SLOW  |         5.358(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<16>  |        16.163(R)|      SLOW  |         5.472(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<17>  |        16.118(R)|      SLOW  |         5.236(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<18>  |        15.657(R)|      SLOW  |         5.340(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<19>  |        15.199(R)|      SLOW  |         5.423(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<20>  |        15.091(R)|      SLOW  |         5.358(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<21>  |        14.249(R)|      SLOW  |         5.236(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<22>  |        13.649(R)|      SLOW  |         5.291(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<23>  |        14.444(R)|      SLOW  |         5.632(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<24>  |        16.061(R)|      SLOW  |         5.668(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<25>  |        16.975(R)|      SLOW  |         5.632(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<26>  |        16.164(R)|      SLOW  |         5.410(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_data_bus_io<27>  |        16.209(R)|      SLOW  |         5.779(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_enable_inputs_o  |         7.403(R)|      SLOW  |         3.721(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_status_o     |        10.230(R)|      SLOW  |         5.736(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig1_o      |         7.404(R)|      SLOW  |         3.722(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig2_o      |         7.403(R)|      SLOW  |         3.721(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig3_o      |         7.404(R)|      SLOW  |         3.722(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig4_o      |         7.404(R)|      SLOW  |         3.722(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_led_trig5_o      |         7.353(R)|      SLOW  |         3.671(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_onewire_b        |        17.423(R)|      SLOW  |        10.155(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_rd_n_o           |         7.587(R)|      SLOW  |         3.905(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_scl_b            |        11.852(R)|      SLOW  |         6.675(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_sda_b            |        13.114(R)|      SLOW  |         7.579(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_start_from_fpga_o|        12.581(R)|      SLOW  |         6.888(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_stop_dis_o       |        11.775(R)|      SLOW  |         6.586(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_1_o      |         7.586(R)|      SLOW  |         3.904(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_2_o      |         7.400(R)|      SLOW  |         3.718(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_3_o      |         7.536(R)|      SLOW  |         3.854(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_4_o      |         7.400(R)|      SLOW  |         3.718(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_term_en_5_o      |         7.352(R)|      SLOW  |         3.670(R)|      FAST  |tdc2_125m_clk     |   0.000|
+tdc2_wr_n_o           |         7.399(R)|      SLOW  |         3.717(R)|      FAST  |tdc2_125m_clk     |   0.000|
+----------------------+-----------------+------------+-----------------+------------+------------------+--------+
+
+Clock to Setup on destination clock clk_20m_vcxo_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |   14.784|         |         |         |
+clk_125m_pllref_n_i|    6.609|    1.692|         |         |
+clk_125m_pllref_p_i|    6.609|    1.692|         |         |
+tdc1_125m_clk_n_i  |    4.750|         |         |         |
+tdc1_125m_clk_p_i  |    4.750|         |         |         |
+tdc2_125m_clk_n_i  |    4.912|         |         |         |
+tdc2_125m_clk_p_i  |    4.912|         |         |         |
+-------------------+---------+---------+---------+---------+
+
+Clock to Setup on destination clock clk_125m_pllref_n_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |   10.393|         |         |         |
+clk_125m_pllref_n_i|    8.189|         |    4.633|    2.188|
+clk_125m_pllref_p_i|    8.189|         |    4.633|    2.188|
+-------------------+---------+---------+---------+---------+
+
+Clock to Setup on destination clock clk_125m_pllref_p_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |   10.393|         |         |         |
+clk_125m_pllref_n_i|    8.189|         |    4.633|    2.188|
+clk_125m_pllref_p_i|    8.189|         |    4.633|    2.188|
+-------------------+---------+---------+---------+---------+
+
+Clock to Setup on destination clock tdc1_125m_clk_n_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |    9.148|         |         |         |
+clk_125m_pllref_n_i|    7.296|         |         |         |
+clk_125m_pllref_p_i|    7.296|         |         |         |
+tdc1_125m_clk_n_i  |    9.616|         |         |         |
+tdc1_125m_clk_p_i  |    9.616|         |         |         |
+-------------------+---------+---------+---------+---------+
+
+Clock to Setup on destination clock tdc1_125m_clk_p_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |    9.148|         |         |         |
+clk_125m_pllref_n_i|    7.296|         |         |         |
+clk_125m_pllref_p_i|    7.296|         |         |         |
+tdc1_125m_clk_n_i  |    9.616|         |         |         |
+tdc1_125m_clk_p_i  |    9.616|         |         |         |
+-------------------+---------+---------+---------+---------+
+
+Clock to Setup on destination clock tdc2_125m_clk_n_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |   12.084|         |         |         |
+clk_125m_pllref_n_i|    9.573|         |         |         |
+clk_125m_pllref_p_i|    9.573|         |         |         |
+tdc2_125m_clk_n_i  |   10.874|         |         |         |
+tdc2_125m_clk_p_i  |   10.874|         |         |         |
+-------------------+---------+---------+---------+---------+
+
+Clock to Setup on destination clock tdc2_125m_clk_p_i
+-------------------+---------+---------+---------+---------+
+                   | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock       |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+-------------------+---------+---------+---------+---------+
+clk_20m_vcxo_i     |   12.084|         |         |         |
+clk_125m_pllref_n_i|    9.573|         |         |         |
+clk_125m_pllref_p_i|    9.573|         |         |         |
+tdc2_125m_clk_n_i  |   10.874|         |         |         |
+tdc2_125m_clk_p_i  |   10.874|         |         |         |
+-------------------+---------+---------+---------+---------+
+
+Pad to Pad
+---------------+------------------+---------+
+Source Pad     |Destination Pad   |  Delay  |
+---------------+------------------+---------+
+tdc1_ef1_i     |fp_led_column_o<1>|   14.746|
+tdc1_ef2_i     |fp_led_column_o<1>|   14.721|
+tdc2_ef1_i     |fp_led_column_o<0>|   15.242|
+tdc2_ef2_i     |fp_led_column_o<0>|   14.424|
+---------------+------------------+---------+
+
+
+Analysis completed Tue Jun 17 19:57:44 2014 
+--------------------------------------------------------------------------------
+
+Trace Settings:
+-------------------------
+Trace Settings 
+
+Peak Memory Usage: 462 MB
+
+
+

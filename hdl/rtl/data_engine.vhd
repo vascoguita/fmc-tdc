@@ -35,14 +35,15 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
+-- Date         04/2014                                                                           |
+-- Version      v1                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     06/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
+--     04/2014  v1    EG  added state RD_START01                                                  |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -87,7 +88,7 @@ entity data_engine is
 
      -- Signals from the reg_ctrl unit: communication with GN4124/VME for registers configuration
      activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition 
-     deactivate_acq_p_i   : in std_logic;                     -- activates configuration readings/ writings
+     deactivate_acq_p_i   : in std_logic;                     -- for configuration readings/ writings
      acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
      acam_rst_p_i         : in std_logic;                     -- enables writing c_RESET_WORD         to ACAM reg 4
      acam_rdbk_config_p_i : in std_logic;                     -- enables reading of ACAM regs 0-7, 11, 12, 14 
@@ -110,8 +111,11 @@ entity data_engine is
      acam_dat_i           : in std_logic_vector(31 downto 0); -- tstamps or rdbk regs
                                                               -- includes ef1 & ef2 & 0 & 0 & 28 bits ACAM data_bus_io
 
-
+     start_from_fpga_i    : in  std_logic;
+															  
   -- OUTPUTS
+     state_active_p_o     : out std_logic;
+  
      -- Signals to the acam_databus_interface unit: communication with ACAM for configuration or tstamps retreival
      acam_adr_o           : out std_logic_vector(7 downto 0); -- address of reg/ FIFO to write/ read
      acam_cyc_o           : out std_logic;                    -- WISHBONE cycle
@@ -140,16 +144,20 @@ end data_engine;
 
 architecture rtl of data_engine is
 
-type engine_state_ty is (ACTIVE, INACTIVE, GET_STAMP1, GET_STAMP2, WR_CONFIG, RDBK_CONFIG,
-                         RD_STATUS, RD_IFIFO1, RD_IFIFO2, RD_START01, WR_RESET);
-signal engine_st, nxt_engine_st    : engine_state_ty;
+  type engine_state_ty is (ACTIVE, INACTIVE, GET_STAMP1, GET_STAMP2, WR_CONFIG, RDBK_CONFIG,
+                           RD_STATUS, RD_IFIFO1, RD_IFIFO2, RD_START01, WR_RESET, WAIT_FOR_START01, WAIT_START_FROM_FPGA, WAIT_UTC);
+  signal engine_st, nxt_engine_st    : engine_state_ty;
 
-signal acam_cyc, acam_stb, acam_we : std_logic;
-signal acam_adr                    : std_logic_vector(7 downto 0);
-signal config_adr_c                : unsigned(7 downto 0);
-signal acam_config_rdbk            : config_vector;
-signal reset_word                  : std_logic_vector(31 downto 0);
-signal acam_config_reg4            : std_logic_vector(31 downto 0);
+  signal acam_cyc, acam_stb, acam_we : std_logic;
+  signal acam_adr                    : std_logic_vector(7 downto 0);
+  signal config_adr_c                : unsigned(7 downto 0);
+  signal acam_config_rdbk            : config_vector;
+  signal reset_word                  : std_logic_vector(31 downto 0);
+  signal acam_config_reg4            : std_logic_vector(31 downto 0);
+
+  signal time_c_full_p, time_c_en    : std_logic;
+  signal time_c_rst                  : std_logic;
+  signal time_c                      : std_logic_vector(31 downto 0);
 
 
 --=================================================================================================
@@ -186,7 +194,8 @@ begin
   data_engine_fsm_comb: process (engine_st, activate_acq_p_i, deactivate_acq_p_i, acam_ef1_i, acam_adr,
                                  acam_ef2_i, acam_ef1_meta_i, acam_ef2_meta_i, acam_wr_config_p_i,
                                  acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
-                                 acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i)
+                                 acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i,
+											start_from_fpga_i, time_c, time_c_full_p)
   begin
     case engine_st is
 
@@ -200,10 +209,12 @@ begin
                         acam_cyc        <= '0';
                         acam_stb        <= '0';
                         acam_we         <= '0';
+                        time_c_en       <= '0';
+                        time_c_rst      <= '1';
                   -----------------------------------------------
             
-                        if activate_acq_p_i = '1' then   -- activation of timestamps aquisition
-                          nxt_engine_st   <= ACTIVE;
+                        if activate_acq_p_i = '1' then   -- activation of timestamps acquisition
+                          nxt_engine_st   <= WAIT_START_FROM_FPGA;
 
                         elsif acam_wr_config_p_i = '1' then
                           nxt_engine_st   <= WR_CONFIG;  -- loading of ACAM config (local-> ACAM)
@@ -275,11 +286,81 @@ begin
       -- The alternation between the two FIFOs takes place until they are both empty.
       -- The retreival of a timestamp from any of the FIFOs takes place
 
+      when WAIT_START_FROM_FPGA => -- wait until the start_from_fpga_p_o is sent (according to the utc_p)
+                  -----------------------------------------------
+                        acam_cyc        <= '0';
+                        acam_stb        <= '0';
+                        acam_we         <= '0';
+                        time_c_en       <= '0';
+                        time_c_rst      <= '1';
+						-----------------------------------------------
+
+                        if start_from_fpga_i = '1' then
+                          nxt_engine_st <= WAIT_FOR_START01;
+                        else
+                          nxt_engine_st <= WAIT_START_FROM_FPGA;
+                        end if;
+
+
+
+
+      when WAIT_FOR_START01 => -- wait for some time until the acam Start01 is available
+                  -----------------------------------------------
+                        acam_cyc        <= '0';
+                        acam_stb        <= '0';
+                        acam_we         <= '0';
+                        time_c_en       <= '1';
+                        time_c_rst      <= '0';
+						-----------------------------------------------
+
+                        if time_c = x"00004000" then
+                          nxt_engine_st <= RD_START01;
+                        else
+                          nxt_engine_st <= WAIT_FOR_START01;
+                        end if;
+
+
+
+      when RD_START01 => -- read now the acam Start01
+                  -----------------------------------------------
+                        acam_cyc        <= '1';
+                        acam_stb        <= '1';
+                        acam_we         <= '0';
+                        time_c_en       <= '1';
+						time_c_rst      <= '0';
+                  -----------------------------------------------
+
+                        if acam_ack_i ='1' then
+                          nxt_engine_st <= WAIT_UTC;
+                        else
+                          nxt_engine_st <= RD_START01;
+                        end if;
+						
+						
+      when WAIT_UTC => -- wait until the next utc comes; now the offsets of the start_retrig_ctrl unit are defined
+	                   -- the acam is disabled during this period
+                  -----------------------------------------------
+                        acam_cyc        <= '0';
+                        acam_stb        <= '0';
+                        acam_we         <= '0';
+                        time_c_en       <= '1';
+						time_c_rst      <= '0';
+						-----------------------------------------------
+
+                        if time_c_full_p ='1' then
+                          nxt_engine_st <= ACTIVE;
+                        else
+                          nxt_engine_st <= WAIT_UTC;
+                        end if;						
+
+
       when ACTIVE =>
                   -----------------------------------------------
                         acam_cyc        <= '0';
                         acam_stb        <= '0';
                         acam_we         <= '0';
+                        time_c_en       <= '0';
+         				time_c_rst      <= '1';
                   -----------------------------------------------
 
                         if deactivate_acq_p_i = '1' then
@@ -304,7 +385,10 @@ begin
                         acam_we         <= '0';
                   -----------------------------------------------
 
-                        if acam_ack_i ='1' then
+                        if deactivate_acq_p_i = '1' then
+                          nxt_engine_st   <= INACTIVE;
+
+                        elsif acam_ack_i ='1' then
 
                           if acam_ef2_i = '0' then
                             nxt_engine_st <= GET_STAMP2;
@@ -328,7 +412,10 @@ begin
                         acam_we         <= '0';
                   -----------------------------------------------
 
-                        if acam_ack_i ='1' then                   -- idem.
+                        if deactivate_acq_p_i = '1' then
+                          nxt_engine_st   <= INACTIVE;
+
+                        elsif acam_ack_i ='1' then
 
                           if acam_ef1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
@@ -417,22 +504,6 @@ begin
                         else
                           nxt_engine_st   <= RD_IFIFO2;
                         end if;
-
-
-      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-      when RD_START01 =>
-                  -----------------------------------------------
-                        acam_cyc        <= '1';
-                        acam_stb        <= '1';
-                        acam_we         <= '0';
-                  -----------------------------------------------
-
-                        if acam_ack_i ='1' then
-                          nxt_engine_st   <= INACTIVE;
-                        else
-                          nxt_engine_st   <= RD_START01;
-                        end if;
-
 
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when WR_RESET =>
@@ -610,12 +681,12 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                      Aquisition of ACAM Timestamps or Reedback Registers                      --
+--                      Acquisition of ACAM Timestamps or Reedback Registers                     --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- data_readback_decoder: after reading accesses to the ACAM (acam_we=0), the process recuperates
 -- the ACAM data and according to the acam_adr_o stores them to the corresponding registers.
--- In the case of timestamps aquisition, the acam_tstamp1_ok_p_o, acam_tstamp2_ok_p_o pulses are
+-- In the case of timestamps acquisition, the acam_tstamp1_ok_p_o, acam_tstamp2_ok_p_o pulses are
 -- generated that when active, indicate a valid timestamp. Note that for timing reasons
 -- the signals acam_tstamp1_o, acam_tstamp2_o are not the outputs of flip-flops.
 
@@ -707,6 +778,20 @@ begin
 
   acam_config_rdbk_o           <= acam_config_rdbk;
 
+
+
+  time_counter: incr_counter
+  generic map
+    (width             => 32)
+  port map
+    (clk_i             => clk_i,
+     rst_i             => time_c_rst,
+     counter_top_i     => x"0EE6B280",
+     counter_incr_en_i => time_c_en,
+     counter_is_full_o => time_c_full_p,
+     counter_o         => time_c);
+
+  state_active_p_o <= time_c_full_p;
 
 end architecture rtl;
 --=================================================================================================

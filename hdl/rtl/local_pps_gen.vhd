@@ -7,14 +7,16 @@
 
 ---------------------------------------------------------------------------------------------------
 --                                                                                                |
---                                          one_hz_gen                                            |
+--                                        local_pps_gen                                           |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
--- File         one_hz_gen.vhd                                                                    |
+-- File         local_pps_gen.vhd                                                                 |
 --                                                                                                |
 -- Description  Generates one pulse every second synchronously with the ACAM reference clock.     |
 --              The phase with the reference clock can be adjusted (eva: think that is not needed)|
 --              It also keeps track of the UTC time based on the local clock.                     |
+--              If there is no White Rabbit synchronization, this unit is the source of UTC timing|
+--              in the design.
 --                                                                                                |
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
@@ -58,10 +60,10 @@ use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 
 
 --=================================================================================================
---                            Entity declaration for one_hz_gen
+--                            Entity declaration for local_pps_gen
 --=================================================================================================
 
-entity one_hz_gen is
+entity local_pps_gen is
   generic
     (g_width                : integer := 32);
   port
@@ -83,14 +85,14 @@ entity one_hz_gen is
      local_utc_o            : out std_logic_vector(g_width-1 downto 0); -- tstamp current second
 
      -- Signal to start_retrig_ctrl unit
-     one_hz_p_o             : out std_logic);                           -- pulse upon new second 
+     local_utc_p_o          : out std_logic);                           -- pulse upon new second 
 
-end one_hz_gen;
+end local_pps_gen;
 
 --=================================================================================================
 --                                    architecture declaration
 --=================================================================================================
-architecture rtl of one_hz_gen is
+architecture rtl of local_pps_gen is
 
   constant constant_delay         : unsigned(g_width-1 downto 0) := x"00000004";
   signal local_utc                : unsigned(g_width-1 downto 0);
@@ -186,7 +188,7 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   total_delay       <= std_logic_vector(unsigned(pulse_delay_i)+constant_delay);
-  one_hz_p_o        <= one_hz_p_post;
+  local_utc_p_o     <= one_hz_p_post;
 
 
 end architecture rtl;
