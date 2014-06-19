@@ -43,14 +43,14 @@ int fmctdc_init(void)
 	uint32_t v;
 
 	/* Look for boards in /dev: old and new pathnames: only one matches */
-	glob("/dev/ft-*-0-0-ctrl", 0, NULL, &glob_dev);
-	glob("/dev/zio/ft-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
-	glob("/dev/zio-ft-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
-	glob("/dev/zio/zio-ft-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
+	glob("/dev/tdc-1n5c-*-0-0-ctrl", 0, NULL, &glob_dev);
+	glob("/dev/zio/tdc-1n5c-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
+	glob("/dev/zio-tdc-1n5c-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
+	glob("/dev/zio/zio-tdc-1n5c-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
 
 	/* And look in /sys as well */
-	glob("/sys/bus/zio/devices/ft-*", 0, NULL, &glob_sys);
-	glob("/sys/bus/zio/devices/zio-ft-*", GLOB_APPEND, NULL, &glob_sys);
+	glob("/sys/bus/zio/devices/tdc-1n5c-*", 0, NULL, &glob_sys);
+	glob("/sys/bus/zio/devices/zio-tdc-1n5c-*", GLOB_APPEND, NULL, &glob_sys);
 	assert(glob_dev.gl_pathc == glob_sys.gl_pathc);
 
 	/* Allocate as needed */

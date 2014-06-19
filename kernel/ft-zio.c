@@ -327,13 +327,13 @@ static struct zio_device ft_tmpl = {
 };
 
 static const struct zio_device_id ft_table[] = {
-	{"ft", &ft_tmpl},
+	{"tdc-1n5c", &ft_tmpl},
 	{},
 };
 
 static struct zio_driver ft_zdrv = {
 	.driver = {
-		   .name = "ft",
+		   .name = "tdc-1n5c",
 		   .owner = THIS_MODULE,
 		   },
 	.id_table = ft_table,
@@ -374,7 +374,7 @@ int ft_zio_init(struct fmctdc_dev *ft)
 
 	dev_id = ft->fmc->device_id;
 
-	err = zio_register_device(ft->hwzdev, "ft", dev_id);
+	err = zio_register_device(ft->hwzdev, "tdc-1n5c", dev_id);
 	if (err) {
 		zio_free_device(ft->hwzdev);
 		return err;
