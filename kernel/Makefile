@@ -5,7 +5,9 @@ SPEC ?= $(M)/../spec-sw
 
 KBUILD_EXTRA_SYMBOLS := $(ZIO)/Module.symvers $(SPEC)/kernel/Module.symvers $(FMC_BUS)/kernel/Module.symvers
 
-ccflags-y = -I$(ZIO)/include -I$M  -I$(FMC_BUS)/kernel/include -I$(FMC_BUS)/kernel/include/linux -I$(FMC_BUS)/sdb-lib  -I$(SPEC)/kernel
+GIT_VERSION = $(shell cd $(src); git describe --always --dirty --long --tags)
+
+ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" -I$(ZIO)/include -I$M  -I$(FMC_BUS)/kernel/include -I$(FMC_BUS)/kernel/include/linux -I$(FMC_BUS)/sdb-lib  -I$(SPEC)/kernel
 
 #ccflags-y += -DDEBUG
 
