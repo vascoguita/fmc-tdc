@@ -97,13 +97,13 @@
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
 -- Date         05/2014                                                                           |
--- Version      v5                                                                                |
+-- Version      v2                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
---     08/2013  v4  EG  design for SVEC; two cores; synchronizer between vme and the cores        |
---     05/2014  v5  EG  added White Rabbit                                                        |
+--     08/2013  v1  EG  design for SVEC; two cores; synchronizer between vme and the cores        |
+--     05/2014  v2  EG  added White Rabbit                                                        |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
