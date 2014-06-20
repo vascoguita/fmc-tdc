@@ -1041,7 +1041,7 @@
       <association xil_pn:name="Implementation" xil_pn:seqID="83"/>
     </file>
     <file xil_pn:name="../../../top/spec/with_wrabbit/wr_spec_tdc.ucf" xil_pn:type="FILE_UCF">
-      <association xil_pn:name="Implementation" xil_pn:seqID="326"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>
 

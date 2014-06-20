@@ -330,8 +330,8 @@ NET "prsnt_m2c_n_i" IOSTANDARD = "LVCMOS25";
 #NET "spec_aux5_o" IOSTANDARD = "LVCMOS18";
 NET "led_green_o" LOC = E5;
 NET "led_green_o" IOSTANDARD = "LVCMOS25";
-#NET "led_red_o" LOC = D5;
-#NET "led_red_o" IOSTANDARD = "LVCMOS25";
+NET "led_red_o" LOC = D5;
+NET "led_red_o" IOSTANDARD = "LVCMOS25";
 
 #----------------------------------------
 # False Path

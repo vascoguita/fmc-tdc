@@ -43,7 +43,10 @@
 -- Last changes                                                                                   |
 --     06/2011  v0.1  GP  First version                                                           |
 --     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2014  v1    EG  added state RD_START01                                                  |
+--     04/2014  v1    EG  added states for reading the  RD_START01 (currently though the start01  |
+--                        is not essential absolute timestamp calculations). added wait state     |
+--                        before starting receiving timestamps, to ensure that the start pulse has|
+--                        been sent and the ACAM IRflag has toggled once                          |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -145,7 +148,8 @@ end data_engine;
 architecture rtl of data_engine is
 
   type engine_state_ty is (ACTIVE, INACTIVE, GET_STAMP1, GET_STAMP2, WR_CONFIG, RDBK_CONFIG,
-                           RD_STATUS, RD_IFIFO1, RD_IFIFO2, RD_START01, WR_RESET, WAIT_FOR_START01, WAIT_START_FROM_FPGA, WAIT_UTC);
+                           RD_STATUS, RD_IFIFO1, RD_IFIFO2, RD_START01, WR_RESET,
+                           WAIT_FOR_START01, WAIT_START_FROM_FPGA, WAIT_UTC);
   signal engine_st, nxt_engine_st    : engine_state_ty;
 
   signal acam_cyc, acam_stb, acam_we : std_logic;
@@ -247,7 +251,7 @@ begin
       -- ACTIVE, GET_STAMP1, GET_STAMP2: intensive acquisition of timestamps from ACAM.
       -- ACAM can receive and tag pulses with an overall rate up to 31.25 MHz;
       -- therefore locally, running with a 125 MHz clk, in order to be able to receive timestamps
-      -- as fast as they arrive, it is needed to use up to 4 clk cycles to retreive each of them.
+      -- as fast as they arrive, it is needed to use up to 4 clk cycles to retrieve each of them.
       -- Timestamps are received as soon as the ef1, ef2 flags are at zero (indicating that the
       -- iFIFOs are not empty!). In order to avoid metastabilities locally, the ef signals are
       -- synchronized using a set of two registers.
@@ -268,7 +272,7 @@ begin
       -- = 16 ns after an rdn falling edge the ef_synch1 should be stable.
       -- 
       -- Using the ef_synch1 signal instead of the ef_synch2 makes it possible to realise
-      -- timestamps' aquisitions from ACAM in just 4 clk cycles.
+      -- timestamps' acquisitions from ACAM in just 4 clk cycles.
       -- clk           --|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__
       -- ef            ------|_______________________________________________________|--------------
       -- ef_meta       -----------|_____________________________________________________|-----------
@@ -304,7 +308,7 @@ begin
 
 
 
-      when WAIT_FOR_START01 => -- wait for some time until the acam Start01 is available
+      when WAIT_FOR_START01 => -- wait for some time until the ACAM Start01 is available
                   -----------------------------------------------
                         acam_cyc        <= '0';
                         acam_stb        <= '0';
@@ -321,7 +325,7 @@ begin
 
 
 
-      when RD_START01 => -- read now the acam Start01
+      when RD_START01 => -- read now the ACAM Start01
                   -----------------------------------------------
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
@@ -337,8 +341,8 @@ begin
                         end if;
 						
 						
-      when WAIT_UTC => -- wait until the next utc comes; now the offsets of the start_retrig_ctrl unit are defined
-	                   -- the acam is disabled during this period
+      when WAIT_UTC => -- wait until the next UTC comes; now the offsets of the start_retrig_ctrl unit are defined
+	                   -- the ACAM is disabled during this period
                   -----------------------------------------------
                         acam_cyc        <= '0';
                         acam_stb        <= '0';

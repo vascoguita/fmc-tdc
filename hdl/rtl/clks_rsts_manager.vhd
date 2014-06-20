@@ -110,7 +110,7 @@ entity clks_rsts_manager is
      send_dac_word_p_i      : in std_logic;                     -- pulse upon PCIe/VME request for a DAC reconfiguration
      dac_word_i             : in std_logic_vector(23 downto 0); -- DAC Vout = Vref (dac_word/65536)
 
-     -- Signals from the white rabbit unit for the reconfiguration of the DAC
+     -- Signals from the White Rabbit unit for the reconfiguration of the DAC
      wrabbit_dac_value_i    : in    std_logic_vector(23 downto 0);
      wrabbit_dac_wr_p_i     : in    std_logic;
 

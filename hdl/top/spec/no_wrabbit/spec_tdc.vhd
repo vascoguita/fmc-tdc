@@ -585,11 +585,12 @@ begin
     (g_width    => 5000000)
   port map
     (clk_i      => clk_125m,
-     rst_n_i    => not(rst_125m),
+     rst_n_i    => rst_125m_n,
      pulse_i    => irq_to_gn4124,
      extended_o => led_red);
   --  --  --  --  --  --  --
   led_red_o <= led_red;
+
 
 ---------------------------------------------------------------------------------------------------
 --                    Carrier 1-wire MASTER DS18B20 (thermometer + unique ID)                    --
