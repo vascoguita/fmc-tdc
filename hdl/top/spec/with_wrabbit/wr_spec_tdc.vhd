@@ -25,7 +25,6 @@
 --                the GN4124 core.                                                                |
 --              The carrier_info module provides general information on the SPEC PCB version, PLLs|
 --                locking state etc.                                                              |
---              The 1-Wire core provides communication with the SPEC Thermometer&UniqueID chip.   |
 --              All the cores communicate with the GN4124 core through the SDB crossbar. The SDB  |
 --              crossbar is responsible for managing the acess to the GN4124 core.                |
 --                                                                                                |
@@ -52,21 +51,16 @@
 --       \/      |      |____________________________|               |   |      |     |      |    |
 --   ________    |                            62.5MHz                |   |      |     |      |    |
 --  |        |   |       ___________________                         |   |      |     |      |    |
---  |  DAC   |<->|      | clks rsts manager |                        |   |      |     |      |    |
+--  |  DAC   |<->|      | clks rsts manager |                        |   |      |  G  |      |    |
 --  |  PLL   |          |___________________|                        |   |      |     |      |    |
---  |        |   |       ____________________________   _______      |   |      |     |      |    |
+--  |        |   |       ____________________________   _______      | S |      |  N  |      |    |
 --  |        |   |      |                            | | clk   |     |   |      |     |      |    |
---  |  ACAM  |<->|      |       TDC mezzanine        |-| cross |<--> |   |      |     |      |    |
---  |________|   |   |--|____________________________| |_______|     |   |      |  G  |      |    |
---   TDC mezz    |   |                         125MHz   62.5MHz      |   |      |     |      |    |
---               |   |   ____________________________                | S |      |  N  |      |    |
---               |   |->|                            |               |   |      |     |      |    |
---               |      | Vector Interrupt Controller| <---------->  | D | <--> |  4  |      |    |
---               |      |____________________________|               |   |      |     |      |    |
---               |                            62.5MHz                | B |      |  1  |      |    |
---               |       ____________________________                |   |      |     |      |    |
---               |      |                            |               |   |      |  2  |      |    |
--- SPEC 1Wire <->|      |          1-Wire            | <---------->  |   |      |     |      |    |
+--  |  ACAM  |<->|      |       TDC mezzanine        |-| cross |<--> |   |      |  4  |      |    |
+--  |________|   |   |--|____________________________| |_______|     | D |      |     |      |    |
+--   TDC mezz    |   |                         125MHz   62.5MHz      |   |      |  1  |      |    |
+--               |   |   ____________________________                |   |      |     |      |    |
+--               |   |->|                            |               | B |      |  2  |      |    |
+--               |      | Vector Interrupt Controller| <---------->  |   | <--> |     |      |    |
 --               |      |____________________________|               |   |      |  4  |      |    |
 --               |                            62.5MHz                |   |      |     |      |    |
 --               |       ____________________________                |   |      |     |      |    |
@@ -294,12 +288,11 @@ architecture rtl of wr_spec_tdc is
   -- Note: All address in sdb and crossbar are BYTE addresses!
 
   -- Master ports on the wishbone crossbar
-  constant c_NUM_WB_MASTERS       : integer := 5;
-  constant c_WB_SLAVE_SPEC_ONEWIRE: integer := 0;  -- Carrier onewire interface
-  constant c_WB_SLAVE_SPEC_INFO   : integer := 1;  -- Info on SPEC control and status registers
-  constant c_WB_SLAVE_VIC         : integer := 2;  -- Interrupt controller
-  constant c_WB_SLAVE_TDC         : integer := 3;  -- TDC core configuration
-  constant c_SLAVE_WRCORE         : integer := 4;  -- White Rabbit PTP core
+  constant c_NUM_WB_MASTERS       : integer := 4;
+  constant c_WB_SLAVE_SPEC_INFO   : integer := 0;  -- Info on SPEC control and status registers
+  constant c_WB_SLAVE_VIC         : integer := 1;  -- Interrupt controller
+  constant c_WB_SLAVE_TDC         : integer := 2;  -- TDC core configuration
+  constant c_SLAVE_WRCORE         : integer := 3;  -- White Rabbit PTP core
 
   -- SDB header address
   constant c_SDB_ADDRESS          : t_wishbone_address := x"00000000";
@@ -311,14 +304,13 @@ architecture rtl of wr_spec_tdc is
   constant c_FMC_TDC_SDB_BRIDGE   : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
   constant c_WRCORE_BRIDGE_SDB    : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0003ffff", x"00000000");
 
-  constant c_INTERCONNECT_LAYOUT  : t_sdb_record_array(6 downto 0) :=
-    (0 => f_sdb_embed_device       (c_ONEWIRE_SDB_DEVICE,   x"00010000"),
-     1 => f_sdb_embed_device       (c_SPEC_INFO_SDB_DEVICE, x"00020000"),
-     2 => f_sdb_embed_device       (c_xwb_vic_sdb,          x"00030000"), -- c_xwb_vic_sdb described in the wishbone_pkg
-     3 => f_sdb_embed_bridge       (c_FMC_TDC_SDB_BRIDGE,   x"00040000"),
-     4 => f_sdb_embed_bridge       (c_WRCORE_BRIDGE_SDB,    x"00080000"),
-     5 => f_sdb_embed_repo_url     (c_SDB_REPO_URL),
-     6 => f_sdb_embed_synthesis    (c_sdb_synthesis_info));
+  constant c_INTERCONNECT_LAYOUT  : t_sdb_record_array(5 downto 0) :=
+    (0 => f_sdb_embed_device       (c_SPEC_INFO_SDB_DEVICE, x"00020000"),
+     1 => f_sdb_embed_device       (c_xwb_vic_sdb,          x"00030000"), -- c_xwb_vic_sdb described in the wishbone_pkg
+     2 => f_sdb_embed_bridge       (c_FMC_TDC_SDB_BRIDGE,   x"00040000"),
+     3 => f_sdb_embed_bridge       (c_WRCORE_BRIDGE_SDB,    x"00080000"),
+     4 => f_sdb_embed_repo_url     (c_SDB_REPO_URL),
+     5 => f_sdb_embed_synthesis    (c_sdb_synthesis_info));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -340,7 +332,8 @@ architecture rtl of wr_spec_tdc is
   attribute buffer_type of clk_125m_pllref               : signal is "BUFG";
   -- TDC core clocks and resets
   signal clk_20m_vcxo, clk_20m_vcxo_buf                  : std_logic;
-  signal clk_62m5_sys, clk_125m_mezz                     : std_logic;
+  signal clk_62m5_sys, sys_locked                        : std_logic;
+  signal clk_125m_mezz, pll_mezz_status                  : std_logic;
   signal rst_125m_mezz_n, rst_125m_mezz                  : std_logic;
   signal acam_refclk_r_edge_p                            : std_logic;
   signal rst_sys, rst_sys_n                              : std_logic;
@@ -464,7 +457,7 @@ begin
      CLKOUT3            => open,
      CLKOUT4            => open,
      CLKOUT5            => open,
-     LOCKED             => open,
+     LOCKED             => sys_locked,
      RST                => '0',
      CLKFBIN            => pllout_clk_fb_pllref,
      CLKIN              => clk_20m_vcxo);
@@ -518,7 +511,7 @@ begin
      pll_sdi_o              => pll_sdi,
      pll_sclk_o             => pll_sclk,
      tdc_125m_clk_o         => clk_125m_mezz,
-     pll_status_o           => open);
+     pll_status_o           => pll_mezz_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   rst_125m_mezz_n           <= not rst_125m_mezz;
   pll_dac_sync_o            <= pll_dac_sync;
@@ -1064,9 +1057,9 @@ begin
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
      carrier_info_stat_fmc_pres_i      => prsnt_m2c_n_i,
      carrier_info_stat_p2l_pll_lck_i   => gn4124_status(0),
-     carrier_info_stat_sys_pll_lck_i   => '0',
+     carrier_info_stat_sys_pll_lck_i   => pll_mezz_status,
      carrier_info_stat_ddr3_cal_done_i => '0',
-     carrier_info_stat_reserved_i      => (others => '0'),
+     carrier_info_stat_reserved_i      => x"000000" & "000" & sys_locked,
      carrier_info_ctrl_led_green_o     => open,
      carrier_info_ctrl_led_red_o       => open,
      carrier_info_ctrl_dac_clr_n_o     => open,

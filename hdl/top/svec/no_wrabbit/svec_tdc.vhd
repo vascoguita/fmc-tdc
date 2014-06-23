@@ -97,13 +97,13 @@
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
 -- Date         05/2014                                                                           |
--- Version      v2                                                                                |
+-- Version      v5                                                                                |
 -- Depends on                                                                                     |
 --                                                                                                |
 ----------------                                                                                  |
 -- Last changes                                                                                   |
---     08/2013  v1  EG  design for SVEC; two cores; synchronizer between vme and the cores        |
---     05/2014  v2  EG  added White Rabbit                                                        |
+--     08/2013  v4  EG  design for SVEC; two cores; synchronizer between vme and the cores        |
+--     05/2014  v5  EG  added White Rabbit                                                        |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -351,7 +351,7 @@ architecture rtl of svec_tdc is
   signal clk_62m5_sys, pllout_clk_sys         : std_logic;
   signal pllout_clk_sys_fb, sys_locked        : std_logic;
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1: tdc1_125m_clk
-  signal tdc1_125m_clk                        : std_logic;
+  signal tdc1_125m_clk, tdc1_pll_status       : std_logic;
   signal tdc1_acam_refclk_r_edge_p            : std_logic;
   signal tdc1_send_dac_word_p                 : std_logic;
   signal tdc1_dac_word                        : std_logic_vector(23 downto 0);
@@ -360,7 +360,7 @@ architecture rtl of svec_tdc is
   signal tdc1_irq_acam_err_p                  : std_logic;
   signal tdc1_irq_tstamp_p, tdc1_irq_time_p   : std_logic;
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC2: tdc2_125m_clk
-  signal tdc2_125m_clk                        : std_logic;
+  signal tdc2_125m_clk, tdc2_pll_status       : std_logic;
   signal tdc2_acam_refclk_r_edge_p            : std_logic;
   signal tdc2_send_dac_word_p                 : std_logic;
   signal tdc2_dac_word                        : std_logic_vector(23 downto 0);
@@ -542,7 +542,7 @@ begin
      pll_sdi_o                 => tdc1_pll_sdi_o,
      pll_sclk_o                => tdc1_pll_sclk_o,
      tdc_125m_clk_o            => tdc1_125m_clk,
-     pll_status_o              => open);
+     pll_status_o              => tdc1_pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc1_general_rst_n          <= not tdc1_general_rst;
   tdc1_soft_rst_n             <= carrier_info_fmc_rst(0) and rst_n_sys;
@@ -574,7 +574,7 @@ begin
      pll_sdi_o                 => tdc2_pll_sdi_o,
      pll_sclk_o                => tdc2_pll_sclk_o,
      tdc_125m_clk_o            => tdc2_125m_clk,
-     pll_status_o              => open);
+     pll_status_o              => tdc2_pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc2_general_rst_n           <= not tdc2_general_rst;
   tdc2_soft_rst_n              <= carrier_info_fmc_rst(1) and rst_n_sys;
@@ -927,11 +927,11 @@ begin
      carrier_info_carrier_pcb_rev_i    => pcb_ver_i,
      carrier_info_carrier_reserved_i   => (others => '0'),
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
-     carrier_info_stat_fmc_pres_i      => '0', -- put tdc1_prsnt_m2c_n_i
+     carrier_info_stat_fmc_pres_i      => tdc1_prsntm2c_n_i,
      carrier_info_stat_p2l_pll_lck_i   => '0',
      carrier_info_stat_sys_pll_lck_i   => sys_locked,
      carrier_info_stat_ddr3_cal_done_i => '0',
-     carrier_info_stat_reserved_i      => (others => '0'),
+     carrier_info_stat_reserved_i      => x"000000" & "000" & tdc2_prsntm2c_n_i, -- & tdc2_pll_status & tdc1_pll_status & tdc2_prsntm2c_n_i,
      carrier_info_ctrl_led_green_o     => open,
      carrier_info_ctrl_led_red_o       => open,
      carrier_info_ctrl_dac_clr_n_o     => open,

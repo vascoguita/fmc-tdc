@@ -290,7 +290,7 @@ architecture rtl of spec_tdc is
   -- SPEC VCXO clock
   signal clk_20m_vcxo, clk_20m_vcxo_buf                  : std_logic;
   -- TDC core clock and reset
-  signal clk_125m                                        : std_logic;
+  signal clk_125m, pll_status                            : std_logic;
   signal rst_125m_n, rst_125m                            : std_logic;
   signal acam_refclk_r_edge_p                            : std_logic;
   -- DAC configuration through PCIe/VME
@@ -356,13 +356,14 @@ begin
      pll_sdi_o              => pll_sdi,
      pll_sclk_o             => pll_sclk,
      tdc_125m_clk_o         => clk_125m,
-     pll_status_o           => led_green_o);
+     pll_status_o           => pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   rst_125m_n                <= not rst_125m;
   pll_dac_sync_o            <= pll_dac_sync;
   pll_sdi_o                 <= pll_sdi;
   pll_sclk_o                <= pll_sclk;
   pll_cs_o                  <= pll_cs;
+  led_green_o               <= pll_status;
 	 
 
 ---------------------------------------------------------------------------------------------------
@@ -640,7 +641,7 @@ begin
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
      carrier_info_stat_fmc_pres_i      => prsnt_m2c_n_i,
      carrier_info_stat_p2l_pll_lck_i   => gn4124_status(0),
-     carrier_info_stat_sys_pll_lck_i   => '0',
+     carrier_info_stat_sys_pll_lck_i   => pll_status,
      carrier_info_stat_ddr3_cal_done_i => '0',
      carrier_info_stat_reserved_i      => (others => '0'),
      carrier_info_ctrl_led_green_o     => open,

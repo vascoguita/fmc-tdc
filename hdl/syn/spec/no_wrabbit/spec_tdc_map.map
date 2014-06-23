@@ -10,7 +10,7 @@ Target Device  : xc6slx45t
 Target Package : fgg484
 Target Speed   : -3
 Mapper Version : spartan6 -- $Revision: 1.55 $
-Mapped Date    : Wed Jun 18 10:48:16 2014
+Mapped Date    : Mon Jun 23 18:44:18 2014
 
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 INFO:Security:54 - 'xc6slx45t' is a WebPack part.
@@ -25,56 +25,56 @@ Updating timing models...
 INFO:Map:215 - The Interim Design Summary has been generated in the MAP Report
    (.mrp).
 Running timing-driven placement...
-Total REAL time at the beginning of Placer: 16 secs 
+Total REAL time at the beginning of Placer: 18 secs 
 Total CPU  time at the beginning of Placer: 16 secs 
 
 Phase 1.1  Initial Placement Analysis
-Phase 1.1  Initial Placement Analysis (Checksum:de9a1ea9) REAL time: 18 secs 
+Phase 1.1  Initial Placement Analysis (Checksum:de9a1ea9) REAL time: 20 secs 
 
 Phase 2.7  Design Feasibility Check
-Phase 2.7  Design Feasibility Check (Checksum:de9a1ea9) REAL time: 19 secs 
+Phase 2.7  Design Feasibility Check (Checksum:de9a1ea9) REAL time: 20 secs 
 
 Phase 3.31  Local Placement Optimization
-Phase 3.31  Local Placement Optimization (Checksum:de9a1ea9) REAL time: 19 secs 
+Phase 3.31  Local Placement Optimization (Checksum:de9a1ea9) REAL time: 20 secs 
 
 Phase 4.2  Initial Placement for Architecture Specific Features
 
 Phase 4.2  Initial Placement for Architecture Specific Features
-(Checksum:46e77852) REAL time: 49 secs 
+(Checksum:46e77852) REAL time: 52 secs 
 
 Phase 5.36  Local Placement Optimization
-Phase 5.36  Local Placement Optimization (Checksum:46e77852) REAL time: 49 secs 
+Phase 5.36  Local Placement Optimization (Checksum:46e77852) REAL time: 52 secs 
 
 Phase 6.30  Global Clock Region Assignment
-Phase 6.30  Global Clock Region Assignment (Checksum:46e77852) REAL time: 49 secs 
+Phase 6.30  Global Clock Region Assignment (Checksum:46e77852) REAL time: 52 secs 
 
 Phase 7.3  Local Placement Optimization
-Phase 7.3  Local Placement Optimization (Checksum:46e77852) REAL time: 49 secs 
+Phase 7.3  Local Placement Optimization (Checksum:46e77852) REAL time: 52 secs 
 
 Phase 8.5  Local Placement Optimization
-Phase 8.5  Local Placement Optimization (Checksum:46e77852) REAL time: 50 secs 
+Phase 8.5  Local Placement Optimization (Checksum:46e77852) REAL time: 52 secs 
 
 Phase 9.8  Global Placement
-.............................
-......................................................................................................................
-....................................
-...........................
-Phase 9.8  Global Placement (Checksum:986ae115) REAL time: 1 mins 18 secs 
+................................
+....................................................................
+...............................................................
+......................
+Phase 9.8  Global Placement (Checksum:bed8b73d) REAL time: 1 mins 24 secs 
 
 Phase 10.5  Local Placement Optimization
-Phase 10.5  Local Placement Optimization (Checksum:986ae115) REAL time: 1 mins 18 secs 
+Phase 10.5  Local Placement Optimization (Checksum:bed8b73d) REAL time: 1 mins 24 secs 
 
 Phase 11.18  Placement Optimization
-Phase 11.18  Placement Optimization (Checksum:49eeddee) REAL time: 1 mins 33 secs 
+Phase 11.18  Placement Optimization (Checksum:d7b12fa8) REAL time: 1 mins 39 secs 
 
 Phase 12.5  Local Placement Optimization
-Phase 12.5  Local Placement Optimization (Checksum:49eeddee) REAL time: 1 mins 33 secs 
+Phase 12.5  Local Placement Optimization (Checksum:d7b12fa8) REAL time: 1 mins 40 secs 
 
 Phase 13.34  Placement Validation
-Phase 13.34  Placement Validation (Checksum:8fcb33fb) REAL time: 1 mins 33 secs 
+Phase 13.34  Placement Validation (Checksum:ad8925d5) REAL time: 1 mins 40 secs 
 
-Total REAL time to Placer completion: 1 mins 40 secs 
-Total CPU  time to Placer completion: 1 mins 40 secs 
+Total REAL time to Placer completion: 1 mins 47 secs 
+Total CPU  time to Placer completion: 1 mins 44 secs 
 Running post-placement packing...
 Writing output files...
 WARNING:PhysDesignRules:372 - Gated clock. Clock net
@@ -94,7 +94,7 @@ Slice Logic Utilization:
     Number used as Latches:                      2
     Number used as Latch-thrus:                  0
     Number used as AND/OR logics:               23
-  Number of Slice LUTs:                      3,871 out of  27,288   14%
+  Number of Slice LUTs:                      3,896 out of  27,288   14%
     Number used as logic:                    3,781 out of  27,288   13%
       Number using O6 output only:           2,251
       Number using O5 output only:             328
@@ -107,18 +107,18 @@ Slice Logic Utilization:
         Number using O6 output only:             2
         Number using O5 output only:             0
         Number using O5 and O6:                  0
-    Number used exclusively as route-thrus:     88
-      Number with same-slice register load:     54
-      Number with same-slice carry load:        34
+    Number used exclusively as route-thrus:    113
+      Number with same-slice register load:     67
+      Number with same-slice carry load:        46
       Number with other load:                    0
 
 Slice Logic Distribution:
-  Number of occupied Slices:                 1,514 out of   6,822   22%
+  Number of occupied Slices:                 1,433 out of   6,822   21%
   Nummber of MUXCYs used:                    1,284 out of  13,644    9%
-  Number of LUT Flip Flop pairs used:        4,830
-    Number with an unused Flip Flop:         1,533 out of   4,830   31%
-    Number with an unused LUT:                 959 out of   4,830   19%
-    Number of fully used LUT-FF pairs:       2,338 out of   4,830   48%
+  Number of LUT Flip Flop pairs used:        4,679
+    Number with an unused Flip Flop:         1,407 out of   4,679   30%
+    Number with an unused LUT:                 783 out of   4,679   16%
+    Number of fully used LUT-FF pairs:       2,489 out of   4,679   53%
     Number of unique control sets:             129
     Number of slice register sites lost
       to control set restrictions:             309 out of  54,576    1%
@@ -174,9 +174,9 @@ Specific Feature Utilization:
 
 Average Fanout of Non-Clock Nets:                3.70
 
-Peak Memory Usage:  355 MB
-Total REAL time to MAP completion:  1 mins 45 secs 
-Total CPU time to MAP completion:   1 mins 44 secs 
+Peak Memory Usage:  354 MB
+Total REAL time to MAP completion:  1 mins 51 secs 
+Total CPU time to MAP completion:   1 mins 48 secs 
 
 Mapping completed.
 See MAP report file "spec_tdc_map.mrp" for details.

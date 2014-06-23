@@ -22,7 +22,6 @@
 --                o The VIC is managing the interrupts coming from both TDC EIC cores             |
 --                o The carrier_info module provides general information on the SVEC PCB version, |
 --                  PLLs locking state etc                                                        |
---                o The 1-Wire core provides communication with the SVEC Thermometer&UniqueID chip|
 --              All these cores communicate with the VME core through the WISHBONE.               |
 --              The SDB crossbar is mapping the different slaves into the WISHBONE address space. |
 --                                                                                                |
@@ -78,11 +77,6 @@
 --               |      |             VIC            | ---- | B |      |  E  |      |             |
 --               |      |____________________________|      |   |      |     |      |             |
 --               |                             62.5MHz      |   |      |     |      |             |
---               |       ____________________________       |   |      |     |      |             |
---               |      |                            |      |   |      |     |      |             |
--- SVEC 1W chip  |      |          1-Wire            | ---- |   |      |     |      |             |
---               |      |____________________________|      |   |      |     |      |             |
---               |                            62.5MHz     / |   |      |     |      |             |
 --               |       ____________________________    /  |   |      |     |      |             |
 --               |      |                            |  /   |   |      |     |      |             |
 --               |      |        carrier_info        | /    |   |      |     |      |             |
@@ -337,30 +331,28 @@ architecture rtl of wr_svec_tdc is
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Constants regarding the SDB crossbar
   constant c_NUM_WB_SLAVES  : integer := 1;
-  constant c_NUM_WB_MASTERS : integer := 6;
+  constant c_NUM_WB_MASTERS : integer := 5;
   constant c_MASTER_VME     : integer := 0;
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  constant c_SLAVE_SVEC_1W   : integer := 0;  -- SVEC 1wire interface
-  constant c_SLAVE_SVEC_INFO : integer := 1;  -- SVEC carrier info
-  constant c_SLAVE_VIC       : integer := 2;  -- Vector Interrupt controller
-  constant c_SLAVE_TDC0      : integer := 3;  -- TDC mezzanine #1
-  constant c_SLAVE_TDC1      : integer := 4;  -- TDC mezzanine #2
-  constant c_SLAVE_WRCORE    : integer := 5;  -- White Rabbit PTP core
+  constant c_SLAVE_SVEC_INFO : integer := 0;  -- SVEC carrier info
+  constant c_SLAVE_VIC       : integer := 1;  -- Vector Interrupt controller
+  constant c_SLAVE_TDC0      : integer := 2;  -- TDC mezzanine #1
+  constant c_SLAVE_TDC1      : integer := 3;  -- TDC mezzanine #2
+  constant c_SLAVE_WRCORE    : integer := 4;  -- White Rabbit PTP core
 
   constant c_SDB_ADDRESS         : t_wishbone_address := x"00000000";
   constant c_FMC_TDC1_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
   constant c_FMC_TDC2_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
   constant c_WRCORE_BRIDGE_SDB   : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0003ffff", x"00030000");
 
-  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(7 downto 0) :=
-    (0 => f_sdb_embed_device     (c_ONEWIRE_SDB_DEVICE,   x"00010000"),
-     1 => f_sdb_embed_device     (c_SVEC_INFO_SDB_DEVICE, x"00020000"),
-     2 => f_sdb_embed_device     (c_xwb_vic_sdb,          x"00030000"),
-     3 => f_sdb_embed_bridge     (c_FMC_TDC1_SDB_BRIDGE,  x"00040000"),
-     4 => f_sdb_embed_bridge     (c_FMC_TDC2_SDB_BRIDGE,  x"00060000"),
-     5 => f_sdb_embed_bridge     (c_WRCORE_BRIDGE_SDB,    x"00080000"),
-     6 => f_sdb_embed_repo_url   (c_SDB_REPO_URL),
-     7 => f_sdb_embed_synthesis  (c_sdb_synthesis_info));
+  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(6 downto 0) :=
+    (0 => f_sdb_embed_device     (c_SVEC_INFO_SDB_DEVICE, x"00020000"),
+     1 => f_sdb_embed_device     (c_xwb_vic_sdb,          x"00030000"),
+     2 => f_sdb_embed_bridge     (c_FMC_TDC1_SDB_BRIDGE,  x"00040000"),
+     3 => f_sdb_embed_bridge     (c_FMC_TDC2_SDB_BRIDGE,  x"00060000"),
+     4 => f_sdb_embed_bridge     (c_WRCORE_BRIDGE_SDB,    x"00080000"),
+     5 => f_sdb_embed_repo_url   (c_SDB_REPO_URL),
+     6 => f_sdb_embed_synthesis  (c_sdb_synthesis_info));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -383,7 +375,7 @@ architecture rtl of wr_svec_tdc is
   signal clk_62m5_sys, pllout_clk_sys         : std_logic;
   signal pllout_clk_sys_fb, sys_locked        : std_logic;
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1: tdc1_125m_clk
-  signal tdc1_125m_clk                        : std_logic;
+  signal tdc1_125m_clk, tdc1_pll_status       : std_logic;
   signal tdc1_acam_refclk_r_edge_p            : std_logic;
   signal tdc1_send_dac_word_p                 : std_logic;
   signal tdc1_dac_word                        : std_logic_vector(23 downto 0);
@@ -392,7 +384,7 @@ architecture rtl of wr_svec_tdc is
   signal tdc1_irq_acam_err_p                  : std_logic;
   signal tdc1_irq_tstamp_p, tdc1_irq_time_p   : std_logic;
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC2: tdc2_125m_clk
-  signal tdc2_125m_clk                        : std_logic;
+  signal tdc2_125m_clk, tdc2_pll_status       : std_logic;
   signal tdc2_acam_refclk_r_edge_p            : std_logic;
   signal tdc2_send_dac_word_p                 : std_logic;
   signal tdc2_dac_word                        : std_logic_vector(23 downto 0);
@@ -608,7 +600,7 @@ begin
      pll_sdi_o                 => tdc1_pll_sdi_o,
      pll_sclk_o                => tdc1_pll_sclk_o,
      tdc_125m_clk_o            => tdc1_125m_clk,
-     pll_status_o              => open);
+     pll_status_o              => tdc1_pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc1_general_rst_n          <= not tdc1_general_rst;
   tdc1_soft_rst_n             <= carrier_info_fmc_rst(0) and rst_n_sys;
@@ -640,7 +632,7 @@ begin
      pll_sdi_o                 => tdc2_pll_sdi_o,
      pll_sclk_o                => tdc2_pll_sclk_o,
      tdc_125m_clk_o            => tdc2_125m_clk,
-     pll_status_o              => open);
+     pll_status_o              => tdc2_pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc2_general_rst_n           <= not tdc2_general_rst;
   tdc2_soft_rst_n              <= carrier_info_fmc_rst(1) and rst_n_sys;
@@ -1236,11 +1228,11 @@ begin
      carrier_info_carrier_pcb_rev_i    => pcb_ver_i,
      carrier_info_carrier_reserved_i   => (others => '0'),
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
-     carrier_info_stat_fmc_pres_i      => '0', -- put tdc1_prsnt_m2c_n_i
+     carrier_info_stat_fmc_pres_i      => tdc1_prsntm2c_n_i,
      carrier_info_stat_p2l_pll_lck_i   => '0',
      carrier_info_stat_sys_pll_lck_i   => sys_locked,
      carrier_info_stat_ddr3_cal_done_i => '0',
-     carrier_info_stat_reserved_i      => (others => '0'),
+     carrier_info_stat_reserved_i      => x"000000" & "000" & tdc2_prsntm2c_n_i, --& tdc2_pll_status & tdc1_pll_status & tdc2_prsntm2c_n_i,
      carrier_info_ctrl_led_green_o     => open,
      carrier_info_ctrl_led_red_o       => open,
      carrier_info_ctrl_dac_clr_n_o     => open,
