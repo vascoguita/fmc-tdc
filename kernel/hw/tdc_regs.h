@@ -73,9 +73,10 @@
 #define TDC_REG_CARRIER_CTL0		0x0 /* a.k.a. Carrier revision/PCB id reg */
 #define TDC_REG_CARRIER_STATUS		0x4
 #define TDC_REG_CARRIER_CTL1		0x8
+#define TDC_REG_CARRIER_RST		0xc
 
-#define TDC_CARRIER_CTL0_PLL_STAT_FMC0 	 BIT(4)
-#define TDC_CARRIER_CTL0_PLL_STAT_FMC1 	 BIT(5)
+#define TDC_CARRIER_CTL0_PLL_STAT_FMC0 	 BIT(5)
+#define TDC_CARRIER_CTL0_PLL_STAT_FMC1 	 BIT(6)
 
 #define TDC_CARRIER_CTL1_RSTN_FMC0 	 BIT(3)
 #define TDC_CARRIER_CTL1_RSTN_FMC1 	 BIT(4)
@@ -97,5 +98,13 @@
 #define TDC_DMA_STAT_ERROR 0x3
 
 #define TDC_SVEC_CARRIER_BASE           0x20000
+
+/* TDC core submodule offsets (wrs to the TDC control registers block) */
+
+#define TDC_MEZZ_I2C_OFFSET	(0x2000)
+#define TDC_MEZZ_ONEWIRE_OFFSET	(-0x1000)
+#define TDC_MEZZ_EIC_OFFSET	(0x1000)
+#define TDC_MEZZ_MEM_OFFSET	(0x3000)
+
 
 #endif /* __TDC_REGISTERS_H */

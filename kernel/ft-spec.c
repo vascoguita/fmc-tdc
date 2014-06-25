@@ -22,12 +22,6 @@ static int ft_spec_reset(struct fmctdc_dev *ft)
 {
 	struct spec_dev *spec = (struct spec_dev *)ft->fmc->carrier_data;
 
-	dev_info(&ft->fmc->dev, "%s: resetting TDC core through Gennum.\n",
-		 __func__);
-
-	/* set local bus clock to 160 MHz. The FPGA can't handle more. */
-	gennum_writel(spec, 0xE001F04C, 0x808);
-
 	/* it takes a while for the PLL to bootstrap.... or not!
 	   We have no possibility to check, as the PLL status register is driven
 	   by the clock from this PLL :( */

@@ -33,51 +33,13 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 	if (ft->fmc->slot_id != 0)
 		return 0;
 
-	dev_info(&ft->fmc->dev, "Resetting FMCs...\n");
-	fmc_writel(ft->fmc, TDC_CARRIER_CTL1_RSTN_FMC0 |
-		   TDC_CARRIER_CTL1_RSTN_FMC1,
-		   TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_CTL1);
+	dev_info(&ft->fmc->dev, "Un-resetting FMCs...\n");
 
-	tmo = jiffies + 2 * HZ;
-	while (time_before(jiffies, tmo)) {
-		uint32_t stat;
+	fmc_writel(ft->fmc, 0xff, TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
 
-		stat = fmc_readl(ft->fmc,
-				 TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_CTL0);
-
-		if ((stat & TDC_CARRIER_CTL0_PLL_STAT_FMC0) &&
-		    (stat & TDC_CARRIER_CTL0_PLL_STAT_FMC1))
-			return 0;
-		msleep(10);
-	}
-
-	dev_err(&ft->fmc->dev, "PLL lock timeout.\n");
-	return -EIO;
-}
-
-#if 0
-static int ft_svec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
-				   int size, void *dst)
-{
-	int i;
-	uint32_t addr;
-	uint32_t *dptr;
-
-	/* no unaligned reads, please. */
-	if (unlikely(size & 3 || base_addr & 3))
-		return -EIO;
-
-	/* FIXME: use SDB to determine buffer base address
-	   (after fixing the HDL) */
-	addr = ft->ft_buffer_base + base_addr;
-
-	for (i = 0, dptr = (uint32_t *) dst; i < size / 4; i++, dptr++)
-		*dptr = fmc_readl(ft->fmc, addr + i * 4);
-
+	msleep(3000);
 	return 0;
 }
-#endif
-
 
 struct ft_carrier_specific ft_carrier_svec = {
 	FT_GATEWARE_SVEC,
