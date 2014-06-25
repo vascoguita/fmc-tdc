@@ -174,6 +174,8 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 						   ft->calib.
 						   zero_offset[channel - 1]);
 
+				ft_ts_apply_offset(&ts, -ft->calib.wr_offset);
+
 				if (st->user_offset)
 					ft_ts_apply_offset(&ts,
 							   st->user_offset);
