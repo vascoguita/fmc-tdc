@@ -1,7 +1,7 @@
 Release 13.4 par O.87xd (nt)
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 
-PCBE13136::  Mon Jun 23 19:15:49 2014
+PCBE13136::  Wed Jun 25 17:54:53 2014
 
 par -w -intstyle ise -ol high -xe c -mt off wr_spec_tdc_map.ncd wr_spec_tdc.ncd
 wr_spec_tdc.pcf 
@@ -17,12 +17,6 @@ INFO:Par:338 -
    design even if the time specs can not be met. If you are looking for the best possible design speed available from a
    long but reasonable runtime use Extra Effort Level "n"ormal.  It will stop iterating on the design when the design
    speed improvements have shrunk to the point that the time specs are not expected to be met.
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-INFO:Security:54 - 'xc6slx45t' is a WebPack part.
-WARNING:Security:42 - Your software subscription period has lapsed. Your current version of Xilinx tools will continue
-to function, but you no longer qualify for Xilinx software updates or new releases.
-
-----------------------------------------------------------------------
 
 Initializing temperature to 85.000 Celsius. (default - Range: 0.000 to 85.000 Celsius)
 Initializing voltage to 1.140 Volts. (default - Range: 1.140 to 1.260 Volts)
@@ -178,17 +172,17 @@ Phase  5  : 0 unrouted; (Setup:445, Hold:63078, Component Switching Limit:0)    
 
 Phase  6  : 0 unrouted; (Setup:445, Hold:63078, Component Switching Limit:0)     REAL time: 2 mins 24 secs 
 
-Phase  7  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 27 secs 
+Phase  7  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 26 secs 
 
-Phase  8  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 27 secs 
+Phase  8  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 26 secs 
 
-Phase  9  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 27 secs 
+Phase  9  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 26 secs 
 
-Phase 10  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 3 mins 28 secs 
+Phase 10  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 3 mins 27 secs 
 
-Phase 11  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 3 mins 33 secs 
-Total REAL time to Router completion: 3 mins 33 secs 
-Total CPU time to Router completion: 3 mins 45 secs 
+Phase 11  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 3 mins 32 secs 
+Total REAL time to Router completion: 3 mins 32 secs 
+Total CPU time to Router completion: 3 mins 44 secs 
 
 Partition Implementation Status
 -------------------------------
@@ -477,8 +471,8 @@ All signals are completely routed.
 
 WARNING:Par:283 - There are 16 loadless signals in this design. This design will cause Bitgen to issue DRC warnings.
 
-Total REAL time to PAR completion: 3 mins 39 secs 
-Total CPU time to PAR completion: 3 mins 50 secs 
+Total REAL time to PAR completion: 3 mins 38 secs 
+Total CPU time to PAR completion: 3 mins 49 secs 
 
 Peak Memory Usage:  462 MB
 

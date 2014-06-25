@@ -302,7 +302,7 @@ architecture rtl of wr_spec_tdc is
   constant c_MASTER_GENNUM        : integer := 0;
 
   constant c_FMC_TDC_SDB_BRIDGE   : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
-  constant c_WRCORE_BRIDGE_SDB    : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0003ffff", x"00000000");
+  constant c_WRCORE_BRIDGE_SDB    : t_sdb_bridge := f_xwb_bridge_manual_sdb(x"0003ffff", x"00030000");
 
   constant c_INTERCONNECT_LAYOUT  : t_sdb_record_array(5 downto 0) :=
     (0 => f_sdb_embed_device       (c_SPEC_INFO_SDB_DEVICE, x"00020000"),
