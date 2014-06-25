@@ -232,9 +232,10 @@ struct zio_channel;
 int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 		    struct zio_channel *chan);
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
-signed long fmc_find_sdb_device_ext(struct sdb_array *tree,
-				    uint64_t vid, uint32_t did, int index,
-				    unsigned long *sz);
+
+signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
+				     uint32_t did, int *ordinal,
+				     uint32_t *size );
 
 #endif // __KERNEL__
 

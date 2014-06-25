@@ -199,7 +199,8 @@ int ft_probe(struct fmc_device *fmc)
 	struct fmctdc_dev *ft;
 	struct device *dev = fmc->hwdev;
 	char *fwname;
-	int i, index, ret;
+	int i, index, ret, ord;
+	signed long addr;
 
 	ft = kzalloc(sizeof(struct fmctdc_dev), GFP_KERNEL);
 	if (!ft) {
@@ -269,24 +270,12 @@ int ft_probe(struct fmc_device *fmc)
 		fmc_show_sdb_tree(fmc);
 
 	/* Now use SDB to find the base addresses */
-	ft->ft_core_base =
-	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x604, fmc->slot_id,
-				    NULL);
-	ft->ft_carrier_base =
-	    fmc_find_sdb_device(fmc->sdb, 0xce42, 0x603, NULL);
+	ord = fmc->slot_id;
+	ft->ft_core_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x604, &ord, NULL);
 
-	ft->ft_irq_base =
-	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x605, fmc->slot_id,
-				    NULL);
-
-	/* the 0th onewire controller is the carrier one */
-	ft->ft_owregs_base =
-	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x602, fmc->slot_id + 1,
-				    NULL);
-
-	ft->ft_buffer_base =
-	    fmc_find_sdb_device_ext(fmc->sdb, 0xce42, 0x601, fmc->slot_id,
-				    NULL);
+	ft->ft_irq_base = ft->ft_core_base + TDC_MEZZ_EIC_OFFSET;
+	ft->ft_owregs_base = ft->ft_core_base + TDC_MEZZ_ONEWIRE_OFFSET;
+	ft->ft_buffer_base = ft->ft_core_base + TDC_MEZZ_MEM_OFFSET;
 
 	if (ft_verbose) {
 		dev_info(dev,
