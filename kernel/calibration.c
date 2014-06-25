@@ -42,16 +42,15 @@ static int ft_read_calibration_eeprom(struct fmc_device *fmc, void *buf,
 		if (ret == 0)
 			break;
 	}
-
 	if (ret)
 		return ret;
-
 	/* Open "cali" as a device id, vendor is "FileData" -- big endian */
-	ret = sdbfs_open_id(&fs, 0x61746144656c6946LL, 0x696c6163);
+	ret = sdbfs_open_name(&fs, "calib");
 	if (ret)
 		return ret;
 
 	ret = sdbfs_fread(&fs, 0, buf, length);
+	
 	sdbfs_dev_destroy(&fs);
 	return ret;
 }
@@ -62,7 +61,7 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 	struct ft_calibration *calib;
 	struct device *d = &ft->fmc->dev;
 	int i;
-	u32 raw_calib[5];
+	u32 raw_calib[7];
 
 	/* Retrieve and validate the calibration */
 	calib = &ft->calib;
@@ -85,11 +84,14 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 		calib->vcxo_default_tune = le32_to_cpu(raw_calib[4]);
 	}
 	
+	calib->calibration_temp = le32_to_cpu(raw_calib[5]);
+	calib->wr_offset = le32_to_cpu(raw_calib[6]) / 100;
+	
 	for (i = 0; i < ARRAY_SIZE(calib->zero_offset); i++)
-		dev_info(d, "calib: zero_offset[%i] = %li\n", i,
-			 (long)calib->zero_offset[i]);
+		dev_info(d, "calib: zero_offset[%i] = %i ps\n", i,
+			 calib->zero_offset[i]);
 
 	dev_info(d, "calib: vcxo_default_tune %i\n", calib->vcxo_default_tune);
-
+	dev_info(d, "calib: wr offset = %i ps\n", calib->wr_offset);
 	return 0;
 }

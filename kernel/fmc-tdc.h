@@ -91,6 +91,12 @@ struct ft_calibration {		/* All of these are big endian in the EEPROM */
 
 	/* Default DAC value for VCXO. Set during init and for local timing */
 	uint32_t vcxo_default_tune;
+
+	/* Temperature at which the device has been calibrated */
+	uint32_t calibration_temp;
+	
+	/* White Rabbit timescale offset in ps */
+	int32_t wr_offset;
 };
 
 /* Hardware TDC timestamp */
@@ -226,7 +232,6 @@ struct zio_channel;
 int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 		    struct zio_channel *chan);
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
-
 signed long fmc_find_sdb_device_ext(struct sdb_array *tree,
 				    uint64_t vid, uint32_t did, int index,
 				    unsigned long *sz);
