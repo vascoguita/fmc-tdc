@@ -1,7 +1,7 @@
 LINUX ?= /lib/modules/$(shell uname -r)/build
-ZIO ?= $(M)/../zio
-FMC_BUS ?= $(M)/../fmc-bus
-SPEC ?= $(M)/../spec-sw
+ZIO ?= $(src)/../zio
+FMC_BUS ?= $(src)/../fmc-bus
+SPEC ?= $(src)/../spec-sw
 
 KBUILD_EXTRA_SYMBOLS := \
 	$(ZIO)/Module.symvers \
@@ -11,7 +11,7 @@ KBUILD_EXTRA_SYMBOLS := \
 GIT_VERSION = $(shell cd $(src); git describe --always --dirty --long --tags)
 
 ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
-	-I$M \
+	-I$(src) \
 	-I$(ZIO)/include \
 	-I$(FMC_BUS)/kernel/include \
 	-I$(FMC_BUS)/kernel/include/linux \
