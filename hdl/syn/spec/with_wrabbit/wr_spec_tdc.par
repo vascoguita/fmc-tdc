@@ -1,7 +1,7 @@
 Release 13.4 par O.87xd (nt)
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 
-PCBE13136::  Wed Jun 25 17:54:53 2014
+PCBE13136::  Tue Jul 08 11:06:17 2014
 
 par -w -intstyle ise -ol high -xe c -mt off wr_spec_tdc_map.ncd wr_spec_tdc.ncd
 wr_spec_tdc.pcf 
@@ -34,11 +34,11 @@ Slice Logic Utilization:
     Number used as Latches:                      2
     Number used as Latch-thrus:                  0
     Number used as AND/OR logics:               24
-  Number of Slice LUTs:                     10,641 out of  27,288   38%
-    Number used as logic:                   10,381 out of  27,288   38%
+  Number of Slice LUTs:                     10,646 out of  27,288   39%
+    Number used as logic:                   10,382 out of  27,288   38%
       Number using O6 output only:           7,374
-      Number using O5 output only:             775
-      Number using O5 and O6:                2,232
+      Number using O5 output only:             777
+      Number using O5 and O6:                2,231
       Number used as ROM:                        0
     Number used as Memory:                      67 out of   6,408    1%
       Number used as Dual Port RAM:             24
@@ -50,18 +50,18 @@ Slice Logic Utilization:
         Number using O6 output only:            22
         Number using O5 output only:             0
         Number using O5 and O6:                 21
-    Number used exclusively as route-thrus:    193
-      Number with same-slice register load:    116
-      Number with same-slice carry load:        77
+    Number used exclusively as route-thrus:    197
+      Number with same-slice register load:    122
+      Number with same-slice carry load:        75
       Number with other load:                    0
 
 Slice Logic Distribution:
-  Number of occupied Slices:                 3,975 out of   6,822   58%
+  Number of occupied Slices:                 4,050 out of   6,822   59%
   Nummber of MUXCYs used:                    2,388 out of  13,644   17%
-  Number of LUT Flip Flop pairs used:       12,385
-    Number with an unused Flip Flop:         4,772 out of  12,385   38%
-    Number with an unused LUT:               1,744 out of  12,385   14%
-    Number of fully used LUT-FF pairs:       5,869 out of  12,385   47%
+  Number of LUT Flip Flop pairs used:       12,451
+    Number with an unused Flip Flop:         4,848 out of  12,451   38%
+    Number with an unused LUT:               1,805 out of  12,451   14%
+    Number of fully used LUT-FF pairs:       5,798 out of  12,451   46%
     Number of slice register sites lost
       to control set restrictions:               0 out of  54,576    0%
 
@@ -125,7 +125,7 @@ Router effort level (-rl):    High
 INFO:Timing:3386 - Intersecting Constraints found and resolved.  For more information, see the TSI report.  Please consult the Xilinx
    Command Line Tools User Guide for information on generating a TSI report.
 Starting initial Timing Analysis.  REAL time: 20 secs 
-Finished initial Timing Analysis.  REAL time: 21 secs 
+Finished initial Timing Analysis.  REAL time: 20 secs 
 
 WARNING:Par:288 - The signal sfp_rate_select_b_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal sfp_tx_fault_i_IBUF has no load.  PAR will not attempt to route this signal.
@@ -138,51 +138,51 @@ WARNING:Par:288 - The signal p_wr_req_i<1>_IBUF has no load.  PAR will not attem
 WARNING:Par:288 - The signal pll_sdo_i_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal sfp_los_i_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem4_RAMD_O has no load. 
-   PAR will not attempt to route this signal.
-WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem5_RAMD_O has no load. 
-   PAR will not attempt to route this signal.
-WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem3_RAMD_O has no load. 
-   PAR will not attempt to route this signal.
-WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem2_RAMD_O has no load. 
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem6_RAMD_O has no load. 
    PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal
    U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem1_RAMD_O has no load. 
    PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem6_RAMD_O has no load. 
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem2_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem5_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem4_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem3_RAMD_O has no load. 
    PAR will not attempt to route this signal.
 Starting Router
 
 
-Phase  1  : 70820 unrouted;      REAL time: 22 secs 
+Phase  1  : 70638 unrouted;      REAL time: 22 secs 
 
-Phase  2  : 62168 unrouted;      REAL time: 27 secs 
+Phase  2  : 62023 unrouted;      REAL time: 26 secs 
 
-Phase  3  : 33642 unrouted;      REAL time: 1 mins 
+Phase  3  : 32684 unrouted;      REAL time: 54 secs 
 
-Phase  4  : 33737 unrouted; (Setup:287, Hold:65529, Component Switching Limit:0)     REAL time: 1 mins 5 secs 
+Phase  4  : 32741 unrouted; (Setup:0, Hold:72789, Component Switching Limit:0)     REAL time: 58 secs 
 
 Updating file: wr_spec_tdc.ncd with current fully routed design.
 
-Phase  5  : 0 unrouted; (Setup:445, Hold:63078, Component Switching Limit:0)     REAL time: 2 mins 22 secs 
+Phase  5  : 0 unrouted; (Setup:0, Hold:70704, Component Switching Limit:0)     REAL time: 2 mins 1 secs 
 
-Phase  6  : 0 unrouted; (Setup:445, Hold:63078, Component Switching Limit:0)     REAL time: 2 mins 24 secs 
+Phase  6  : 0 unrouted; (Setup:0, Hold:70704, Component Switching Limit:0)     REAL time: 2 mins 1 secs 
 
-Phase  7  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 26 secs 
+Phase  7  : 0 unrouted; (Setup:0, Hold:70704, Component Switching Limit:0)     REAL time: 2 mins 1 secs 
 
-Phase  8  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 26 secs 
+Phase  8  : 0 unrouted; (Setup:0, Hold:70704, Component Switching Limit:0)     REAL time: 2 mins 1 secs 
 
-Phase  9  : 0 unrouted; (Setup:0, Hold:63078, Component Switching Limit:0)     REAL time: 3 mins 26 secs 
+Phase  9  : 0 unrouted; (Setup:0, Hold:70704, Component Switching Limit:0)     REAL time: 2 mins 1 secs 
 
-Phase 10  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 3 mins 27 secs 
+Phase 10  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 2 mins 3 secs 
 
-Phase 11  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 3 mins 32 secs 
-Total REAL time to Router completion: 3 mins 32 secs 
-Total CPU time to Router completion: 3 mins 44 secs 
+Phase 11  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 2 mins 7 secs 
+Total REAL time to Router completion: 2 mins 7 secs 
+Total CPU time to Router completion: 2 mins 11 secs 
 
 Partition Implementation Status
 -------------------------------
@@ -200,29 +200,24 @@ Generating Clock Report
 +---------------------+--------------+------+------+------------+-------------+
 |        Clock Net    |   Resource   |Locked|Fanout|Net Skew(ns)|Max Delay(ns)|
 +---------------------+--------------+------+------+------------+-------------+
-|        clk_62m5_sys | BUFGMUX_X3Y13| No   | 1639 |  0.529     |  1.740      |
+|        clk_62m5_sys | BUFGMUX_X3Y13| No   | 1643 |  0.529     |  1.740      |
 +---------------------+--------------+------+------+------------+-------------+
-|       clk_125m_mezz |  BUFGMUX_X3Y7| No   |  805 |  0.551     |  1.762      |
+|       clk_125m_mezz |  BUFGMUX_X3Y7| No   |  727 |  0.551     |  1.762      |
 +---------------------+--------------+------+------+------------+-------------+
 |cmp_gn4124_core/sys_ |              |      |      |            |             |
-|                 clk |  BUFGMUX_X2Y4| No   |  256 |  0.522     |  1.733      |
+|                 clk |  BUFGMUX_X2Y4| No   |  247 |  0.522     |  1.733      |
 +---------------------+--------------+------+------+------------+-------------+
-|        phy_rx_rbclk |  BUFGMUX_X3Y8| No   |  140 |  0.076     |  1.290      |
+|        phy_rx_rbclk |  BUFGMUX_X3Y8| No   |  153 |  0.077     |  1.290      |
 +---------------------+--------------+------+------+------------+-------------+
 |clk_125m_pllref_BUFG |              |      |      |            |             |
-|                     |  BUFGMUX_X2Y1| No   |  144 |  0.068     |  1.281      |
+|                     |  BUFGMUX_X2Y1| No   |  152 |  0.065     |  1.281      |
 +---------------------+--------------+------+------+------------+-------------+
-|            clk_dmtd |  BUFGMUX_X2Y2| No   |   86 |  0.046     |  1.279      |
+|            clk_dmtd |  BUFGMUX_X2Y2| No   |   88 |  0.032     |  1.245      |
 +---------------------+--------------+------+------+------------+-------------+
 |U_WR_CORE/WRPC/LM32_ |              |      |      |            |             |
 |CORE/gen_profile_med |              |      |      |            |             |
 |ium_icache_debug.U_W |              |      |      |            |             |
-|    rapped_LM32/jtck |         Local|      |    9 |  2.259     |  5.398      |
-+---------------------+--------------+------+------+------------+-------------+
-|cmp_tdc_mezz/cmp_tdc |              |      |      |            |             |
-|_core/data_engine_bl |              |      |      |            |             |
-|ock/engine_st[3]_PWR |              |      |      |            |             |
-|     _441_o_Mux_41_o |         Local|      |    2 |  0.000     |  0.820      |
+|    rapped_LM32/jtck |         Local|      |    9 |  3.112     |  6.373      |
 +---------------------+--------------+------+------+------------+-------------+
 |U_Buf_CLK_GTP_ML_IBU |              |      |      |            |             |
 |                  F2 |         Local|      |    1 |  0.000     |  0.002      |
@@ -234,6 +229,11 @@ Generating Clock Report
 |                  lk |         Local|      |   41 |  0.064     |  1.562      |
 +---------------------+--------------+------+------+------------+-------------+
 |        clk_125m_gtp |         Local|      |    1 |  0.000     |  1.256      |
++---------------------+--------------+------+------+------------+-------------+
+|cmp_tdc_mezz/cmp_tdc |              |      |      |            |             |
+|_core/data_engine_bl |              |      |      |            |             |
+|ock/engine_st[3]_PWR |              |      |      |            |             |
+|     _441_o_Mux_41_o |         Local|      |    1 |  0.000     |  0.972      |
 +---------------------+--------------+------+------+------------+-------------+
 
 * Net Skew is the difference between the minimum and maximum routing
@@ -255,44 +255,40 @@ Asterisk (*) preceding a constraint indicates it was not met.
   Constraint                                |    Check    | Worst Case |  Best Case | Timing |   Timing   
                                             |             |    Slack   | Achievable | Errors |    Score   
 ----------------------------------------------------------------------------------------------------------
-  TS_tdc_clk_125m_n_i = PERIOD TIMEGRP "tdc | SETUP       |     0.034ns|     7.966ns|       0|           0
-  _clk_125m_n_i" 8 ns HIGH 50%              | HOLD        |     0.373ns|            |       0|           0
-----------------------------------------------------------------------------------------------------------
-  TS_cmp_gn4124_core_cmp_clk_in_rx_pllout_x | SETUP       |     0.055ns|     4.945ns|       0|           0
-  1_1 = PERIOD TIMEGRP         "cmp_gn4124_ | HOLD        |     0.403ns|            |       0|           0
+  TS_cmp_gn4124_core_cmp_clk_in_rx_pllout_x | SETUP       |     0.050ns|     4.950ns|       0|           0
+  1_1 = PERIOD TIMEGRP         "cmp_gn4124_ | HOLD        |     0.115ns|            |       0|           0
   core_cmp_clk_in_rx_pllout_x1_1"         T |             |            |            |        |            
   S_cmp_gn4124_core_cmp_clk_in_buf_P_clk_1  |             |            |            |        |            
   PHASE 1.25 ns HIGH 50%                    |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  TS_clk_125m_pllref_n_i = PERIOD TIMEGRP " | SETUP       |     0.073ns|     7.854ns|       0|           0
-  clk_125m_pllref_n_i" 8 ns HIGH 50%        | HOLD        |     0.340ns|            |       0|           0
+  TS_tdc_clk_125m_n_i = PERIOD TIMEGRP "tdc | SETUP       |     0.051ns|     7.949ns|       0|           0
+  _clk_125m_n_i" 8 ns HIGH 50%              | HOLD        |     0.421ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
-  TS_RXTS = MAXDELAY FROM TIMEGRP "rx_ts_tr | SETUP       |     0.359ns|     1.641ns|       0|           0
-  ig" TO TIMEGRP "FFS" 2 ns         DATAPAT | HOLD        |     0.413ns|            |       0|           0
-  HONLY                                     |             |            |            |        |            
-----------------------------------------------------------------------------------------------------------
-  ts_ignore_crossclock = MAXDELAY FROM TIME | SETUP       |     0.605ns|     9.395ns|       0|           0
-  GRP "clk_62m5_sys" TO TIMEGRP         "td | HOLD        |     0.408ns|            |       0|           0
-  c_clk_125m_p_i" 10 ns DATAPATHONLY        |             |            |            |        |            
-----------------------------------------------------------------------------------------------------------
-  TS_ = MAXDELAY FROM TIMEGRP "skew_limit"  | SETUP       |     0.735ns|     1.265ns|       0|           0
-  TO TIMEGRP "FFS" 2 ns DATAPATHONLY        | HOLD        |     0.396ns|            |       0|           0
-----------------------------------------------------------------------------------------------------------
-  ts_ignore_xclock1 = MAXDELAY FROM TIMEGRP | SETUP       |     0.807ns|     9.193ns|       0|           0
-   "clk_62m5_sys" TO TIMEGRP         "clk_1 | HOLD        |     0.382ns|            |       0|           0
-  25m_pllref_n_i" 10 ns DATAPATHONLY        |             |            |            |        |            
-----------------------------------------------------------------------------------------------------------
-  TS_U_GTP_ch1_rx_divclk = PERIOD TIMEGRP " | SETUP       |     0.873ns|     7.127ns|       0|           0
-  U_GTP_ch1_rx_divclk"         TS_U_GTP_ch1 | HOLD        |     0.363ns|            |       0|           0
+  TS_U_GTP_ch1_rx_divclk = PERIOD TIMEGRP " | SETUP       |     0.169ns|     7.831ns|       0|           0
+  U_GTP_ch1_rx_divclk"         TS_U_GTP_ch1 | HOLD        |     0.322ns|            |       0|           0
   _gtp_clkout_int_1_ HIGH 50%               |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  TS_pllout_clk_sys = PERIOD TIMEGRP "pllou | SETUP       |     1.083ns|    14.917ns|       0|           0
-  t_clk_sys" TS_clk_20m_vcxo_i / 3.125      | HOLD        |     0.126ns|            |       0|           0
-      HIGH 50%                              |             |            |            |        |            
+  TS_RXTS = MAXDELAY FROM TIMEGRP "rx_ts_tr | SETUP       |     0.169ns|     1.831ns|       0|           0
+  ig" TO TIMEGRP "FFS" 2 ns         DATAPAT | HOLD        |     0.704ns|            |       0|           0
+  HONLY                                     |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  ts_x3 = MAXDELAY FROM TIMEGRP "clk_62m5_s | SETUP       |     1.558ns|     8.442ns|       0|           0
-  ys" TO TIMEGRP "U_GTP_ch1_rx_divclk"      | HOLD        |     0.443ns|            |       0|           0
+  ts_x3 = MAXDELAY FROM TIMEGRP "clk_62m5_s | SETUP       |     0.181ns|     9.819ns|       0|           0
+  ys" TO TIMEGRP "U_GTP_ch1_rx_divclk"      | HOLD        |     0.448ns|            |       0|           0
       10 ns DATAPATHONLY                    |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+  TS_ = MAXDELAY FROM TIMEGRP "skew_limit"  | SETUP       |     0.557ns|     1.443ns|       0|           0
+  TO TIMEGRP "FFS" 2 ns DATAPATHONLY        | HOLD        |     0.434ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  TS_clk_125m_pllref_n_i = PERIOD TIMEGRP " | SETUP       |     0.774ns|     6.711ns|       0|           0
+  clk_125m_pllref_n_i" 8 ns HIGH 50%        | HOLD        |     0.393ns|            |       0|           0
+----------------------------------------------------------------------------------------------------------
+  TS_x4 = MAXDELAY FROM TIMEGRP "U_GTP_ch1_ | SETUP       |     0.861ns|     9.139ns|       0|           0
+  rx_divclk" TO TIMEGRP "clk_62m5_sys"      | HOLD        |     0.344ns|            |       0|           0
+      10 ns DATAPATHONLY                    |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+  TS_pllout_clk_sys = PERIOD TIMEGRP "pllou | SETUP       |     1.200ns|    14.800ns|       0|           0
+  t_clk_sys" TS_clk_20m_vcxo_i / 3.125      | HOLD        |     0.039ns|            |       0|           0
+      HIGH 50%                              |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
   TS_cmp_gn4124_core_cmp_clk_in_buf_P_clk_1 | MINLOWPULSE |     2.200ns|     2.800ns|       0|           0
    = PERIOD TIMEGRP         "cmp_gn4124_cor |             |            |            |        |            
@@ -327,6 +323,13 @@ Asterisk (*) preceding a constraint indicates it was not met.
   TS_clk_20m_vcxo_i = PERIOD TIMEGRP "clk_2 | MINLOWPULSE |    30.000ns|    20.000ns|       0|           0
   0m_vcxo_i" 50 ns HIGH 50%                 |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
+  ts_ignore_xclock1 = MAXDELAY FROM TIMEGRP | SETUP       |     3.332ns|     6.668ns|       0|           0
+   "clk_62m5_sys" TO TIMEGRP         "clk_1 | HOLD        |     0.491ns|            |       0|           0
+  25m_pllref_n_i" 10 ns DATAPATHONLY        |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+  TS_p2l_clk_p_i = PERIOD TIMEGRP "p2l_clk_ | MINPERIOD   |     4.075ns|     0.925ns|       0|           0
+  p_i" 5 ns HIGH 50%                        |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
   TS_cmp_gn4124_core_cmp_clk_in_P_clk = PER | MINPERIOD   |     4.075ns|     0.925ns|       0|           0
   IOD TIMEGRP         "cmp_gn4124_core/cmp_ |             |            |            |        |            
   clk_in/P_clk" 5 ns HIGH 50%               |             |            |            |        |            
@@ -334,12 +337,9 @@ Asterisk (*) preceding a constraint indicates it was not met.
   TS_p2l_clk_n_i = PERIOD TIMEGRP "p2l_clk_ | MINPERIOD   |     4.075ns|     0.925ns|       0|           0
   n_i" 5 ns HIGH 50%                        |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  TS_p2l_clk_p_i = PERIOD TIMEGRP "p2l_clk_ | MINPERIOD   |     4.075ns|     0.925ns|       0|           0
-  p_i" 5 ns HIGH 50%                        |             |            |            |        |            
-----------------------------------------------------------------------------------------------------------
-  TS_x4 = MAXDELAY FROM TIMEGRP "U_GTP_ch1_ | SETUP       |     4.221ns|     5.779ns|       0|           0
-  rx_divclk" TO TIMEGRP "clk_62m5_sys"      | HOLD        |     0.603ns|            |       0|           0
-      10 ns DATAPATHONLY                    |             |            |            |        |            
+  ts_ignore_crossclock = MAXDELAY FROM TIME | SETUP       |     4.274ns|     5.726ns|       0|           0
+  GRP "clk_62m5_sys" TO TIMEGRP         "td | HOLD        |     0.456ns|            |       0|           0
+  c_clk_125m_p_i" 10 ns DATAPATHONLY        |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
   TS_clk_125m_gtp_p_i = PERIOD TIMEGRP "clk | MINPERIOD   |     4.875ns|     3.125ns|       0|           0
   _125m_gtp_p_i" 8 ns HIGH 50%              |             |            |            |        |            
@@ -350,21 +350,21 @@ Asterisk (*) preceding a constraint indicates it was not met.
   TStdc_clk_125m_p_i = PERIOD TIMEGRP "tdc_ | MINPERIOD   |     4.876ns|     3.124ns|       0|           0
   clk_125m_p_i" 8 ns HIGH 50%               |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  TS_pllout_clk_dmtd = PERIOD TIMEGRP "pllo | SETUP       |     5.326ns|    10.674ns|       0|           0
-  ut_clk_dmtd" TS_clk_20m_vcxo_i /          | HOLD        |     0.073ns|            |       0|           0
+  TS_pllout_clk_dmtd = PERIOD TIMEGRP "pllo | SETUP       |     5.919ns|    10.081ns|       0|           0
+  ut_clk_dmtd" TS_clk_20m_vcxo_i /          | HOLD        |     0.014ns|            |       0|           0
   3.125 HIGH 50%                            |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  ts_ignore_xclock2 = MAXDELAY FROM TIMEGRP | SETUP       |     6.079ns|     3.921ns|       0|           0
-   "clk_125m_pllref_p_i" TO TIMEGRP         | HOLD        |     0.446ns|            |       0|           0
+  ts_ignore_xclock2 = MAXDELAY FROM TIMEGRP | SETUP       |     6.013ns|     3.987ns|       0|           0
+   "clk_125m_pllref_p_i" TO TIMEGRP         | HOLD        |     0.448ns|            |       0|           0
    "clk_62m5_sys" 10 ns DATAPATHONLY        |             |            |            |        |            
+----------------------------------------------------------------------------------------------------------
+  ts_ignore_crossclock2 = MAXDELAY FROM TIM | SETUP       |     6.783ns|     3.217ns|       0|           0
+  EGRP "tdc_clk_125m_p_i" TO TIMEGRP        | HOLD        |     0.367ns|            |       0|           0
+    "clk_62m5_sys" 10 ns DATAPATHONLY       |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
   TS_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD T | MINPERIOD   |     7.075ns|     0.925ns|       0|           0
   IMEGRP "U_GTP/ch1_gtp_clkout_int<1>"      |             |            |            |        |            
       125 MHz HIGH 50%                      |             |            |            |        |            
-----------------------------------------------------------------------------------------------------------
-  ts_ignore_crossclock2 = MAXDELAY FROM TIM | SETUP       |     7.139ns|     2.861ns|       0|           0
-  EGRP "tdc_clk_125m_p_i" TO TIMEGRP        | HOLD        |     0.377ns|            |       0|           0
-    "clk_62m5_sys" 10 ns DATAPATHONLY       |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
   TS_cmp_gn4124_core_cmp_clk_in_rx_pllout_x | N/A         |         N/A|         N/A|     N/A|         N/A
   s_int = PERIOD TIMEGRP         "cmp_gn412 |             |            |            |        |            
@@ -396,9 +396,9 @@ Derived Constraints for TS_clk_20m_vcxo_i
 |           Constraint          | Requirement |-------------+-------------|-------------+-------------|-------------+-------------|
 |                               |             |   Direct    | Derivative  |   Direct    | Derivative  |   Direct    | Derivative  |
 +-------------------------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-|TS_clk_20m_vcxo_i              |     50.000ns|     20.000ns|     46.616ns|            0|            0|            0|      1682593|
-| TS_pllout_clk_dmtd            |     16.000ns|     10.674ns|          N/A|            0|            0|         9425|            0|
-| TS_pllout_clk_sys             |     16.000ns|     14.917ns|          N/A|            0|            0|      1673168|            0|
+|TS_clk_20m_vcxo_i              |     50.000ns|     20.000ns|     46.250ns|            0|            0|            0|      1682593|
+| TS_pllout_clk_dmtd            |     16.000ns|     10.081ns|          N/A|            0|            0|         9425|            0|
+| TS_pllout_clk_sys             |     16.000ns|     14.800ns|          N/A|            0|            0|      1673168|            0|
 +-------------------------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
 
 Derived Constraints for TS_p2l_clk_p_i
@@ -437,13 +437,13 @@ Derived Constraints for TS_cmp_gn4124_core_cmp_clk_in_P_clk
 |           Constraint          | Requirement |-------------+-------------|-------------+-------------|-------------+-------------|
 |                               |             |   Direct    | Derivative  |   Direct    | Derivative  |   Direct    | Derivative  |
 +-------------------------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-|TS_cmp_gn4124_core_cmp_clk_in_P|      5.000ns|      0.925ns|      4.945ns|            0|            0|            0|         5838|
+|TS_cmp_gn4124_core_cmp_clk_in_P|      5.000ns|      0.925ns|      4.950ns|            0|            0|            0|         5838|
 |_clk                           |             |             |             |             |             |             |             |
-| TS_cmp_gn4124_core_cmp_clk_in_|      5.000ns|      2.800ns|      4.945ns|            0|            0|            0|         5838|
+| TS_cmp_gn4124_core_cmp_clk_in_|      5.000ns|      2.800ns|      4.950ns|            0|            0|            0|         5838|
 | buf_P_clk_1                   |             |             |             |             |             |             |             |
 |  TS_cmp_gn4124_core_cmp_clk_in|      2.500ns|          N/A|          N/A|            0|            0|            0|            0|
 |  _rx_pllout_xs_int_1          |             |             |             |             |             |             |             |
-|  TS_cmp_gn4124_core_cmp_clk_in|      5.000ns|      4.945ns|          N/A|            0|            0|         5838|            0|
+|  TS_cmp_gn4124_core_cmp_clk_in|      5.000ns|      4.950ns|          N/A|            0|            0|         5838|            0|
 |  _rx_pllout_x1_1              |             |             |             |             |             |             |             |
 +-------------------------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
 
@@ -453,8 +453,8 @@ Derived Constraints for TS_U_GTP_ch1_gtp_clkout_int_1_
 |           Constraint          | Requirement |-------------+-------------|-------------+-------------|-------------+-------------|
 |                               |             |   Direct    | Derivative  |   Direct    | Derivative  |   Direct    | Derivative  |
 +-------------------------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-|TS_U_GTP_ch1_gtp_clkout_int_1_ |      8.000ns|      0.925ns|      7.127ns|            0|            0|            0|        20096|
-| TS_U_GTP_ch1_rx_divclk        |      8.000ns|      7.127ns|          N/A|            0|            0|        20096|            0|
+|TS_U_GTP_ch1_gtp_clkout_int_1_ |      8.000ns|      0.925ns|      7.831ns|            0|            0|            0|        20096|
+| TS_U_GTP_ch1_rx_divclk        |      8.000ns|      7.831ns|          N/A|            0|            0|        20096|            0|
 +-------------------------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
 
 All constraints were met.
@@ -471,10 +471,10 @@ All signals are completely routed.
 
 WARNING:Par:283 - There are 16 loadless signals in this design. This design will cause Bitgen to issue DRC warnings.
 
-Total REAL time to PAR completion: 3 mins 38 secs 
-Total CPU time to PAR completion: 3 mins 49 secs 
+Total REAL time to PAR completion: 2 mins 13 secs 
+Total CPU time to PAR completion: 2 mins 17 secs 
 
-Peak Memory Usage:  462 MB
+Peak Memory Usage:  458 MB
 
 Placer: Placement generated during map.
 Routing: Completed - No errors found.

@@ -1,7 +1,7 @@
 Release 13.4 par O.87xd (nt)
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 
-PCBE13136::  Mon Jun 23 17:29:07 2014
+PCBE13136::  Tue Jul 08 10:54:36 2014
 
 par -w -intstyle ise -ol high -xe c -mt off wr_svec_tdc_map.ncd wr_svec_tdc.ncd
 wr_svec_tdc.pcf 
@@ -17,12 +17,6 @@ INFO:Par:338 -
    design even if the time specs can not be met. If you are looking for the best possible design speed available from a
    long but reasonable runtime use Extra Effort Level "n"ormal.  It will stop iterating on the design when the design
    speed improvements have shrunk to the point that the time specs are not expected to be met.
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-INFO:Security:56 - Part 'xc6slx150t' is not a WebPack part.
-WARNING:Security:42 - Your software subscription period has lapsed. Your current version of Xilinx tools will continue
-to function, but you no longer qualify for Xilinx software updates or new releases.
-
-----------------------------------------------------------------------
 
 Initializing temperature to 85.000 Celsius. (default - Range: 0.000 to 85.000 Celsius)
 Initializing voltage to 1.140 Volts. (default - Range: 1.140 to 1.260 Volts)
@@ -40,11 +34,11 @@ Slice Logic Utilization:
     Number used as Latches:                      4
     Number used as Latch-thrus:                  0
     Number used as AND/OR logics:               47
-  Number of Slice LUTs:                     16,151 out of  92,152   17%
-    Number used as logic:                   15,779 out of  92,152   17%
-      Number using O6 output only:          11,156
-      Number using O5 output only:             843
-      Number using O5 and O6:                3,780
+  Number of Slice LUTs:                     16,122 out of  92,152   17%
+    Number used as logic:                   15,780 out of  92,152   17%
+      Number using O6 output only:          11,157
+      Number using O5 output only:             844
+      Number using O5 and O6:                3,779
       Number used as ROM:                        0
     Number used as Memory:                      87 out of  21,680    1%
       Number used as Dual Port RAM:             24
@@ -56,18 +50,18 @@ Slice Logic Utilization:
         Number using O6 output only:            25
         Number using O5 output only:             0
         Number using O5 and O6:                 38
-    Number used exclusively as route-thrus:    285
-      Number with same-slice register load:    178
-      Number with same-slice carry load:       107
+    Number used exclusively as route-thrus:    255
+      Number with same-slice register load:    150
+      Number with same-slice carry load:       105
       Number with other load:                    0
 
 Slice Logic Distribution:
-  Number of occupied Slices:                 6,354 out of  23,038   27%
+  Number of occupied Slices:                 6,416 out of  23,038   27%
   Nummber of MUXCYs used:                    3,592 out of  46,076    7%
-  Number of LUT Flip Flop pairs used:       18,631
-    Number with an unused Flip Flop:         7,987 out of  18,631   42%
-    Number with an unused LUT:               2,480 out of  18,631   13%
-    Number of fully used LUT-FF pairs:       8,164 out of  18,631   43%
+  Number of LUT Flip Flop pairs used:       18,651
+    Number with an unused Flip Flop:         7,970 out of  18,651   42%
+    Number with an unused LUT:               2,529 out of  18,651   13%
+    Number of fully used LUT-FF pairs:       8,152 out of  18,651   43%
     Number of slice register sites lost
       to control set restrictions:               0 out of 184,304    0%
 
@@ -125,24 +119,18 @@ Router effort level (-rl):    High
 
 INFO:Timing:3386 - Intersecting Constraints found and resolved.  For more information, see the TSI report.  Please consult the Xilinx
    Command Line Tools User Guide for information on generating a TSI report.
-Starting initial Timing Analysis.  REAL time: 23 secs 
-Finished initial Timing Analysis.  REAL time: 24 secs 
+Starting initial Timing Analysis.  REAL time: 30 secs 
+Finished initial Timing Analysis.  REAL time: 30 secs 
 
 WARNING:Par:288 - The signal sfp_tx_fault_i_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal sfp_los_i_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal tdc1_pll_sdo_i_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal tdc2_pll_sdo_i_IBUF has no load.  PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem3_RAMD_O has no load. 
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem1_RAMD_O has no load. 
    PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal
    U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem2_RAMD_O has no load. 
-   PAR will not attempt to route this signal.
-WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem4_RAMD_O has no load. 
-   PAR will not attempt to route this signal.
-WARNING:Par:288 - The signal
-   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem1_RAMD_O has no load. 
    PAR will not attempt to route this signal.
 WARNING:Par:288 - The signal
    U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem6_RAMD_O has no load. 
@@ -150,34 +138,40 @@ WARNING:Par:288 - The signal
 WARNING:Par:288 - The signal
    U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem5_RAMD_O has no load. 
    PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem4_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
+WARNING:Par:288 - The signal
+   U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_TX_PCS/U_TX_FIFO/U_Inferred_FIFO/Mram_mem3_RAMD_O has no load. 
+   PAR will not attempt to route this signal.
 Starting Router
 
 
-Phase  1  : 102842 unrouted;      REAL time: 27 secs 
+Phase  1  : 102859 unrouted;      REAL time: 34 secs 
 
-Phase  2  : 91133 unrouted;      REAL time: 37 secs 
+Phase  2  : 91138 unrouted;      REAL time: 45 secs 
 
-Phase  3  : 44433 unrouted;      REAL time: 2 mins 38 secs 
+Phase  3  : 42992 unrouted;      REAL time: 2 mins 50 secs 
 
-Phase  4  : 44444 unrouted; (Setup:2732, Hold:0, Component Switching Limit:0)     REAL time: 2 mins 48 secs 
+Phase  4  : 42992 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 2 mins 56 secs 
 
 Updating file: wr_svec_tdc.ncd with current fully routed design.
 
-Phase  5  : 0 unrouted; (Setup:4319, Hold:0, Component Switching Limit:0)     REAL time: 5 mins 52 secs 
+Phase  5  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 
 
-Phase  6  : 0 unrouted; (Setup:4319, Hold:0, Component Switching Limit:0)     REAL time: 5 mins 54 secs 
+Phase  6  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 
 
-Phase  7  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 6 mins 33 secs 
+Phase  7  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 
 
-Phase  8  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 6 mins 33 secs 
+Phase  8  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 
 
-Phase  9  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 6 mins 33 secs 
+Phase  9  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 
 
-Phase 10  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 6 mins 33 secs 
+Phase 10  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 
 
-Phase 11  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 6 mins 36 secs 
-Total REAL time to Router completion: 6 mins 36 secs 
-Total CPU time to Router completion: 6 mins 34 secs 
+Phase 11  : 0 unrouted; (Setup:0, Hold:0, Component Switching Limit:0)     REAL time: 4 mins 2 secs 
+Total REAL time to Router completion: 4 mins 3 secs 
+Total CPU time to Router completion: 3 mins 50 secs 
 
 Partition Implementation Status
 -------------------------------
@@ -195,18 +189,18 @@ Generating Clock Report
 +---------------------+--------------+------+------+------------+-------------+
 |        Clock Net    |   Resource   |Locked|Fanout|Net Skew(ns)|Max Delay(ns)|
 +---------------------+--------------+------+------+------------+-------------+
-|        clk_62m5_sys |  BUFGMUX_X2Y3| No   | 2258 |  0.839     |  1.923      |
+|        clk_62m5_sys |  BUFGMUX_X2Y3| No   | 2267 |  0.839     |  1.923      |
 +---------------------+--------------+------+------+------------+-------------+
-|            clk_dmtd | BUFGMUX_X3Y13| No   |  115 |  0.068     |  1.417      |
+|            clk_dmtd | BUFGMUX_X3Y13| No   |  117 |  0.147     |  1.411      |
 +---------------------+--------------+------+------+------------+-------------+
 |clk_125m_pllref_BUFG |              |      |      |            |             |
-|                     |  BUFGMUX_X2Y4| No   |  141 |  0.247     |  1.433      |
+|                     |  BUFGMUX_X2Y4| No   |  142 |  0.314     |  1.411      |
 +---------------------+--------------+------+------+------------+-------------+
-|       tdc1_125m_clk |  BUFGMUX_X3Y7| No   |  723 |  0.830     |  1.916      |
+|       tdc1_125m_clk |  BUFGMUX_X3Y7| No   |  748 |  0.832     |  1.916      |
 +---------------------+--------------+------+------+------------+-------------+
-|       tdc2_125m_clk | BUFGMUX_X2Y12| No   |  759 |  0.819     |  1.916      |
+|       tdc2_125m_clk | BUFGMUX_X2Y12| No   |  738 |  0.830     |  1.916      |
 +---------------------+--------------+------+------+------------+-------------+
-|        phy_rx_rbclk |  BUFGMUX_X3Y8| No   |  144 |  0.249     |  1.429      |
+|        phy_rx_rbclk |  BUFGMUX_X3Y8| No   |  140 |  0.193     |  1.427      |
 +---------------------+--------------+------+------+------------+-------------+
 |U_Buf_CLK_GTP_ML_IBU |              |      |      |            |             |
 |                  F2 |         Local|      |    1 |  0.000     |  0.002      |
@@ -217,14 +211,14 @@ Generating Clock Report
 |U_WR_CORE/WRPC/LM32_ |              |      |      |            |             |
 |CORE/gen_profile_med |              |      |      |            |             |
 |ium_icache_debug.U_W |              |      |      |            |             |
-|    rapped_LM32/jtck |         Local|      |    9 |  2.628     |  6.629      |
+|    rapped_LM32/jtck |         Local|      |    9 |  0.244     |  7.114      |
 +---------------------+--------------+------+------+------------+-------------+
 |        clk_125m_gtp |         Local|      |    1 |  0.000     |  0.001      |
 +---------------------+--------------+------+------+------------+-------------+
 |cmp_tdc2/cmp_tdc_cor |              |      |      |            |             |
 |e/data_engine_block/ |              |      |      |            |             |
 |engine_st[3]_PWR_290 |              |      |      |            |             |
-|         _o_Mux_41_o |         Local|      |    2 |  0.000     |  0.302      |
+|         _o_Mux_41_o |         Local|      |    2 |  1.187     |  2.006      |
 +---------------------+--------------+------+------+------------+-------------+
 |cmp_tdc1/cmp_tdc_cor |              |      |      |            |             |
 |e/data_engine_block/ |              |      |      |            |             |
@@ -251,14 +245,14 @@ Asterisk (*) preceding a constraint indicates it was not met.
   Constraint                                |    Check    | Worst Case |  Best Case | Timing |   Timing   
                                             |             |    Slack   | Achievable | Errors |    Score   
 ----------------------------------------------------------------------------------------------------------
-  TS_tdc1_125m_clk_p_i = PERIOD TIMEGRP "td | SETUP       |     0.244ns|     7.756ns|       0|           0
-  c1_125m_clk_p_i" 8 ns HIGH 50%            | HOLD        |     0.348ns|            |       0|           0
+  TS_tdc1_125m_clk_p_i = PERIOD TIMEGRP "td | SETUP       |     0.255ns|     7.745ns|       0|           0
+  c1_125m_clk_p_i" 8 ns HIGH 50%            | HOLD        |     0.346ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
-  TS_tdc2_tdc_125m_clk_n_i = PERIOD TIMEGRP | SETUP       |     0.263ns|     7.737ns|       0|           0
-   "tdc2_125m_clk_n_i" 8 ns HIGH 50%        | HOLD        |     0.335ns|            |       0|           0
+  TS_tdc2_tdc_125m_clk_n_i = PERIOD TIMEGRP | SETUP       |     0.293ns|     7.707ns|       0|           0
+   "tdc2_125m_clk_n_i" 8 ns HIGH 50%        | HOLD        |     0.247ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
-  TS_clk_125m_pllref_p_i = PERIOD TIMEGRP " | SETUP       |     0.456ns|     7.088ns|       0|           0
-  clk_125m_pllref_p_i" 8 ns HIGH 50%        | HOLD        |     0.200ns|            |       0|           0
+  TS_clk_125m_pllref_p_i = PERIOD TIMEGRP " | SETUP       |     0.977ns|     7.023ns|       0|           0
+  clk_125m_pllref_p_i" 8 ns HIGH 50%        | HOLD        |     0.311ns|            |       0|           0
 ----------------------------------------------------------------------------------------------------------
   TS_clk_125m_pllref_n_i = PERIOD TIMEGRP " | MINPERIOD   |     1.750ns|     6.250ns|       0|           0
   clk_125m_pllref_n_i" 8 ns HIGH 50%        |             |            |            |        |            
@@ -275,12 +269,12 @@ Asterisk (*) preceding a constraint indicates it was not met.
   TS_tdc2_tdc_125m_clk_p_i = PERIOD TIMEGRP | MINPERIOD   |     4.876ns|     3.124ns|       0|           0
    "tdc2_125m_clk_p_i" 8 ns HIGH 50%        |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  ts_ignore_xclock3 = MAXDELAY FROM TIMEGRP | SETUP       |    12.115ns|     7.885ns|       0|           0
-   "clk_62m5_sys" TO TIMEGRP         "tdc2_ | HOLD        |     0.423ns|            |       0|           0
+  ts_ignore_xclock3 = MAXDELAY FROM TIMEGRP | SETUP       |    10.800ns|     9.200ns|       0|           0
+   "clk_62m5_sys" TO TIMEGRP         "tdc2_ | HOLD        |     0.557ns|            |       0|           0
   125m_clk" 20 ns DATAPATHONLY              |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
-  ts_ignore_xclock2 = MAXDELAY FROM TIMEGRP | SETUP       |    17.140ns|     2.860ns|       0|           0
-   "tdc2_125m_clk" TO TIMEGRP         "clk_ | HOLD        |     0.681ns|            |       0|           0
+  ts_ignore_xclock2 = MAXDELAY FROM TIMEGRP | SETUP       |    16.122ns|     3.878ns|       0|           0
+   "tdc2_125m_clk" TO TIMEGRP         "clk_ | HOLD        |     0.473ns|            |       0|           0
   62m5_sys" 20 ns DATAPATHONLY              |             |            |            |        |            
 ----------------------------------------------------------------------------------------------------------
   ts_ignore_xclock1 = MAXDELAY FROM TIMEGRP | N/A         |         N/A|         N/A|     N/A|         N/A
@@ -303,10 +297,10 @@ All signals are completely routed.
 
 WARNING:Par:283 - There are 10 loadless signals in this design. This design will cause Bitgen to issue DRC warnings.
 
-Total REAL time to PAR completion: 6 mins 43 secs 
-Total CPU time to PAR completion: 6 mins 41 secs 
+Total REAL time to PAR completion: 4 mins 12 secs 
+Total CPU time to PAR completion: 3 mins 58 secs 
 
-Peak Memory Usage:  663 MB
+Peak Memory Usage:  655 MB
 
 Placer: Placement generated during map.
 Routing: Completed - No errors found.

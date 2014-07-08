@@ -145,7 +145,7 @@ architecture rtl of data_formatting is
   signal acam_start_nb_32                                     : unsigned(31 downto 0);
   -- final timestamp fields
   signal full_timestamp                                       : std_logic_vector(127 downto 0);
-  signal metadata, local_utc, coarse_time, fine_time          : std_logic_vector(31 downto 0);
+  signal metadata, utc, coarse_time, fine_time                : std_logic_vector(31 downto 0);
   -- circular buffer timestamp writings WISHBONE interface
   signal tstamp_wr_cyc, tstamp_wr_stb, tstamp_wr_we           : std_logic;
   -- circular buffer counters
@@ -378,7 +378,7 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- The following process makes essential calculations for the definition of the coarse time.
-  -- Regarding the signals: un_clk_i_cycles_offset, un_retrig_nb_offset, local_utc it has to be defined
+  -- Regarding the signals: un_clk_i_cycles_offset, un_retrig_nb_offset, utc it has to be defined
   -- if the values that characterize the current second or the one previous to it should be used.
   -- In the case where: a timestamp came on the same retgigger after a new second
   -- (un_current_retrig_from_roll_over is 0 and un_acam_start_nb = un_current_retrig_nb_offset)
@@ -405,38 +405,31 @@ begin
   begin   
     if rising_edge (clk_i) then
       if rst_i ='1' then
-        un_clk_i_cycles_offset   <= (others => '0');
-        un_retrig_nb_offset      <= (others => '0');
-        un_retrig_from_roll_over <= (others => '0');
-        local_utc                <= (others => '0');
-        coarse_zero              <= '0';
+        un_clk_i_cycles_offset       <= (others => '0');
+        un_retrig_nb_offset          <= (others => '0');
+        un_retrig_from_roll_over     <= (others => '0');
+        utc                          <= (others => '0');
+        coarse_zero                  <= '0';
       else
-         -- ACAM tstamp arrived on the same retgigger after a new second
-         if (un_acam_start_nb+un_current_retrig_from_roll_over =  un_current_retrig_nb_offset) or
+        -- ACAM tstamp arrived on the same retgigger after a new second
+        if (un_acam_start_nb+un_current_retrig_from_roll_over =  un_current_retrig_nb_offset) or
           (un_acam_start_nb =  un_current_retrig_nb_offset-1 and  un_acam_fine_time > 6318 and (un_current_retrig_from_roll_over = 0) ) then
-		  --if (un_acam_start_nb =  un_current_retrig_nb_offset) or
-        --  (un_acam_start_nb =  un_current_retrig_nb_offset-1 and  un_acam_fine_time > 6318) then
-          coarse_zero            <= '1';
-          un_clk_i_cycles_offset <= un_previous_clk_i_cycles_offset;
-          un_retrig_nb_offset    <= un_previous_retrig_nb_offset;
-          local_utc              <= previous_utc;
 
-          -- ACAM tstamp arrived when roll_over has just increased
-          --if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
-          --  un_retrig_from_roll_over  <= shift_left(un_previous_roll_over_nb-1, 8);
-          --else
-            un_retrig_from_roll_over  <= shift_left(un_previous_roll_over_nb, 8);
-          --end if;
+          coarse_zero                <= '1';
+          un_clk_i_cycles_offset     <= un_previous_clk_i_cycles_offset;
+          un_retrig_nb_offset        <= un_previous_retrig_nb_offset;
+          utc                        <= previous_utc;
+          un_retrig_from_roll_over   <= shift_left(un_previous_roll_over_nb, 8);
 
         else
-          un_clk_i_cycles_offset <= unsigned(clk_i_cycles_offset_i);
-          un_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
-          local_utc              <= utc_i;
-          coarse_zero            <= '0';
+          un_clk_i_cycles_offset     <= unsigned(clk_i_cycles_offset_i);
+          un_retrig_nb_offset        <= unsigned(retrig_nb_offset_i);
+          utc                        <= utc_i;
+          coarse_zero                <= '0';
           if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
-            un_retrig_from_roll_over  <= shift_left(unsigned(roll_over_nb_i)-1, 8);
+            un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i)-1, 8);
           else
-            un_retrig_from_roll_over  <= shift_left(unsigned(roll_over_nb_i), 8);
+            un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i), 8);
           end if;
         end if;        
       end if;
@@ -474,7 +467,7 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   full_timestamp(31 downto 0)   <= fine_time;
   full_timestamp(63 downto 32)  <= coarse_time;
-  full_timestamp(95 downto 64)  <= local_utc;
+  full_timestamp(95 downto 64)  <= utc;
   full_timestamp(127 downto 96) <= metadata;
   tstamp_wr_dat_o               <= full_timestamp;
 

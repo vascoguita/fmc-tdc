@@ -651,7 +651,9 @@ begin
 --  TRIG2(31 downto 0)  <= utc(31 downto 0); 
 --  
 --  TRIG3(0)            <= tdc_in_fpga_1_i;
---  TRIG3(31 downto 1)  <= current_retrig_nb(30 downto 0);
+--  TRIG3(1)            <= roll_over_incr_recent;
+--  TRIG3(2)            <= wrabbit_tai_p_i;
+--  TRIG3(31 downto 3)  <= current_retrig_nb(28 downto 0);
   
 end rtl;
 ----------------------------------------------------------------------------------------------------

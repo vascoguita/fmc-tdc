@@ -73,6 +73,7 @@
 --     07/2013  v1  EG  First version                                                             |
 --     01/2014  v2  EG  Different output for the timestamp data                                   |
 --     01/2014  v3  EG  Removed option for timestamps retrieval through DMA                       |
+--     08/2014  v4  EG  Corrected missalignement between wrabbit_tai and wrabbit_tai_p (line 444) |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -436,14 +437,19 @@ begin
   wrabbit_one_hz_pulse : process(clk_ref_0_i)
   begin
     if rising_edge(clk_ref_0_i) then
-      if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
-        if unsigned(wrabbit_cycles_i) = unsigned(c_SYN_CLK_PERIOD) -1 then
-          wrabbit_utc_p <= '1';
-        else
-          wrabbit_utc_p <= '0';
-        end if;
-      else
+      if rst_ref_0_n = '0' then
         wrabbit_utc_p   <= '0';
+      else
+        if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
+          if unsigned(wrabbit_cycles_i) = (unsigned(c_SYN_CLK_PERIOD)-3) then -- so that the end of the pulse
+                                                                              -- comes exactly upon the UTC change
+            wrabbit_utc_p <= '1';
+          else
+            wrabbit_utc_p <= '0';
+          end if;
+        else
+          wrabbit_utc_p   <= '0';
+        end if;
       end if;
     end if;
   end process;
