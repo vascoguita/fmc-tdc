@@ -1,2 +1,3 @@
 libfmctdc.a
 .depend
+Makefile.specific
