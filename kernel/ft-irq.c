@@ -131,6 +131,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 {
 	struct ft_channel_state *st;
 	struct ft_wr_timestamp ts;
+	struct ft_wr_timestamp diff;
 
 	int channel, edge, frac;
 
@@ -166,49 +167,46 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	if (unlikely(edge != st->expected_edge)) {
 		/* wait unconditionally for next rising edge */
 		st->expected_edge = 1;
-	} else {
-
-		if (st->expected_edge == 0) {
-			/* got a falling edge after a rising one */
-			struct ft_wr_timestamp diff = ts;
-
-			ft_ts_sub(&diff, &st->prev_ts);
-
-			/* Check timestamp width. Must be at least 100 ns
-			   (coarse = 12, frac = 2048) */
-			if (likely
-			    (diff.seconds || diff.coarse > 12
-			     || (diff.coarse == 12 && diff.frac >= 2048))) {
-				ts = st->prev_ts;
-				ft_ts_apply_offset(&ts,
-						   ft->calib.
-						   zero_offset[channel - 1]);
-
-				ft_ts_apply_offset(&ts, -ft->calib.wr_offset);
-
-				if (st->user_offset)
-					ft_ts_apply_offset(&ts,
-							   st->user_offset);
-
-				/* Got a dacapo flag? make a gap in
-				   the sequence ID to indicate
-				   an unknown loss of timestamps */
-
-				ts.seq_id = st->cur_seq_id++;
-
-				if (dacapo_flag) {
-					ts.seq_id++;
-					st->cur_seq_id++;
-				}
-
-				/* Put the timestamp in the FIFO */
-				enqueue_timestamp(ft, channel, &ts);
-			}
-		} else
-			st->prev_ts = ts;
-
-		st->expected_edge = 1 - st->expected_edge;
+		return ;
 	}
+
+
+	if (st->expected_edge != 0) {
+		st->prev_ts = ts;
+		st->expected_edge = 1 - st->expected_edge;
+		return ;
+	}
+
+
+	/* got a falling edge after a rising one */
+	diff = ts;
+	ft_ts_sub(&diff, &st->prev_ts);
+
+	/* Check timestamp width. Must be at least 100 ns
+	   (coarse = 12, frac = 2048) */
+	if (likely(diff.seconds || diff.coarse > 12
+	     || (diff.coarse == 12 && diff.frac >= 2048))) {
+		ts = st->prev_ts;
+		ft_ts_apply_offset(&ts, ft->calib.zero_offset[channel - 1]);
+
+		ft_ts_apply_offset(&ts, -ft->calib.wr_offset);
+		if (st->user_offset)
+			ft_ts_apply_offset(&ts, st->user_offset);
+
+		/* Got a dacapo flag? make a gap in the sequence ID to indicate
+		   an unknown loss of timestamps */
+
+		ts.seq_id = st->cur_seq_id++;
+
+		if (dacapo_flag) {
+			ts.seq_id++;
+			st->cur_seq_id++;
+		}
+
+		/* Put the timestamp in the FIFO */
+		enqueue_timestamp(ft, channel, &ts);
+	}
+	st->expected_edge = 1 - st->expected_edge;
 }
 
 static irqreturn_t ft_irq_handler(int irq, void *dev_id)
