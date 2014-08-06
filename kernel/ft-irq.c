@@ -171,9 +171,13 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	}
 
 
-	if (st->expected_edge != 0) {
+	/* From this point we are working with the expected EDGE */
+
+	if (st->expected_edge == 1) {
+		/* We received a raising edge, save the time stamp and
+		   wait for the falling edge */
 		st->prev_ts = ts;
-		st->expected_edge = 1 - st->expected_edge;
+		st->expected_edge = 0;
 		return ;
 	}
 
@@ -206,7 +210,9 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 		/* Put the timestamp in the FIFO */
 		enqueue_timestamp(ft, channel, &ts);
 	}
-	st->expected_edge = 1 - st->expected_edge;
+
+	/* Wait for the next raising edge */
+	st->expected_edge = 1;
 }
 
 static irqreturn_t ft_irq_handler(int irq, void *dev_id)
