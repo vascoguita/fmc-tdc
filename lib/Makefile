@@ -6,7 +6,7 @@ ZIO ?= ../zio
 LIB = libfmctdc.a
 LOBJ := fmctdc-lib.o
 
-CFLAGS = -Wall -ggdb -O2 -I../kernel -I$(ZIO)/include
+CFLAGS = -Wall -ggdb -O2 -I../kernel -I$(ZIO)/include $(EXTRACFLAGS)
 
 DESTDIR ?= /usr/local
 

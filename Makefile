@@ -10,6 +10,8 @@ all clean modules install modules_install: gitmodules
 
 all modules: prereq
 
+clean_all: clean prereq_clean
+
 # a hack, to prevent compiling wr-nic.ko, which won't work on older kernels
 CONFIG_WR_NIC=n
 export CONFIG_WR_NIC
@@ -23,7 +25,8 @@ gitmodules:
 # The user can override, using environment variables, all these three:
 FMC_BUS ?= fmc-bus
 ZIO ?= zio
-SUBMOD = $(FMC_BUS) $(ZIO)
+SPEC_SW ?= spec-sw
+SUBMOD = $(FMC_BUS) $(ZIO) $(SPEC_SW)
 
 prereq:
 	for d in $(SUBMOD); do $(MAKE) -C $$d || exit 1; done
@@ -35,3 +38,6 @@ prereq_install_warn:
 prereq_install:
 	for d in $(SUBMOD); do $(MAKE) -C $$d modules_install || exit 1; done
 	touch .prereq_installed
+
+prereq_clean:
+	for d in $(SUBMOD); do $(MAKE) -C $$d clean || exit 1; done
