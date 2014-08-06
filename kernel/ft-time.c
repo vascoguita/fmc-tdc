@@ -12,7 +12,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
-#include <asm/io.h>
+#include <linux/io.h>
 
 #include "fmc-tdc.h"
 
@@ -102,8 +102,8 @@ int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 	return 0;
 }
 
-int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,
-		    uint32_t * coarse)
+int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t *seconds,
+		      uint32_t *coarse)
 {
 	*seconds = ft_readl(ft, TDC_REG_CURRENT_UTC);
 	*coarse = 0;
@@ -124,7 +124,7 @@ int ft_set_host_time(struct fmctdc_dev *ft)
 	return 0;
 }
 
-void ft_set_vcxo_tune (struct fmctdc_dev *ft, int value)
+void ft_set_vcxo_tune(struct fmctdc_dev *ft, int value)
 {
 	ft_writel(ft, value, TDC_REG_DAC_TUNE);
 	ft_writel(ft, TDC_CTRL_CONFIG_DAC, TDC_REG_CTRL);
@@ -143,13 +143,13 @@ int ft_wr_mode(struct fmctdc_dev *ft, int on)
 	} else {
 		ft_writel(ft, 0, TDC_REG_WR_CTRL);
 		ft->wr_mode = 0;
-		ft_set_vcxo_tune (ft, ft->calib.vcxo_default_tune & 0xffff);
+		ft_set_vcxo_tune(ft, ft->calib.vcxo_default_tune & 0xffff);
 	}
 
 	spin_unlock_irqrestore(&ft->lock, flags);
-	
+
 	wr_stat = ft_readl(ft, TDC_REG_WR_STAT);
-	if( ! (wr_stat & TDC_WR_STAT_LINK))
+	if (!(wr_stat & TDC_WR_STAT_LINK))
 		return -ENOLINK;
 	return 0;
 }
@@ -157,11 +157,12 @@ int ft_wr_mode(struct fmctdc_dev *ft, int on)
 int ft_wr_query(struct fmctdc_dev *ft)
 {
 	uint32_t wr_stat;
+
 	wr_stat = ft_readl(ft, TDC_REG_WR_STAT);
 
 	if (!ft->wr_mode)
 		return -ENODEV;
-	if (! (wr_stat & TDC_WR_STAT_LINK))
+	if (!(wr_stat & TDC_WR_STAT_LINK))
 		return -ENOLINK;
 	if (wr_stat & TDC_WR_STAT_AUX_LOCKED)
 		return 0;

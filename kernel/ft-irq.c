@@ -30,15 +30,18 @@
 
 static void ft_readout_tasklet(unsigned long arg);
 
-static void copy_timestamps(struct fmctdc_dev *ft, int base_addr, int size, void *dst)
+static void copy_timestamps(struct fmctdc_dev *ft, int base_addr,
+			      int size, void *dst)
 {
 	int i;
 	uint32_t addr;
 	uint32_t *dptr;
 
-	BUG_ON(size & 3 || base_addr & 3);	/* no unaligned reads, please. */
+	/* no unaligned reads, please. */
+	BUG_ON(size & 3 || base_addr & 3);
 
-	/* FIXME: use SDB to determine buffer base address (after fixing the HDL) */
+	/* FIXME: use SDB to determine buffer base address
+	   (after fixing the HDL) */
 	addr = ft->ft_buffer_base + base_addr;
 
 	for (i = 0, dptr = (uint32_t *) dst; i < size / 4; i++, dptr++)
@@ -116,9 +119,9 @@ static inline void enqueue_timestamp(struct fmctdc_dev *ft, int channel,
 	fifo->head = (fifo->head + 1) % fifo->size;
 	if (fifo->count < fifo->size)
 		fifo->count++;
-	else {
+	else
 		fifo->tail = (fifo->tail + 1) % fifo->size;
-	}
+
 	spin_unlock_irqrestore(&ft->lock, flags);
 }
 
@@ -137,16 +140,18 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	st = &ft->channels[channel - 1];
 
 	/* first, convert the timestamp from the HDL units (81 ps bins)
-	   to the WR format (where fractional part is 8 ns rescaled to 4096 units) */
-		
+	   to the WR format (where fractional part is 8 ns rescaled to
+	   4096 units) */
 	ts.channel = channel;
 	ts.seconds = hwts->utc;
-	frac = hwts->bins * 81 * 64 / 125;	/* 64/125 = 4096/8000: reduce fraction to avoid 64-bit division */
+	/* 64/125 = 4096/8000: reduce fraction to avoid 64-bit division */
+	frac = hwts->bins * 81 * 64 / 125;
 
 	ts.coarse = hwts->coarse + frac / 4096;
 	ts.frac = frac % 4096;
 
-	/* the addition above may result with the coarse counter goint out of range: */
+	/* the addition above may result with the coarse counter going
+	   out of range: */
 	if (unlikely(ts.coarse >= 125000000)) {
 		ts.coarse -= 125000000;
 		ts.seconds++;
@@ -155,21 +160,26 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	/* A trivial state machine to remove glitches, react on rising edge only
 	   and drop pulses that are narrower than 100 ns.
 
-	   We are waiting for a falling edge, but a rising one occurs - ignore it. 
+	   We are waiting for a falling edge,
+	   but a rising one occurs - ignore it.
 	 */
-	if (unlikely(edge != st->expected_edge))
-		st->expected_edge = 1;	/* wait unconditionally for next rising edge */
-	else {
+	if (unlikely(edge != st->expected_edge)) {
+		/* wait unconditionally for next rising edge */
+		st->expected_edge = 1;
+	} else {
 
-		if (st->expected_edge == 0) {	/* got a falling edge after a rising one */
+		if (st->expected_edge == 0) {
+			/* got a falling edge after a rising one */
 			struct ft_wr_timestamp diff = ts;
+
 			ft_ts_sub(&diff, &st->prev_ts);
 
-			/* Check timestamp width. Must be at least 100 ns (coarse = 12, frac = 2048) */
+			/* Check timestamp width. Must be at least 100 ns
+			   (coarse = 12, frac = 2048) */
 			if (likely
 			    (diff.seconds || diff.coarse > 12
 			     || (diff.coarse == 12 && diff.frac >= 2048))) {
-			        ts = st->prev_ts;
+				ts = st->prev_ts;
 				ft_ts_apply_offset(&ts,
 						   ft->calib.
 						   zero_offset[channel - 1]);
@@ -180,7 +190,8 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 					ft_ts_apply_offset(&ts,
 							   st->user_offset);
 
-				/* Got a dacapo flag? make a gap in the sequence ID to indicate
+				/* Got a dacapo flag? make a gap in
+				   the sequence ID to indicate
 				   an unknown loss of timestamps */
 
 				ts.seq_id = st->cur_seq_id++;
@@ -210,7 +221,8 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 
 	if (likely(irq_stat & (TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME))) {
 		/* clear the IRQ */
-		fmc_writel(ft->fmc, irq_stat, ft->ft_irq_base + TDC_REG_EIC_ISR);
+		fmc_writel(ft->fmc, irq_stat,
+			   ft->ft_irq_base + TDC_REG_EIC_ISR);
 
 		tasklet_schedule(&ft->readout_tasklet);
 		return IRQ_HANDLED;
@@ -271,14 +283,17 @@ static void ft_readout_tasklet(unsigned long arg)
 
 	/* Start reading from the oldest event */
 	if (count == FT_BUFFER_EVENTS)
-		rd_ptr = (ft->cur_wr_ptr >> 4) & 0x000ff;	/* The oldest is curr_wr_ptr */
+		/* The oldest is curr_wr_ptr */
+		rd_ptr = (ft->cur_wr_ptr >> 4) & 0x000ff;
 	else
-		rd_ptr = (ft->prev_wr_ptr >> 4) & 0x000ff;	/* The oldest is prev_wr_ptr */
+		/* The oldest is prev_wr_ptr */
+		rd_ptr = (ft->prev_wr_ptr >> 4) & 0x000ff;
 
 	for (; count > 0; count--) {
 		struct ft_hw_timestamp hwts;
-		copy_timestamps( ft, rd_ptr * sizeof(struct ft_hw_timestamp),
-				sizeof(struct ft_hw_timestamp), &hwts );
+
+		copy_timestamps(ft, rd_ptr * sizeof(struct ft_hw_timestamp),
+				sizeof(struct ft_hw_timestamp), &hwts);
 		process_timestamp(ft, &hwts, dacapo);
 		rd_ptr = (rd_ptr + 1) % FT_BUFFER_EVENTS;
 	}
@@ -291,7 +306,8 @@ static void ft_readout_tasklet(unsigned long arg)
 		/* FIXME: race condition */
 		if (test_bit(FT_FLAG_CH_INPUT_READY, &st->flags)) {
 			struct zio_cset *cset = &zdev->cset[i - 1];
-			/* there is an active block, try reading an accumulated sample */
+			/* there is an active block, try reading an
+			   accumulated sample */
 			if (ft_read_sw_fifo(ft, i, cset->chan) == 0) {
 				clear_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
 				zio_trigger_data_done(cset);
@@ -299,7 +315,7 @@ static void ft_readout_tasklet(unsigned long arg)
 		}
 	}
 
-      out:
+ out:
 	/* ack the irq */
 	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP,
 		   ft->ft_irq_base + TDC_REG_EIC_ISR);
@@ -322,7 +338,8 @@ int ft_irq_init(struct fmctdc_dev *ft)
 		   ft->ft_irq_base + TDC_REG_EIC_IER);
 
 	/* pass the core's base addr as the VIC IRQ vector. */
-	/* fixme: vector table points to the bridge instead of the core's base address */
+	/* fixme: vector table points to the bridge instead of
+	   the core's base address */
 	ft->fmc->irq = ft->ft_irq_base;
 	ret = ft->fmc->op->irq_request(ft->fmc, ft_irq_handler, "fmc-tdc", 0);
 

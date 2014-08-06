@@ -12,7 +12,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
-#include <asm/io.h>
+#include <linux/io.h>
 
 #include "fmc-tdc.h"
 
@@ -50,6 +50,7 @@ static struct {
 static inline int acam_is_pll_locked(struct fmctdc_dev *ft)
 {
 	uint32_t status;
+
 	ft_writel(ft, TDC_CTRL_READ_ACAM_CFG, TDC_REG_CTRL);
 	udelay(100);
 

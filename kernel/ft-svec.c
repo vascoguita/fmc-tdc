@@ -24,9 +24,10 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 {
 	unsigned long tmo;
 
-	/* FIXME: An UGLY hack: ft_svec_reset() executed on slot 0 (first mezzanine to
-	   be initialized) resets BOTH cards. The reason is that we need both mezzanines PLLs
-	   running to read the entire SDB tree (parts of the system interconnect are clocked from
+	/* FIXME: An UGLY hack: ft_svec_reset() executed on slot 0
+	   (first mezzanine to be initialized) resets BOTH cards. The reason is
+	   that we need both mezzanines PLLs running to read the entire
+	   SDB tree (parts of the system interconnect are clocked from
 	   FMC clock lines. */
 
 	if (ft->fmc->slot_id != 0)
@@ -40,9 +41,9 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 	tmo = jiffies + 2 * HZ;
 	while (time_before(jiffies, tmo)) {
 		uint32_t stat;
-		stat =
-		    fmc_readl(ft->fmc,
-			      TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_CTL0);
+
+		stat = fmc_readl(ft->fmc,
+				 TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_CTL0);
 
 		if ((stat & TDC_CARRIER_CTL0_PLL_STAT_FMC0) &&
 		    (stat & TDC_CARRIER_CTL0_PLL_STAT_FMC1))
@@ -62,10 +63,12 @@ static int ft_svec_copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 	uint32_t addr;
 	uint32_t *dptr;
 
-	if (unlikely(size & 3 || base_addr & 3))	/* no unaligned reads, please. */
+	/* no unaligned reads, please. */
+	if (unlikely(size & 3 || base_addr & 3))
 		return -EIO;
 
-	/* FIXME: use SDB to determine buffer base address (after fixing the HDL) */
+	/* FIXME: use SDB to determine buffer base address
+	   (after fixing the HDL) */
 	addr = ft->ft_buffer_base + base_addr;
 
 	for (i = 0, dptr = (uint32_t *) dst; i < size / 4; i++, dptr++)

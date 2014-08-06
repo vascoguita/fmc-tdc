@@ -28,9 +28,10 @@ static int ft_spec_reset(struct fmctdc_dev *ft)
 	/* set local bus clock to 160 MHz. The FPGA can't handle more. */
 	gennum_writel(spec, 0xE001F04C, 0x808);
 
-	msleep(3000);		/* it takes a while for the PLL to bootstrap.... or not! 
-				   We have no possibility to check, as the PLL status register is driven
-				   by the clock from this PLL :( */
+	/* it takes a while for the PLL to bootstrap.... or not!
+	   We have no possibility to check, as the PLL status register is driven
+	   by the clock from this PLL :( */
+	msleep(3000);
 
 	return 0;
 }

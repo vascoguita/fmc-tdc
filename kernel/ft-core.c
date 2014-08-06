@@ -30,7 +30,7 @@
 #include "hw/tdc_regs.h"
 
 /* Module parameters */
-static int ft_verbose = 0;
+static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
 
@@ -138,8 +138,9 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 	ft->acquisition_on = enable;
 
 	if (!enable) {
-		/* when disabling acquisition, clear the FIFOs, reset width validation state
-		   machine and sequence IDs */
+		/* when disabling acquisition, clear the FIFOs,
+		   reset width validation state machine and
+		   sequence IDs */
 
 		for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
 			ft_reset_channel(ft, i);
@@ -157,6 +158,7 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 static int ft_channels_init(struct fmctdc_dev *ft)
 {
 	int i, ret;
+
 	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
 		ret = ft_init_channel(ft, i);
 		if (ret < 0)
@@ -170,14 +172,16 @@ static int ft_channels_init(struct fmctdc_dev *ft)
 static void ft_channels_exit(struct fmctdc_dev *ft)
 {
 	int i;
+
 	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
 		kfree(ft->channels[i - 1].fifo.t);
 }
 
 struct ft_modlist {
 	char *name;
-	int (*init) (struct fmctdc_dev *);
-	void (*exit) (struct fmctdc_dev *);
+
+	int (*init)(struct fmctdc_dev *);
+	void (*exit)(struct fmctdc_dev *);
 };
 
 static struct ft_modlist init_subsystems[] = {
@@ -205,8 +209,8 @@ int ft_probe(struct fmc_device *fmc)
 
 	index = fmc->op->validate(fmc, &ft_drv);
 	if (index < 0) {
-		dev_info(dev, "not using \"%s\" according to "
-			 "modparam\n", KBUILD_MODNAME);
+		dev_info(dev, "not using \"%s\" according to modparam\n",
+			 KBUILD_MODNAME);
 		return -ENODEV;
 	}
 
@@ -229,10 +233,11 @@ int ft_probe(struct fmc_device *fmc)
 	else
 		fwname = ft->carrier_specific->gateware_name;
 
-	/* reprogram the card, but do not try to read the SDB.  
+	/* reprogram the card, but do not try to read the SDB.
 	   Everything (including the SDB descriptor/bus logic) is clocked
-	   from the FMC oscillator which needs to be bootstrapped by the gateware with
-	   no possibility for the driver to check if something went wrong... */
+	   from the FMC oscillator which needs to be bootstrapped by
+	   the gateware with no possibility for the driver to check if
+	   something went wrong... */
 
 	ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
 	if (ret < 0) {
@@ -244,7 +249,7 @@ int ft_probe(struct fmc_device *fmc)
 		return ret;	/* other error: pass over */
 	}
 
-	dev_info(dev, "Gateware successfully loaded \n");
+	dev_info(dev, "Gateware successfully loaded\n");
 
 	ret = ft->carrier_specific->reset_core(ft);
 	if (ret < 0)
@@ -318,7 +323,7 @@ int ft_probe(struct fmc_device *fmc)
 	ft->initialized = 1;
 
 	return 0;
-      err:
+ err:
 	while (--m, --i >= 0)
 		if (m->exit)
 			m->exit(ft);

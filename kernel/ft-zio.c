@@ -28,7 +28,7 @@
 
 #include "fmc-tdc.h"
 
-#define _RW_ (S_IRUGO | S_IWUGO)	/* I want 80-col lines so this lazy thing */
+#define _RW_ (S_IRUGO | S_IWUGO)    /* I want 80-col lines so this lazy thing */
 
 /* The sample size. Mandatory, device-wide */
 ZIO_ATTR_DEFINE_STD(ZIO_DEV, ft_zattr_dev_std) = {
@@ -78,7 +78,7 @@ void ft_zio_kill_buffer(struct fmctdc_dev *ft, int channel)
 
 /* TDC input attributes: only the user offset is special */
 static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
-			       uint32_t * usr_val)
+			       uint32_t *usr_val)
 {
 	struct zio_cset *cset;
 	struct fmctdc_dev *ft;
@@ -107,7 +107,7 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 
 /* Overall and device-wide attributes: only get_time is special */
 static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
-			   uint32_t * usr_val)
+			     uint32_t *usr_val)
 {
 	struct zio_device *zdev;
 	struct fmctdc_dev *ft;
@@ -209,9 +209,8 @@ static int ft_zio_input(struct zio_cset *cset)
 	st = &ft->channels[cset->index];
 
 	/* Ready for input. If there's already something, return it now */
-	if (ft_read_sw_fifo(ft, cset->index + 1, cset->chan) == 0) {
+	if (ft_read_sw_fifo(ft, cset->index + 1, cset->chan) == 0)
 		return 0;	/* don't call data_done, let the caller do it */
-	}
 
 	/* Mark the active block is valid, and return EAGAIN */
 
@@ -293,7 +292,7 @@ static const struct zio_sysfs_operations ft_zio_sysfs_ops = {
 
 #define DECLARE_CHANNEL(ch_name) \
 	{\
-		ZIO_SET_OBJ_NAME( ch_name ),\
+		ZIO_SET_OBJ_NAME(ch_name),\
 		.raw_io =	ft_zio_input,\
 		.n_chan =	1,\
 		.ssize =	4, /* FIXME: 0? */\
