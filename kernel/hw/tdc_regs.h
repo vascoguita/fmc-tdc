@@ -60,6 +60,7 @@
 
 /* IRQ status/enable bits */
 #define TDC_IRQ_TDC_TSTAMP		BIT(0)
+#define TDC_IRQ_TDC_TIME		BIT(1)
 
 #define TDC_EVENT_BUFFER_SIZE		256
 #define TDC_EVENT_CHANNEL_MASK		0xF

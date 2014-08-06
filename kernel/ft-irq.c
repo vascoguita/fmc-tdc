@@ -206,7 +206,7 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 
 	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);	/* clear the IRQ */
 
-	if (likely(irq_stat & TDC_IRQ_TDC_TSTAMP)) {
+	if (likely(irq_stat & (TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME))) {
 		tasklet_schedule(&ft->readout_tasklet);
 		return IRQ_HANDLED;
 	}
@@ -309,11 +309,11 @@ int ft_irq_init(struct fmctdc_dev *ft)
 		     (unsigned long)ft);
 
 	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
-	ft_writel(ft, 1, TDC_REG_IRQ_THRESHOLD);
-	ft_writel(ft, 0, TDC_REG_IRQ_TIMEOUT);
+	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
+	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
 
 	/* enable timestamp readout IRQ */
-	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP,
+	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME,
 		   ft->ft_irq_base + TDC_REG_EIC_IER);
 
 	/* pass the core's base addr as the VIC IRQ vector. */
