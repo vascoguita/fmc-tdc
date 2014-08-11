@@ -214,7 +214,7 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 		return IRQ_HANDLED;
 	}
 
-	return 0;
+	return IRQ_NONE;
 }
 
 static inline int check_lost_events(uint32_t curr_wr_ptr, uint32_t prev_wr_ptr,
