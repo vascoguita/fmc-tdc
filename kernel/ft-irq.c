@@ -204,9 +204,12 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	uint32_t irq_stat;
 
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);	/* clear the IRQ */
+	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
 
 	if (likely(irq_stat & (TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME))) {
+		/* clear the IRQ */
+		fmc_writel(ft->fmc, irq_stat, ft->ft_irq_base + TDC_REG_EIC_ISR);
+
 		tasklet_schedule(&ft->readout_tasklet);
 		return IRQ_HANDLED;
 	}
