@@ -72,7 +72,8 @@ int fmctdc_init(void)
 		/* trim the "-0-0-ctrl" at the end */
 		b->devbase[strlen(b->devbase) - strlen("-0-0-ctrl")] = '\0';
 		/* extract dev_id */
-		sscanf(b->sysbase, "%*[^f]ft-%x", &b->dev_id);
+		printf("\n\n%s\n\n", b->sysbase);
+		sscanf(b->sysbase, "%*[^t]tdc-1n5c-%x", &b->dev_id);
 		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 			b->fdc[j] = -1;
 			b->fdd[j] = -1;
