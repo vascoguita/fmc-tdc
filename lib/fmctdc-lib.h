@@ -64,4 +64,6 @@ extern float fmctdc_read_temperature(struct fmctdc_board *b);
 extern int fmctdc_wr_mode(struct fmctdc_board *b, int on);
 extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
 
+extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
+
 #endif /* __FMCTDC_LIB_H__ */

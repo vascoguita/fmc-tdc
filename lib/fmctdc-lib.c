@@ -72,7 +72,6 @@ int fmctdc_init(void)
 		/* trim the "-0-0-ctrl" at the end */
 		b->devbase[strlen(b->devbase) - strlen("-0-0-ctrl")] = '\0';
 		/* extract dev_id */
-		printf("\n\n%s\n\n", b->sysbase);
 		sscanf(b->sysbase, "%*[^t]tdc-1n5c-%x", &b->dev_id);
 		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 			b->fdc[j] = -1;
@@ -417,4 +416,30 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 	if (__fmctdc_command(b, FT_CMD_WR_QUERY) == 0)
 		return 0;
 	return errno;
+}
+
+/* It perform the subtraction:
+ *     a = a - b
+ */
+void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
+{
+	int32_t d_frac, d_coarse = 0;
+
+	d_frac = a->frac - b->frac;
+
+	if (d_frac < 0) {
+		d_frac += 4096;
+		d_coarse--;
+	}
+
+	d_coarse += a->coarse - b->coarse;
+
+	if (d_coarse < 0) {
+		d_coarse += 125000000;
+		a->seconds--;
+	}
+
+	a->coarse = d_coarse;
+	a->frac = d_frac;
+	a->seconds -= b->seconds;
 }
