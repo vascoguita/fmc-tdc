@@ -4,4 +4,5 @@ fmc-tdc-read
 fmc-tdc-temperature
 fmc-tdc-term
 fmc-tdc-time
+fmc-tdc-tstamp
 Makefile.specific

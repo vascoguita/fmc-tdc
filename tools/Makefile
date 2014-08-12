@@ -12,7 +12,8 @@ TESTS = fmc-tdc-list \
 	fmc-tdc-read \
 	fmc-tdc-acquisition \
 	fmc-tdc-temperature \
-	fmc-tdc-time
+	fmc-tdc-time \
+	fmc-tdc-tstamp
 
 CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall $(EXTRACFLAGS)
 
