@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
 
 	/* Open FMC TDC device */
-	brd = fmctdc_open(0, dev_id); /* look for dev_id form the beginning */
+	brd = fmctdc_open(-1, dev_id); /* look for dev_id form the beginning */
 	if (!brd) {
 		fprintf(stderr, "Can't open device 0x%x: %s\n", dev_id,
 			strerror(errno));
