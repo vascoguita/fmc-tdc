@@ -14,13 +14,6 @@
 #ifndef __FMC_TDC_H__
 #define __FMC_TDC_H__
 
-#ifdef __KERNEL__		/* All the rest is only of kernel users */
-#include <linux/spinlock.h>
-#include <linux/timer.h>
-#include <linux/fmc.h>
-#include <linux/version.h>
-#endif
-
 #define FT_VERSION    2		/* version of the driver */
 
 /* default gatewares */
@@ -67,6 +60,11 @@ enum ft_command {
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
 
+#include <linux/spinlock.h>
+#include <linux/timer.h>
+#include <linux/fmc.h>
+#include <linux/version.h>
+
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 
 enum ft_channel_flags {
@@ -94,7 +92,7 @@ struct ft_calibration {		/* All of these are big endian in the EEPROM */
 
 	/* Temperature at which the device has been calibrated */
 	uint32_t calibration_temp;
-	
+
 	/* White Rabbit timescale offset in ps */
 	int32_t wr_offset;
 };
