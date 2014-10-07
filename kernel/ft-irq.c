@@ -20,6 +20,7 @@
 #include <linux/bitops.h>
 #include <linux/spinlock.h>
 #include <linux/io.h>
+#include <linux/kfifo.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -58,24 +59,22 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	struct ft_wr_timestamp ts;
 	struct ft_channel_state *st;
 	unsigned long flags;
+	int ret;
 
 	st = &ft->channels[channel - 1];
 
 	if (!chan->active_block)
 		return -EAGAIN;
 
-	if (!st->fifo.count)
+	ret = kfifo_out_spinlocked(&st->fifo, &ts,
+				   sizeof(struct ft_wr_timestamp), &ft->lock);
+	if (!ret) {
 		return -EAGAIN;
-
-	/* Copy the sample to local storage */
-	spin_lock_irqsave(&ft->lock, flags);
-	ts = st->fifo.t[st->fifo.tail];
-	st->fifo.tail++;
-	if (st->fifo.tail == st->fifo.size)
-		st->fifo.tail = 0;
-	st->fifo.count--;
-
-	spin_unlock_irqrestore(&ft->lock, flags);
+	} else if (ret < sizeof(struct ft_wr_timestamp)) {
+		dev_err(&ft->zdev->head.dev,
+			"Somethig wrong with kfifo buffer\n");
+		return -EINVAL;
+	}
 
 	/* Write the timestamp in the trigger, it will reach the control */
 	ti->tstamp.tv_sec = ts.seconds;
@@ -107,23 +106,6 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	return 0;
 }
 
-static inline void enqueue_timestamp(struct fmctdc_dev *ft, int channel,
-				     struct ft_wr_timestamp *ts)
-{
-	struct ft_sw_fifo *fifo = &ft->channels[channel - 1].fifo;
-	unsigned long flags;
-
-	/* fixme: consider independent locks for each channel. */
-	spin_lock_irqsave(&ft->lock, flags);
-	fifo->t[fifo->head] = *ts;
-	fifo->head = (fifo->head + 1) % fifo->size;
-	if (fifo->count < fifo->size)
-		fifo->count++;
-	else
-		fifo->tail = (fifo->tail + 1) % fifo->size;
-
-	spin_unlock_irqrestore(&ft->lock, flags);
-}
 
 static inline void process_timestamp(struct fmctdc_dev *ft,
 				     struct ft_hw_timestamp *hwts,
@@ -208,7 +190,8 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 		}
 
 		/* Put the timestamp in the FIFO */
-		enqueue_timestamp(ft, channel, &ts);
+		kfifo_in_spinlocked(&st->fifo, &ts,
+				    sizeof(struct ft_wr_timestamp), &ft->lock);
 	}
 
 	/* Wait for the next raising edge */

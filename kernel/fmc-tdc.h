@@ -64,6 +64,7 @@ enum ft_command {
 #include <linux/timer.h>
 #include <linux/fmc.h>
 #include <linux/version.h>
+#include <linux/kfifo.h>
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 
@@ -114,11 +115,6 @@ struct ft_wr_timestamp {
 	int channel;
 };
 
-struct ft_sw_fifo {
-	unsigned long head, tail, count, size;
-	struct ft_wr_timestamp *t;
-};
-
 struct ft_channel_state {
 	unsigned long flags;
 	int expected_edge;
@@ -127,7 +123,7 @@ struct ft_channel_state {
 	int32_t user_offset;
 
 	struct ft_wr_timestamp prev_ts;
-	struct ft_sw_fifo fifo;
+	struct kfifo fifo;
 };
 
 /* Main TDC device context */
