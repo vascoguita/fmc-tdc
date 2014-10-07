@@ -23,9 +23,15 @@ gitmodules:
 	@git submodule update
 
 # The user can override, using environment variables, all these three:
-FMC_BUS ?= fmc-bus
-ZIO ?= zio
-SPEC_SW ?= spec-sw
+FMC_BUS ?= $(shell /bin/pwd)/fmc-bus
+export FMC_BUS
+
+ZIO ?= $(shell /bin/pwd)/zio
+export ZIO
+
+SPEC_SW ?= $(shell /bin/pwd)/spec-sw
+export SPEC_SW
+
 SUBMOD = $(FMC_BUS) $(ZIO) $(SPEC_SW)
 
 prereq:
