@@ -47,15 +47,6 @@ module_param_named(buffer_size, ft_buffer_size, int, 0444);
 MODULE_PARM_DESC(verbose,
 		 "Number of timestamps in each channel's software FIFO buffer.");
 
-static void ft_temp_timer_handler(unsigned long arg)
-{
-	struct fmctdc_dev *ft = (struct fmctdc_dev *)arg;
-
-	ft_read_temp(ft, ft->verbose);
-
-	mod_timer(&ft->temp_timer, jiffies + 5 * HZ);
-}
-
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
 	struct ft_channel_state *st = &ft->channels[channel - 1];
@@ -305,10 +296,6 @@ int ft_probe(struct fmc_device *fmc)
 
 	ft_enable_acquisition(ft, 1);
 
-	/* start temperature polling timer */
-	setup_timer(&ft->temp_timer, ft_temp_timer_handler, (unsigned long)ft);
-	mod_timer(&ft->temp_timer, jiffies + 5 * HZ);
-
 	ft->initialized = 1;
 
 	return 0;
@@ -328,8 +315,6 @@ int ft_remove(struct fmc_device *fmc)
 
 	if (!ft->initialized)
 		return 0;	/* No init, no exit */
-
-	del_timer_sync(&ft->temp_timer);
 
 	ft_enable_acquisition(ft, 0);
 	ft_irq_exit(ft);

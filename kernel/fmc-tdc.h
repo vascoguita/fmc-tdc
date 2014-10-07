@@ -146,8 +146,6 @@ struct fmctdc_dev {
 	struct zio_device *zdev, *hwzdev;
 	/* is acquisition mode active? */
 	int acquisition_on;
-	/* temperature readout timer */
-	struct timer_list temp_timer;
 	/* carrier specific functions (init/exit/reset/readout/irq handling) */
 	struct ft_carrier_specific *carrier_specific;
 	/* carrier private data */
