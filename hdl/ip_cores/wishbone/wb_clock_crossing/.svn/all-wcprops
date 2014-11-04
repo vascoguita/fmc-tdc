@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/fmc-tdc/!svn/ver/119/hdl/ip_cores/wishbone/wb_clock_crossing
+END
+xwb_clock_crossing.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/fmc-tdc/!svn/ver/119/hdl/ip_cores/wishbone/wb_clock_crossing/xwb_clock_crossing.vhd
+END
+Manifest.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/fmc-tdc/!svn/ver/119/hdl/ip_cores/wishbone/wb_clock_crossing/Manifest.py
+END
