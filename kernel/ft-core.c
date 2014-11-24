@@ -258,7 +258,7 @@ int ft_probe(struct fmc_device *fmc)
 
 	/* Now that the PLL is locked, we can read the SDB info */
 	ret = fmc_scan_sdb_tree(fmc, 0);
-	if (ret < 0) {
+	if (ret < 0 && ret != -EBUSY) {
 		dev_err(dev,
 			"%s: no SDB in the bitstream. Are you sure you've provided the correct one?\n",
 			KBUILD_MODNAME);
