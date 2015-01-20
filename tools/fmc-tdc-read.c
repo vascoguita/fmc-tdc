@@ -11,19 +11,20 @@
  * fmctdc-read: read timestamps from a given FmcTdc card.
  */
 
+#include <inttypes.h>
 #include "test-common.h"
 
 void dump_timestamp(struct fmctdc_time ts, int channel, int fmt_wr)
 {
 	if (fmt_wr)
-		printf("channel %d seq %-12u ts %10llu:%09u:%04u\n", channel,
+		printf("channel %d seq %-12u ts %10"PRIu64":%09u:%04u\n", channel,
 		       ts.seq_id, ts.seconds, ts.coarse, ts.frac);
 	else {
 		uint64_t picoseconds =
 		    (uint64_t) ts.coarse * 8000ULL +
 		    (uint64_t) ts.frac * 8000ULL / 4096ULL;
 		printf
-		    ("channel %d seq %-12u ts %10llu.%03llu,%03llu,%03llu,%03llu ps\n",
+		    ("channel %d seq %-12u ts %10"PRIu64".%03llu,%03llu,%03llu,%03llu ps\n",
 		     channel, ts.seq_id, ts.seconds,
 		     picoseconds / 1000000000ULL,
 		     (picoseconds / 1000000ULL) % 1000ULL,

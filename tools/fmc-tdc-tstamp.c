@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <inttypes.h>
 
 #include <getopt.h>
 
@@ -35,14 +36,14 @@ void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
 
 	if (fmt_wr) {
 		/* White rabbit format */
-		fprintf(stdout, "%10llu:%09u:%04u",
+		fprintf(stdout, "%10"PRIu64":%09u:%04u",
 			ts.seconds, ts.coarse, ts.frac);
 		return;
 	} else {
 		picoseconds = (uint64_t) ts.coarse * 8000ULL +
 			      (uint64_t) ts.frac * 8000ULL / 4096ULL;
 		fprintf(stdout,
-			"%010llu.%03llu,%03llu,%03llu,%03llu ps",
+			"%010"PRIu64".%03llu,%03llu,%03llu,%03llu ps",
 			ts.seconds,
 			picoseconds / 1000000000ULL,
 			(picoseconds / 1000000ULL) % 1000ULL,
