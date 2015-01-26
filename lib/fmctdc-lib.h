@@ -35,6 +35,10 @@ struct fmctdc_time {
 	uint32_t seq_id;
 };
 
+
+/**
+ * @file fmctdc-lib.c
+ */
 extern int fmctdc_init(void);
 extern void fmctdc_exit(void);
 
@@ -66,4 +70,12 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
 
 extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
 
+
+/**
+ *@file fmctdc-lib-math.c
+ */
+extern uint64_t fmctdc_ts_approx_ns(struct fmctdc_time *a);
+extern uint64_t fmctdc_ts_ps(struct fmctdc_time *a);
+extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
+extern void ft_ts_add(struct fmctdc_time *a, struct fmctdc_time *b);
 #endif /* __FMCTDC_LIB_H__ */

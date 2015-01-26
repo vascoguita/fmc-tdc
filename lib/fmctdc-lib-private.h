@@ -13,7 +13,8 @@
 
 #ifndef __FMCTDC_LIB_PRIVATE_H__
 #define __FMCTDC_LIB_PRIVATE_H__
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>

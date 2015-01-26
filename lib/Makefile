@@ -11,6 +11,7 @@ ZIO ?= ../zio
 
 LIB = libfmctdc.a
 LOBJ := fmctdc-lib.o
+LOBJ += fmctdc-lib-math.o
 
 CFLAGS = -Wall -ggdb -O2 -I../kernel -I$(ZIO)/include $(EXTRACFLAGS)
 

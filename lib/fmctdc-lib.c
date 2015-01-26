@@ -418,28 +418,3 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 	return errno;
 }
 
-/* It perform the subtraction:
- *     a = a - b
- */
-void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
-{
-	int32_t d_frac, d_coarse = 0;
-
-	d_frac = a->frac - b->frac;
-
-	if (d_frac < 0) {
-		d_frac += 4096;
-		d_coarse--;
-	}
-
-	d_coarse += a->coarse - b->coarse;
-
-	if (d_coarse < 0) {
-		d_coarse += 125000000;
-		a->seconds--;
-	}
-
-	a->coarse = d_coarse;
-	a->frac = d_frac;
-	a->seconds -= b->seconds;
-}
