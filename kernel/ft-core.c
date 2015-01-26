@@ -252,10 +252,6 @@ int ft_probe(struct fmc_device *fmc)
 		return ret;
 	}
 
-	/* FIXME: this is obsoleted by fmc-bus internal parameters */
-	if (ft_show_sdb)
-		fmc_show_sdb_tree(fmc);
-
 	/* Now use SDB to find the base addresses */
 	ord = fmc->slot_id;
 	ft->ft_core_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x604, &ord, NULL);
