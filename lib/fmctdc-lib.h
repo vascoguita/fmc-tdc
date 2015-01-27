@@ -25,13 +25,19 @@ enum fmctdc_channel {
 	FMCTDC_NUM_CHANNELS = 5
 };
 
-/* Opaque data type used as token */
+/**
+ * Opaque data type used as token
+ */
 struct fmctdc_board;
 
+
+/**
+ * FMC-TDC time-stamp descriptor
+ */
 struct fmctdc_time {
-	uint64_t seconds;
-	uint32_t coarse;
-	uint32_t frac;
+	uint64_t seconds; /**< number of seconds */
+	uint32_t coarse; /**< number of ticks of 8ns */
+	Uint32_t frac; /**< number of frac of 81.03ps */
 	uint32_t seq_id;
 };
 

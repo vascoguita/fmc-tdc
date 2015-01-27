@@ -33,8 +33,14 @@
 
 static struct __fmctdc_board *ft_boards;
 static int ft_nboards;
+static char *names[] = { "seconds", "coarse" };
 
-/* Init the library: return the number of boards found */
+
+/**
+ * Init the library. You must call this function before use any other
+ * library function
+ * @return the number of boards found
+ */
 int fmctdc_init(void)
 {
 	glob_t glob_dev, glob_sys;
@@ -101,7 +107,11 @@ int fmctdc_init(void)
 	return ft_nboards;
 }
 
-/* Free and check */
+
+/**
+ * It releases all the resources used by the library. Once you call this
+ * function you cannot use other function from this library.
+ */
 void fmctdc_exit(void)
 {
 	struct __fmctdc_board *b;
@@ -130,7 +140,14 @@ void fmctdc_exit(void)
 		free(ft_boards);
 }
 
-/* Open one specific device. -1 arguments mean "not installed" */
+
+/**
+ * It opens one specific device. -1 arguments mean "not installed"
+ * @param[in] offset board enumeration offset [0, N]. -1 to ignore it and
+ *                   use dev_id
+ * @param[in] dev_id FMC device id. 0 to ignore it and use only the offset
+ * @return an instance token, otherwise NULL and errno is appripriately set
+ */
 struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 {
 	struct __fmctdc_board *b = NULL;
@@ -170,7 +187,12 @@ found:
 	return (void *)b;
 }
 
-/* Open one specific device by logical unit number (CERN/CO-like) */
+
+/**
+ * It opens one specific device by logical unit number (CERN/CO-like)
+ * @param[in] lun Logical Unit Number
+ * @return an instance token, otherwise NULL and errno is appripriately set
+ */
 struct fmctdc_board *fmctdc_open_by_lun(int lun)
 {
 	ssize_t ret;
@@ -192,6 +214,12 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 	return fmctdc_open(-1, dev_id);
 }
 
+
+/**
+ * It closes a TDC instance
+ * @param[in] userb TDC board instance token
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
 int fmctdc_close(struct fmctdc_board *userb)
 {
 	__define_board(b, userb);
@@ -209,6 +237,12 @@ int fmctdc_close(struct fmctdc_board *userb)
 
 }
 
+
+/**
+ * It reads the current temperature of the TDC
+ * @param[in] userb TDC board instance token
+ * @return temperature
+ */
 float fmctdc_read_temperature(struct fmctdc_board *userb)
 {
 	uint32_t t;
@@ -218,6 +252,15 @@ float fmctdc_read_temperature(struct fmctdc_board *userb)
 	return (float)t / 16.0;
 }
 
+
+/**
+ * It enables/disables the channel termination
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @param[in] on status of the termination to set
+ * @return 0 on success, otherwise a negative errno code is set
+ *         appropriately
+ */
 int fmctdc_set_termination(struct fmctdc_board *userb, int channel, int on)
 {
 	__define_board(b, userb);
@@ -233,6 +276,14 @@ int fmctdc_set_termination(struct fmctdc_board *userb, int channel, int on)
 	return fmctdc_sysfs_set(b, attr, &val);
 }
 
+
+/**
+ * It returns the current status of a channel termination
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @return termination status, otherwise a negative errno code is set
+ *         appropriately
+ */
 int fmctdc_get_termination(struct fmctdc_board *userb, int channel)
 {
 	__define_board(b, userb);
@@ -251,6 +302,12 @@ int fmctdc_get_termination(struct fmctdc_board *userb, int channel)
 	return val;
 }
 
+
+/**
+ * It gets the acquisition status of the board
+ * @param[in] userb TDC board instance token
+ * @return the acquisition status, otherwise -1 and errno is set appropriately
+ */
 int fmctdc_get_acquisition(struct fmctdc_board *userb)
 {
 	__define_board(b, userb);
@@ -263,6 +320,13 @@ int fmctdc_get_acquisition(struct fmctdc_board *userb)
 	return val;
 }
 
+
+/**
+ * It sets the acquisition status of the board
+ * @param[in] userb TDC board instance token
+ * @param[in] on acquisition status to set
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
 int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
 {
 	__define_board(b, userb);
@@ -272,6 +336,13 @@ int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
 	return fmctdc_sysfs_set(b, "enable_inputs", &val);
 }
 
+
+/**
+ * It opens the zio control channel of a TDC board
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to open
+ * @return a file descriptor, otherwise -1 and errno is set appropriately
+ */
 static int __fmctdc_open_channel(struct __fmctdc_board *b, int channel)
 {
 	char fname[128];
@@ -283,13 +354,31 @@ static int __fmctdc_open_channel(struct __fmctdc_board *b, int channel)
 	return b->fdc[channel - 1];
 }
 
+
+/**
+ * It get the file descriptor of a board channel
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to use
+ * @return a file descriptor, otherwise -1 and errno is set appropriately
+ */
 int fmctdc_fileno_channel(struct fmctdc_board *userb, int channel)
 {
 	__define_board(b, userb);
 	return __fmctdc_open_channel(b, channel);
 }
 
-/* "read" behaves like the system call and obeys O_NONBLOCK */
+
+/**
+ * this "read" behaves like the system call and obeys O_NONBLOCK
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to use
+ * @param[out] t array of time-stamps
+ * @param[in] n number of elements to save in the array
+ * @param[in] flags tune the behaviour of the function.
+ *                      O_NONBLOCK - do not block
+ * @return number of acquired time-stamps, otherwise -1 and errno is set
+ *         appropriately
+ */
 int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 		int n, int flags)
 {
@@ -341,7 +430,15 @@ int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 	return i;
 }
 
-/* "fread" behaves like stdio: it reads all the samples */
+/**
+ * this "fread" behaves like stdio: it reads all the samples
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to use
+ * @param[out] t array of time-stamps
+ * @param[in] n number of elements to save in the array
+ * @return number of acquired time-stamps, otherwise -1 and errno is set
+ *         appropriately
+ */
 int fmctdc_fread(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 		 int n)
 {
@@ -356,8 +453,13 @@ int fmctdc_fread(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 	return i;
 }
 
-static char *names[] = { "seconds", "coarse" };
 
+/**
+ * It sets the board time according to the given time-stamp
+ * @param[in] userb TDC board instance token
+ * @param[in] t time-stamp
+ * @return 0 on success, otherwise -1 and errno is set
+ */
 int fmctdc_set_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 {
 	__define_board(b, userb);
@@ -375,6 +477,13 @@ int fmctdc_set_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 	return 0;
 }
 
+
+/**
+ * It gets the boar time
+ * @param[in] userb TDC board instance token
+ * @param[out] t time-stamp
+ * @return 0 on success, otherwise -1 and errno is set
+ */
 int fmctdc_get_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 {
 	__define_board(b, userb);
@@ -394,12 +503,25 @@ int fmctdc_get_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 	return 0;
 }
 
+
+/**
+ * It sets the board time to the host time
+ * @param[in] userb TDC board instance token
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
 int fmctdc_set_host_time(struct fmctdc_board *userb)
 {
 	__define_board(b, userb);
 	return __fmctdc_command(b, FT_CMD_SET_HOST_TIME);
 }
 
+
+/**
+ * It enables/disables the WhiteRabbit timing system
+ * @param[in] userb TDC board instance token
+ * @param[in] on white-rabbit status to set
+ * @return 0 on success, otherwise an error code
+ */
 int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 {
 	__define_board(b, userb);
@@ -410,6 +532,13 @@ int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 	return errno;
 }
 
+
+/**
+ * It check the current status of the WhiteRabbit timing system
+ * @param[in] userb TDC board instance token
+ * @return 0 if it properly works, -ENOLINK if it is not synchronized and
+ *         -ENODEV if it is not enabled
+ */
 extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 {
 	__define_board(b, userb);
