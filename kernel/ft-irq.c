@@ -179,11 +179,11 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 		if (st->user_offset)
 			ft_ts_apply_offset(&ts, st->user_offset);
 
+		ts.gseq_id = ft->sequence++;
 		/* Got a dacapo flag? make a gap in the sequence ID to indicate
 		   an unknown loss of timestamps */
 
 		ts.seq_id = st->cur_seq_id++;
-
 		if (dacapo_flag) {
 			ts.seq_id++;
 			st->cur_seq_id++;

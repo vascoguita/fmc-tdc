@@ -289,6 +289,7 @@ int ft_probe(struct fmc_device *fmc)
 	ft_enable_acquisition(ft, 1);
 
 	ft->initialized = 1;
+	ft->sequence = 0;
 
 	return 0;
  err:

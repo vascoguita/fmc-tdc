@@ -112,6 +112,7 @@ struct ft_wr_timestamp {
 	uint32_t coarse;
 	uint32_t frac;
 	int seq_id;
+	int gseq_id;
 	int channel;
 };
 
@@ -163,6 +164,8 @@ struct fmctdc_dev {
 	int wr_mode;
 	/* hardware buffer pointers / dacapo regs */
 	uint32_t cur_wr_ptr, prev_wr_ptr;
+
+	uint64_t sequence; /**< Board time-stamp sequence number */
 };
 
 extern struct ft_carrier_specific ft_carrier_spec;
