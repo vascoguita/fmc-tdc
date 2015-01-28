@@ -45,6 +45,8 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_TERMINATION,
 	FT_ATTR_TDC_OFFSET,
 	FT_ATTR_TDC_USER_OFFSET,
+	FT_ATTR_TDC_DELAY_REF,
+	FT_ATTR_TDC_DELAY_REF_SEQ,
 	FT_ATTR_TDC__LAST,
 };
 
@@ -124,10 +126,15 @@ struct ft_channel_state {
 	unsigned long flags;
 	int expected_edge;
 	int cur_seq_id;
+	int delay_reference;
 
 	int32_t user_offset;
 
-	struct ft_wr_timestamp prev_ts;
+	struct ft_wr_timestamp prev_ts; /**< used to validate time-stamps
+					   from HW */
+	struct ft_wr_timestamp last_ts; /**< used to compute delay
+					   between pulses */
+
 	struct kfifo fifo;
 };
 

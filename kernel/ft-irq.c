@@ -56,7 +56,7 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	struct zio_control *ctrl;
 	struct zio_ti *ti = chan->cset->ti;
 	uint32_t *v;
-	struct ft_wr_timestamp ts;
+	struct ft_wr_timestamp ts, ts_last, *reflast;
 	struct ft_channel_state *st;
 	int ret;
 
@@ -80,20 +80,46 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	ti->tstamp.tv_nsec = ts.coarse * 8;
 	ti->tstamp_extra = ts.frac;
 
+	ctrl = chan->current_ctrl;
+	v = ctrl->attr_channel.ext_val;
+
+	/*
+	 * If we are in delay mode, replace the time stamp with the delay from
+	 * the reference
+	 */
+	if (st->delay_reference) {
+		pr_info("%s:%d  calculate delay\n", __func__, __LINE__);
+		reflast = &ft->channels[st->delay_reference - 1].last_ts;
+		/* local copy of the last time stamp */
+		ts_last = *reflast;
+		/* update last time stamp with the current one */
+		memcpy(reflast, &ts, sizeof(struct ft_wr_timestamp));
+
+		if (likely(ts.gseq_id > ts_last.gseq_id)) {
+			ft_ts_sub(&ts, &ts_last);
+			v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts_last.gseq_id;
+		} else {
+			/*
+			 * It seems that we are not able to compute the delay.
+			 * Inform the user by clearing the reference and its
+			 * sequence number
+			 */
+			v[FT_ATTR_TDC_DELAY_REF] = 0;
+			v[FT_ATTR_TDC_DELAY_REF_SEQ] = 0;
+		}
+	}
+
 	/*
 	 * This is different than it was. We used to fill the active block,
 	 * but now zio copies chan->current_ctrl at a later time, so we
 	 * must fill _those_ attributes instead
 	 */
-	/* The input data is written to attribute values in the active block. */
-	ctrl = chan->current_ctrl;
 
 	ctrl->tstamp.secs = ts.seconds;
 	ctrl->tstamp.ticks = ts.coarse;
 	ctrl->tstamp.bins = ts.frac;
 	ctrl->nsamples = 1;
 
-	v = ctrl->attr_channel.ext_val;
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_OFFSET] = ft->calib.zero_offset[channel - 1];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
@@ -114,7 +140,6 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	struct ft_channel_state *st;
 	struct ft_wr_timestamp ts;
 	struct ft_wr_timestamp diff;
-
 	int channel, edge, frac;
 
 	channel = (hwts->metadata & 0x7) + 1;

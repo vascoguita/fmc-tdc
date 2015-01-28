@@ -54,6 +54,8 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("termination", ZIO_RW_PERM, FT_ATTR_TDC_TERMINATION, 0),
 	ZIO_ATTR_EXT("offset", ZIO_RO_PERM, FT_ATTR_TDC_OFFSET, 0),
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
+	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
+	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -99,6 +101,9 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 
 	case FT_ATTR_TDC_TERMINATION:
 		*usr_val = test_bit(FT_FLAG_CH_TERMINATED, &st->flags);
+		break;
+	case FT_ATTR_TDC_DELAY_REF:
+		*usr_val = st->delay_reference;
 		break;
 	}
 
@@ -180,6 +185,11 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 		st->user_offset = usr_val;
 		spin_unlock(&ft->lock);
 		return 0;
+	case FT_ATTR_TDC_DELAY_REF:
+		if (usr_val > FT_NUM_CHANNELS)
+			return -EINVAL;
+		st->delay_reference = usr_val;
+		break;
 	}
 
 	return -EINVAL;
