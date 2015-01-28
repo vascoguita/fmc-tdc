@@ -120,6 +120,13 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	ctrl->tstamp.bins = ts.frac;
 	ctrl->nsamples = 1;
 
+	/*
+	 * In order to propagate the "dacapo" flag, we have to force our
+	 * sequence number insted of using the ZIO one. decrement because
+	 * zio will increment it.
+	 */
+	ctrl->seq_num = ts.seq_id--;
+
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_OFFSET] = ft->calib.zero_offset[channel - 1];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
