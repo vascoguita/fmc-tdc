@@ -184,7 +184,7 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 	switch (zattr->id) {
 	case FT_ATTR_TDC_TERMINATION:
 		ft_enable_termination(ft, cset->index + 1, usr_val);
-		return 0;
+		break;
 
 	case FT_ATTR_TDC_USER_OFFSET:
 		user_offs = usr_val;
@@ -194,15 +194,17 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 		spin_lock(&ft->lock);
 		st->user_offset = usr_val;
 		spin_unlock(&ft->lock);
-		return 0;
+		break;
 	case FT_ATTR_TDC_DELAY_REF:
 		if (usr_val > FT_NUM_CHANNELS)
 			return -EINVAL;
 		st->delay_reference = usr_val;
 		break;
+	default:
+		return -EINVAL;
 	}
 
-	return -EINVAL;
+	return 0;
 }
 
 /*
