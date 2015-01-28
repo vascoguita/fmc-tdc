@@ -75,11 +75,6 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 		return -EINVAL;
 	}
 
-	/* Write the timestamp in the trigger, it will reach the control */
-	ti->tstamp.tv_sec = ts.seconds;
-	ti->tstamp.tv_nsec = ts.coarse * 8;
-	ti->tstamp_extra = ts.frac;
-
 	ctrl = chan->current_ctrl;
 	v = ctrl->attr_channel.ext_val;
 
@@ -98,26 +93,29 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 		if (likely(ts.gseq_id > ts_last.gseq_id)) {
 			ft_ts_sub(&ts, &ts_last);
 			v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts_last.gseq_id;
+			pr_info("%s:%d  gseq last ref %d\n", __func__, __LINE__,
+				ts_last.gseq_id);
 		} else {
 			/*
 			 * It seems that we are not able to compute the delay.
-			 * Inform the user by clearing the reference and its
-			 * sequence number
+			 * Inform the user by setting the time stamp to 0
 			 */
-			v[FT_ATTR_TDC_DELAY_REF] = 0;
-			v[FT_ATTR_TDC_DELAY_REF_SEQ] = 0;
+			memset(&ts, 0 , sizeof(struct ft_wr_timestamp));
+			pr_info("%s:%d  can't do it %d - %d %d\n", __func__, __LINE__,
+				st->delay_reference - 1, ts.gseq_id > ts_last.gseq_id);
 		}
 	}
+
+	/* Write the timestamp in the trigger, it will reach the control */
+	ti->tstamp.tv_sec = ts.seconds;
+	ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
+	ti->tstamp_extra = ts.frac;
 
 	/*
 	 * This is different than it was. We used to fill the active block,
 	 * but now zio copies chan->current_ctrl at a later time, so we
 	 * must fill _those_ attributes instead
 	 */
-
-	ctrl->tstamp.secs = ts.seconds;
-	ctrl->tstamp.ticks = ts.coarse;
-	ctrl->tstamp.bins = ts.frac;
 	ctrl->nsamples = 1;
 
 	/*
