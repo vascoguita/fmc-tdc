@@ -57,7 +57,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr)
 	uint64_t ns;
 	double s, hz;
 
-	fprintf(stdout, "channel %d seq %-12u\n    ts   ", ch, ts->seq_id);
+	fprintf(stdout, "channel %d | channel seq %-12u | board seq %-12u\n    ts   ", ch, ts->seq_id, ts->gseq_id);
 	dump_timestamp(*ts, fmt_wr);
 	fprintf(stdout, "\n");
 
