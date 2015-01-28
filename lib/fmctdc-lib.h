@@ -37,8 +37,9 @@ struct fmctdc_board;
 struct fmctdc_time {
 	uint64_t seconds; /**< number of seconds */
 	uint32_t coarse; /**< number of ticks of 8ns */
-	Uint32_t frac; /**< number of frac of 81.03ps */
-	uint32_t seq_id;
+	uint32_t frac; /**< number of frac of 81.03ps */
+	uint32_t seq_id; /**< channel sequence number*/
+	uint32_t gseq_id; /**< board sequence number */
 };
 
 

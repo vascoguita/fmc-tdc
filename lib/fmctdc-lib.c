@@ -98,9 +98,9 @@ int fmctdc_init(void)
 	if (fmctdc_sysfs_get(ft_boards, "version", &v) < 0)
 		return -1;
 
-	if (v != FT_VERSION) {
+	if (v != FT_VERSION_MAJ) {
 		fprintf(stderr, "%s: version mismatch, lib(%i) != drv(%i)\n",
-			__func__, FT_VERSION, v);
+			__func__, FT_VERSION_MAJ, v);
 		errno = EIO;
 		return -1;
 	}
@@ -402,10 +402,11 @@ int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 		if (j == sizeof(ctrl)) {
 			/* one sample: pick it */
 			attrs = ctrl.attr_channel.ext_val;
-			t->seconds = attrs[FT_ATTR_TDC_SECONDS];
-			t->coarse = attrs[FT_ATTR_TDC_COARSE];
-			t->frac = attrs[FT_ATTR_TDC_FRAC];
-			t->seq_id = attrs[FT_ATTR_TDC_SEQ];
+			t->seconds = ctrl.tstamp.secs;
+			t->coarse = ctrl.tstamp.ticks;
+			t->frac = ctrl.tstamp.bins;
+			t->seq_id = ctrl.seq_num;
+			t->gseq_id = attrs[FT_ATTR_DEV_SEQUENCE];
 			i++;
 			continue;
 		}

@@ -95,13 +95,14 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	ctrl->nsamples = 1;
 
 	v = ctrl->attr_channel.ext_val;
-
-	v[FT_ATTR_TDC_SECONDS] = ts.seconds;
-	v[FT_ATTR_TDC_COARSE] = ts.coarse;
-	v[FT_ATTR_TDC_FRAC] = ts.frac;
-	v[FT_ATTR_TDC_SEQ] = ts.seq_id;
+	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_OFFSET] = ft->calib.zero_offset[channel - 1];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
+
+	/* Only for sysfs debugging */
+	v[FT_ATTR_TDC_SECONDS] = ctrl->tstamp.secs;
+	v[FT_ATTR_TDC_COARSE] = ctrl->tstamp.ticks;
+	v[FT_ATTR_TDC_FRAC] = ctrl->tstamp.bins;
 
 	return 0;
 }
@@ -263,6 +264,7 @@ static void ft_readout_tasklet(unsigned long arg)
 	uint32_t rd_ptr;
 	int count, dacapo, i;
 
+	pr_info("%s:%d\n", __func__, __LINE__);
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
 	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
 

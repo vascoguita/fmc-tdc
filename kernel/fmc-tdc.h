@@ -14,7 +14,8 @@
 #ifndef __FMC_TDC_H__
 #define __FMC_TDC_H__
 
-#define FT_VERSION    2		/* version of the driver */
+#define FT_VERSION_MAJ   2		/* version of the driver */
+#define FT_VERSION_MIN   1
 
 /* default gatewares */
 #define FT_GATEWARE_SVEC  "fmc/svec-fmc-tdc.bin"
@@ -29,6 +30,7 @@ enum ft_zattr_dev_idx {
 	FT_ATTR_DEV_VERSION = 0,
 	FT_ATTR_DEV_SECONDS,
 	FT_ATTR_DEV_COARSE,
+	FT_ATTR_DEV_SEQUENCE,
 	FT_ATTR_DEV_COMMAND,	/* see below for commands */
 	FT_ATTR_DEV_TEMP,
 	FT_ATTR_DEV_ENABLE_INPUTS,
@@ -41,7 +43,6 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_SECONDS = FT_ATTR_DEV__LAST,
 	FT_ATTR_TDC_COARSE,
 	FT_ATTR_TDC_FRAC,
-	FT_ATTR_TDC_SEQ,
 	FT_ATTR_TDC_TERMINATION,
 	FT_ATTR_TDC_OFFSET,
 	FT_ATTR_TDC_USER_OFFSET,

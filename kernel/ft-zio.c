@@ -32,28 +32,28 @@
 
 /* The sample size. Mandatory, device-wide */
 ZIO_ATTR_DEFINE_STD(ZIO_DEV, ft_zattr_dev_std) = {
-	ZIO_ATTR(zdev, ZIO_ATTR_NBITS, S_IRUGO, 0, 32),	/* 32 bits. Really? */
+	ZIO_ATTR(zdev, ZIO_ATTR_NBITS, ZIO_RO_PERM, 0, 32),	/* 32 bits. Really? */
+	ZIO_SET_ATTR_VERSION(ZIO_HEX_VERSION(FT_VERSION_MAJ, FT_VERSION_MIN, 0)),
 };
 
 /* Extended attributes for the device */
 static struct zio_attribute ft_zattr_dev[] = {
-	ZIO_ATTR_EXT("version", S_IRUGO, FT_ATTR_DEV_VERSION, FT_VERSION),
-	ZIO_ATTR_EXT("seconds", _RW_, FT_ATTR_DEV_SECONDS, 0),
-	ZIO_ATTR_EXT("coarse", _RW_, FT_ATTR_DEV_COARSE, 0),
-	ZIO_ATTR_EXT("command", S_IWUGO, FT_ATTR_DEV_COMMAND, 0),
-	ZIO_ATTR_EXT("enable_inputs", _RW_, FT_ATTR_DEV_ENABLE_INPUTS, 0),
-	ZIO_PARAM_EXT("temperature", S_IRUGO, FT_ATTR_DEV_TEMP, 0)
+	ZIO_ATTR_EXT("seconds", ZIO_RW_PERM, FT_ATTR_DEV_SECONDS, 0),
+	ZIO_ATTR_EXT("coarse", ZIO_RW_PERM, FT_ATTR_DEV_COARSE, 0),
+	ZIO_ATTR_EXT("command", ZIO_WO_PERM, FT_ATTR_DEV_COMMAND, 0),
+	ZIO_ATTR_EXT("enable_inputs", ZIO_RW_PERM, FT_ATTR_DEV_ENABLE_INPUTS, 0),
+	ZIO_ATTR_EXT("sequence", ZIO_RW_PERM, FT_ATTR_DEV_SEQUENCE, 0),
+	ZIO_PARAM_EXT("temperature", ZIO_RO_PERM, FT_ATTR_DEV_TEMP, 0)
 };
 
 /* Extended attributes for the TDC (== input) cset */
 static struct zio_attribute ft_zattr_input[] = {
-	ZIO_ATTR_EXT("seconds", S_IRUGO, FT_ATTR_TDC_SECONDS, 0),
-	ZIO_ATTR_EXT("coarse", S_IRUGO, FT_ATTR_TDC_COARSE, 0),
-	ZIO_ATTR_EXT("frac", S_IRUGO, FT_ATTR_TDC_FRAC, 0),
-	ZIO_ATTR_EXT("seq_id", S_IRUGO, FT_ATTR_TDC_SEQ, 0),
-	ZIO_ATTR_EXT("termination", _RW_, FT_ATTR_TDC_TERMINATION, 0),
-	ZIO_ATTR_EXT("offset", S_IRUGO, FT_ATTR_TDC_OFFSET, 0),
-	ZIO_ATTR_EXT("user-offset", _RW_, FT_ATTR_TDC_USER_OFFSET, 0),
+	ZIO_ATTR_EXT("seconds", ZIO_RO_PERM, FT_ATTR_TDC_SECONDS, 0),
+	ZIO_ATTR_EXT("coarse", ZIO_RO_PERM, FT_ATTR_TDC_COARSE, 0),
+	ZIO_ATTR_EXT("frac", ZIO_RO_PERM, FT_ATTR_TDC_FRAC, 0),
+	ZIO_ATTR_EXT("termination", ZIO_RW_PERM, FT_ATTR_TDC_TERMINATION, 0),
+	ZIO_ATTR_EXT("offset", ZIO_RO_PERM, FT_ATTR_TDC_OFFSET, 0),
+	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -121,13 +121,13 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 	ft = zdev->priv_d;
 
 	switch (zattr->id) {
-	case FT_ATTR_DEV_VERSION:
-		return 0;
-
+	case FT_ATTR_DEV_SEQUENCE:
+		*usr_val = ft->sequence;
+		break;
 	case FT_ATTR_DEV_TEMP:
 		ft_read_temp(ft, ft->verbose);
 		*usr_val = ft->temp;
-		return 0;
+		break;
 	case FT_ATTR_DEV_COARSE:
 	case FT_ATTR_DEV_SECONDS:
 		{
@@ -143,15 +143,15 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 			*usr_val =
 			    (zattr->id ==
 			     FT_ATTR_DEV_COARSE ? coarse : (uint32_t) seconds);
-			return 0;
+			break;
 		}
 	case FT_ATTR_DEV_ENABLE_INPUTS:
 		attr[FT_ATTR_DEV_ENABLE_INPUTS].value =
 		    ft->acquisition_on ? 1 : 0;
 		*usr_val = ft->acquisition_on ? 1 : 0;
-		return 0;
+		break;
 	}
-	return -EINVAL;
+	return 0;
 }
 
 static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
