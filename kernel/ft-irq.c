@@ -131,11 +131,6 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	v[FT_ATTR_TDC_OFFSET] = ft->calib.zero_offset[channel - 1];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 
-	/* Only for sysfs debugging */
-	v[FT_ATTR_TDC_SECONDS] = ctrl->tstamp.secs;
-	v[FT_ATTR_TDC_COARSE] = ctrl->tstamp.ticks;
-	v[FT_ATTR_TDC_FRAC] = ctrl->tstamp.bins;
-
 	return 0;
 }
 
