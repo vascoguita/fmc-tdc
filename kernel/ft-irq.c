@@ -58,7 +58,6 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	uint32_t *v;
 	struct ft_wr_timestamp ts;
 	struct ft_channel_state *st;
-	unsigned long flags;
 	int ret;
 
 	st = &ft->channels[channel - 1];

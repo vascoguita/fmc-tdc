@@ -22,8 +22,6 @@
 
 static int ft_svec_reset(struct fmctdc_dev *ft)
 {
-	unsigned long tmo;
-
 	/* FIXME: An UGLY hack: ft_svec_reset() executed on slot 0
 	   (first mezzanine to be initialized) resets BOTH cards. The reason is
 	   that we need both mezzanines PLLs running to read the entire

@@ -187,7 +187,6 @@ int ft_probe(struct fmc_device *fmc)
 	struct device *dev = fmc->hwdev;
 	char *fwname;
 	int i, index, ret, ord;
-	signed long addr;
 
 	ft = kzalloc(sizeof(struct fmctdc_dev), GFP_KERNEL);
 	if (!ft) {

@@ -20,8 +20,6 @@
 
 static int ft_spec_reset(struct fmctdc_dev *ft)
 {
-	struct spec_dev *spec = (struct spec_dev *)ft->fmc->carrier_data;
-
 	/* it takes a while for the PLL to bootstrap.... or not!
 	   We have no possibility to check, as the PLL status register is driven
 	   by the clock from this PLL :( */
