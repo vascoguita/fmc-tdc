@@ -43,15 +43,12 @@ void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
 		picoseconds = (uint64_t) ts.coarse * 8000ULL +
 			      (uint64_t) ts.frac * 8000ULL / 4096ULL;
 		fprintf(stdout,
-			"%010"PRIu64".%03llu,%03llu,%03llu,%03llu ps",
-			ts.seconds,
-			picoseconds / 1000000000ULL,
-			(picoseconds / 1000000ULL) % 1000ULL,
-			(picoseconds / 1000ULL) % 1000ULL, picoseconds % 1000ULL);
+			"%010"PRIu64"s  %012llups",
+			ts.seconds, picoseconds);
 	}
 }
 
-void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr)
+void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr, int diff_mode)
 {
 	struct fmctdc_time ts_tmp;
 	uint64_t ns;
@@ -64,6 +61,10 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr)
 	ts_tmp = *ts;
 	fmctdc_ts_sub(&ts_tmp, &ts_prev[ch]);
 
+	if (diff_mode)
+		return;
+
+	/* We are in normal mode, calculate the difference */
 	fprintf(stdout, "    diff ");
 	dump_timestamp(ts_tmp, fmt_wr);
 
@@ -84,6 +85,7 @@ static void help(char *name)
 	fprintf(stderr, "  -n          : non-blocking mode\n");
 	fprintf(stderr, "  -s n_samples: dump 'n_samples' timestamps\n");
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
+	fprintf(stderr, "  -d <ch>,<ch>: difference between two channel\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 }
 
@@ -94,6 +96,7 @@ int main(int argc, char **argv)
 	unsigned int dev_id;
 	struct fmctdc_time ts;
 	int channels[FMCTDC_NUM_CHANNELS];
+	int ref[FMCTDC_NUM_CHANNELS], a, b;
 	int chan_count = 0, i, n, ch, nfds, fd, byte_read, ret, n_boards;
 	int nblock = 0;
 	int n_samples = -1;
@@ -111,9 +114,10 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	memset(ref, 0, sizeof(ref));
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
@@ -128,6 +132,24 @@ int main(int argc, char **argv)
 			break;
 		case 'w':
 			fmt_wr = 1;
+			break;
+		case 'd':
+			sscanf(optarg, "%i,%i", &a, &b);
+			if (a < 1 || a > FMCTDC_NUM_CHANNELS) {
+				fprintf(stderr,
+					"%s: invalid reference channel %d\n",
+					argv[0], a);
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+			if (b < 0 || b > FMCTDC_NUM_CHANNELS) {
+				fprintf(stderr,
+					"%s: invalid target channel %d\n",
+					argv[0], b);
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+			ref[b - 1] = a;
 			break;
 		}
 	}
@@ -168,9 +190,20 @@ int main(int argc, char **argv)
 	}
 	/* If there are not channels, then dump them all */
 	if (!chan_count) {
-		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++)
+		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
+					printf("%s:%d\n", __func__,__LINE__);
 			channels[i - FMCTDC_CH_1] =
-			    fmctdc_fileno_channel(brd, i);
+				fmctdc_fileno_channel(brd, i);
+			ret = fmctdc_reference_set(brd, i, ref[i - 1]);
+			if (ret) {
+				fprintf(stderr,
+					"%s: cannot set reference mode\n",
+					argv[0]);
+				fprintf(stderr,
+					"%s: continue in normal mode\n",
+					argv[0]);
+			}
+		}
 		chan_count = FMCTDC_NUM_CHANNELS;
 	}
 
@@ -216,7 +249,7 @@ int main(int argc, char **argv)
 			byte_read = fmctdc_read(brd, i, &ts, 1,
 						nblock ? O_NONBLOCK : 0);
 			if (byte_read > 0) {
-				dump(i, &ts, fmt_wr);
+				dump(i, &ts, fmt_wr, !!ref[i - 1]);
 
 				ts_prev[i] = ts;
 				n++;
