@@ -115,9 +115,9 @@ struct ft_wr_timestamp {
 	uint64_t seconds;
 	uint32_t coarse;
 	uint32_t frac;
-	int seq_id;
-	int gseq_id;
-	int channel;
+	uint32_t seq_id;
+	uint32_t gseq_id;
+	unsigned int channel;
 };
 
 struct ft_channel_state {
