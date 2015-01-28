@@ -32,7 +32,6 @@ enum ft_zattr_dev_idx {
 	FT_ATTR_DEV_COARSE,
 	FT_ATTR_DEV_SEQUENCE,
 	FT_ATTR_DEV_COMMAND,	/* see below for commands */
-	FT_ATTR_DEV_TEMP,
 	FT_ATTR_DEV_ENABLE_INPUTS,
 	FT_ATTR_DEV_RESERVE_7,
 	FT_ATTR_DEV__LAST,
@@ -47,6 +46,10 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_OFFSET,
 	FT_ATTR_TDC_USER_OFFSET,
 	FT_ATTR_TDC__LAST,
+};
+
+enum ft_zattr_paremeters {
+	FT_ATTR_PARAM_TEMP = FT_ATTR_TDC__LAST,
 };
 
 enum ft_command {

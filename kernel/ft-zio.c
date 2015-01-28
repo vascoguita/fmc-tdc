@@ -43,7 +43,7 @@ static struct zio_attribute ft_zattr_dev[] = {
 	ZIO_ATTR_EXT("command", ZIO_WO_PERM, FT_ATTR_DEV_COMMAND, 0),
 	ZIO_ATTR_EXT("enable_inputs", ZIO_RW_PERM, FT_ATTR_DEV_ENABLE_INPUTS, 0),
 	ZIO_ATTR_EXT("sequence", ZIO_RW_PERM, FT_ATTR_DEV_SEQUENCE, 0),
-	ZIO_PARAM_EXT("temperature", ZIO_RO_PERM, FT_ATTR_DEV_TEMP, 0)
+	ZIO_PARAM_EXT("temperature", ZIO_RO_PERM, FT_ATTR_PARAM_TEMP, 0),
 };
 
 /* Extended attributes for the TDC (== input) cset */
@@ -124,7 +124,7 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 	case FT_ATTR_DEV_SEQUENCE:
 		*usr_val = ft->sequence;
 		break;
-	case FT_ATTR_DEV_TEMP:
+	case FT_ATTR_PARAM_TEMP:
 		ft_read_temp(ft, ft->verbose);
 		*usr_val = ft->temp;
 		break;
