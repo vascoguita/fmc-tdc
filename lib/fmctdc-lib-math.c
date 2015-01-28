@@ -43,7 +43,7 @@ uint64_t fmctdc_ts_ps(struct fmctdc_time *a)
 
 	ps += a->seconds * 1000000000000;
 	ps += a->coarse * 8000;
-	ps += a->frac * 81.03; /* FIXME check this because in other func is different */
+	ps += a->frac * 8000ULL / 4096ULL;
 	return ps;
 }
 
