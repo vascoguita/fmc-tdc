@@ -44,6 +44,17 @@ struct fmctdc_time {
 
 
 /**
+ * It compares two time-stamps.
+ * @param[in] a first time stamp
+ * @param[in] b second time stamp
+ * @return like memcmp(2) and strcmp(2)
+ */
+static inline int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b)
+{
+	return a->gseq_id - b->seq_id;
+}
+
+/**
  * @file fmctdc-lib.c
  */
 extern int fmctdc_init(void);
