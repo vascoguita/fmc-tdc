@@ -261,7 +261,7 @@ static void ft_readout_tasklet(unsigned long arg)
 	struct fmc_device *fmc = ft->fmc;
 	struct zio_device *zdev = ft->zdev;
 	uint32_t rd_ptr;
-	int count, dacapo, i;
+	int count, dacapo, i, err;
 
 	pr_info("%s:%d\n", __func__, __LINE__);
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
@@ -277,6 +277,7 @@ static void ft_readout_tasklet(unsigned long arg)
 		/* The oldest is prev_wr_ptr */
 		rd_ptr = (ft->prev_wr_ptr >> 4) & 0x000ff;
 
+	/* Get from the hardware all available time stamps */
 	for (; count > 0; count--) {
 		struct ft_hw_timestamp hwts;
 
@@ -296,7 +297,8 @@ static void ft_readout_tasklet(unsigned long arg)
 			struct zio_cset *cset = &zdev->cset[i - 1];
 			/* there is an active block, try reading an
 			   accumulated sample */
-			if (ft_read_sw_fifo(ft, i, cset->chan) == 0) {
+			err = ft_read_sw_fifo(ft, i, cset->chan);
+			if (!err) {
 				clear_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
 				zio_trigger_data_done(cset);
 			}
