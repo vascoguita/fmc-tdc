@@ -40,8 +40,17 @@ MAKEINFO ?= makeinfo
 .PHONY: all images check terse clean install
 .INTERMEDIATE: $(TEXI)
 
-all: images $(ALL)
+# Exports for doxygen
+export GIT_VERSION = $(shell cd $(src); git describe --dirty --long --tags)
+export EXCLUDE_FILES = "../lib/fmctdc-lib-private.h"
+export BRIEF = "API Documentation"
+export OUTPUT ?= doxy-fmctdc
+
+all: doxygen images $(ALL)
 	$(MAKE) terse
+
+doxygen:
+	doxygen ./doxygen-fmctdc-config
 
 images::
 	if [ -d images ]; then $(MAKE) -C images || exit 1; fi
@@ -55,6 +64,7 @@ terse:
 
 clean: terse
 	rm -f $(ALL) $(TEXI)
+	rm -rf  $(OUTPUT)
 
 install:
 
