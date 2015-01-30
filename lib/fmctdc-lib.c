@@ -551,8 +551,8 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 
 /**
  * It assigns a time reference to a target channel. After you set a reference,
- * you will read the difference of between the last reference pulse and the
- * target.
+ * you will read (from the target channel) the time-stamp difference between
+ * the last reference pulse and the target.
  * @param[in] userb TDC board instance token
  * @param[in] ch_target target channel [1, 5]
  * @param[in] ch_reference reference channel [0, 5]. Use 0 to remove reference
@@ -563,12 +563,11 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 {
 	struct __fmctdc_board *b = (void *)(userb);
 	char path[64];
-	printf("%s:%d\n", __func__,__LINE__);
+
 	if (ch_target > FMCTDC_NUM_CHANNELS || ch_target <= 0 ) {
 		errno = EINVAL;
 		return -1;
 	}
-			printf("%s:%d\n", __func__,__LINE__);
 	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target);
 	return fmctdc_sysfs_set(b, path, &ch_reference);
 }
