@@ -43,7 +43,7 @@ void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
 		picoseconds = (uint64_t) ts.coarse * 8000ULL +
 			      (uint64_t) ts.frac * 8000ULL / 4096ULL;
 		fprintf(stdout,
-			"%010"PRIu64"s  %012llups",
+			"%010"PRIu64"s  %012"PRIu64"ps",
 			ts.seconds, picoseconds);
 	}
 }
@@ -191,7 +191,6 @@ int main(int argc, char **argv)
 	/* If there are not channels, then dump them all */
 	if (!chan_count) {
 		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
-					printf("%s:%d\n", __func__,__LINE__);
 			channels[i - FMCTDC_CH_1] =
 				fmctdc_fileno_channel(brd, i);
 			ret = fmctdc_reference_set(brd, i, ref[i - 1]);
@@ -255,6 +254,12 @@ int main(int argc, char **argv)
 				n++;
 			}
 		}
+	}
+
+	/* Restore default time-stamping */
+	for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
+		if (channels[i - FMCTDC_CH_1] > 0)
+			fmctdc_reference_clear(brd, i);
 	}
 
 	fmctdc_close(brd);
