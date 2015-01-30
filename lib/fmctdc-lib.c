@@ -31,9 +31,10 @@
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-static struct __fmctdc_board *ft_boards;
-static int ft_nboards;
-static char *names[] = { "seconds", "coarse" };
+static struct __fmctdc_board *ft_boards; /**< list of available boards */
+static int ft_nboards; /**< number of available boards */
+static char *names[] = { "seconds", "coarse" }; /**< names used to retrive
+						   time-stamps from sysfs */
 
 
 /**
@@ -339,7 +340,7 @@ int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
 
 /**
  * It opens the zio control channel of a TDC board
- * @param[in] userb TDC board instance token
+ * @param[in] b TDC board instance token
  * @param[in] channel channel to open
  * @return a file descriptor, otherwise -1 and errno is set appropriately
  */
