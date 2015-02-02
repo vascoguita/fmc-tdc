@@ -89,6 +89,7 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
 extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
 extern int fmctdc_reference_set(struct fmctdc_board *userb,
 				uint32_t ch_target, uint32_t ch_reference);
+extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
 
 /**
  *@file fmctdc-lib-math.c

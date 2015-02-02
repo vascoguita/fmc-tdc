@@ -574,4 +574,45 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 }
 
 
+/**
+ * It removes all samples from the channel buffer
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [1, 5]
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	struct fmctdc_time t[10];
+	char path[64];
+	int i, en, err;
 
+	if (channel > FMCTDC_NUM_CHANNELS || channel <= 0 ) {
+		errno = EINVAL;
+		return -1;
+	}
+	en = fmctdc_get_acquisition(userb);
+	if (en < 0)
+		return -1;
+
+	/* Disable acquisition, it will flush the hw buffer */
+	err = fmctdc_set_acquisition(userb, 0);
+	if (err)
+		return err;
+
+	/* FIXME when TDC driver will have its zio-trigger this is not
+	 * necessary anymore */
+	do {
+		i = fmctdc_read(userb, channel, t, 10, 0);
+	} while (i > 0);
+
+	/* Flush ZIO buffer */
+	snprintf(path, sizeof(path), "ft-ch%d/chan0/buffer/flush", channel);
+	err = fmctdc_sysfs_set(b, path, &channel);
+	if (err) {
+		return err;
+	}
+
+	/* Re-enable if it was enable */
+	return fmctdc_set_acquisition(userb, en);
+}
