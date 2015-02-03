@@ -82,7 +82,7 @@ void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
  * @param[in] a timestamp
  * @param[in] b timestamp
  */
-void ft_ts_add(struct fmctdc_time *a, struct fmctdc_time *b)
+void fmctdc_ts_add(struct fmctdc_time *a, struct fmctdc_time *b)
 {
 	a->frac += b->frac;
 
