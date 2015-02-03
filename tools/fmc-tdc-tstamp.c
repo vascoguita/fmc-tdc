@@ -54,15 +54,18 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr, int diff_mode)
 	uint64_t ns;
 	double s, hz;
 
-	fprintf(stdout, "channel %d | channel seq %-12u | board seq %-12u\n    ts   ", ch, ts->seq_id, ts->gseq_id);
+	fprintf(stdout, "channel %d | channel seq %-12u | board seq %-12u\n    ts   ",
+		ch, ts->seq_id, ts->gseq_id);
 	dump_timestamp(*ts, fmt_wr);
 	fprintf(stdout, "\n");
 
 	ts_tmp = *ts;
 	fmctdc_ts_sub(&ts_tmp, &ts_prev[ch]);
 
-	if (diff_mode)
+	if (diff_mode) {
+		fprintf(stdout, "    refer to board seq %-12u\n", ts->ref_gseq_id);
 		return;
+	}
 
 	/* We are in normal mode, calculate the difference */
 	fprintf(stdout, "    diff ");
