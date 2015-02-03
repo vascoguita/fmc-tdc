@@ -73,14 +73,14 @@ extern int fmctdc_set_host_time(struct fmctdc_board *b);
 extern int fmctdc_set_acquisition(struct fmctdc_board *b, int enable);
 extern int fmctdc_get_acquisition(struct fmctdc_board *b);
 
-extern int fmctdc_set_termination(struct fmctdc_board *b, int channel,
+extern int fmctdc_set_termination(struct fmctdc_board *b, unsigned int channel,
 				  int enable);
-extern int fmctdc_get_termination(struct fmctdc_board *b, int channel);
+extern int fmctdc_get_termination(struct fmctdc_board *b, unsigned int channel);
 
-extern int fmctdc_fread(struct fmctdc_board *b, int channel,
+extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
 			struct fmctdc_time *t, int n);
-extern int fmctdc_fileno_channel(struct fmctdc_board *b, int channel);
-extern int fmctdc_read(struct fmctdc_board *b, int channel,
+extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);
+extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
 		       struct fmctdc_time *t, int n, int flags);
 
 extern float fmctdc_read_temperature(struct fmctdc_board *b);
@@ -90,7 +90,8 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
 
 extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
 extern int fmctdc_reference_set(struct fmctdc_board *userb,
-				uint32_t ch_target, uint32_t ch_reference);
+				unsigned int ch_target, int ch_reference);
+extern int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target);
 extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
 
 /**

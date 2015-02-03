@@ -270,13 +270,14 @@ float fmctdc_read_temperature(struct fmctdc_board *userb)
  * @return 0 on success, otherwise a negative errno code is set
  *         appropriately
  */
-int fmctdc_set_termination(struct fmctdc_board *userb, int channel, int on)
+int fmctdc_set_termination(struct fmctdc_board *userb, unsigned int channel,
+			   int on)
 {
 	__define_board(b, userb);
 	uint32_t val;
 	char attr[32];
 
-	if (channel < FMCTDC_CH_1 || channel > FMCTDC_NUM_CHANNELS)
+	if (channel >= FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
 	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel);
@@ -293,14 +294,14 @@ int fmctdc_set_termination(struct fmctdc_board *userb, int channel, int on)
  * @return termination status, otherwise a negative errno code is set
  *         appropriately
  */
-int fmctdc_get_termination(struct fmctdc_board *userb, int channel)
+int fmctdc_get_termination(struct fmctdc_board *userb, unsigned int channel)
 {
 	__define_board(b, userb);
 	uint32_t val;
 	char attr[32];
 	int ret;
 
-	if (channel < FMCTDC_CH_1 || channel > FMCTDC_NUM_CHANNELS)
+	if (channel >= FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
 	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel);
@@ -352,7 +353,7 @@ int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
  * @param[in] channel channel to open
  * @return a file descriptor, otherwise -1 and errno is set appropriately
  */
-static int __fmctdc_open_channel(struct __fmctdc_board *b, int channel)
+static int __fmctdc_open_channel(struct __fmctdc_board *b, unsigned int channel)
 {
 	char fname[128];
 	if (b->fdc[channel - 1] <= 0) {
@@ -370,7 +371,7 @@ static int __fmctdc_open_channel(struct __fmctdc_board *b, int channel)
  * @param[in] channel channel to use
  * @return a file descriptor, otherwise -1 and errno is set appropriately
  */
-int fmctdc_fileno_channel(struct fmctdc_board *userb, int channel)
+int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 {
 	__define_board(b, userb);
 	return __fmctdc_open_channel(b, channel);
@@ -388,8 +389,8 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, int channel)
  * @return number of acquired time-stamps, otherwise -1 and errno is set
  *         appropriately
  */
-int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
-		int n, int flags)
+int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
+		struct fmctdc_time *t, int n, int flags)
 {
 	__define_board(b, userb);
 	struct zio_control ctrl;
@@ -397,7 +398,7 @@ int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 	int i, j, fd;
 	fd_set set;
 
-	if (channel < FMCTDC_CH_1 || channel > FMCTDC_NUM_CHANNELS)
+	if (channel >= FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
 	fd = __fmctdc_open_channel(b, channel);
@@ -450,8 +451,8 @@ int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
  * @return number of acquired time-stamps, otherwise -1 and errno is set
  *         appropriately
  */
-int fmctdc_fread(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
-		 int n)
+int fmctdc_fread(struct fmctdc_board *userb, unsigned int channel,
+		 struct fmctdc_time *t, int n)
 {
 	int i, loop;
 
@@ -569,7 +570,7 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
 int fmctdc_reference_set(struct fmctdc_board *userb,
-			 uint32_t ch_target, uint32_t ch_reference)
+			 unsigned int ch_target, int ch_reference)
 {
 	struct __fmctdc_board *b = (void *)(userb);
 	char path[64];
@@ -596,7 +597,7 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	char path[64];
 	int i, en, err;
 
-	if (channel > FMCTDC_NUM_CHANNELS || channel <= 0 ) {
+	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
 		return -1;
 	}
