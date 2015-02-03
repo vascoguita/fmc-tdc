@@ -565,22 +565,50 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
  * you will read (from the target channel) the time-stamp difference between
  * the last reference pulse and the target.
  * @param[in] userb TDC board instance token
- * @param[in] ch_target target channel [1, 5]
- * @param[in] ch_reference reference channel [0, 5]. Use 0 to remove reference
+ * @param[in] ch_target target channel [0, 4]
+ * @param[in] ch_reference reference channel [0, 4]. Use -1 to remove reference
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
 int fmctdc_reference_set(struct fmctdc_board *userb,
 			 unsigned int ch_target, int ch_reference)
 {
 	struct __fmctdc_board *b = (void *)(userb);
+	uint32_t ch_ref = ch_reference;
 	char path[64];
 
-	if (ch_target > FMCTDC_NUM_CHANNELS || ch_target <= 0 ) {
+	if (ch_target >= FMCTDC_NUM_CHANNELS || ch_ref >= FMCTDC_NUM_CHANNELS ) {
 		errno = EINVAL;
 		return -1;
 	}
-	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target);
-	return fmctdc_sysfs_set(b, path, &ch_reference);
+	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target + 1);
+	ch_ref++;
+	return fmctdc_sysfs_set(b, path, &ch_ref);
+}
+
+
+/**
+ * It get the current reference channel of a given target channel
+ * @param[in] userb TDC board instance token
+ * @param[in] ch_target target channel [0, 4]
+ * @return the number of the reference channel [0, 4]on success, otherwise -1 and
+ *         errno is set appropriately
+ */
+int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	uint32_t ch_ref;
+	char path[64];
+	int err;
+
+	if (ch_target >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target + 1);
+	err = fmctdc_sysfs_get(b, path, &ch_ref);
+	if (err)
+		return -1;
+	return ch_ref - 1;
 }
 
 
