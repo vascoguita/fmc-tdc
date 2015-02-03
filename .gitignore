@@ -7,3 +7,5 @@
 .*cmd
 modules.order
 Module.symvers
+*TAGS
+GPATH
