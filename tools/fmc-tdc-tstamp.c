@@ -90,6 +90,8 @@ static void help(char *name)
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
 	fprintf(stderr, "  -d <ch>,<ch>: difference between two channel\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
+	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
+		FMCTDC_CH_1, FMCTDC_CH_LAST);
 }
 
 
