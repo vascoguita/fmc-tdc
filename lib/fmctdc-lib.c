@@ -36,6 +36,14 @@ static int ft_nboards; /**< number of available boards */
 static char *names[] = { "seconds", "coarse" }; /**< names used to retrive
 						   time-stamps from sysfs */
 
+/**
+ * It returns the error message associated to the given error code
+ */
+char *fmctdc_strerror(int err)
+{
+	return strerror(err);
+}
+
 
 /**
  * Init the library. You must call this function before use any other

@@ -58,6 +58,7 @@ static inline int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b)
 /**
  * @file fmctdc-lib.c
  */
+extern char *fmctdc_strerror(int err);
 extern int fmctdc_init(void);
 extern void fmctdc_exit(void);
 
