@@ -99,6 +99,8 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 			 */
 			memset(&ts, 0 , sizeof(struct ft_wr_timestamp));
 		}
+	} else {
+		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.gseq_id;
 	}
 
 	/* Write the timestamp in the trigger, it will reach the control */
