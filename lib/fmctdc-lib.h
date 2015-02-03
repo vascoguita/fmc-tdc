@@ -40,6 +40,7 @@ struct fmctdc_time {
 	uint32_t frac; /**< number of frac of 81.03ps */
 	uint32_t seq_id; /**< channel sequence number*/
 	uint32_t gseq_id; /**< board sequence number */
+	uint32_t ref_gseq_id; /**< board sequence number of the reference */
 };
 
 

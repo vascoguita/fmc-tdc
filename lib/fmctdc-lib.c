@@ -408,6 +408,7 @@ int fmctdc_read(struct fmctdc_board *userb, int channel, struct fmctdc_time *t,
 			t->frac = ctrl.tstamp.bins;
 			t->seq_id = ctrl.seq_num;
 			t->gseq_id = attrs[FT_ATTR_DEV_SEQUENCE];
+			t->ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 			i++;
 			continue;
 		}
