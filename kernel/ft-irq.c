@@ -83,7 +83,6 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	 * the reference
 	 */
 	if (st->delay_reference) {
-		pr_info("%s:%d  calculate delay\n", __func__, __LINE__);
 		reflast = &ft->channels[st->delay_reference - 1].last_ts;
 		/* local copy of the last time stamp */
 		ts_last = *reflast;
@@ -93,16 +92,12 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 		if (likely(ts.gseq_id > ts_last.gseq_id)) {
 			ft_ts_sub(&ts, &ts_last);
 			v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts_last.gseq_id;
-			pr_info("%s:%d  gseq last ref %d\n", __func__, __LINE__,
-				ts_last.gseq_id);
 		} else {
 			/*
 			 * It seems that we are not able to compute the delay.
 			 * Inform the user by setting the time stamp to 0
 			 */
 			memset(&ts, 0 , sizeof(struct ft_wr_timestamp));
-			pr_info("%s:%d  can't do it %d - %d %d\n", __func__, __LINE__,
-				st->delay_reference - 1, ts.gseq_id > ts_last.gseq_id);
 		}
 	}
 
@@ -288,7 +283,6 @@ static void ft_readout_tasklet(unsigned long arg)
 	uint32_t rd_ptr;
 	int count, dacapo, i, err;
 
-	pr_info("%s:%d\n", __func__, __LINE__);
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
 	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
 
