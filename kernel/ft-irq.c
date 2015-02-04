@@ -56,7 +56,7 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	struct zio_control *ctrl;
 	struct zio_ti *ti = chan->cset->ti;
 	uint32_t *v;
-	struct ft_wr_timestamp ts, ts_last, *reflast;
+	struct ft_wr_timestamp ts, *reflast;
 	struct ft_channel_state *st;
 	int ret;
 
@@ -78,20 +78,19 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	ctrl = chan->current_ctrl;
 	v = ctrl->attr_channel.ext_val;
 
+	/* Update last time stamp of the current channel,
+	   with the current time-stamp */
+	memcpy(&st->last_ts, &ts, sizeof(struct ft_wr_timestamp));
+
 	/*
 	 * If we are in delay mode, replace the time stamp with the delay from
 	 * the reference
 	 */
 	if (st->delay_reference) {
 		reflast = &ft->channels[st->delay_reference - 1].last_ts;
-		/* local copy of the last time stamp */
-		ts_last = *reflast;
-		/* update last time stamp with the current one */
-		memcpy(reflast, &ts, sizeof(struct ft_wr_timestamp));
-
-		if (likely(ts.gseq_id > ts_last.gseq_id)) {
-			ft_ts_sub(&ts, &ts_last);
-			v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts_last.gseq_id;
+		if (likely(ts.gseq_id > reflast->gseq_id)) {
+			ft_ts_sub(&ts, reflast);
+			v[FT_ATTR_TDC_DELAY_REF_SEQ] = reflast->gseq_id;
 		} else {
 			/*
 			 * It seems that we are not able to compute the delay.
