@@ -16,12 +16,12 @@
 #include <stdint.h>
 
 enum fmctdc_channel {
-	FMCTDC_CH_1 = 1,
-	FMCTDC_CH_2 = 2,
-	FMCTDC_CH_3 = 3,
-	FMCTDC_CH_4 = 4,
-	FMCTDC_CH_5 = 5,
-	FMCTDC_CH_LAST = 5,
+	FMCTDC_CH_1 = 0,
+	FMCTDC_CH_2,
+	FMCTDC_CH_3,
+	FMCTDC_CH_4,
+	FMCTDC_CH_5,
+	FMCTDC_CH_LAST = 4,
 	FMCTDC_NUM_CHANNELS = 5
 };
 

@@ -119,7 +119,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	memset(ref, 0, sizeof(ref));
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i)
+		ref[i] = -1;
 
 	/* Parse Options */
 	while ((opt = getopt(argc, argv, "hwns:d:")) != -1) {
@@ -140,21 +141,21 @@ int main(int argc, char **argv)
 			break;
 		case 'd':
 			sscanf(optarg, "%i,%i", &a, &b);
-			if (a < 1 || a > FMCTDC_NUM_CHANNELS) {
+			if (a < 0 || a > FMCTDC_CH_LAST) {
 				fprintf(stderr,
 					"%s: invalid reference channel %d\n",
 					argv[0], a);
 				help(argv[0]);
 				exit(EXIT_FAILURE);
 			}
-			if (b < 0 || b > FMCTDC_NUM_CHANNELS) {
+			if (b < 0 || b > FMCTDC_CH_LAST) {
 				fprintf(stderr,
 					"%s: invalid target channel %d\n",
 					argv[0], b);
 				help(argv[0]);
 				exit(EXIT_FAILURE);
 			}
-			ref[b - 1] = a;
+			ref[b] = a;
 			break;
 		}
 	}
@@ -188,27 +189,28 @@ int main(int argc, char **argv)
 			fmctdc_close(brd);
 			exit(EXIT_FAILURE);
 		}
-		channels[ch - FMCTDC_CH_1] = fmctdc_fileno_channel(brd, ch);
+		channels[ch] = fmctdc_fileno_channel(brd, ch);
 
 		chan_count++;
 		optind++;
 	}
 	/* If there are not channels, then dump them all */
 	if (!chan_count) {
-		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
-			channels[i - FMCTDC_CH_1] =
+		for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
+			channels[i] =
 				fmctdc_fileno_channel(brd, i);
-			ret = fmctdc_reference_set(brd, i, ref[i - 1]);
+			ret = fmctdc_reference_set(brd, i, ref[i]);
 			if (ret) {
 				fprintf(stderr,
-					"%s: cannot set reference mode\n",
-					argv[0]);
+					"%s: cannot set reference mode: %s\n",
+					argv[0], fmctdc_strerror(errno));
 				fprintf(stderr,
-					"%s: continue in normal mode\n",
-					argv[0]);
+					"%s: continue in normal mode: %s\n",
+					argv[0], fmctdc_strerror(errno));
+				ref[i] = -1;
 			}
 		}
-		chan_count = FMCTDC_NUM_CHANNELS;
+		chan_count = i;
 	}
 
 
@@ -219,8 +221,8 @@ int main(int argc, char **argv)
 
 		/* Prepare the list of channel to observe */
 		FD_ZERO(&rfds);
-		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
-			fd = channels[i - FMCTDC_CH_1];
+		for (i = 0; i <= FMCTDC_CH_LAST; i++) {
+			fd = channels[i];
 			if (fd < 0) {
 				fprintf(stderr, "Can't open channel %d\n", i);
 				exit(EXIT_FAILURE);
@@ -242,8 +244,8 @@ int main(int argc, char **argv)
 		}
 
 		/* Now we can read the timestamp */
-		for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
-			fd = channels[i - FMCTDC_CH_1];
+		for (i = 0; i <= FMCTDC_CH_LAST; i++) {
+			fd = channels[i];
 			if (fd < 0)
 				continue;
 
@@ -253,7 +255,7 @@ int main(int argc, char **argv)
 			byte_read = fmctdc_read(brd, i, &ts, 1,
 						nblock ? O_NONBLOCK : 0);
 			if (byte_read > 0) {
-				dump(i, &ts, fmt_wr, !!ref[i - 1]);
+				dump(i, &ts, fmt_wr, ref[i] < 0 ? 0 : 1);
 
 				ts_prev[i] = ts;
 				n++;
@@ -262,9 +264,9 @@ int main(int argc, char **argv)
 	}
 
 	/* Restore default time-stamping */
-	for (i = FMCTDC_CH_1; i <= FMCTDC_CH_LAST; i++) {
-		if (channels[i - FMCTDC_CH_1] > 0)
-			fmctdc_reference_clear(brd, i);
+	for (i = 0; i <= FMCTDC_CH_LAST; i++) {
+		if (channels[i] > 0)
+			fmctdc_reference_clear(brd, -1);
 	}
 
 	fmctdc_close(brd);

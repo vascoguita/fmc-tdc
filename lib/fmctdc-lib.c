@@ -280,7 +280,7 @@ int fmctdc_set_termination(struct fmctdc_board *userb, unsigned int channel,
 	if (channel >= FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel);
+	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel + 1);
 
 	val = on ? 1 : 0;
 	return fmctdc_sysfs_set(b, attr, &val);
@@ -304,7 +304,7 @@ int fmctdc_get_termination(struct fmctdc_board *userb, unsigned int channel)
 	if (channel >= FMCTDC_NUM_CHANNELS)
 		return -EINVAL;
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel);
+	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel + 1);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
 	if (ret)
@@ -350,18 +350,19 @@ int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
 /**
  * It opens the zio control channel of a TDC board
  * @param[in] b TDC board instance token
- * @param[in] channel channel to open
+ * @param[in] channel channel to open [0, 4]
  * @return a file descriptor, otherwise -1 and errno is set appropriately
  */
 static int __fmctdc_open_channel(struct __fmctdc_board *b, unsigned int channel)
 {
 	char fname[128];
-	if (b->fdc[channel - 1] <= 0) {
+
+	if (b->fdc[channel] <= 0) {
 		snprintf(fname, sizeof(fname), "%s-%d-0-ctrl", b->devbase,
-			 channel - 1);
-		b->fdc[channel - 1] = open(fname, O_RDONLY | O_NONBLOCK);
+			 channel);
+		b->fdc[channel] = open(fname, O_RDONLY | O_NONBLOCK);
 	}
-	return b->fdc[channel - 1];
+	return b->fdc[channel];
 }
 
 
@@ -374,6 +375,7 @@ static int __fmctdc_open_channel(struct __fmctdc_board *b, unsigned int channel)
 int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 {
 	__define_board(b, userb);
+
 	return __fmctdc_open_channel(b, channel);
 }
 
@@ -381,7 +383,7 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 /**
  * this "read" behaves like the system call and obeys O_NONBLOCK
  * @param[in] userb TDC board instance token
- * @param[in] channel channel to use
+ * @param[in] channel channel to use [0, 4]
  * @param[out] t array of time-stamps
  * @param[in] n number of elements to save in the array
  * @param[in] flags tune the behaviour of the function.
@@ -524,6 +526,7 @@ int fmctdc_get_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 int fmctdc_set_host_time(struct fmctdc_board *userb)
 {
 	__define_board(b, userb);
+
 	return __fmctdc_command(b, FT_CMD_SET_HOST_TIME);
 }
 
@@ -537,6 +540,7 @@ int fmctdc_set_host_time(struct fmctdc_board *userb)
 int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 {
 	__define_board(b, userb);
+
 	if (on)
 		__fmctdc_command(b, FT_CMD_WR_ENABLE);
 	else
@@ -554,6 +558,7 @@ int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 {
 	__define_board(b, userb);
+
 	if (__fmctdc_command(b, FT_CMD_WR_QUERY) == 0)
 		return 0;
 	return errno;
@@ -576,12 +581,13 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 	uint32_t ch_ref = ch_reference;
 	char path[64];
 
-	if (ch_target >= FMCTDC_NUM_CHANNELS || ch_ref >= FMCTDC_NUM_CHANNELS ) {
+	if (ch_target >= FMCTDC_NUM_CHANNELS || ch_reference >= FMCTDC_NUM_CHANNELS ) {
 		errno = EINVAL;
 		return -1;
 	}
+
 	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target + 1);
-	ch_ref++;
+	ch_ref++; /* for the driver channel interval is [1, 5] */
 	return fmctdc_sysfs_set(b, path, &ch_ref);
 }
 
@@ -608,14 +614,14 @@ int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
 	err = fmctdc_sysfs_get(b, path, &ch_ref);
 	if (err)
 		return -1;
-	return ch_ref - 1;
+	return ch_ref - 1; /* For the driver channel interval is [1, 5]*/
 }
 
 
 /**
  * It removes all samples from the channel buffer
  * @param[in] userb TDC board instance token
- * @param[in] channel target channel [1, 5]
+ * @param[in] channel target channel [0, 4]
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
 int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
@@ -645,7 +651,7 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	} while (i > 0);
 
 	/* Flush ZIO buffer */
-	snprintf(path, sizeof(path), "ft-ch%d/chan0/buffer/flush", channel);
+	snprintf(path, sizeof(path), "ft-ch%d/chan0/buffer/flush", channel + 1);
 	err = fmctdc_sysfs_set(b, path, &channel);
 	if (err) {
 		return err;
