@@ -41,7 +41,7 @@ uint64_t fmctdc_ts_ps(struct fmctdc_time *a)
 {
 	uint64_t ps = 0;
 
-	ps += a->seconds * 1000000000000;
+	ps += a->seconds * 1000000000000ULL;
 	ps += a->coarse * 8000;
 	ps += a->frac * 8000ULL / 4096ULL;
 	return ps;
