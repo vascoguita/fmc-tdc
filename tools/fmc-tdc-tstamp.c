@@ -88,7 +88,8 @@ static void help(char *name)
 	fprintf(stderr, "  -n          : non-blocking mode\n");
 	fprintf(stderr, "  -s n_samples: dump 'n_samples' timestamps\n");
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
-	fprintf(stderr, "  -d <ch>,<ch>: difference between two channel\n");
+	fprintf(stderr, "  -d <ch_ref>,<ch_tar>: difference between a reference channel and\n");
+	fprintf(stderr, "                        a target channel (<ch_tar> - <ch_ref>)\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
