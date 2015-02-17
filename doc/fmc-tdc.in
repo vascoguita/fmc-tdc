@@ -524,58 +524,49 @@ programs should not refer to.
 @end itemize
 
 @c ##########################################################################
-@chapter Using the Provided API
+@node API Overview
+@chapter API Overview
 
-This chapter describes the high level interface to the board,
-designed for user applications to use.  The code lives in the @i{lib}
-subdirectory of this package. The directory uses a plain Makefile (not
-a Kbuild one) so it can be copied elsewhere and compiled stand-alone.
-Only, it needs a copy of @code{fmc-tdc.h} (which it currently pulls
-from the parent directory) and the ZIO headers, retrieved using the
-@code{ZIO} environment variable).
+In this chapter we will not discuss about the details of the API; for this
+purpose please generate (and read) the doxygen documentation:
 
+@smallexample
+        cd doc
+        make doxygen
+@end smallexample
+
+Here we will present generic concept behind the API, all implementation details
+are available on the doxygen documentation.
+
+@c ==========================================================================
+@node Time-Stamp modes
+@section Time-Stamp modes
+The driver provides two time-stamp modes that you can configure for
+each channel:
+
+@itemize @bullet
+@item base time
+@item difference time
+@end itemize
+
+The standard mode is the @i{base time} mode. When this mode is enabled for a
+given channel, the provided time-stamps will be a pure time-stamp according to
+the TDC internal base-time. You can change the internal base-time of a TDC
+board when the acquisition is off.
+
+The @i{difference time} mode can be enabled by assigning a channel reference
+to a given channel (target). When you assing a channel reference to a channel
+the time-stamps produced by the driver will be a time difference between the
+pulse on the target channel and the last pulse on the reference channel.
+In order to disable the difference mode, and go back to the base time mode,
+you must remove the channel reference.
+
+
+@c ##########################################################################
+@chapter Example programs
 @c ==========================================================================
 @node Initialization and Cleanup
 @section Initialization and Cleanup
-
-The library offers the following structures and functions:
-
-@table @code
-
-@item struct fmctdc_board;
-
-	This is the ``opaque'' token that is being used by library clients.
-        If you want to see the internals, look at @code{lib/fmctdc-lib-private.h}.
-
-@item int fmctdc_init(void);
-@itemx void fmctdc_exit(void);
-
-	The former function allocates its internal data and returns
-	the number of boards currently found on the system. The latter
-        releases any allocated data. If @i{init} fails, it returns -1 with
-        a proper @code{errno} value. If no boards are there it returns 0.
-        You should not load or unload drivers between @i{init} and @i{exit}.
-
-@item struct fmctdc_board *fmctdc_open(int index, int dev_id);
-@item int fmctdc_close(struct fmctdc_board *);
-
-	The former function opens a board and returns a token that can
-        be used in subsequent calls. The latter function undoes it.
-        You can refer to a board either by index or by
-        @code{dev_id}. Either argument (but not both) may be -1. If both
-        are different from -1 the index and dev_id must match. If a mismatch
-        is found, the function return NULL with @code{EINVAL}; if either index or
-        @code{dev_id} are not found, the function returns NULL with @code{ENODEV}.
-
-@item struct fmctdc_board *fmctdc_open_by_lun(int lun);
-
-	The function opens a pointer to a board, similarly to @i{fmctdc_open},
-        but it uses the Logical Unit Number as argument instead. The LUN
-        is used internally be CERN libraries, and the function is needed
-        for compatibility with the installed tool-set.  The function uses
-        a symbolic link in @i{dev}, created by the local installation procedure.
-
-@end table
 
 The sample program @i{fmctdc-list} lists the boards currently on the system,
 using @i{fmctdc_init}:
@@ -589,47 +580,6 @@ using @i{fmctdc_init}:
 @c ==========================================================================
 @node Time Management
 @section Time Management
-
-These are the primitives the library offers for time management.
-
-@table @code
-
-@item struct fmctdc_time;
-
-	The structure describes an internal timestamp format used by the card. This format is used by all our
-        FMCs that use White Rabbit for synchronization. It consists of the following fields (see @ref{fig:ts_format}):
-@itemize
-@item 64-bit @code{seconds} - TAI seconds. Note this is @b{not} an UTC time - the counter does not support leap seconds. The internal counter is also limited to 32 bits (2038-error-prone).
-@item 32-bit @code{coarse} - number of 8 ns ticks since the beginning of the last second.
-@item 32-bit @code{frac} - fractional part of an 8 ns tick, rescaled to (0..4095) range - i.e. 0 = 0 ns, and 4095 = 7.999 ns.
-@item 32-bit @code{seq_id} - sequence identfier of the timestamp (used by readout functions).
-@end itemize
-
-@float Figure,fig:ts_format
-@center @image{drawings/ts_format, 13cm,,,.pdf}
-@caption{WR timestamp format used by the FmcTdc.}
-@end float
-
-@item int fmctdc_set_time(struct fmctdc_board *b, struct fmctdc_time *t);
-@itemx int fmctdc_get_time(struct fmctdc_board *b, struct fmctdc_time *t);
-
-	The functions are used to set board time from a user-provided
-        time, and to retrieve the current board time to user space.
-        The functions return 0 on success. They only use the field
-        @i{seconds} of @code{struct fmctdc_time}.
-
-        @b{Note 1}: the current gateware does not support setting/reading the coarse counter. When the user calls    
-        @code{fmctdc_[sg]et_time()}, only the seconds counter is read/written. Coarse counter is always set to 0.
-        See section @i{Known issues} for details.
-        @b{Note 2}: time can be only set when acuqisition is disabled (see @code{fmctdc_set_acquisition()}), otherwise
-        time setting function will return an error and time counter will remain unchanged.        
-
-@item int fmctdc_set_host_time(struct fmctdc_board *b);
-
-	The function sets board time equal to host time, it is provided as a convenience shortcut. It can also be used
-        to coarsely synchronize different cards in the same host.
-
-@end table
 
 The program @i{fmctdc-board} is a command-line front-end to the library,
 to validate the library works as expected. The first parameter is the board bus ID, the second one is the command, the third one is the new seconds counter value:
@@ -650,34 +600,6 @@ to validate the library works as expected. The first parameter is the board bus 
 @c ==========================================================================
 @node Input Configuration
 @section Input Configuration
-
-To configure the input channel for a board, the library offers the
-following function and macros:
-
-@table @code
-
-@item int fmctdc_set_termination(struct fmctdc_board *b, int channel, int enable);
-
-      The function enables/disables the 50 Ohm termination of the given channel. Termination may be
-      changed anytime.
-
-@itemx int fmctdc_get_termination(struct fmctdc_board *b, int channel);
-
-      The function returns current temrmination status: 0 if the given channel is high-impedance and positive if
-      it is 50 Ohm-terminated.
-
-@item int fmctdc_set_acquisition(struct fmctdc_board *b, int enable);
-
-      The function globally enables/disables timestamp acquisition for the given mezzanine. Due to limitations
-      in the gateware, it is not possible to enable/disable channels individually. Certain operations such as
-      setting board's time require acquisition to be disabled. Disabling acqusition also clears all timestamp buffers and resets
-      sequence IDs of the timestamps.
-
-@itemx int fmctdc_get_acquisition(struct fmctdc_board *b);
-
-       Returns 0 if acquisition is disabled, and positive otherwise.
-
-@end table
 
 The example program @i{fmctdc-term} demonstrates use of the function.
 It just enables or disables the 50-ohm resistor.  The effect is
@@ -707,34 +629,6 @@ The other example, @i{fmctdc-acquisition}, works as follows:
 @c ==========================================================================
 @node Reading Input Time-stamps
 @section Reading Input Time-stamps
-
-The library offers the following functions that deal with the input stamps:
-
-@table @code
-
-@item int fmctdc_fread(struct fmctdc_board *b, int channel, struct fmctdc_time *t, int n);
-
-	The function behaves like @i{fread}: it tries to read all samples,
-        even if it implies sleeping several times.  Use it only if you are
-        aware that all the expected pulses will reach you.
-
-@item int fmctdc_read(struct fmctdc_board *b, int channel, struct fmctdc_time *t, int n,
-		       int flags);
-
-	The function behaves like @i{read}: it will wait at most once
-        and return the number of samples that it received from a given input channel.
-        The @i{flags} argument is used to pass 0 or @code{O_NONBLOCK}. If a non-blocking
-        read is performed, the function may return -1 with @code{EAGAIN}
-        if nothing is pending in the hardware FIFO.
-        
-@item int fmctdc_fileno_tdc(struct fmctdc_board *b, int channel);
-
-	This returns the file descriptor associated to the given TDC channel,
-        so you can @i{select} or @i{poll} before calling @i{fmctdc_read}.
-        If access fails (e.g., for permission problems), the functions
-        returns -1 with @code{errno} properly set.
-
-@end table
 
 There is an example program provided, called @i{fmctdc-read}:
 
