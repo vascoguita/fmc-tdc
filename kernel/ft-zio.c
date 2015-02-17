@@ -75,6 +75,8 @@ static enum ft_devtype __ft_get_type(struct device *dev)
 
 void ft_zio_kill_buffer(struct fmctdc_dev *ft, int channel)
 {
+	if (ft->zdev)
+		return;
 	zio_trigger_abort_disable(&ft->zdev->cset[channel - FT_CH_1], 0);
 }
 
