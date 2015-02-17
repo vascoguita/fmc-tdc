@@ -38,6 +38,7 @@ static char *names[] = { "seconds", "coarse" }; /**< names used to retrive
 
 /**
  * It returns the error message associated to the given error code
+ * @param[in] err error code
  */
 char *fmctdc_strerror(int err)
 {
@@ -47,7 +48,11 @@ char *fmctdc_strerror(int err)
 
 /**
  * Init the library. You must call this function before use any other
- * library function
+ * library function. If your system is plug-and-play and TDC devices may
+ * appear and disappear at any moment in time, you have to close
+ * (fmctdc_exit()) and initialize again (fmctdc_init()) the library in order
+ * to get the correct status. Of course, if your applications are using a
+ * device and you remove it you will get a library crash.
  * @return the number of boards found
  */
 int fmctdc_init(void)
@@ -118,8 +123,9 @@ int fmctdc_init(void)
 
 
 /**
- * It releases all the resources used by the library. Once you call this
- * function you cannot use other function from this library.
+ * It releases all the resources used by the library and allocated
+ * by fmctdc_init(). Once you call this function you cannot use other function
+ * from this library.
  */
 void fmctdc_exit(void)
 {
@@ -153,9 +159,11 @@ void fmctdc_exit(void)
 /**
  * It opens one specific device. -1 arguments mean "not installed"
  * @param[in] offset board enumeration offset [0, N]. -1 to ignore it and
- *                   use dev_id
- * @param[in] dev_id FMC device id. 0 to ignore it and use only the offset
- * @return an instance token, otherwise NULL and errno is appripriately set
+ *                   use only dev_id
+ * @param[in] dev_id FMC device id. -1 to ignore it and use only the offset
+ * @return an instance token, otherwise NULL and errno is appripriately set.
+ *         ENODEV if the device was not found. EINVAL there is a mismatch with
+ *         the arguments
  */
 struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 {
@@ -198,7 +206,11 @@ found:
 
 
 /**
- * It opens one specific device by logical unit number (CERN/CO-like)
+ * It opens one specific device by logical unit number (CERN/BE-CO-like).
+ * The function uses a symbolic link in /dev that points to the standard device.
+ * The link is created by the local installation procedure, and it allows to get
+ * the device id according to the LUN.
+ * Read also fmctdc_open() documentation.
  * @param[in] lun Logical Unit Number
  * @return an instance token, otherwise NULL and errno is appripriately set
  */
@@ -225,7 +237,7 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 
 
 /**
- * It closes a TDC instance
+ * It closes a TDC instance opened with fmctdc_open() or fmctdc_open_by_lun()
  * @param[in] userb TDC board instance token
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
@@ -248,7 +260,7 @@ int fmctdc_close(struct fmctdc_board *userb)
 
 
 /**
- * It reads the current temperature of the TDC
+ * It reads the current temperature of a TDC device
  * @param[in] userb TDC board instance token
  * @return temperature
  */
@@ -263,7 +275,8 @@ float fmctdc_read_temperature(struct fmctdc_board *userb)
 
 
 /**
- * It enables/disables the channel termination
+ * The function enables/disables the 50 Ohm termination of the given channel.
+ * Termination may be changed anytime.
  * @param[in] userb TDC board instance token
  * @param[in] channel to use
  * @param[in] on status of the termination to set
@@ -288,7 +301,8 @@ int fmctdc_set_termination(struct fmctdc_board *userb, unsigned int channel,
 
 
 /**
- * It returns the current status of a channel termination
+ * The function returns current temrmination status: 0 if the given channel
+ * is high-impedance and positive if it is 50 Ohm-terminated.
  * @param[in] userb TDC board instance token
  * @param[in] channel to use
  * @return termination status, otherwise a negative errno code is set
@@ -314,9 +328,10 @@ int fmctdc_get_termination(struct fmctdc_board *userb, unsigned int channel)
 
 
 /**
- * It gets the acquisition status of the board
+ * It gets the acquisition status of a TDC device
  * @param[in] userb TDC board instance token
- * @return the acquisition status, otherwise -1 and errno is set appropriately
+ * @return the acquisition status (0 disabled, 1 enabled), otherwise -1 and
+ *         errno is set appropriately
  */
 int fmctdc_get_acquisition(struct fmctdc_board *userb)
 {
@@ -332,9 +347,13 @@ int fmctdc_get_acquisition(struct fmctdc_board *userb)
 
 
 /**
- * It sets the acquisition status of the board
+ * The function globally enables/disables timestamp acquisition for the given
+ * mezzanine. Due to limitations in the gateware, it is not possible to
+ * enable/disable channels individually. Certain operations such as setting
+ * board's time require acquisition to be disabled. Disabling acqusition also
+ * clears all timestamp buffers and resets sequence IDs of the timestamps.
  * @param[in] userb TDC board instance token
- * @param[in] on acquisition status to set
+ * @param[in] on acquisition status to set (0 disable, 1 enable)
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
 int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
@@ -348,7 +367,8 @@ int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
 
 
 /**
- * It opens the zio control channel of a TDC board
+ * It opens a TDC channel. Internally, it opens the ZIO control channel
+ * associated.
  * @param[in] b TDC board instance token
  * @param[in] channel channel to open [0, 4]
  * @return a file descriptor, otherwise -1 and errno is set appropriately
@@ -367,7 +387,10 @@ static int __fmctdc_open_channel(struct __fmctdc_board *b, unsigned int channel)
 
 
 /**
- * It get the file descriptor of a board channel
+ * It get the file descriptor of a TDC channel. So, for example, you can
+ * poll(2) and select(2).
+ * Note that, the file descriptor is the file-descriptor of a
+ * ZIO control char-device.
  * @param[in] userb TDC board instance token
  * @param[in] channel channel to use
  * @return a file descriptor, otherwise -1 and errno is set appropriately
@@ -381,7 +404,19 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 
 
 /**
- * this "read" behaves like the system call and obeys O_NONBLOCK
+ * It reads a given number of time-stamps from the driver. It will wait at
+ * most once and return the number of samples that it received from a given
+ * input channel. According to the 'mode' in use the meaning of the time-stamp
+ * is different.
+ *
+ * When there is no channel reference for the given channel, the time-stamp
+ * is the time-stamp according to the base time.
+ *
+ * When the reference is setted for the given channel, the time-stamp is the
+ * time difference between the the current pulse on the given channel and the
+ * last pulse of the reference channel.
+ *
+ * This "read" behaves like the system call and obeys O_NONBLOCK
  * @param[in] userb TDC board instance token
  * @param[in] channel channel to use [0, 4]
  * @param[out] t array of time-stamps
@@ -389,7 +424,10 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
  * @param[in] flags tune the behaviour of the function.
  *                      O_NONBLOCK - do not block
  * @return number of acquired time-stamps, otherwise -1 and errno is set
- *         appropriately
+ *         appropriately.
+ *         - EINVAL for invalid arguments
+ *         - EIO for invalid IO transfer
+ *         - EAGAIN if nothing ready to read in NONBLOCK mode
  */
 int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 		struct fmctdc_time *t, int n, int flags)
@@ -445,7 +483,8 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 }
 
 /**
- * this "fread" behaves like stdio: it reads all the samples
+ * this "fread" behaves like stdio: it reads all the samples. Read fmctdc_read()
+ * for more details about the function.
  * @param[in] userb TDC board instance token
  * @param[in] channel channel to use
  * @param[out] t array of time-stamps
@@ -469,7 +508,9 @@ int fmctdc_fread(struct fmctdc_board *userb, unsigned int channel,
 
 
 /**
- * It sets the board time according to the given time-stamp
+ * It sets the TDC base-time according to the given time-stamp.
+ * Note that, for the time being, it sets only seconds.
+ * Note that, you can set the time only when the acquisition is disabled.
  * @param[in] userb TDC board instance token
  * @param[in] t time-stamp
  * @return 0 on success, otherwise -1 and errno is set
@@ -493,7 +534,8 @@ int fmctdc_set_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 
 
 /**
- * It gets the boar time
+ * It gets the base-time of a TDC device.
+ * Note that, for the time being, it gets only seconds.
  * @param[in] userb TDC board instance token
  * @param[out] t time-stamp
  * @return 0 on success, otherwise -1 and errno is set
@@ -519,7 +561,7 @@ int fmctdc_get_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 
 
 /**
- * It sets the board time to the host time
+ * It sets the TDC base-time according to the host time
  * @param[in] userb TDC board instance token
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
@@ -532,7 +574,7 @@ int fmctdc_set_host_time(struct fmctdc_board *userb)
 
 
 /**
- * It enables/disables the WhiteRabbit timing system
+ * It enables/disables the WhiteRabbit timing system on a TDC device
  * @param[in] userb TDC board instance token
  * @param[in] on white-rabbit status to set
  * @return 0 on success, otherwise an error code
@@ -550,7 +592,7 @@ int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 
 
 /**
- * It check the current status of the WhiteRabbit timing system
+ * It check the current status of the WhiteRabbit timing system on a TDC device
  * @param[in] userb TDC board instance token
  * @return 0 if it properly works, -ENOLINK if it is not synchronized and
  *         -ENODEV if it is not enabled
@@ -567,8 +609,8 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 
 /**
  * It assigns a time reference to a target channel. After you set a reference,
- * you will read (from the target channel) the time-stamp difference between
- * the last reference pulse and the target.
+ * you will read, from the target channel, the time-stamp difference between
+ * the last reference pulse and the target pulse.
  * @param[in] userb TDC board instance token
  * @param[in] ch_target target channel [0, 4]
  * @param[in] ch_reference reference channel [0, 4]. Use -1 to remove reference
