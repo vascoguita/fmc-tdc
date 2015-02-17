@@ -290,8 +290,10 @@ int fmctdc_set_termination(struct fmctdc_board *userb, unsigned int channel,
 	uint32_t val;
 	char attr[32];
 
-	if (channel >= FMCTDC_NUM_CHANNELS)
-		return -EINVAL;
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel + 1);
 
@@ -315,8 +317,10 @@ int fmctdc_get_termination(struct fmctdc_board *userb, unsigned int channel)
 	char attr[32];
 	int ret;
 
-	if (channel >= FMCTDC_NUM_CHANNELS)
-		return -EINVAL;
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel + 1);
 
@@ -438,8 +442,10 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 	int i, j, fd;
 	fd_set set;
 
-	if (channel >= FMCTDC_NUM_CHANNELS)
-		return -EINVAL;
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	fd = __fmctdc_open_channel(b, channel);
 	if (fd < 0)
@@ -594,8 +600,9 @@ int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 /**
  * It check the current status of the WhiteRabbit timing system on a TDC device
  * @param[in] userb TDC board instance token
- * @return 0 if it properly works, -ENOLINK if it is not synchronized and
- *         -ENODEV if it is not enabled
+ * @return 0 if it properly works, -1 on error and errno is set appropriately.
+ *         - ENOLINK if it is not synchronized and
+ *         - ENODEV if it is not enabled
  */
 extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 {
@@ -603,7 +610,7 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 
 	if (__fmctdc_command(b, FT_CMD_WR_QUERY) == 0)
 		return 0;
-	return errno;
+	return -1;
 }
 
 
