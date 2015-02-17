@@ -35,9 +35,15 @@ struct fmctdc_board;
  * FMC-TDC time-stamp descriptor
  */
 struct fmctdc_time {
-	uint64_t seconds; /**< number of seconds */
-	uint32_t coarse; /**< number of ticks of 8ns */
-	uint32_t frac; /**< number of frac of 81.03ps */
+	uint64_t seconds; /**< TAI seconds. Note this is *not* an UTC time;
+			     the counter does not support leap seconds. The
+			     internal counter is also limited to 32 bits
+			     (2038-error-prone). */
+	uint32_t coarse; /**< number of ticks of 8ns since the beginning of
+			    the last second*/
+	uint32_t frac; /**< fractional part of an 8 ns tick, rescaled
+			  to (0..4095) range - i.e. 0 = 0 ns, and
+			  4095 = 7.999 ns. */
 	uint32_t seq_id; /**< channel sequence number*/
 	uint32_t gseq_id; /**< board sequence number */
 	uint32_t ref_gseq_id; /**< board sequence number of the reference */
