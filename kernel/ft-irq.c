@@ -122,7 +122,7 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	ctrl->seq_num = ts.seq_id--;
 
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
-	v[FT_ATTR_TDC_OFFSET] = ft->calib.zero_offset[channel - 1];
+	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[channel - 1];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 
 	return 0;

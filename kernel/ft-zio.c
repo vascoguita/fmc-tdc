@@ -49,7 +49,7 @@ static struct zio_attribute ft_zattr_dev[] = {
 /* Extended attributes for the TDC (== input) cset */
 static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("termination", ZIO_RW_PERM, FT_ATTR_TDC_TERMINATION, 0),
-	ZIO_ATTR_EXT("offset", ZIO_RO_PERM, FT_ATTR_TDC_OFFSET, 0),
+	ZIO_ATTR_EXT("zero-offset", ZIO_RO_PERM, FT_ATTR_TDC_ZERO_OFFSET, 0),
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
@@ -97,7 +97,7 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		*usr_val = st->user_offset;
 		break;
 
-	case FT_ATTR_TDC_OFFSET:
+	case FT_ATTR_TDC_ZERO_OFFSET:
 		*usr_val = ft->calib.zero_offset[cset->index];
 		break;
 
