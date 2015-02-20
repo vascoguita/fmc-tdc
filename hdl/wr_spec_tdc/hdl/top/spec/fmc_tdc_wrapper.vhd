@@ -226,6 +226,17 @@ end fmc_tdc_wrapper;
 --=================================================================================================
 architecture rtl of fmc_tdc_wrapper is
 
+  component fmc_tdc_direct_readout is
+    port (
+      clk_tdc_i             : in  std_logic;
+      rst_tdc_n_i           : in  std_logic;
+      clk_sys_i             : in  std_logic;
+      rst_sys_n_i           : in  std_logic;
+      direct_timestamp_i    : in  std_logic_vector(127 downto 0);
+      direct_timestamp_wr_i : in  std_logic;
+      direct_slave_i        : in  t_wishbone_slave_in;
+      direct_slave_o        : out t_wishbone_slave_out);
+  end component fmc_tdc_direct_readout;
 -----------------------------------------------------------------
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
@@ -360,7 +371,6 @@ begin
      wrabbit_time_valid_i      => tm_time_valid_i,
      wrabbit_cycles_i          => tm_cycles_i,
      wrabbit_utc_i             => tm_tai_i(31 downto 0),
-     wrabbit_utc_p_o           => open,  -- for debug
      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en_o,
      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked_i,
      wrabbit_clk_dmtd_locked_i => '1',  -- FIXME: fan out real signal from the WRCore
@@ -376,7 +386,7 @@ begin
      i2c_scl_o                 => tdc_scl_out,
      i2c_sda_o                 => tdc_sda_out,
      -- 1-Wire on TDC mezzanine
-     one_wire_b                => mezz_one_wire_b,
+     onewire_b                => mezz_one_wire_b,
      direct_timestamp_o => direct_timestamp,
      direct_timestamp_stb_o => direct_timestamp_wr);
 
