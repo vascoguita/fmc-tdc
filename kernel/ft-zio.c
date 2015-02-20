@@ -53,6 +53,7 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
+	ZIO_ATTR_EXT("wr-offset", ZIO_RO_PERM, FT_ATTR_TDC_WR_OFFSET, 0),
 	ZIO_PARAM_EXT("last_seconds", ZIO_RO_PERM, FT_ATTR_TDC_SECONDS, 0),
 	ZIO_PARAM_EXT("last_coarse", ZIO_RO_PERM, FT_ATTR_TDC_COARSE, 0),
 	ZIO_PARAM_EXT("last_frac", ZIO_RO_PERM, FT_ATTR_TDC_FRAC, 0),
@@ -96,11 +97,12 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 	case FT_ATTR_TDC_USER_OFFSET:
 		*usr_val = st->user_offset;
 		break;
-
 	case FT_ATTR_TDC_ZERO_OFFSET:
 		*usr_val = ft->calib.zero_offset[cset->index];
 		break;
-
+	case FT_ATTR_TDC_WR_OFFSET:
+		*usr_val = ft->calib.wr_offset;
+		break;
 	case FT_ATTR_TDC_TERMINATION:
 		*usr_val = test_bit(FT_FLAG_CH_TERMINATED, &st->flags);
 		break;
