@@ -137,6 +137,7 @@ struct ft_channel_state {
 					   between pulses */
 
 	struct kfifo fifo;
+	uint32_t fifo_len;
 };
 
 /* Main TDC device context */

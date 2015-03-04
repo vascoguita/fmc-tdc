@@ -43,19 +43,19 @@ static int ft_show_sdb;
 module_param_named(show_sdb, ft_show_sdb, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a dump of the gateware's SDB tree.");
 
-static int ft_buffer_size = 8192;
+static int ft_buffer_size = 64;
 module_param_named(buffer_size, ft_buffer_size, int, 0444);
 MODULE_PARM_DESC(verbose,
-		 "Number of timestamps in each channel's software FIFO buffer.");
+		 "Number of timestamps in each channel's software FIFO buffer (It must be a power of 2).");
 
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
 	struct ft_channel_state *st = &ft->channels[channel - 1];
 
 	st->expected_edge = 1;
-
+	st->fifo_len = ft_buffer_size;
 	return kfifo_alloc(&st->fifo,
-			   sizeof(struct ft_wr_timestamp) * ft_buffer_size,
+			   sizeof(struct ft_wr_timestamp) * st->fifo_len,
 			   GFP_KERNEL);
 }
 

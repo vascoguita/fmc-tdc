@@ -213,6 +213,11 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 		/* Put the timestamp in the FIFO */
 		kfifo_in_spinlocked(&st->fifo, &ts,
 				    sizeof(struct ft_wr_timestamp), &ft->lock);
+		if (st->fifo_len <= kfifo_len(&st->fifo) / sizeof(struct ft_wr_timestamp)) {
+			kfifo_out_spinlocked(&st->fifo, &ts,
+					     sizeof(struct ft_wr_timestamp),
+					     &ft->lock);
+		}
 	}
 
 	/* Wait for the next raising edge */
