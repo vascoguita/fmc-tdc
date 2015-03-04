@@ -113,14 +113,14 @@ struct ft_hw_timestamp {
 	uint32_t metadata;	/* channel, polarity, etc. */
 } __packed;
 
-/* White Rabbit timestamp */
+/* White Rabbit timestamp (32Byte is nice for the kfifo) */
 struct ft_wr_timestamp {
 	uint64_t seconds;
 	uint32_t coarse;
 	uint32_t frac;
+	uint32_t channel;
 	uint32_t seq_id;
-	uint32_t gseq_id;
-	unsigned int channel;
+	uint64_t gseq_id;
 };
 
 struct ft_channel_state {
