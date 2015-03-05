@@ -39,10 +39,6 @@ static struct fmc_driver ft_drv;	/* forward declaration */
 FMC_PARAM_BUSID(ft_drv);
 FMC_PARAM_GATEWARE(ft_drv);
 
-static int ft_show_sdb;
-module_param_named(show_sdb, ft_show_sdb, int, 0444);
-MODULE_PARM_DESC(verbose, "Print a dump of the gateware's SDB tree.");
-
 static int ft_buffer_size = 64;
 module_param_named(buffer_size, ft_buffer_size, int, 0444);
 MODULE_PARM_DESC(verbose,
