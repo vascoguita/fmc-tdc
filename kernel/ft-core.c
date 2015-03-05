@@ -211,7 +211,8 @@ int ft_probe(struct fmc_device *fmc)
 	else if (!strcmp(fmc->carrier_name, "SVEC"))
 		ft->carrier_specific = &ft_carrier_svec;
 	else {
-		dev_err(dev, "unsupported carrier\n");
+		dev_err(dev, "unsupported carrier '%s'\n",
+			fmc->carrier_name);
 		return -ENODEV;
 	}
 

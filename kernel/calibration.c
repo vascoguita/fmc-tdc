@@ -88,11 +88,16 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 	calib->calibration_temp = le32_to_cpu(raw_calib[5]);
 	calib->wr_offset = le32_to_cpu(raw_calib[6]) / 100;
 
-	for (i = 0; i < ARRAY_SIZE(calib->zero_offset); i++)
-		dev_info(d, "calib: zero_offset[%i] = %i ps\n", i,
-			 calib->zero_offset[i]);
+	if (ft->verbose) {
+		/* Print verbose messages */
+		for (i = 0; i < ARRAY_SIZE(calib->zero_offset); i++)
+			dev_info(d, "calib: zero_offset[%i] = %i ps\n",
+				 i, calib->zero_offset[i]);
 
-	dev_info(d, "calib: vcxo_default_tune %i\n", calib->vcxo_default_tune);
-	dev_info(d, "calib: wr offset = %i ps\n", calib->wr_offset);
+		dev_info(d, "calib: vcxo_default_tune %i\n",
+			 calib->vcxo_default_tune);
+		dev_info(d, "calib: wr offset = %i ps\n",
+			 calib->wr_offset);
+	}
 	return 0;
 }

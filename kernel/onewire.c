@@ -244,7 +244,7 @@ int ft_onewire_init(struct fmctdc_dev *ft)
 			printk("%02x%c", ft->ds18_id[i], i == 7 ? '\n' : ':');
 	}
 	/* read the temperature once, to ensure it works, and print it */
-	ft_read_temp(ft, 2);
+	ft_read_temp(ft, ft->verbose + 1);
 
 	return 0;
 }
