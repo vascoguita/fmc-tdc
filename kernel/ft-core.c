@@ -94,6 +94,24 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 	return 0;
 }
 
+
+/**
+ * NOTE: this function must be invoked with st->lock taken
+ */
+static void ft_flush_sw_fifo(struct fmctdc_dev *ft)
+{
+	struct ft_channel_state *st;
+	struct ft_wr_timestamp ts;
+	int i;
+
+	for (i = FT_CH_1; i <= FT_NUM_CHANNELS ; i++) {
+		st = &ft->channels[i - 1];
+		while (!kfifo_is_empty(&st->fifo))
+			kfifo_out(&st->fifo, &ts,
+				  sizeof(struct ft_wr_timestamp));
+	}
+}
+
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 {
 	uint32_t ien, cmd;
@@ -129,6 +147,8 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 			ft_reset_channel(ft, i);
 
 		ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
+
+		ft_flush_sw_fifo(ft);
 	}
 
 	spin_unlock(&ft->lock);
