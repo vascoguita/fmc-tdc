@@ -215,6 +215,8 @@ int main(int argc, char **argv)
 	}
 
 
+	/* Enable acquisition */
+	fmctdc_set_acquisition(brd, 1);
 	/* Read Time-Stamps */
 	n = 0;
 	while (n < n_samples || n_samples <= 0) {
@@ -269,6 +271,8 @@ int main(int argc, char **argv)
 		if (channels[i] > 0)
 			fmctdc_reference_clear(brd, -1);
 	}
+	/* Disable acquisition */
+	fmctdc_set_acquisition(brd, 0);
 
 	fmctdc_close(brd);
 	exit(EXIT_SUCCESS);
