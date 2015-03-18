@@ -71,7 +71,7 @@
 -- Date         01/2014                                                                           |
 -- Version      v5 (see sdb_meta_pkg)                                                             |
 -- Depends on                                                                                     |
---                                                                                                |
+--
 ----------------                                                                                  |
 -- Last changes                                                                                   |
 --     05/2011  v1  GP  First version                                                             |
@@ -251,9 +251,6 @@ architecture rtl of fmc_tdc_wrapper is
 
   signal pll_sclk, pll_sdi, pll_dac_sync : std_logic;
 
-  signal tdc_slave_in  : t_wishbone_slave_in;
-  signal tdc_slave_out : t_wishbone_slave_out;
-
   signal fmc_eic_irq       : std_logic;
   signal fmc_eic_irq_synch : std_logic_vector(1 downto 0);
 
@@ -352,8 +349,16 @@ begin
     (clk_sys_i                 => clk_sys_i,
      rst_sys_n_i               => rst_sys_n_i,
      -- 125M clk and reset
-     clk_ref_0_i               => clk_125m_mezz,
-     rst_ref_0_i               => rst_125m_mezz,
+     clk_tdc_i               => clk_125m_mezz,
+     rst_tdc_i               => rst_125m_mezz,
+
+     -- Wishbone
+     slave_i => cnx_master_out(c_slave_regs),
+     slave_o => cnx_master_in(c_slave_regs),
+     
+     -- Interrupt line from EIC
+     wb_irq_o                  => fmc_eic_irq,
+     
      -- Configuration of the DAC on the TDC mezzanine, non White Rabbit
      acam_refclk_r_edge_p_i    => acam_refclk_r_edge_p,
      send_dac_word_p_o         => send_dac_word_p,
@@ -393,15 +398,7 @@ begin
      tdc_in_fpga_4_i           => tdc_in_fpga_4_i,
      tdc_in_fpga_5_i           => tdc_in_fpga_5_i,
      -- WISHBONE interface with the GN4124 core
-     wb_tdc_csr_adr_i          => tdc_slave_in.adr,
-     wb_tdc_csr_dat_i          => tdc_slave_in.dat,
-     wb_tdc_csr_stb_i          => tdc_slave_in.stb,
-     wb_tdc_csr_we_i           => tdc_slave_in.we,
-     wb_tdc_csr_cyc_i          => tdc_slave_in.cyc,
-     wb_tdc_csr_sel_i          => tdc_slave_in.sel,
-     wb_tdc_csr_dat_o          => tdc_slave_out.dat,
-     wb_tdc_csr_ack_o          => tdc_slave_out.ack,
-     wb_tdc_csr_stall_o        => tdc_slave_out.stall,
+ 
      -- White Rabbit
      wrabbit_link_up_i         => tm_link_up_i,
      wrabbit_time_valid_i      => tm_time_valid_i,
@@ -412,8 +409,7 @@ begin
      wrabbit_clk_dmtd_locked_i => '1',  -- FIXME: fan out real signal from the WRCore
      wrabbit_dac_value_i       => tm_dac_value_i,
      wrabbit_dac_wr_p_i        => tm_dac_wr_i,
-     -- Interrupt line from EIC
-     wb_irq_o                  => fmc_eic_irq,
+    
      -- EEPROM I2C on TDC mezzanine
      i2c_scl_oen_o             => tdc_scl_oen,
      i2c_scl_i                 => mezz_scl_b,
@@ -425,23 +421,6 @@ begin
      onewire_b                 => mezz_one_wire_b,
      direct_timestamp_o        => direct_timestamp,
      direct_timestamp_stb_o    => direct_timestamp_wr);
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Domains crossing: clk_125m_mezz <-> clk_62m5_sys
-  cmp_tdc_clk_crossing : xwb_clock_crossing
-    port map
-    (slave_clk_i    => clk_sys_i,
-     slave_rst_n_i  => rst_sys_n_i,
-     slave_i        => cnx_master_out(c_slave_regs),
-     slave_o        => cnx_master_in(c_slave_regs),
-     master_clk_i   => clk_125m_mezz,  -- Master reader port: TDC core at 125 MHz
-     master_rst_n_i => rst_125m_mezz_n,
-     master_i       => tdc_slave_out,
-     master_o       => tdc_slave_in);
-
-  tdc_slave_out.err <= '0';
-  tdc_slave_out.rty <= '0';
-
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Domains crossing: synchronization of the wb_ird_o from 125MHz to 62.5MHz

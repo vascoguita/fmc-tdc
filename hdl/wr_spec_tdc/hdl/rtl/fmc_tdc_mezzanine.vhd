@@ -112,12 +112,16 @@ entity fmc_tdc_mezzanine is
      values_for_simul          : boolean := FALSE);
   port
     -- TDC core
-    (-- Clock & reset 62M5
+    (
+
+      -- System clock & reset (Wishbone)
      clk_sys_i                 : in    std_logic; -- 62.5 MHz clock
      rst_sys_n_i               : in    std_logic; -- reset for 62.5 MHz logic
-     -- Signals from the clks_rsts_manager unit
-     clk_ref_0_i               : in    std_logic; -- 125 MHz clock
-     rst_ref_0_i               : in    std_logic; -- reset for 125 MHz logic
+
+     -- TDC 125 MHz reference & Reset (FMC)
+     clk_tdc_i               : in    std_logic; -- 125 MHz clock
+     rst_tdc_i               : in    std_logic; -- reset for 125 MHz logic
+
      acam_refclk_r_edge_p_i    : in    std_logic;
      send_dac_word_p_o         : out   std_logic;
      dac_word_o                : out   std_logic_vector(23 downto 0);
@@ -165,19 +169,16 @@ entity fmc_tdc_mezzanine is
      wrabbit_clk_dmtd_locked_i : in    std_logic;
      wrabbit_dac_value_i       : in    std_logic_vector(23 downto 0);
      wrabbit_dac_wr_p_i        : in    std_logic;
-     -- WISHBONE interface with the GN4124/VME_core
+
+     -- WISHBONE interface with the GN4124/VME_core (clk_sys)
      -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C 
-     wb_tdc_csr_adr_i          : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_dat_i          : in    std_logic_vector(31 downto 0);
-     wb_tdc_csr_cyc_i          : in    std_logic;
-     wb_tdc_csr_sel_i          : in    std_logic_vector(3 downto 0);
-     wb_tdc_csr_stb_i          : in    std_logic;
-     wb_tdc_csr_we_i           : in    std_logic;
-     wb_tdc_csr_dat_o          : out   std_logic_vector(31 downto 0);
-     wb_tdc_csr_ack_o          : out   std_logic;
-     wb_tdc_csr_stall_o        : out   std_logic;
+
+     slave_i: in t_wishbone_slave_in;
+     slave_o: out t_wishbone_slave_out;
+     
      wb_irq_o                  : out   std_logic;
-    -- I2C EEPROM interface
+
+     -- I2C EEPROM interface
      i2c_scl_o                 : out   std_logic;
      i2c_scl_oen_o             : out   std_logic;
      i2c_scl_i                 : in    std_logic;
@@ -236,12 +237,7 @@ architecture rtl of fmc_tdc_mezzanine is
   -- Wishbone buse(s) from crossbar master port(s)
   signal cnx_master_out            : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
   signal cnx_master_in             : t_wishbone_master_in_array (c_NUM_WB_MASTERS-1 downto 0);
-  -- Wishbone buse(s) to crossbar slave port(s)
-  signal cnx_slave_out             : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
-  signal cnx_slave_in              : t_wishbone_slave_in_array (c_NUM_WB_SLAVES-1 downto 0);
-  -- Wishbone bus from additional registers
-  signal xreg_slave_out            : t_wishbone_slave_out;
-  signal xreg_slave_in             : t_wishbone_slave_in;
+
   -- WISHBONE addresses
   signal tdc_core_wb_adr           : std_logic_vector(31 downto 0);
   signal tdc_mem_wb_adr            : std_logic_vector(31 downto 0);
@@ -254,18 +250,33 @@ architecture rtl of fmc_tdc_mezzanine is
   -- IRQ
   signal irq_tstamp_p, irq_time_p  : std_logic;
   signal irq_acam_err_p            : std_logic;
+  signal irq_tstamp_p_sys, irq_time_p_sys  : std_logic;
+  signal irq_acam_err_p_sys            : std_logic;
   -- WRabbit
   signal reg_to_wr, reg_from_wr    : std_logic_vector(31 downto 0);
   signal wrabbit_utc_p             : std_logic;
   signal wrabbit_synched           : std_logic;
 
 
+
+function f_wb_shift_address_word ( w: t_wishbone_master_out ) return t_wishbone_master_out is
+  variable r : t_wishbone_master_out;
+begin
+  r.adr := "00" & w.adr(31 downto 2);
+  r.dat := w.dat;
+  r.cyc := w.cyc;
+  r.stb := w.stb;
+  r.we := w.we;
+  r.sel := w.sel;
+  return r;
+end f_wb_shift_address_word;
+      
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
 
-  rst_ref_0_n <= not(rst_ref_0_i);
+  rst_ref_0_n <= not(rst_tdc_i);
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
@@ -277,44 +288,21 @@ begin
 --   0x13000 -> TDC mezzanine board EEPROM I2C
 --   0x14000 -> TDC core timestamps retrieval
 
-  -- Additional register to help timing
-  cmp_xwb_reg : xwb_register_link
-  port map
-    (clk_sys_i => clk_ref_0_i,
-     rst_n_i   => rst_ref_0_n,
-     slave_i   => xreg_slave_in,
-     slave_o   => xreg_slave_out,
-     master_i  => cnx_slave_out(c_WB_MASTER),
-     master_o  => cnx_slave_in(c_WB_MASTER));
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused wishbone signals
-  wb_tdc_csr_dat_o   <= xreg_slave_out.dat;
-  wb_tdc_csr_ack_o   <= xreg_slave_out.ack;
-  wb_tdc_csr_stall_o <= xreg_slave_out.stall;
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Connect crossbar slave port to entity port
-  xreg_slave_in.adr <= wb_tdc_csr_adr_i;
-  xreg_slave_in.dat <= wb_tdc_csr_dat_i;
-  xreg_slave_in.sel <= wb_tdc_csr_sel_i;
-  xreg_slave_in.stb <= wb_tdc_csr_stb_i;
-  xreg_slave_in.we  <= wb_tdc_csr_we_i;
-  xreg_slave_in.cyc <= wb_tdc_csr_cyc_i;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sdb_crossbar : xwb_sdb_crossbar
-  generic map
+    generic map
     (g_num_masters  => c_NUM_WB_SLAVES,
      g_num_slaves   => c_NUM_WB_MASTERS,
      g_registered   => true,
      g_wraparound   => true,
      g_layout       => c_INTERCONNECT_LAYOUT,
      g_sdb_addr     => c_SDB_ADDRESS)
-  port map
-    (clk_sys_i      => clk_ref_0_i,
-     rst_n_i        => rst_ref_0_n,
-     slave_i        => cnx_slave_in,
-     slave_o        => cnx_slave_out,
+    port map
+    (clk_sys_i      => clk_sys_i,
+     rst_n_i        => rst_sys_n_i,
+     slave_i(0)        => slave_i,
+     slave_o(0)        => slave_o,
      master_i       => cnx_master_in,
      master_o       => cnx_master_out);
 
@@ -329,8 +317,10 @@ begin
      values_for_simul        => FALSE)
   port map
     (-- clks, rst
-     clk_125m_i              => clk_ref_0_i,
-     rst_i                   => rst_ref_0_i,
+     clk_tdc_i             => clk_tdc_i,
+     rst_tdc_i                   => rst_tdc_i,
+     clk_sys_i => clk_sys_i,
+     rst_n_sys_i => rst_sys_n_i,
      acam_refclk_r_edge_p_i  => acam_refclk_r_edge_p_i,
      -- DAC configuration
      send_dac_word_p_o       => send_dac_word_p_o,
@@ -380,38 +370,15 @@ begin
      wrabbit_status_reg_i    => reg_from_wr,   
      wrabbit_ctrl_reg_o      => reg_to_wr,
      -- WISHBONE CSR for core configuration
-     tdc_config_wb_adr_i     => tdc_core_wb_adr,
-     tdc_config_wb_dat_i     => cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).dat,
-     tdc_config_wb_stb_i     => cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).stb,
-     tdc_config_wb_we_i      => cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).we,
-     tdc_config_wb_cyc_i     => cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).cyc,
-     tdc_config_wb_dat_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).dat,
-     tdc_config_wb_ack_o     => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).ack,
-     -- WISHBONE for timestamps transfer
-     tdc_mem_wb_adr_i        => tdc_mem_wb_adr,--wb_tdc_mem_adr_i,
-     tdc_mem_wb_dat_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).dat,
-     tdc_mem_wb_stb_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).stb,
-     tdc_mem_wb_we_i         => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).we,
-     tdc_mem_wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).cyc,
-     tdc_mem_wb_ack_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).ack,
-     tdc_mem_wb_dat_o        => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).dat,
-     tdc_mem_wb_stall_o      => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).stall,
+     
+     cfg_slave_i => f_wb_shift_address_word(cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG)),
+     cfg_slave_o => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG),
+
+     mem_slave_i => f_wb_shift_address_word(cnx_master_out(c_WB_SLAVE_TSTAMP_MEM)),
+     mem_slave_o => cnx_master_in(c_WB_SLAVE_TSTAMP_MEM),
+     
      direct_timestamp_o      => direct_timestamp_o,
      direct_timestamp_stb_o   => direct_timestamp_stb_o);
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Convert byte address into word address
-  tdc_core_wb_adr <= "00" & cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG).adr(31 downto 2);
-  tdc_mem_wb_adr  <= "00" & cnx_master_out(c_WB_SLAVE_TSTAMP_MEM).adr(31 downto 2);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused wishbone signals
-  cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).err   <= '0';
-  cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).rty   <= '0';
-  cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).stall <= '0';
-  cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG).int   <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).err        <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).rty        <= '0';
-  cnx_master_in(c_WB_SLAVE_TSTAMP_MEM).int        <= '0';
 
 
 ---------------------------------------------------------------------------------------------------
@@ -425,7 +392,7 @@ begin
   port map
     (clk_sys_i                 => clk_sys_i,
      rst_n_sys_i               => rst_sys_n_i,
-     clk_ref_i                 => clk_ref_0_i,
+     clk_ref_i                 => clk_tdc_i,
      rst_n_ref_i               => rst_ref_0_n,
      wrabbit_dac_value_i       => wrabbit_dac_value_i,
      wrabbit_dac_wr_p_i        => wrabbit_dac_wr_p_i,
@@ -439,9 +406,9 @@ begin
      wrabbit_reg_o             => reg_from_wr); -- synced to 125MHz mezzanine
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  wrabbit_one_hz_pulse : process(clk_ref_0_i)
+  wrabbit_one_hz_pulse : process(clk_tdc_i)
   begin
-    if rising_edge(clk_ref_0_i) then
+    if rising_edge(clk_tdc_i) then
       if rst_ref_0_n = '0' then
         wrabbit_utc_p   <= '0';
       else
@@ -471,8 +438,8 @@ begin
      g_ow_btp_normal       => "5.0",
      g_ow_btp_overdrive    => "1.0")
   port map
-    (clk_sys_i             => clk_ref_0_i,
-     rst_n_i               => rst_ref_0_n,
+    (clk_sys_i             => clk_sys_i,
+     rst_n_i               => rst_sys_n_i,
      slave_i               => cnx_master_out(c_WB_SLAVE_TDC_ONEWIRE),
      slave_o               => cnx_master_in(c_WB_SLAVE_TDC_ONEWIRE),
      desc_o                => open,
@@ -493,8 +460,8 @@ begin
 -- 2 -> ACAM error
   cmp_tdc_eic : tdc_eic
   port map
-    (clk_sys_i          => clk_ref_0_i,
-     rst_n_i            => rst_ref_0_n,
+    (clk_sys_i          => clk_sys_i,
+     rst_n_i            => rst_sys_n_i,
      wb_adr_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(3 downto 2),
      wb_dat_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
      wb_dat_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
@@ -505,10 +472,23 @@ begin
      wb_ack_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
      wb_stall_o         => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
      wb_int_o           => wb_irq_o,
-     irq_tdc_tstamps_i  => irq_tstamp_p,
-     irq_tdc_time_i     => irq_time_p,
-     irq_tdc_acam_err_i => irq_acam_err_p);
+     irq_tdc_tstamps_i  => irq_tstamp_p_sys,
+     irq_tdc_time_i     => irq_time_p_sys,
+     irq_tdc_acam_err_i => irq_acam_err_p_sys);
 
+
+  cmp_sync_irq_tstamp: gc_pulse_synchronizer2
+    port map (
+      clk_in_i    => clk_tdc_i,
+      rst_in_n_i  => rst_ref_0_n,
+      clk_out_i   => clk_sys_i,
+      rst_out_n_i => rst_sys_n_i,
+      d_p_i       => irq_tstamp_p,
+      q_p_o       => irq_tstamp_p_sys);
+
+  irq_time_p_sys <= '0'; -- we don't need these in the driver
+  irq_acam_err_p_sys <= '0'; 
+  
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
@@ -524,8 +504,8 @@ begin
      (g_interface_mode      => PIPELINED,
       g_address_granularity => BYTE)
    port map
-     (clk_sys_i             => clk_ref_0_i,
-      rst_n_i               => rst_ref_0_n,
+    (clk_sys_i             => clk_sys_i,
+     rst_n_i               => rst_sys_n_i,
       slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
       slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
       desc_o                => open,

@@ -72,7 +72,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
-
+use work.wishbone_pkg.all;
 
 --=================================================================================================
 --                            Entity declaration for reg_ctrl
@@ -85,16 +85,15 @@ entity reg_ctrl is
   port
   -- INPUTS
      -- Signals from the clks_rsts_manager unit
-    (clk_i                 : in std_logic;                             -- 125 MHz
-     rst_i                 : in std_logic;                             -- global reset, synched to clk_i
+    (clk_sys_i   : in std_logic;
+     rst_n_sys_i : in std_logic;        -- global reset, synched to clk_sys
 
-     -- Signals from the GN4124/VME_core unit: WISHBONE for regs transfer
-     tdc_config_wb_adr_i   : in std_logic_vector(g_span-1 downto 0);   -- WISHBONE address
-     tdc_config_wb_cyc_i   : in std_logic;                             -- WISHBONE cycle
-     tdc_config_wb_dat_i   : in std_logic_vector(g_width-1 downto 0);  -- WISHBONE data in
-     tdc_config_wb_stb_i   : in std_logic;                             -- WISHBONE strobe
-     tdc_config_wb_we_i    : in std_logic;                             -- WISHBONE write enable
+     clk_tdc_i : in std_logic;
+     rst_tdc_i : in std_logic;
 
+     slave_i: in t_wishbone_slave_in;   -- WB interface (clk_sys domain)
+     slave_o: out t_wishbone_slave_out;
+     
      -- Signals from the data_engine unit: configuration regs read back from the ACAM
      acam_config_rdbk_i    : in config_vector;                         -- array keeping values read back from ACAM regs 0-7, 11, 12, 14
      acam_ififo1_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 8; for debug reasons only
@@ -114,11 +113,7 @@ entity reg_ctrl is
      -- White Rabbit status
      wrabbit_status_reg_i  : in std_logic_vector(g_width-1 downto 0);  -- 
 
-
   -- OUTPUTS
-     -- Signals to the GN4124/VME_core unit: WISHBONE for regs transfer
-     tdc_config_wb_ack_o   : out std_logic;                            -- WISHBONE acknowledge
-     tdc_config_wb_dat_o   : out std_logic_vector(g_width-1 downto 0); -- WISHBONE data out
 
      -- Signals to the data_engine unit: config regs for the ACAM
      acam_config_o         : out config_vector;
@@ -136,7 +131,7 @@ entity reg_ctrl is
 
      -- Signal to the data_formatting unit
      dacapo_c_rst_p_o      : out std_logic;                            -- clears the dacapo counter
-	 deactivate_chan_o     : out std_logic_vector(4 downto 0);         -- stops registering timestamps from a specific channel
+     deactivate_chan_o     : out std_logic_vector(4 downto 0);         -- stops registering timestamps from a specific channel
 
      -- Signals to the clks_resets_manager unit
      send_dac_word_p_o     : out std_logic;                            -- initiates the reconfiguration of the DAC
@@ -187,13 +182,33 @@ architecture rtl of reg_ctrl is
 
   signal cyc_in_progress : std_logic;
 
+  signal wb_in   : t_wishbone_slave_in;
+  signal wb_out : t_wishbone_slave_out;
+  signal rst_n_tdc         : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
 
-  reg_adr <= tdc_config_wb_adr_i(7 downto 0); -- we are interested in addresses 0:5000 to 0:50FC
+  rst_n_tdc <= not rst_tdc_i;
+
+  wb_out.stall <= '0';
+  wb_out.err   <= '0';
+  wb_out.rty   <= '0';
+
+  cmp_clks_crossing : xwb_clock_crossing
+    port map
+    (slave_clk_i    => clk_sys_i,  -- Slave control port: VME interface at 62.5 MHz 
+     slave_rst_n_i  => rst_n_sys_i,
+     slave_i        => slave_i,
+     slave_o        => slave_o,
+     master_clk_i   => clk_tdc_i,
+     master_rst_n_i => rst_n_tdc,
+     master_i       => wb_out,
+     master_o       => wb_in);
+
+  reg_adr <= wb_in.adr(7 downto 0);  -- we are interested in addresses 0:5000 to 0:50FC
 
 ---------------------------------------------------------------------------------------------------
 --                                WISHBONE ACK to GN4124/VME_core                                --
@@ -202,23 +217,23 @@ begin
 -- TDCconfig_ack_generator: generation of the WISHBONE acknowledge signal for the
 -- interactions with the GN4124/VME_core.
 
-  TDCconfig_ack_generator : process (clk_i)
+  TDCconfig_ack_generator : process (clk_tdc_i)
   begin
-    if rising_edge (clk_i) then
-      if rst_i = '1' then
-        tdc_config_wb_ack_o <= '0';
+    if rising_edge (clk_tdc_i) then
+      if rst_n_tdc = '0' then
+        wb_out.ack <= '0';
         ack_out_pipe1       <= '0';
         ack_out_pipe0       <= '0';
         cyc_in_progress     <= '0';
-      elsif(tdc_config_wb_cyc_i = '0') then
+      elsif(wb_in.cyc /= '1') then
         ack_out_pipe1   <= '0';
         ack_out_pipe0   <= '0';
         cyc_in_progress <= '0';
       else
         cyc_in_progress     <= '1';
-        tdc_config_wb_ack_o <= ack_out_pipe1;
+        wb_out.ack <= ack_out_pipe1;
         ack_out_pipe1       <= ack_out_pipe0;
-        ack_out_pipe0       <= tdc_config_wb_stb_i and tdc_config_wb_cyc_i and not cyc_in_progress;
+        ack_out_pipe0       <= wb_in.stb and wb_in.cyc and not cyc_in_progress;
       end if;
     end if;
   end process;
@@ -233,10 +248,10 @@ begin
 -- input to the data_engine and the acam_databus_interface units for the further transfer to the
 -- ACAM chip.
 
-  ACAM_config_reg_reception: process (clk_i)
+  ACAM_config_reg_reception : process (clk_tdc_i)
   begin
-    if rising_edge (clk_i) then
-      if rst_i = '1' then
+    if rising_edge (clk_tdc_i) then
+      if rst_tdc_i = '1' then
         acam_config(0)    <= (others =>'0');
         acam_config(1)    <= (others =>'0');
         acam_config(2)    <= (others =>'0');
@@ -249,50 +264,50 @@ begin
         acam_config(9)    <= (others =>'0');
         acam_config(10)   <= (others =>'0');
 
-      elsif tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '1' then -- WISHBONE writes
+      elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then -- WISHBONE writes
 
         if reg_adr = c_ACAM_REG0_ADR then
-          acam_config(0)  <= tdc_config_wb_dat_i;
+          acam_config(0) <= wb_in.dat;
         end if;
 
-        if reg_adr = c_ACAM_REG1_ADR then
-          acam_config(1)  <= tdc_config_wb_dat_i;
+     if reg_adr = c_ACAM_REG1_ADR then
+          acam_config(1) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG2_ADR then
-          acam_config(2)  <= tdc_config_wb_dat_i;
+          acam_config(2) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG3_ADR then
-          acam_config(3)  <= tdc_config_wb_dat_i;
+          acam_config(3) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG4_ADR then
-          acam_config(4)  <= tdc_config_wb_dat_i;
+          acam_config(4) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG5_ADR then
-          acam_config(5)  <= tdc_config_wb_dat_i;
+          acam_config(5) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG6_ADR then
-          acam_config(6)  <= tdc_config_wb_dat_i;
+          acam_config(6) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG7_ADR then
-          acam_config(7)  <= tdc_config_wb_dat_i;
+          acam_config(7) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG11_ADR then
-          acam_config(8)  <= tdc_config_wb_dat_i;
+          acam_config(8) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG12_ADR then
-          acam_config(9)  <= tdc_config_wb_dat_i;
+          acam_config(9) <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_REG14_ADR then
-          acam_config(10) <= tdc_config_wb_dat_i;
+          acam_config(10) <= wb_in.dat;
         end if;
       end if;
     end if;
@@ -316,10 +331,10 @@ begin
 --   o one_hz_phase         : eva: think it s not used
 --   o start_phase          : eva: think it s not used
 
-  TDCcore_config_reg_reception: process (clk_i)
+  TDCcore_config_reg_reception: process (clk_tdc_i)
   begin
-    if rising_edge (clk_i) then
-      if rst_i ='1' then
+    if rising_edge (clk_tdc_i) then
+      if rst_tdc_i ='1' then
         acam_inputs_en       <= (others =>'0');
         starting_utc         <= (others =>'0');
         start_phase          <= (others =>'0');
@@ -330,43 +345,42 @@ begin
         irq_time_threshold   <= x"000000C8";        -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD; -- default DAC Vout = 1.65
 
+      elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
 
-      elsif tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '1' then -- WISHBONE writes
-
-        if reg_adr = c_STARTING_UTC_ADR then
-          starting_utc         <= tdc_config_wb_dat_i;
+		if reg_adr = c_STARTING_UTC_ADR then
+          starting_utc <= wb_in.dat;
         end if;
 
         if reg_adr = c_ACAM_INPUTS_EN_ADR then
-          acam_inputs_en       <= tdc_config_wb_dat_i;
+          acam_inputs_en <= wb_in.dat;
         end if;
 
         if reg_adr = c_START_PHASE_ADR then
-          start_phase          <= tdc_config_wb_dat_i;
+          start_phase <= wb_in.dat;
         end if;
 
         if reg_adr = c_ONE_HZ_PHASE_ADR then
-          one_hz_phase         <= tdc_config_wb_dat_i;
+          one_hz_phase <= wb_in.dat;
         end if;
 
         if reg_adr = c_IRQ_TSTAMP_THRESH_ADR then
-          irq_tstamp_threshold <= tdc_config_wb_dat_i;
+          irq_tstamp_threshold <= wb_in.dat;
         end if;
 
         if reg_adr = c_IRQ_TIME_THRESH_ADR then
-          irq_time_threshold   <= tdc_config_wb_dat_i;
+          irq_time_threshold <= wb_in.dat;
         end if;
 
         if reg_adr = c_DAC_WORD_ADR then
-          dac_word             <= tdc_config_wb_dat_i(23 downto 0);
+          dac_word <= wb_in.dat(23 downto 0);
         end if;
 
         if reg_adr = c_WRABBIT_CTRL_ADR then
-          wrabbit_ctrl_reg    <= tdc_config_wb_dat_i;
+          wrabbit_ctrl_reg    <= wb_in.dat;
         end if;
 		
 		if reg_adr = c_DEACT_CHAN_ADR then
-          deactivate_chan     <= tdc_config_wb_dat_i;
+          deactivate_chan     <= wb_in.dat;
         end if;
 
       end if;
@@ -392,10 +406,10 @@ begin
 -- Note that only one bit of the register should be written at a time. The process receives
 -- the register, defines the action to be taken and after 1 clk cycle clears the register. 
     
-  TDCcore_ctrl_reg_reception: process (clk_i)
+ TDCcore_ctrl_reg_reception : process (clk_tdc_i)
   begin
-    if rising_edge (clk_i) then
-      if rst_i = '1' then
+    if rising_edge (clk_tdc_i) then
+      if rst_tdc_i = '1' then
         ctrl_reg         <= (others =>'0');
         clear_ctrl_reg   <= '0';
 
@@ -403,9 +417,9 @@ begin
         ctrl_reg         <= (others =>'0');
         clear_ctrl_reg   <= '0';
 
-      elsif tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '1' then -- WISHBONE writes
+      elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
         if reg_adr = c_CTRL_REG_ADR then
-          ctrl_reg       <= tdc_config_wb_dat_i;
+          ctrl_reg       <= wb_in.dat;
           clear_ctrl_reg <= '1';
         end if;
 
@@ -435,7 +449,7 @@ begin
   generic map
     (width             => 3)
   port map
-    (clk_i             => clk_i,
+    (clk_i             => clk_tdc_i,
      rst_i             => send_dac_word_p,
      counter_top_i     => "111",
      counter_incr_en_i => pulse_extender_en,
@@ -453,17 +467,15 @@ begin
 -- including those of the ACAM and the TDC core.
 -- Note: pipelining of the address for timing/slack reasons 
 
-  WISHBONEreads: process (clk_i)
+  WISHBONEreads : process (clk_tdc_i)
   begin
-    if rising_edge (clk_i) then
-      --if tdc_config_wb_cyc_i = '1' and tdc_config_wb_stb_i = '1' and tdc_config_wb_we_i = '0' then -- WISHBONE reads
-      --  tdc_config_wb_dat_o <= dat_out;
+    if rising_edge (clk_tdc_i) then
       reg_adr_pipe0       <= reg_adr;
       dat_out_pipe0 <= dat_out_comb0;
       dat_out_pipe1 <= dat_out_comb1;
       dat_out_pipe2 <= dat_out_comb2;
       dat_out_pipe3 <= dat_out_comb3;
-      tdc_config_wb_dat_o <= dat_out_pipe0 or dat_out_pipe1 or dat_out_pipe2 or dat_out_pipe3;
+      wb_out.dat <= dat_out_pipe0 or dat_out_pipe1 or dat_out_pipe2 or dat_out_pipe3;
       --end if;
     end if;
   end process;
