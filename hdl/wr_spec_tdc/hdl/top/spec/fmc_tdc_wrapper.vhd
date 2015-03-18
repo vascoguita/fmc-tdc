@@ -216,7 +216,7 @@ entity fmc_tdc_wrapper is
 
       irq_o : out std_logic;
 
-      clk_125m_tdc_o: out std_logic
+      clk_125m_tdc_o : out std_logic
       );                                -- Mezzanine presence (active low)
 
 end fmc_tdc_wrapper;
@@ -259,15 +259,51 @@ architecture rtl of fmc_tdc_wrapper is
 
   signal tdc_scl_out, tdc_scl_oen, tdc_sda_out, tdc_sda_oen : std_logic;
 
-  signal direct_timestamp : std_logic_vector(127 downto 0);
+  signal direct_timestamp    : std_logic_vector(127 downto 0);
   signal direct_timestamp_wr : std_logic;
 
+  constant c_cnx_slave_ports  : integer := 2;
+  constant c_cnx_master_ports : integer := 2;
 
---=================================================================================================
-  
---                                       architecture begin
---=================================================================================================
+  constant c_master_wrnc : integer := 0;
+  constant c_master_host : integer := 1;
+
+  constant c_slave_direct : integer := 0;
+  constant c_slave_regs   : integer := 1;
+
+  signal cnx_master_in  : t_wishbone_master_in_array(c_cnx_master_ports-1 downto 0);
+  signal cnx_master_out : t_wishbone_master_out_array(c_cnx_master_ports-1 downto 0);
+
+  constant c_cfg_base_addr : t_wishbone_address_array(c_cnx_master_ports-1 downto 0) :=
+    (c_slave_direct => x"00010000",                  -- Direct I/O
+     c_slave_regs => x"00020000");                  -- Mezzanine regs
+
+  constant c_cfg_base_mask : t_wishbone_address_array(c_cnx_master_ports-1 downto 0) :=
+    (c_slave_direct => x"00030000",
+     c_slave_regs => x"00020000");
+
+
 begin
+
+  cmp_mux_host_registers : xwb_crossbar
+    generic map (
+      g_num_masters => c_cnx_slave_ports,
+      g_num_slaves  => c_cnx_master_ports,
+      g_registered  => true,
+      g_address     => c_cfg_base_addr,
+      g_mask        => c_cfg_base_mask)
+    port map (
+      clk_sys_i => clk_sys_i,
+      rst_n_i   => rst_sys_n_i,
+
+      slave_i(c_master_wrnc)   => direct_slave_i,
+      slave_i(c_master_host)   => slave_i,
+
+      slave_o(c_master_wrnc)   => direct_slave_o,
+      slave_o(c_master_host)   => slave_o,
+      
+      master_i  => cnx_master_in,
+      master_o  => cnx_master_out);
 
   mezz_scl_b <= tdc_scl_out when (tdc_scl_oen = '0') else 'Z';
   mezz_sda_b <= tdc_sda_out when (tdc_sda_oen = '0') else 'Z';
@@ -386,9 +422,9 @@ begin
      i2c_scl_o                 => tdc_scl_out,
      i2c_sda_o                 => tdc_sda_out,
      -- 1-Wire on TDC mezzanine
-     onewire_b                => mezz_one_wire_b,
-     direct_timestamp_o => direct_timestamp,
-     direct_timestamp_stb_o => direct_timestamp_wr);
+     onewire_b                 => mezz_one_wire_b,
+     direct_timestamp_o        => direct_timestamp,
+     direct_timestamp_stb_o    => direct_timestamp_wr);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Domains crossing: clk_125m_mezz <-> clk_62m5_sys
@@ -396,8 +432,8 @@ begin
     port map
     (slave_clk_i    => clk_sys_i,
      slave_rst_n_i  => rst_sys_n_i,
-     slave_i        => slave_i,
-     slave_o        => slave_o,
+     slave_i        => cnx_master_out(c_slave_regs),
+     slave_o        => cnx_master_in(c_slave_regs),
      master_clk_i   => clk_125m_mezz,  -- Master reader port: TDC core at 125 MHz
      master_rst_n_i => rst_125m_mezz_n,
      master_i       => tdc_slave_out,
@@ -405,8 +441,8 @@ begin
 
   tdc_slave_out.err <= '0';
   tdc_slave_out.rty <= '0';
-  
-  
+
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Domains crossing: synchronization of the wb_ird_o from 125MHz to 62.5MHz
   irq_pulse_synchronizer : process (clk_sys_i)
@@ -422,7 +458,7 @@ begin
     irq_o <= fmc_eic_irq_synch(1);
   end process;
 
-  U_DirectRD: fmc_tdc_direct_readout
+  U_DirectRD : fmc_tdc_direct_readout
     port map (
       clk_tdc_i             => clk_125m_mezz,
       rst_tdc_n_i           => rst_125m_mezz_n,
@@ -430,8 +466,8 @@ begin
       rst_sys_n_i           => rst_sys_n_i,
       direct_timestamp_i    => direct_timestamp,
       direct_timestamp_wr_i => direct_timestamp_wr,
-      direct_slave_i        => direct_slave_i,
-      direct_slave_o        => direct_slave_o);
+      direct_slave_i        => cnx_master_out(c_slave_direct),
+      direct_slave_o        => cnx_master_in(c_slave_direct));
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
