@@ -26,7 +26,7 @@ end tb_tdc;
 
 architecture behavioral of tb_tdc is
 
-    component spec_top_fmc_tdc
+    component top_tdc
     generic(
         g_span                  : integer :=32;
         g_width                 : integer :=32;
@@ -35,7 +35,6 @@ architecture behavioral of tb_tdc is
     port(
         -- interface with GNUM circuit
         rst_n_a_i      : in  std_logic;
-		  spec_clk_i     : in  std_logic;
         -- P2L Direction
         p2l_clk_p_i : in  std_logic;                      -- Receiver Source Synchronous Clock+
         p2l_clk_n_i : in  std_logic;                      -- Receiver Source Synchronous Clock-
@@ -72,8 +71,8 @@ architecture behavioral of tb_tdc is
         pll_dac_sync_o          : out std_logic;
         pll_sdi_o               : out std_logic;
         pll_sclk_o              : out std_logic;
-        tdc_clk_125m_p_i             : in std_logic;
-        tdc_clk_125m_n_i             : in std_logic;
+        tdc_clk_p_i             : in std_logic;
+        tdc_clk_n_i             : in std_logic;
 
         -- interface signals with acam (timing)
         err_flag_i              : in std_logic;
@@ -113,11 +112,23 @@ architecture behavioral of tb_tdc is
         tdc_led_trig5_o         : out std_logic;
 
         carrier_one_wire_b      : inout std_logic;
-        mezz_sys_scl_b          : inout std_logic;
-        mezz_sys_sda_b          : inout std_logic;
+        sys_scl_b               : inout std_logic;
+        sys_sda_b               : inout std_logic;
         mezz_one_wire_b         : inout std_logic;
         pcb_ver_i               : in std_logic_vector(3 downto 0);
-        prsnt_m2c_n_i           : in std_logic);
+        prsnt_m2c_n_i           : in std_logic;
+
+        -- other signals on the spec card
+        spec_aux0_i             : in std_logic;
+        spec_aux1_i             : in std_logic;
+        spec_aux2_o             : out std_logic;
+        spec_aux3_o             : out std_logic;
+        spec_aux4_o             : out std_logic;
+        spec_aux5_o             : out std_logic;
+        spec_led_green_o        : out std_logic;
+        spec_led_red_o          : out std_logic;
+        spec_clk_i              : in std_logic
+    );
     end component;
 
     component acam_model
@@ -387,7 +398,7 @@ signal spare                : std_logic;
 
 begin
 
-    dut: spec_top_fmc_tdc
+    dut: top_tdc
     generic map(
         g_span                  => 32,
         g_width                 => 32,
@@ -396,7 +407,6 @@ begin
     port map(
         -- interface with GNUM circuit
         rst_n_a_i               => rst_n,
-		  spec_clk_i              => spec_clk_i,
         p2l_clk_p_i             => p2l_clkp,
         p2l_clk_n_i             => p2l_clkn,
         p2l_data_i              => p2l_data,
@@ -431,8 +441,8 @@ begin
         pll_dac_sync_o          => pll_dac_sync_o,
         pll_sdi_o               => pll_sdi_o,
         pll_sclk_o              => pll_sclk_o,
-        tdc_clk_125m_p_i	     => tdc_clk_p_i,
-        tdc_clk_125m_n_i	     => tdc_clk_n_i,
+        tdc_clk_p_i	            => tdc_clk_p_i,
+        tdc_clk_n_i	            => tdc_clk_n_i,
         
         -- interface signals with acam (timing)
         int_flag_i          => int_flag_i,
@@ -473,11 +483,21 @@ begin
        
         -- other signals on the spec card
         carrier_one_wire_b  => open,
-        mezz_sys_scl_b      => open,
-        mezz_sys_sda_b      => open,
+        sys_scl_b           => open,
+        sys_sda_b           => open,
         mezz_one_wire_b     => open,
         pcb_ver_i           => (others => '0'),
-        prsnt_m2c_n_i       => '1');
+        prsnt_m2c_n_i       => '0',
+        spec_aux0_i         => spec_aux0_i,
+        spec_aux1_i         => spec_aux1_i,
+        spec_aux2_o         => spec_aux2_o,
+        spec_aux3_o         => spec_aux3_o,
+        spec_aux4_o         => spec_aux4_o,
+        spec_aux5_o         => spec_aux5_o,
+        spec_led_green_o    => spec_led_green,
+        spec_led_red_o      => spec_led_red,
+        spec_clk_i          => spec_clk_i
+    );
     
     acam: acam_model
     generic map(

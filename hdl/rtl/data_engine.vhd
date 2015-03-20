@@ -388,6 +388,8 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                   -----------------------------------------------
+                        time_c_en <= '0';
+                        time_c_rst <= '0';
 
                         if deactivate_acq_p_i = '1' then
                           nxt_engine_st   <= INACTIVE;
@@ -414,7 +416,8 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '0';
-                  -----------------------------------------------
+                        time_c_en <= '0';
+                        time_c_rst <= '0';                  -----------------------------------------------
 
                         if deactivate_acq_p_i = '1' then
                           nxt_engine_st   <= INACTIVE;
@@ -441,7 +444,9 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '1';
-                  -----------------------------------------------
+                        time_c_en <= '0';
+                        time_c_rst <= '0';
+                -----------------------------------------------
 
                         if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
@@ -456,7 +461,8 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '0';
-                  -----------------------------------------------
+                        time_c_en <= '0';
+                        time_c_rst <= '0';                 -----------------------------------------------
 
                         if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
@@ -471,7 +477,9 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '0';
-                  -----------------------------------------------
+                        time_c_en <= '0';
+                        time_c_rst <= '0';                 
+						-----------------------------------------------
 
                         if acam_ack_i ='1' then
                           nxt_engine_st   <= INACTIVE;
@@ -486,6 +494,8 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '0';
+                        time_c_en <= '0';
+                        time_c_rst <= '0';
                   -----------------------------------------------
 
                         if acam_ack_i ='1' then
@@ -501,6 +511,8 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '0';
+                        time_c_en <= '0';
+                        time_c_rst <= '0';
                   -----------------------------------------------
 
                         if acam_ack_i ='1' then
@@ -515,6 +527,8 @@ begin
                         acam_cyc        <= '1';
                         acam_stb        <= '1';
                         acam_we         <= '1';
+                        time_c_en <= '0';
+                        time_c_rst <= '0';
                   -----------------------------------------------
 
                         if acam_ack_i ='1' then
@@ -529,6 +543,8 @@ begin
                         acam_cyc        <= '0';
                         acam_stb        <= '0';
                         acam_we         <= '0';
+                        time_c_en <= '0';
+                        time_c_rst <= '0';
                   -----------------------------------------------
 
                         nxt_engine_st     <= INACTIVE;

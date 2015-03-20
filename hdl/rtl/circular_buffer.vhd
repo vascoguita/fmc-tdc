@@ -105,7 +105,8 @@ entity circular_buffer is
   port
   -- INPUTS
      -- Signal from the clk_rst_manager
-    (clk_i                : in std_logic;                      -- 125 MHz clock; same for both ports
+    (clk_tdc_i                : in std_logic;                      -- 125 MHz clock; same for both ports
+     clk_sys_i : in std_logic;
 
      -- Signals from the data_formatting unit (WISHBONE classic): timestamps writing
      tstamp_wr_rst_i   : in std_logic;                         -- timestamp writing WISHBONE reset
@@ -155,9 +156,9 @@ begin
 --                            TIMESTAMP WRITINGS WISHBONE CLASSIC ACK                            --
 ---------------------------------------------------------------------------------------------------
   -- WISHBONE classic interface compatible slave
-  classic_interface: process (clk_i)
+  classic_interface: process (clk_tdc_i)
   begin
-    if rising_edge (clk_i) then
+    if rising_edge (clk_tdc_i) then
       if tstamp_wr_rst_i ='1' then
         tstamp_wr_ack_p <= '0';
 
@@ -186,9 +187,9 @@ begin
 -- ACK : _________________|-----------------------------------|_____
 -- DATO:                  <DAT0><DAT1><DAT2><DAT3><DAT4><DAT5>
 
-  WB_pipe_ack_fsm_seq: process (clk_i)
+  WB_pipe_ack_fsm_seq: process (clk_sys_i)
   begin
-    if rising_edge (clk_i) then
+    if rising_edge (clk_sys_i) then
       if tdc_mem_wb_rst_i ='1' then
         tstamp_rd_wb_st <= IDLE;
       else
@@ -275,7 +276,7 @@ begin
   memory_block: blk_mem_circ_buff_v6_4
   port map(
     -- Port A: attached to the data_formatting unit
-    clka   => clk_i,
+    clka   => clk_tdc_i,
     addra  => tstamp_wr_adr_i(7 downto 0), -- 2^8 = 256 addresses
     dina   => tstamp_wr_dat_i,             -- 128-bit long timestamps
     ena    => tstamp_wr_cyc_i,
@@ -283,7 +284,7 @@ begin
     douta  => tstamp_wr_dat_o,             -- not used
 
     -- Port B: attached to the GN4124/VME_core unit
-    clkb   => clk_i,
+    clkb   => clk_sys_i,
     addrb  => tdc_mem_wb_adr_i(9 downto 0),-- 2^10 = 1024 addresses
     dinb   => tdc_mem_wb_dat_i,            -- not used
     enb    => tdc_mem_wb_cyc_i,
