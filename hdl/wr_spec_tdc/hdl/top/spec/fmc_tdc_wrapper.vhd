@@ -241,7 +241,7 @@ architecture rtl of fmc_tdc_wrapper is
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
   -- WRabbit clocks
-  signal clk_62m5_sys, clk_125m_mezz    : std_logic;
+  signal clk_125m_mezz    : std_logic;
   signal rst_125m_mezz_n, rst_125m_mezz : std_logic;
   signal acam_refclk_r_edge_p           : std_logic;
   -- DAC configuration through PCIe/VME
