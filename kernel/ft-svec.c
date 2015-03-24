@@ -31,7 +31,7 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 	if (ft->fmc->slot_id != 0)
 		return 0;
 
-	dev_info(&ft->fmc->dev, "Un-resetting FMCs...\n");
+	dev_dbg(&ft->fmc->dev, "Un-resetting FMCs...\n");
 
 	fmc_writel(ft->fmc, 0xff, TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
 

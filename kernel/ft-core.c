@@ -200,7 +200,7 @@ int ft_probe(struct fmc_device *fmc)
 {
 	struct ft_modlist *m;
 	struct fmctdc_dev *ft;
-	struct device *dev = fmc->hwdev;
+	struct device *dev = &fmc->dev;
 	char *fwname;
 	int i, index, ret, ord;
 
@@ -253,7 +253,7 @@ int ft_probe(struct fmc_device *fmc)
 		return ret;	/* other error: pass over */
 	}
 
-	dev_info(dev, "Gateware successfully loaded\n");
+	dev_dbg(dev, "Gateware successfully loaded\n");
 
 	ret = ft->carrier_specific->reset_core(ft);
 	if (ret < 0)
