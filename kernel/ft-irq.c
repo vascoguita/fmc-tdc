@@ -232,7 +232,7 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 
 	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
 
-	if (likely(irq_stat & (TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME))) {
+	if (irq_stat & (TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME)) {
 		/* clear the IRQ */
 		fmc_writel(ft->fmc, irq_stat,
 			   ft->ft_irq_base + TDC_REG_EIC_ISR);
