@@ -344,9 +344,11 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	tasklet_init(&ft->readout_tasklet, ft_readout_tasklet,
 		     (unsigned long)ft);
 
+	/* FIXME coalescing is not working on VHDL side, set to 1 timestamp
+	   and 1 milliseconds can fix the problem (no coalescing) */
 	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
-	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
-	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
+	ft_writel(ft, 1, TDC_REG_IRQ_THRESHOLD);
+	ft_writel(ft, 1, TDC_REG_IRQ_TIMEOUT);
 
 	/* enable timestamp readout IRQ */
 	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME,
