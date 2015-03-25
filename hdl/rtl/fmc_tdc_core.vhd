@@ -523,7 +523,6 @@ begin
     (clk_i                   => clk_tdc_i,
      rst_i                   => rst_tdc_i,
      tstamp_wr_wb_ack_i      => circ_buff_class_ack,
-     tstamp_wr_dat_i         => circ_buff_class_data_rd,
      tstamp_wr_wb_adr_o      => circ_buff_class_adr,
      tstamp_wr_wb_cyc_o      => circ_buff_class_cyc,
      tstamp_wr_dat_o         => circ_buff_class_data_wr,

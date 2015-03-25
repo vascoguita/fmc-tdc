@@ -80,7 +80,6 @@ entity data_formatting is
 
      -- Signals from the circular_buffer unit: WISHBONE classic
      tstamp_wr_wb_ack_i      : in std_logic;                      -- tstamp writing WISHBONE acknowledge
-     tstamp_wr_dat_i         : in std_logic_vector(127 downto 0); -- not used
 
      -- Signals from the data_engine unit
      acam_tstamp1_ok_p_i     : in std_logic;                      -- tstamp1 valid indicator
