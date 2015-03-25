@@ -357,7 +357,7 @@ begin
      slave_o => cnx_master_in(c_slave_regs),
      
      -- Interrupt line from EIC
-     wb_irq_o                  => fmc_eic_irq,
+     wb_irq_o                  => irq_o,
      
      -- Configuration of the DAC on the TDC mezzanine, non White Rabbit
      acam_refclk_r_edge_p_i    => acam_refclk_r_edge_p,
@@ -422,20 +422,6 @@ begin
      direct_timestamp_o        => direct_timestamp,
      direct_timestamp_stb_o    => direct_timestamp_wr);
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Domains crossing: synchronization of the wb_ird_o from 125MHz to 62.5MHz
-  irq_pulse_synchronizer : process (clk_sys_i)
-  begin
-    if rising_edge (clk_sys_i) then
-      if rst_sys_n_i = '0' then
-        fmc_eic_irq_synch <= (others => '0');
-      else
-        fmc_eic_irq_synch <= fmc_eic_irq_synch(0) & fmc_eic_irq;
-      end if;
-    end if;
-
-    irq_o <= fmc_eic_irq_synch(1);
-  end process;
 
   U_DirectRD : fmc_tdc_direct_readout
     port map (
