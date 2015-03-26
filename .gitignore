@@ -2,7 +2,6 @@
 \#*
 .\#*
 *.*~
-hdl/ip_cores/*
 modelsim.ini
 *.wlf
 *.vstf
