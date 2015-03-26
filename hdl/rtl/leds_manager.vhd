@@ -93,7 +93,7 @@ use work.gencores_pkg.all;
 entity leds_manager is
   generic
     (g_width           : integer := 32;
-     values_for_simul  : boolean := FALSE);
+     g_simulation  : boolean := FALSE);
   port
   -- INPUTS
      -- Signals from the clks_rsts_manager
@@ -167,7 +167,7 @@ begin
     end if;
   end process;
 
-  visible_blink_length <= c_BLINK_LGTH_SIM when values_for_simul else c_BLINK_LGTH_SYN;
+  visible_blink_length <= c_BLINK_LGTH_SIM when g_simulation else c_BLINK_LGTH_SYN;
 
 
 ---------------------------------------------------------------------------------------------------

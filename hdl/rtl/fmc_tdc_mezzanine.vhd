@@ -109,7 +109,7 @@ entity fmc_tdc_mezzanine is
     (g_with_wrabbit_core       : boolean := FALSE;
      g_span                    : integer := 32;
      g_width                   : integer := 32;
-     values_for_simul          : boolean := FALSE);
+     g_simulation          : boolean := FALSE);
   port
     -- TDC core
     (
@@ -314,7 +314,7 @@ begin
   generic map
     (g_span                  => g_span,
      g_width                 => g_width,
-     values_for_simul        => FALSE)
+     g_simulation        => g_simulation)
   port map
     (-- clks, rst
      clk_tdc_i             => clk_tdc_i,
@@ -387,7 +387,7 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_wrabbit_synch: wrabbit_sync
   generic map
-   (g_simulation               => false,
+   (g_simulation               => g_simulation,
     g_with_wrabbit_core        => g_with_wrabbit_core)
   port map
     (clk_sys_i                 => clk_sys_i,

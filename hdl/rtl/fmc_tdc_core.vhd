@@ -158,7 +158,7 @@ entity fmc_tdc_core is
   generic
     (g_span                 : integer := 32;                              -- address span in bus interfaces
      g_width                : integer := 32;                              -- data width in bus interfaces
-     values_for_simul       : boolean := FALSE);                          -- this generic is set to TRUE
+     g_simulation       : boolean := FALSE);                          -- this generic is set to TRUE
                                                                           -- when instantiated in a test-bench
   port
     (
@@ -402,10 +402,8 @@ begin
      starting_utc_i         => starting_utc,
      local_utc_o            => local_utc,
      local_utc_p_o          => local_utc_p);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-    clk_period              <= c_SIM_CLK_PERIOD when values_for_simul else c_SYN_CLK_PERIOD;
 
-
+clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 ---------------------------------------------------------------------------------------------------
 --                                   ACAM TIMECONTROL INTERFACE                                  --
 ---------------------------------------------------------------------------------------------------
@@ -479,6 +477,8 @@ begin
 --                                          DATA ENGINE                                          --
 ---------------------------------------------------------------------------------------------------
   data_engine_block: data_engine
+    generic map(
+      g_simulation => g_simulation )
   port map
     (acam_ack_i            => acm_ack,
      acam_dat_i            => acm_dat_r,
@@ -533,7 +533,7 @@ begin
      acam_tstamp2_i          => acam_tstamp2,
      acam_tstamp2_ok_p_i     => acam_tstamp2_ok_p,
      dacapo_c_rst_p_i        => clear_dacapo_counter,
-	 deactivate_chan_i       => deactivate_chan,
+     deactivate_chan_i       => deactivate_chan,
      roll_over_incr_recent_i => roll_over_incr_recent,
      clk_i_cycles_offset_i   => clk_i_cycles_offset,
      roll_over_nb_i          => roll_over_nb,
@@ -581,6 +581,7 @@ begin
   port map
    (clk_tdc_i              => clk_tdc_i,
     clk_sys_i => clk_sys_i,
+    rst_n_sys_i => rst_n_sys_i,
     tstamp_wr_rst_i    => rst_tdc_i,
     tstamp_wr_adr_i    => circ_buff_class_adr,
     tstamp_wr_cyc_i    => circ_buff_class_cyc,
@@ -606,7 +607,7 @@ begin
   TDCboard_leds: leds_manager
   generic map
     (g_width          => 32,
-     values_for_simul => values_for_simul)
+     g_simulation => g_simulation)
   port map
     (clk_i            => clk_tdc_i,
      rst_i            => rst_tdc_i,

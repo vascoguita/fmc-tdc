@@ -127,8 +127,13 @@ use UNISIM.vcomponents.all;
 --=================================================================================================
 entity fmc_tdc_wrapper is
   generic
-    (g_simulation : boolean := false);  -- this generic is set to TRUE
-                                        -- when instantiated in a test-bench
+    (
+      -- reduces some timeouts to speed up simulation
+      g_simulation          : boolean := false;
+      -- implement direct TDC timestamp readout FIFO, used in the WR Node projects
+      g_with_direct_readout : boolean := false
+   
+      ); 
   port
     (
       clk_sys_i   : in std_logic;
@@ -187,9 +192,13 @@ entity fmc_tdc_wrapper is
       tdc_in_fpga_5_i : in std_logic;   -- Ch.5 for ACAM, also received by FPGA
 
       -- I2C EEPROM interface on TDC mezzanine
-      mezz_scl_b : inout std_logic;
-      mezz_sda_b : inout std_logic;
+      mezz_scl_o : out std_logic;
+      mezz_sda_o : out std_logic;
 
+      mezz_scl_i : in std_logic;
+      mezz_sda_i : in std_logic;
+
+      
       -- 1-wire interface on TDC mezzanine
       mezz_one_wire_b : inout std_logic;
 
@@ -216,8 +225,9 @@ entity fmc_tdc_wrapper is
 
       irq_o : out std_logic;
 
+      -- local PLL clock output (for WR PTP Core clock disciplining)
       clk_125m_tdc_o : out std_logic
-      );                                -- Mezzanine presence (active low)
+      );                              
 
 end fmc_tdc_wrapper;
 
@@ -237,11 +247,9 @@ architecture rtl of fmc_tdc_wrapper is
       direct_slave_i        : in  t_wishbone_slave_in;
       direct_slave_o        : out t_wishbone_slave_out);
   end component fmc_tdc_direct_readout;
------------------------------------------------------------------
---                                            Signals                                            --
----------------------------------------------------------------------------------------------------
+
   -- WRabbit clocks
-  signal clk_125m_mezz    : std_logic;
+  signal clk_125m_mezz                  : std_logic;
   signal rst_125m_mezz_n, rst_125m_mezz : std_logic;
   signal acam_refclk_r_edge_p           : std_logic;
   -- DAC configuration through PCIe/VME
@@ -272,38 +280,57 @@ architecture rtl of fmc_tdc_wrapper is
   signal cnx_master_out : t_wishbone_master_out_array(c_cnx_master_ports-1 downto 0);
 
   constant c_cfg_base_addr : t_wishbone_address_array(c_cnx_master_ports-1 downto 0) :=
-    (c_slave_direct => x"00010000",                  -- Direct I/O
-     c_slave_regs => x"00020000");                  -- Mezzanine regs
+    (c_slave_direct => x"00010000",     -- Direct I/O
+     c_slave_regs   => x"00020000");    -- Mezzanine regs
 
   constant c_cfg_base_mask : t_wishbone_address_array(c_cnx_master_ports-1 downto 0) :=
     (c_slave_direct => x"00030000",
-     c_slave_regs => x"00020000");
+     c_slave_regs   => x"00020000");
 
 
 begin
 
-  cmp_mux_host_registers : xwb_crossbar
-    generic map (
-      g_num_masters => c_cnx_slave_ports,
-      g_num_slaves  => c_cnx_master_ports,
-      g_registered  => true,
-      g_address     => c_cfg_base_addr,
-      g_mask        => c_cfg_base_mask)
+  gen_with_direct_readout : if g_with_direct_readout generate
+    
+    cmp_mux_host_registers : xwb_crossbar
+      generic map (
+        g_num_masters => c_cnx_slave_ports,
+        g_num_slaves  => c_cnx_master_ports,
+        g_registered  => true,
+        g_address     => c_cfg_base_addr,
+        g_mask        => c_cfg_base_mask)
+      port map (
+        clk_sys_i => clk_sys_i,
+        rst_n_i   => rst_sys_n_i,
+
+        slave_i(c_master_wrnc) => direct_slave_i,
+        slave_i(c_master_host) => slave_i,
+
+        slave_o(c_master_wrnc) => direct_slave_o,
+        slave_o(c_master_host) => slave_o,
+
+        master_i => cnx_master_in,
+        master_o => cnx_master_out);
+
+    cmp_direct_readout : fmc_tdc_direct_readout
     port map (
-      clk_sys_i => clk_sys_i,
-      rst_n_i   => rst_sys_n_i,
+      clk_tdc_i             => clk_125m_mezz,
+      rst_tdc_n_i           => rst_125m_mezz_n,
+      clk_sys_i             => clk_sys_i,
+      rst_sys_n_i           => rst_sys_n_i,
+      direct_timestamp_i    => direct_timestamp,
+      direct_timestamp_wr_i => direct_timestamp_wr,
+      direct_slave_i        => cnx_master_out(c_slave_direct),
+      direct_slave_o        => cnx_master_in(c_slave_direct));
 
-      slave_i(c_master_wrnc)   => direct_slave_i,
-      slave_i(c_master_host)   => slave_i,
 
-      slave_o(c_master_wrnc)   => direct_slave_o,
-      slave_o(c_master_host)   => slave_o,
-      
-      master_i  => cnx_master_in,
-      master_o  => cnx_master_out);
+  end generate gen_with_direct_readout;
 
-  mezz_scl_b <= tdc_scl_out when (tdc_scl_oen = '0') else 'Z';
-  mezz_sda_b <= tdc_sda_out when (tdc_sda_oen = '0') else 'Z';
+  gen_without_direct_readout: if not g_with_direct_readout generate
+    cnx_master_out(c_slave_regs) <= slave_i;
+    slave_o <= cnx_master_in(c_slave_regs);
+  end generate gen_without_direct_readout;
+     
 
   cmp_tdc_clks_rsts_mgment : clks_rsts_manager
     generic map
@@ -343,62 +370,62 @@ begin
     generic map
     (g_span           => 32,
      g_width          => 32,
-     values_for_simul => g_simulation)
+     g_simulation => g_simulation)
     port map
     -- 62M5 clk and reset
-    (clk_sys_i                 => clk_sys_i,
-     rst_sys_n_i               => rst_sys_n_i,
+    (clk_sys_i   => clk_sys_i,
+     rst_sys_n_i => rst_sys_n_i,
      -- 125M clk and reset
-     clk_tdc_i               => clk_125m_mezz,
-     rst_tdc_i               => rst_125m_mezz,
+     clk_tdc_i   => clk_125m_mezz,
+     rst_tdc_i   => rst_125m_mezz,
 
      -- Wishbone
      slave_i => cnx_master_out(c_slave_regs),
      slave_o => cnx_master_in(c_slave_regs),
-     
+
      -- Interrupt line from EIC
-     wb_irq_o                  => irq_o,
-     
+     wb_irq_o => irq_o,
+
      -- Configuration of the DAC on the TDC mezzanine, non White Rabbit
-     acam_refclk_r_edge_p_i    => acam_refclk_r_edge_p,
-     send_dac_word_p_o         => send_dac_word_p,
-     dac_word_o                => dac_word,
+     acam_refclk_r_edge_p_i => acam_refclk_r_edge_p,
+     send_dac_word_p_o      => send_dac_word_p,
+     dac_word_o             => dac_word,
      -- ACAM interface
-     start_from_fpga_o         => start_from_fpga_o,
-     err_flag_i                => err_flag_i,
-     int_flag_i                => int_flag_i,
-     start_dis_o               => start_dis_o,
-     stop_dis_o                => stop_dis_o,
-     data_bus_io               => data_bus_io,
-     address_o                 => address_o,
-     cs_n_o                    => cs_n_o,
-     oe_n_o                    => oe_n_o,
-     rd_n_o                    => rd_n_o,
-     wr_n_o                    => wr_n_o,
-     ef1_i                     => ef1_i,
-     ef2_i                     => ef2_i,
+     start_from_fpga_o      => start_from_fpga_o,
+     err_flag_i             => err_flag_i,
+     int_flag_i             => int_flag_i,
+     start_dis_o            => start_dis_o,
+     stop_dis_o             => stop_dis_o,
+     data_bus_io            => data_bus_io,
+     address_o              => address_o,
+     cs_n_o                 => cs_n_o,
+     oe_n_o                 => oe_n_o,
+     rd_n_o                 => rd_n_o,
+     wr_n_o                 => wr_n_o,
+     ef1_i                  => ef1_i,
+     ef2_i                  => ef2_i,
      -- Input channels enable
-     enable_inputs_o           => enable_inputs_o,
-     term_en_1_o               => term_en_1_o,
-     term_en_2_o               => term_en_2_o,
-     term_en_3_o               => term_en_3_o,
-     term_en_4_o               => term_en_4_o,
-     term_en_5_o               => term_en_5_o,
+     enable_inputs_o        => enable_inputs_o,
+     term_en_1_o            => term_en_1_o,
+     term_en_2_o            => term_en_2_o,
+     term_en_3_o            => term_en_3_o,
+     term_en_4_o            => term_en_4_o,
+     term_en_5_o            => term_en_5_o,
      -- LEDs on TDC mezzanine
-     tdc_led_status_o          => tdc_led_status_o,
-     tdc_led_trig1_o           => tdc_led_trig1_o,
-     tdc_led_trig2_o           => tdc_led_trig2_o,
-     tdc_led_trig3_o           => tdc_led_trig3_o,
-     tdc_led_trig4_o           => tdc_led_trig4_o,
-     tdc_led_trig5_o           => tdc_led_trig5_o,
+     tdc_led_status_o       => tdc_led_status_o,
+     tdc_led_trig1_o        => tdc_led_trig1_o,
+     tdc_led_trig2_o        => tdc_led_trig2_o,
+     tdc_led_trig3_o        => tdc_led_trig3_o,
+     tdc_led_trig4_o        => tdc_led_trig4_o,
+     tdc_led_trig5_o        => tdc_led_trig5_o,
      -- Input channels to FPGA (not used)
-     tdc_in_fpga_1_i           => tdc_in_fpga_1_i,
-     tdc_in_fpga_2_i           => tdc_in_fpga_2_i,
-     tdc_in_fpga_3_i           => tdc_in_fpga_3_i,
-     tdc_in_fpga_4_i           => tdc_in_fpga_4_i,
-     tdc_in_fpga_5_i           => tdc_in_fpga_5_i,
+     tdc_in_fpga_1_i        => tdc_in_fpga_1_i,
+     tdc_in_fpga_2_i        => tdc_in_fpga_2_i,
+     tdc_in_fpga_3_i        => tdc_in_fpga_3_i,
+     tdc_in_fpga_4_i        => tdc_in_fpga_4_i,
+     tdc_in_fpga_5_i        => tdc_in_fpga_5_i,
      -- WISHBONE interface with the GN4124 core
- 
+
      -- White Rabbit
      wrabbit_link_up_i         => tm_link_up_i,
      wrabbit_time_valid_i      => tm_time_valid_i,
@@ -409,30 +436,24 @@ begin
      wrabbit_clk_dmtd_locked_i => '1',  -- FIXME: fan out real signal from the WRCore
      wrabbit_dac_value_i       => tm_dac_value_i,
      wrabbit_dac_wr_p_i        => tm_dac_wr_i,
-    
+
      -- EEPROM I2C on TDC mezzanine
-     i2c_scl_oen_o             => tdc_scl_oen,
-     i2c_scl_i                 => mezz_scl_b,
-     i2c_sda_oen_o             => tdc_sda_oen,
-     i2c_sda_i                 => mezz_sda_b,
-     i2c_scl_o                 => tdc_scl_out,
-     i2c_sda_o                 => tdc_sda_out,
+     i2c_scl_oen_o          => tdc_scl_oen,
+     i2c_scl_i              => mezz_scl_i,
+     i2c_sda_oen_o          => tdc_sda_oen,
+     i2c_sda_i              => mezz_sda_i,
+     i2c_scl_o              => tdc_scl_out,
+     i2c_sda_o              => tdc_sda_out,
      -- 1-Wire on TDC mezzanine
-     onewire_b                 => mezz_one_wire_b,
-     direct_timestamp_o        => direct_timestamp,
-     direct_timestamp_stb_o    => direct_timestamp_wr);
+     onewire_b              => mezz_one_wire_b,
+     direct_timestamp_o     => direct_timestamp,
+     direct_timestamp_stb_o => direct_timestamp_wr);
 
 
-  U_DirectRD : fmc_tdc_direct_readout
-    port map (
-      clk_tdc_i             => clk_125m_mezz,
-      rst_tdc_n_i           => rst_125m_mezz_n,
-      clk_sys_i             => clk_sys_i,
-      rst_sys_n_i           => rst_sys_n_i,
-      direct_timestamp_i    => direct_timestamp,
-      direct_timestamp_wr_i => direct_timestamp_wr,
-      direct_slave_i        => cnx_master_out(c_slave_direct),
-      direct_slave_o        => cnx_master_in(c_slave_direct));
+  mezz_scl_o <= '0' when tdc_scl_out ='0' and tdc_scl_oen = '0' else '1';
+  mezz_sda_o <= '0' when tdc_sda_out ='0' and tdc_sda_oen = '0' else '1';
+  
+
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

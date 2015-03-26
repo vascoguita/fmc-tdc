@@ -341,8 +341,8 @@ begin
         one_hz_phase         <= (others =>'0');
         wrabbit_ctrl_reg     <= (others =>'0');
         deactivate_chan      <= (others =>'0');
-        irq_tstamp_threshold <= x"00000100";        -- default 256 timestamps: full memory
-        irq_time_threshold   <= x"000000C8";        -- default 200 ms
+        irq_tstamp_threshold <= x"00000001";        -- default 256 timestamps: full memory
+        irq_time_threshold   <= x"00000001";        -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD; -- default DAC Vout = 1.65
 
       elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then

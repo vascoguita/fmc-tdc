@@ -274,7 +274,6 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   tdc_mem_wb_stall_o <= '0';
 
-
   gen_mem_blocks : for i in 0 to 3 generate
     
     memory_block : generic_dpram
@@ -296,7 +295,7 @@ begin
         db_i    => tdc_mem_wb_dat_i,
         qb_o    => mb_data(i));
 
-    tstamp_rd_we(i) <= '1' when unsigned(tdc_mem_wb_adr_i(1 downto 0) = i) else '0';
+    tstamp_rd_we(i) <= '1' when unsigned(tdc_mem_wb_adr_i(1 downto 0)) = i else '0';
 
     process(clk_sys_i)
     begin

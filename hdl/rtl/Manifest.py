@@ -1,4 +1,6 @@
-files = ["acam_databus_interface.vhd",
+files = [
+"tdc_core_pkg.vhd",
+"acam_databus_interface.vhd",
 "acam_timecontrol_interface.vhd",
 "carrier_info.vhd",
 "circular_buffer.vhd",
@@ -16,5 +18,10 @@ files = ["acam_databus_interface.vhd",
 "reg_ctrl.vhd",
 "start_retrig_ctrl.vhd",
 "tdc_eic.vhd",
-"wrabbit_sync.vhd"];
+"wrabbit_sync.vhd",
+"fmc_tdc_direct_readout.vhd",
+"fmc_tdc_direct_readout_slave.vhd",
+"fmc_tdc_direct_readout_slave_pkg.vhd",
+"fmc_tdc_wrapper.vhd",
+];
 

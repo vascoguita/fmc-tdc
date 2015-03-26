@@ -156,7 +156,7 @@ package tdc_core_pkg is
 
   constant c_TDC_CONFIG_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
-     abi_ver_major => x"01",
+     abi_ver_major => x"02",
      abi_ver_minor => x"01",
      wbd_endian    => c_sdb_endian_big,
      wbd_width     => x"4",                  -- 32-bit port granularity
@@ -195,7 +195,7 @@ package tdc_core_pkg is
   constant c_SYN_CLK_PERIOD : std_logic_vector(31 downto 0) := x"07735940";
 
   -- for simulation: 1 msec = x"0001E848" clk_i cycles (1 clk_i cycle = 8ns)
-  constant c_SIM_CLK_PERIOD : std_logic_vector(31 downto 0) := x"0001E848";
+  constant c_SIM_CLK_PERIOD : std_logic_vector(31 downto 0) := x"00001000";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -344,7 +344,7 @@ package tdc_core_pkg is
     (g_with_wrabbit_core       : boolean := TRUE;
      g_span                    : integer := 32;
      g_width                   : integer := 32;
-     values_for_simul          : boolean := FALSE);
+     g_simulation          : boolean := FALSE);
    port
     -- TDC core
     (
@@ -437,7 +437,7 @@ package tdc_core_pkg is
   generic
     (g_span                 : integer := 32;
      g_width                : integer := 32;
-     values_for_simul       : boolean := FALSE);
+     g_simulation       : boolean := FALSE);
     port (
       clk_sys_i              : in    std_logic;
       rst_n_sys_i            : in    std_logic;
@@ -605,6 +605,8 @@ package tdc_core_pkg is
 
 ---------------------------------------------------------------------------------------------------
   component data_engine
+    generic (
+      g_simulation : boolean );
     port
       (acam_ack_i            : in std_logic;
        acam_dat_i            : in std_logic_vector(31 downto 0);
@@ -725,7 +727,6 @@ package tdc_core_pkg is
   component data_formatting
     port
       (tstamp_wr_wb_ack_i      : in std_logic;
-       tstamp_wr_dat_i         : in std_logic_vector(127 downto 0);
        acam_tstamp1_i          : in std_logic_vector(31 downto 0);
        acam_tstamp1_ok_p_i     : in std_logic;
        acam_tstamp2_i          : in std_logic_vector(31 downto 0);
@@ -862,7 +863,7 @@ package tdc_core_pkg is
   component leds_manager is
     generic
       (g_width          : integer := 32;
-       values_for_simul : boolean := FALSE);
+       g_simulation : boolean := FALSE);
     port
       (clk_i            : in std_logic;
        rst_i            : in std_logic;
@@ -911,55 +912,36 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
+
+
   component circular_buffer
-    port
-      (
-        clk_tdc_i                : in std_logic;                      -- 125 MHz clock; same for both port
+    port (
+        clk_tdc_i                : in std_logic;   
         clk_sys_i : in std_logic;
-       tstamp_wr_rst_i    : in std_logic; 
-       tstamp_wr_stb_i    : in std_logic;
-       tstamp_wr_cyc_i    : in std_logic;
-       tstamp_wr_we_i     : in std_logic;
-       tstamp_wr_adr_i    : in std_logic_vector(7 downto 0);
-       tstamp_wr_dat_i    : in std_logic_vector(127 downto 0);
-       tdc_mem_wb_rst_i   : in std_logic;
-       tdc_mem_wb_stb_i   : in std_logic;
-       tdc_mem_wb_cyc_i   : in std_logic;
-       tdc_mem_wb_we_i    : in std_logic;
-       tdc_mem_wb_adr_i   : in std_logic_vector(31 downto 0);
-       tdc_mem_wb_dat_i   : in std_logic_vector(31 downto 0);
-     --------------------------------------------------
-       tstamp_wr_ack_p_o  : out std_logic;
-       tstamp_wr_dat_o    : out std_logic_vector(127 downto 0);
-       tdc_mem_wb_ack_o   : out std_logic;
-       tdc_mem_wb_dat_o   : out std_logic_vector(31 downto 0);
-       tdc_mem_wb_stall_o : out std_logic);
-     --------------------------------------------------
-  end component;
-
-
----------------------------------------------------------------------------------------------------
-  component blk_mem_circ_buff_v6_4
-    port
-      (clka   : in std_logic;
-       addra  : in std_logic_vector(7 downto 0);
-       dina   : in std_logic_vector(127 downto 0);
-       ena    : in std_logic;
-       wea    : in std_logic_vector(0 downto 0);
-       clkb   : in std_logic;
-       addrb  : in std_logic_vector(9 downto 0);
-       dinb   : in std_logic_vector(31 downto 0);
-       enb    : in std_logic;
-       web    : in std_logic_vector(0 downto 0);
-     --------------------------------------------------
-       douta  : out std_logic_vector(127 downto 0);
-       doutb  : out std_logic_vector(31 downto 0));
-     --------------------------------------------------
+        rst_n_sys_i : in std_logic;
+        tstamp_wr_rst_i    : in std_logic; 
+        tstamp_wr_stb_i    : in std_logic;
+        tstamp_wr_cyc_i    : in std_logic;
+        tstamp_wr_we_i     : in std_logic;
+        tstamp_wr_adr_i    : in std_logic_vector(7 downto 0);
+        tstamp_wr_dat_i    : in std_logic_vector(127 downto 0);
+        tdc_mem_wb_rst_i   : in std_logic;
+        tdc_mem_wb_stb_i   : in std_logic;
+        tdc_mem_wb_cyc_i   : in std_logic;
+        tdc_mem_wb_we_i    : in std_logic;
+        tdc_mem_wb_adr_i   : in std_logic_vector(31 downto 0);
+        tdc_mem_wb_dat_i   : in std_logic_vector(31 downto 0);
+        tstamp_wr_ack_p_o  : out std_logic;
+        tstamp_wr_dat_o    : out std_logic_vector(127 downto 0);
+        tdc_mem_wb_ack_o   : out std_logic;
+        tdc_mem_wb_dat_o   : out std_logic_vector(31 downto 0);
+        tdc_mem_wb_stall_o : out std_logic);
   end component;
 
   component fmc_tdc_wrapper is
     generic (
-      g_simulation : boolean);
+      g_simulation          : boolean := false;
+      g_with_direct_readout : boolean := false);
     port (
       clk_sys_i            : in    std_logic;
       rst_sys_n_i          : in    std_logic;
@@ -1004,8 +986,10 @@ package tdc_core_pkg is
       tdc_in_fpga_3_i      : in    std_logic;
       tdc_in_fpga_4_i      : in    std_logic;
       tdc_in_fpga_5_i      : in    std_logic;
-      mezz_scl_b           : inout std_logic;
-      mezz_sda_b           : inout std_logic;
+      mezz_scl_o           : out std_logic;
+      mezz_sda_o           : out std_logic;
+      mezz_scl_i           : in std_logic;
+      mezz_sda_i           : in std_logic;
       mezz_one_wire_b      : inout std_logic;
       tm_link_up_i         : in    std_logic;
       tm_time_valid_i      : in    std_logic;
@@ -1016,21 +1000,32 @@ package tdc_core_pkg is
       tm_clk_dmtd_locked_i : in    std_logic;
       tm_dac_value_i       : in    std_logic_vector(23 downto 0);
       tm_dac_wr_i          : in    std_logic;
-      slave_i              : in    t_wishbone_slave_in;
+      slave_i              : in    t_wishbone_slave_in := cc_dummy_master_out;
       slave_o              : out   t_wishbone_slave_out;
-      direct_slave_i       : in    t_wishbone_slave_in;
+      direct_slave_i       : in    t_wishbone_slave_in := cc_dummy_master_out;
       direct_slave_o       : out   t_wishbone_slave_out;
       irq_o                : out   std_logic;
       clk_125m_tdc_o       : out   std_logic);
   end component fmc_tdc_wrapper;
 
-
+  function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector;
+  
+  
 end tdc_core_pkg;
 --=================================================================================================
 --                                        package body
 --=================================================================================================
 package body tdc_core_pkg is
 
+  function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector is
+    begin
+      if(cond) then
+        return if_true;
+        else
+          return if_false;
+          end if;
+      end f_pick;
+  
 end tdc_core_pkg;
 --=================================================================================================
 --                                         package end
