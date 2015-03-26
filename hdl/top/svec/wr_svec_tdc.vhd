@@ -126,7 +126,8 @@ use work.wishbone_pkg.all;
 use work.wrcore_pkg.all;
 use work.wr_fabric_pkg.all;
 use work.wr_xilinx_pkg.all;
-use work.bicolor_led_ctrl_pkg.all;
+use work.xvme64x_core_pkg.all;
+
 library UNISIM;
 use UNISIM.vcomponents.all;
 
@@ -139,8 +140,8 @@ entity wr_svec_tdc is
   generic
     (g_span                  : integer := 32;          -- address span in bus interfaces
      g_width                 : integer := 32;          -- data width in bus interfaces
-     values_for_simul        : boolean := false);      -- this generic is set to TRUE
-                                                       -- when instantiated in a test-bench
+     g_simulation        : boolean := false;
+     g_with_wr_phy : boolean := true);
   port
     (-- SVEC carrier
       -- VCXO clock, PoR
@@ -323,9 +324,43 @@ end wr_svec_tdc;
 --=================================================================================================
 architecture rtl of wr_svec_tdc is
 
+  component spec_serial_dac is
+    generic (
+      g_num_data_bits  : integer;
+      g_num_extra_bits : integer;
+      g_num_cs_select  : integer);
+    port (
+      clk_i         : in  std_logic;
+      rst_n_i       : in  std_logic;
+      value_i       : in  std_logic_vector(g_num_data_bits-1 downto 0);
+      cs_sel_i      : in  std_logic_vector(g_num_cs_select-1 downto 0);
+      load_i        : in  std_logic;
+      sclk_divsel_i : in  std_logic_vector(2 downto 0);
+      dac_cs_n_o    : out std_logic_vector(g_num_cs_select-1 downto 0);
+      dac_sclk_o    : out std_logic;
+      dac_sdata_o   : out std_logic;
+      xdone_o       : out std_logic);
+  end component spec_serial_dac;
 ---------------------------------------------------------------------------------------------------
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
+
+  constant c_SVEC_INFO_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"000000000000001F",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000603",         -- "WB-SPEC.CSR        " | md5sum | cut -c1-8
+           version   => x"00000001",
+           date      => x"20121116",
+           name      => "WB-SVEC.CSR        ")));
+
   -- Constant regarding the Carrier type
   constant c_CARRIER_TYPE   : std_logic_vector(15 downto 0) := x"0002";
     --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -354,7 +389,6 @@ architecture rtl of wr_svec_tdc is
      5 => f_sdb_embed_repo_url   (c_SDB_REPO_URL),
      6 => f_sdb_embed_synthesis  (c_sdb_synthesis_info));
 
-
 ---------------------------------------------------------------------------------------------------
 --                                         VIC CONSTANT                                          --
 ---------------------------------------------------------------------------------------------------
@@ -362,12 +396,10 @@ architecture rtl of wr_svec_tdc is
     (0 => x"00052000",
      1 => x"00072000");
 
-
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
 
----------------------------------------------------------------------------------------------------
  -- Clocks
   -- CLOCK DOMAIN: 20 MHz VCXO clock on SVEC carrier board: clk_20m_vcxo_i
   signal clk_20m_vcxo_buf, clk_20m_vcxo       : std_logic;
@@ -375,28 +407,19 @@ architecture rtl of wr_svec_tdc is
   signal clk_62m5_sys, pllout_clk_sys         : std_logic;
   signal pllout_clk_sys_fb, sys_locked        : std_logic;
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1: tdc1_125m_clk
-  signal tdc1_125m_clk, tdc1_pll_status       : std_logic;
-  signal tdc1_acam_refclk_r_edge_p            : std_logic;
+  signal tdc1_125m_clk       : std_logic;
   signal tdc1_send_dac_word_p                 : std_logic;
   signal tdc1_dac_word                        : std_logic_vector(23 downto 0);
-  signal tdc1_slave_in                        : t_wishbone_slave_in;
-  signal tdc1_slave_out                       : t_wishbone_slave_out;
-  signal tdc1_irq_acam_err_p                  : std_logic;
-  signal tdc1_irq_tstamp_p, tdc1_irq_time_p   : std_logic;
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC2: tdc2_125m_clk
-  signal tdc2_125m_clk, tdc2_pll_status       : std_logic;
-  signal tdc2_acam_refclk_r_edge_p            : std_logic;
+  signal tdc2_125m_clk       : std_logic;
   signal tdc2_send_dac_word_p                 : std_logic;
   signal tdc2_dac_word                        : std_logic_vector(23 downto 0);
-  signal tdc2_slave_in                        : t_wishbone_slave_in;
-  signal tdc2_slave_out                       : t_wishbone_slave_out;
-  signal tdc2_irq_acam_err_p                  : std_logic;
-  signal tdc2_irq_tstamp_p, tdc2_irq_time_p   : std_logic;
   -- WHITE RABBIT CLOCKS:
   signal pllout_clk_dmtd, pllout_clk_fb_dmtd  : std_logic;
   signal pllout_clk_fb_pllref                 : std_logic;
   signal clk_125m_pllref, clk_125m_gtp        : std_logic;
   signal clk_dmtd                             : std_logic;
+
   attribute buffer_type                       : string;  --" {bufgdll | ibufg | bufgp | ibuf | bufr | none}";
   attribute buffer_type of clk_125m_pllref    : signal is "BUFG";
 
@@ -413,10 +436,6 @@ architecture rtl of wr_svec_tdc is
   signal tdc2_soft_rst_n                      : std_logic; -- driven by carrier CSR reserved bit 1
   signal carrier_info_fmc_rst                 : std_logic_vector(30 downto 0);
   signal carrier_info_stat_reserv             : std_logic_vector(27 downto 0);
-  -- output reset of the clks_rsts_manager units;
-  -- this reset is released when the 125 MHz from the mezzanines PLL is available
-  signal tdc1_general_rst, tdc1_general_rst_n : std_logic;
-  signal tdc2_general_rst, tdc2_general_rst_n : std_logic;
 
 ---------------------------------------------------------------------------------------------------
  -- VME interface
@@ -466,20 +485,14 @@ architecture rtl of wr_svec_tdc is
 -- Interrupts
   signal irq_to_vmecore                       : std_logic;
   signal tdc1_irq, tdc2_irq                   : std_logic;
-  signal tdc1_irq_synch, tdc2_irq_synch       : std_logic_vector (1 downto 0);
 
 ---------------------------------------------------------------------------------------------------
 -- Mezzanines EEPROM
-  signal tdc1_scl_out, tdc1_scl_in            : std_logic; 
-  signal tdc1_sda_out, tdc1_sda_in            : std_logic;
-  signal tdc1_scl_oen, tdc1_sda_oen           : std_logic;
-  signal tdc2_scl_out, tdc2_scl_in            : std_logic;
-  signal tdc2_sda_out, tdc2_sda_in            : std_logic;
-  signal tdc2_scl_oen, tdc2_sda_oen           : std_logic;
+  signal tdc1_scl_oen, tdc1_scl_in            : std_logic; 
+  signal tdc1_sda_oen, tdc1_sda_in            : std_logic;
+  signal tdc2_scl_oen, tdc2_scl_in            : std_logic;
+  signal tdc2_sda_oen, tdc2_sda_in            : std_logic;
 
----------------------------------------------------------------------------------------------------
- -- Carrier other signals
-  signal mezz_pll_status                      : std_logic_vector(11 downto 0);
   signal carrier_owr_en, carrier_owr_i        : std_logic_vector(c_FMC_ONEWIRE_NB - 1 downto 0);
   -- LEDs
   signal led_state                            : std_logic_vector(15 downto 0);
@@ -489,7 +502,6 @@ architecture rtl of wr_svec_tdc is
   signal led_clk_62m5_aux                     : std_logic_vector(7 downto 0);
   signal led_clk_62m5                         : std_logic;
   signal wrabbit_led_red, wrabbit_led_green   : std_logic;
-
 
 --=================================================================================================
 --                                       architecture begin
@@ -574,67 +586,8 @@ begin
   por_rst_n_a <= VME_RST_n_i and por_n_i;
 
 
----------------------------------------------------------------------------------------------------
---                                         TDC#1 125 MHz                                         --
----------------------------------------------------------------------------------------------------
-  cmp_tdc1_clks_rsts_mgment : clks_rsts_manager
-  generic map
-    (nb_of_reg                 => 68)
-  port map
-    (clk_sys_i                 => clk_62m5_sys,
-     acam_refclk_p_i           => tdc1_acam_refclk_p_i,
-     acam_refclk_n_i           => tdc1_acam_refclk_n_i,
-     tdc_125m_clk_p_i          => tdc1_125m_clk_p_i,
-     tdc_125m_clk_n_i          => tdc1_125m_clk_n_i,
-     rst_n_i                   => tdc1_soft_rst_n, -- software reset; needs to be released for TDC core to startup
-     pll_sdo_i                 => tdc1_pll_sdo_i,
-     pll_status_i              => tdc1_pll_status_i,
-     send_dac_word_p_i         => tdc1_send_dac_word_p,
-     dac_word_i                => tdc1_dac_word,
-     acam_refclk_r_edge_p_o    => tdc1_acam_refclk_r_edge_p,
-     wrabbit_dac_value_i       => tm_dac_value,
-     wrabbit_dac_wr_p_i        => tm_dac_wr_p(0),
-     internal_rst_o            => tdc1_general_rst,
-     pll_cs_n_o                => tdc1_pll_cs_n_o,
-     pll_dac_sync_n_o          => tdc1_pll_dac_sync_n_o,
-     pll_sdi_o                 => tdc1_pll_sdi_o,
-     pll_sclk_o                => tdc1_pll_sclk_o,
-     tdc_125m_clk_o            => tdc1_125m_clk,
-     pll_status_o              => tdc1_pll_status);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  tdc1_general_rst_n          <= not tdc1_general_rst;
   tdc1_soft_rst_n             <= carrier_info_fmc_rst(0) and rst_n_sys;
-
-
----------------------------------------------------------------------------------------------------
---                                          TDC#2 125 MHz                                        --
----------------------------------------------------------------------------------------------------
-  cmp_tdc2_clks_rsts_mgment : clks_rsts_manager
-  generic map
-    (nb_of_reg                 => 68)
-  port map
-    (clk_sys_i                 => clk_62m5_sys,
-     acam_refclk_p_i           => tdc2_acam_refclk_p_i,
-     acam_refclk_n_i           => tdc2_acam_refclk_n_i,
-     tdc_125m_clk_p_i          => tdc2_125m_clk_p_i,
-     tdc_125m_clk_n_i          => tdc2_125m_clk_n_i,
-     rst_n_i                   => tdc2_soft_rst_n, -- software reset; needs to be released for TDC core to startup
-     pll_sdo_i                 => tdc2_pll_sdo_i,
-     pll_status_i              => tdc2_pll_status_i,
-     send_dac_word_p_i         => tdc2_send_dac_word_p,
-     dac_word_i                => tdc2_dac_word,
-     acam_refclk_r_edge_p_o    => tdc2_acam_refclk_r_edge_p,
-     wrabbit_dac_value_i       => tm_dac_value,
-     wrabbit_dac_wr_p_i        => tm_dac_wr_p(1),
-     internal_rst_o            => tdc2_general_rst,
-     pll_cs_n_o                => tdc2_pll_cs_n_o,
-     pll_dac_sync_n_o          => tdc2_pll_dac_sync_n_o,
-     pll_sdi_o                 => tdc2_pll_sdi_o,
-     pll_sclk_o                => tdc2_pll_sclk_o,
-     tdc_125m_clk_o            => tdc2_125m_clk,
-     pll_status_o              => tdc2_pll_status);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  tdc2_general_rst_n           <= not tdc2_general_rst;
   tdc2_soft_rst_n              <= carrier_info_fmc_rst(1) and rst_n_sys;
 
 
@@ -720,7 +673,7 @@ begin
      g_with_external_clock_input => false,
      g_aux_clks                  => 2,
      g_ep_rxbuf_size             => 1024,
-     g_dpram_initf               => "wrc.ram",
+     g_dpram_initf               => "none",
      g_dpram_size                => 90112/4,
      g_interface_mode            => PIPELINED,
      g_address_granularity       => BYTE,
@@ -788,6 +741,7 @@ begin
      -- aux reset
      rst_aux_n_o                 => open);
 
+  gen_with_wr_phy: if g_with_wr_phy generate
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   U_GTP : wr_gtp_phy_spartan6
   generic map
@@ -829,7 +783,10 @@ begin
      pad_rxn1_i         => sfp_rxn_i,
      pad_rxp1_i         => sfp_rxp_i);
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+  end generate gen_with_wr_phy;
+
+  
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   U_DAC_Helper : spec_serial_dac
   generic map
     (g_num_data_bits  => 16,
@@ -867,15 +824,9 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for mezzanine EEPROM
-  tdc1_scl_b   <= tdc1_scl_out when (tdc1_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
-  tdc1_sda_b   <= tdc1_sda_out when (tdc1_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
-  wrc_scl_in   <= tdc1_scl_b;
-  wrc_sda_in   <= tdc1_sda_b;
-  tdc1_scl_in  <= tdc1_scl_b;
-  tdc1_sda_in  <= tdc1_sda_b;
-
-  tdc2_scl_b   <= tdc2_scl_out when (tdc2_scl_oen = '0') else 'Z';
-  tdc2_sda_b   <= tdc2_sda_out when (tdc2_sda_oen = '0') else 'Z';
+  
+  tdc2_scl_b   <= '0' when (tdc2_scl_oen = '0') else 'Z';
+  tdc2_sda_b   <= '0' when (tdc2_sda_oen = '0') else 'Z';
 
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
@@ -965,211 +916,90 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                            TDC BOARD #1                                       --
+--                                            TDC BOARDS                                         --
 ---------------------------------------------------------------------------------------------------
 
-  cmp_tdc1 : fmc_tdc_mezzanine
-  generic map
-    (g_with_wrabbit_core       => TRUE,
-     g_span                    => g_span,
-     g_width                   => g_width,
-     values_for_simul          => values_for_simul)
-  port map
-    (clk_sys_i                 => clk_62m5_sys,
-     rst_sys_n_i               => rst_n_sys,
-     -- 125M clk and reset
-     clk_ref_0_i               => tdc1_125m_clk,
-     rst_ref_0_i               => tdc1_general_rst,
-     acam_refclk_r_edge_p_i    => tdc1_acam_refclk_r_edge_p,
-     send_dac_word_p_o         => tdc1_send_dac_word_p,
-     dac_word_o                => tdc1_dac_word,
-     -- ACAM
-     start_from_fpga_o         => tdc1_start_from_fpga_o,
-     err_flag_i                => tdc1_err_flag_i,
-     int_flag_i                => tdc1_int_flag_i,
-     start_dis_o               => tdc1_start_dis_o,
-     stop_dis_o                => tdc1_stop_dis_o,
-     data_bus_io               => tdc1_data_bus_io,
-     address_o                 => tdc1_address_o,
-     cs_n_o                    => tdc1_cs_n_o,
-     oe_n_o                    => tdc1_oe_n_o,
-     rd_n_o                    => tdc1_rd_n_o,
-     wr_n_o                    => tdc1_wr_n_o,
-     ef1_i                     => tdc1_ef1_i,
-     ef2_i                     => tdc1_ef2_i,
-     -- Input channels enable
-     enable_inputs_o           => tdc1_enable_inputs_o,
-     term_en_1_o               => tdc1_term_en_1_o,
-     term_en_2_o               => tdc1_term_en_2_o,
-     term_en_3_o               => tdc1_term_en_3_o,
-     term_en_4_o               => tdc1_term_en_4_o,
-     term_en_5_o               => tdc1_term_en_5_o,
-     -- Input channels to FPGA (not used)
-     tdc_in_fpga_1_i           => tdc1_in_fpga_1_i,
-     tdc_in_fpga_2_i           => tdc1_in_fpga_2_i,
-     tdc_in_fpga_3_i           => tdc1_in_fpga_3_i,
-     tdc_in_fpga_4_i           => tdc1_in_fpga_4_i,
-     tdc_in_fpga_5_i           => tdc1_in_fpga_5_i,
-     -- LEDs and buttons on TDC and SPEC
-     tdc_led_status_o          => tdc1_led_status_o,
-     tdc_led_trig1_o           => tdc1_led_trig1_o,
-     tdc_led_trig2_o           => tdc1_led_trig2_o,
-     tdc_led_trig3_o           => tdc1_led_trig3_o,
-     tdc_led_trig4_o           => tdc1_led_trig4_o,
-     tdc_led_trig5_o           => tdc1_led_trig5_o,
-     -- WISHBONE interface with the GNUM/VME_core
-     wb_tdc_csr_adr_i          => tdc1_slave_in.adr,
-     wb_tdc_csr_dat_i          => tdc1_slave_in.dat,
-     wb_tdc_csr_dat_o          => tdc1_slave_out.dat,
-     wb_tdc_csr_cyc_i          => tdc1_slave_in.cyc,
-     wb_tdc_csr_sel_i          => tdc1_slave_in.sel,
-     wb_tdc_csr_stb_i          => tdc1_slave_in.stb,
-     wb_tdc_csr_we_i           => tdc1_slave_in.we,
-     wb_tdc_csr_ack_o          => tdc1_slave_out.ack,
-     wb_tdc_csr_stall_o        => tdc1_slave_out.stall,
-    -- White Rabbit
-     wrabbit_link_up_i         => tm_link_up,
-     wrabbit_time_valid_i      => tm_time_valid,
-     wrabbit_cycles_i          => tm_cycles,
-     wrabbit_utc_i             => tm_utc(31 downto 0),
-     wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en(0),
-     wrabbit_clk_aux_locked_i  => tm_clk_aux_locked(0),
-     wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore
-     wrabbit_dac_value_i       => tm_dac_value,   -- only for debug
-     wrabbit_dac_wr_p_i        => tm_dac_wr_p(0), -- only for debug
-     -- Interrupts
-     wb_irq_o                  => tdc1_irq,
-    -- EEPROM I2C on TDC mezzanine
-     i2c_scl_oen_o             => tdc1_scl_oen,
-     i2c_scl_i                 => tdc1_scl_in,
-     i2c_sda_oen_o             => tdc1_sda_oen,
-     i2c_sda_i                 => tdc1_sda_in,
-     i2c_scl_o                 => tdc1_scl_out,
-     i2c_sda_o                 => tdc1_sda_out,
-     -- 1-wire UniqueID&Thermometer interface
-     onewire_b                 => tdc1_onewire_b);
+     
+   cmp_tdc_mezzanine_1: fmc_tdc_wrapper
+    generic map (
+      g_simulation          => g_simulation,
+      g_with_direct_readout => false )
+    port map (
+      clk_sys_i            => clk_62m5_sys,
+      rst_sys_n_i          => rst_n_sys,
+      rst_n_a_i            => tdc1_soft_rst_n,
+      pll_sclk_o           => tdc1_pll_sclk_o,
+      pll_sdi_o            => tdc1_pll_sdi_o,
+      pll_cs_o             => tdc1_pll_cs_n_o,
+      pll_dac_sync_o       => tdc1_pll_dac_sync_n_o,
+      pll_sdo_i            => tdc1_pll_sdo_i,
+      pll_status_i         => tdc1_pll_status_i,
+      tdc_clk_125m_p_i     => tdc1_125m_clk_p_i,
+      tdc_clk_125m_n_i     => tdc1_125m_clk_n_i,
+      acam_refclk_p_i      => tdc1_acam_refclk_p_i,
+      acam_refclk_n_i      => tdc1_acam_refclk_n_i,
+      start_from_fpga_o    => tdc1_start_from_fpga_o,
+      err_flag_i           => tdc1_err_flag_i,
+      int_flag_i           => tdc1_int_flag_i,
+      start_dis_o          => tdc1_start_dis_o,
+      stop_dis_o           => tdc1_stop_dis_o,
+      data_bus_io          => tdc1_data_bus_io,
+      address_o            => tdc1_address_o,
+      cs_n_o               => tdc1_cs_n_o,
+      oe_n_o               => tdc1_oe_n_o,
+      rd_n_o               => tdc1_rd_n_o,
+      wr_n_o               => tdc1_wr_n_o,
+      ef1_i                => tdc1_ef1_i,
+      ef2_i                => tdc1_ef2_i,
+      enable_inputs_o      => tdc1_enable_inputs_o,
+      term_en_1_o          => tdc1_term_en_1_o,
+      term_en_2_o          => tdc1_term_en_2_o,
+      term_en_3_o          => tdc1_term_en_3_o,
+      term_en_4_o          => tdc1_term_en_4_o,
+      term_en_5_o          => tdc1_term_en_5_o,
+      tdc_led_status_o     => tdc1_led_status_o,
+      tdc_led_trig1_o      => tdc1_led_trig1_o,
+      tdc_led_trig2_o      => tdc1_led_trig2_o,
+      tdc_led_trig3_o      => tdc1_led_trig3_o,
+      tdc_led_trig4_o      => tdc1_led_trig4_o,
+      tdc_led_trig5_o      => tdc1_led_trig5_o,
+      tdc_in_fpga_1_i      => tdc1_in_fpga_1_i,
+      tdc_in_fpga_2_i      => tdc1_in_fpga_2_i,
+      tdc_in_fpga_3_i      => tdc1_in_fpga_3_i,
+      tdc_in_fpga_4_i      => tdc1_in_fpga_4_i,
+      tdc_in_fpga_5_i      => tdc1_in_fpga_5_i,
+
+      mezz_scl_i           => tdc1_scl_in,
+      mezz_sda_i           => tdc1_sda_in,
+      mezz_scl_o           => tdc1_scl_oen,
+      mezz_sda_o           => tdc1_sda_oen,
+      mezz_one_wire_b      => tdc1_onewire_b,
+      
+      tm_link_up_i         => tm_link_up,
+      tm_time_valid_i      => tm_time_valid,
+      tm_cycles_i          => tm_cycles,
+      tm_tai_i             => tm_utc,
+      tm_clk_aux_lock_en_o => tm_clk_aux_lock_en(0),
+      tm_clk_aux_locked_i  => tm_clk_aux_locked(0),
+      tm_clk_dmtd_locked_i => '1',
+      tm_dac_value_i       => tm_dac_value,
+      tm_dac_wr_i          => tm_dac_wr_p(0),
+
+      slave_i        => cnx_master_out(c_SLAVE_TDC0),
+      slave_o        => cnx_master_in(c_SLAVE_TDC0),
+
+      irq_o                => tdc1_irq,
+      clk_125m_tdc_o       => tdc1_125m_clk);
 
 
----------------------------------------------------------------------------------------------------
---                     TDC#1 domains crossing: tdc1_125m_clk <-> clk_62m5_sys                    --
----------------------------------------------------------------------------------------------------
-  cmp_tdc1_clks_crossing : xwb_clock_crossing
-  port map
-    (slave_clk_i    => clk_62m5_sys,  -- Slave control port: VME interface at 62.5 MHz
-     slave_rst_n_i  => rst_n_sys,
-     slave_i        => cnx_master_out(c_SLAVE_TDC0),
-     slave_o        => cnx_master_in(c_SLAVE_TDC0),
-     master_clk_i   => tdc1_125m_clk, -- Master reader port: TDC core at 125 MHz
-     master_rst_n_i => tdc1_general_rst_n,
-     master_i       => tdc1_slave_out,
-     master_o       => tdc1_slave_in);
+  tdc1_scl_b   <= '0' when (tdc1_scl_oen = '0' or wrc_scl_out = '0') else 'Z';
+  tdc1_sda_b   <= '0' when (tdc1_sda_oen = '0' or wrc_sda_out = '0') else 'Z';
+  wrc_scl_in   <= tdc1_scl_b;
+  wrc_sda_in   <= tdc1_sda_b;
+  tdc1_scl_in  <= tdc1_scl_b;
+  tdc1_sda_in  <= tdc1_sda_b;
 
-
----------------------------------------------------------------------------------------------------
---                                            TDC BOARD #2                                       --
----------------------------------------------------------------------------------------------------
-  cmp_tdc2 : fmc_tdc_mezzanine
-  generic map
-    (g_with_wrabbit_core       => TRUE,
-     g_span                    => g_span,
-     g_width                   => g_width,
-     values_for_simul          => values_for_simul)
-  port map
-    (clk_sys_i                 => clk_62m5_sys,
-     rst_sys_n_i               => rst_n_sys,
-     -- 125M clk and reset
-     clk_ref_0_i               => tdc2_125m_clk,
-     rst_ref_0_i               => tdc2_general_rst,
-     acam_refclk_r_edge_p_i    => tdc2_acam_refclk_r_edge_p,
-     send_dac_word_p_o         => tdc2_send_dac_word_p,
-     dac_word_o                => tdc2_dac_word,  
-     -- ACAM
-     start_from_fpga_o         => tdc2_start_from_fpga_o,
-     err_flag_i                => tdc2_err_flag_i,
-     int_flag_i                => tdc2_int_flag_i,
-     start_dis_o               => tdc2_start_dis_o,
-     stop_dis_o                => tdc2_stop_dis_o,
-     data_bus_io               => tdc2_data_bus_io,
-     address_o                 => tdc2_address_o,
-     cs_n_o                    => tdc2_cs_n_o,
-     oe_n_o                    => tdc2_oe_n_o,
-     rd_n_o                    => tdc2_rd_n_o,
-     wr_n_o                    => tdc2_wr_n_o,
-     ef1_i                     => tdc2_ef1_i,
-     ef2_i                     => tdc2_ef2_i,
-     -- Input channels enable
-     enable_inputs_o           => tdc2_enable_inputs_o,
-     term_en_1_o               => tdc2_term_en_1_o,
-     term_en_2_o               => tdc2_term_en_2_o,
-     term_en_3_o               => tdc2_term_en_3_o,
-     term_en_4_o               => tdc2_term_en_4_o,
-     term_en_5_o               => tdc2_term_en_5_o,
-     -- Input channels to FPGA (not used)
-     tdc_in_fpga_1_i           => tdc2_in_fpga_1_i,
-     tdc_in_fpga_2_i           => tdc2_in_fpga_2_i,
-     tdc_in_fpga_3_i           => tdc2_in_fpga_3_i,
-     tdc_in_fpga_4_i           => tdc2_in_fpga_4_i,
-     tdc_in_fpga_5_i           => tdc2_in_fpga_5_i,
-     -- LEDs and buttons on TDC and SPEC
-     tdc_led_status_o          => tdc2_led_status_o,
-     tdc_led_trig1_o           => tdc2_led_trig1_o,
-     tdc_led_trig2_o           => tdc2_led_trig2_o,
-     tdc_led_trig3_o           => tdc2_led_trig3_o,
-     tdc_led_trig4_o           => tdc2_led_trig4_o,
-     tdc_led_trig5_o           => tdc2_led_trig5_o,
-     -- WISHBONE interface with the GNUM/VME_core
-     wb_tdc_csr_adr_i          => tdc2_slave_in.adr,
-     wb_tdc_csr_dat_i          => tdc2_slave_in.dat,
-     wb_tdc_csr_dat_o          => tdc2_slave_out.dat,
-     wb_tdc_csr_cyc_i          => tdc2_slave_in.cyc,
-     wb_tdc_csr_sel_i          => tdc2_slave_in.sel,
-     wb_tdc_csr_stb_i          => tdc2_slave_in.stb,
-     wb_tdc_csr_we_i           => tdc2_slave_in.we,
-     wb_tdc_csr_ack_o          => tdc2_slave_out.ack,
-     wb_tdc_csr_stall_o        => tdc2_slave_out.stall,
-     -- White Rabbit
-     wrabbit_link_up_i         => tm_link_up,
-     wrabbit_time_valid_i      => tm_time_valid,
-     wrabbit_cycles_i          => tm_cycles,
-     wrabbit_utc_i             => tm_utc(31 downto 0),
-     wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en(1),
-     wrabbit_clk_aux_locked_i  => tm_clk_aux_locked(1),
-     wrabbit_clk_dmtd_locked_i => '1', -- FIXME: fan out real signal from the WRCore
-     wrabbit_dac_value_i       => tm_dac_value,   -- only for debug
-     wrabbit_dac_wr_p_i        => tm_dac_wr_p(1), -- only for debug
-     -- Interrupts
-     wb_irq_o                  => tdc2_irq,
-    -- EEPROM I2C on TDC mezzanine
-     i2c_scl_oen_o             => tdc2_scl_oen,
-     i2c_scl_i                 => tdc2_scl_in,
-     i2c_sda_oen_o             => tdc2_sda_oen,
-     i2c_sda_i                 => tdc2_sda_in,
-     i2c_scl_o                 => tdc2_scl_out,
-     i2c_sda_o                 => tdc2_sda_out,
-     -- 1-wire UniqueID&Thermometer interface
-     onewire_b                 => tdc2_onewire_b);
-  -- --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Unused WISHBONE signals
-  tdc1_slave_out.err <= '0';
-  tdc1_slave_out.rty <= '0';
-  tdc1_slave_out.int <= '0';
-
-
----------------------------------------------------------------------------------------------------
---                    TDC#2 domains crossing: tdc2_125m_clk <-> clk_62m5_sys                     --
----------------------------------------------------------------------------------------------------
-  cmp_tdc2_clks_crossing : xwb_clock_crossing
-  port map
-    (slave_clk_i    => clk_62m5_sys,  -- Slave control port: VME interface at 62.5 MHz
-     slave_rst_n_i  => rst_n_sys,
-     slave_i        => cnx_master_out(c_SLAVE_TDC1),
-     slave_o        => cnx_master_in(c_SLAVE_TDC1),
-     master_clk_i   => tdc2_125m_clk, -- Master reader port: TDC core at 125 MHz
-     master_rst_n_i => tdc2_general_rst_n,
-     master_i       => tdc2_slave_out,
-     master_o       => tdc2_slave_in);
-
-
+  
 ---------------------------------------------------------------------------------------------------
 --                                 VECTOR INTERRUPTS CONTROLLER                                  --
 ---------------------------------------------------------------------------------------------------
@@ -1185,29 +1015,11 @@ begin
      rst_n_i               => rst_n_sys,
      slave_i               => cnx_master_out(c_SLAVE_VIC),
      slave_o               => cnx_master_in(c_SLAVE_VIC),
-     irqs_i(0)             => tdc1_irq_synch(1),
-     irqs_i(1)             => tdc2_irq_synch(1),
+     irqs_i(0)             => tdc1_irq,
+     irqs_i(1)             => tdc2_irq,
      irq_master_o          => irq_to_vmecore);
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- since the TDC cores work in their PLL clock domains (tdc1_125m_clk and tdc2_125m_clk)
-  -- and the rest works with the system clock (clk_62m5_sys) interrupt pulses need to be
-  -- synchronized
-  irq_pulse_synchronizer: process (clk_62m5_sys)
-  begin
-    if rising_edge (clk_62m5_sys) then
-      if rst_n_sys = '0' then
-        tdc1_irq_synch <= (others => '0');
-        tdc2_irq_synch <= (others => '0');
-      else
-        tdc1_irq_synch <= tdc1_irq_synch(0) & tdc1_irq;
-        tdc2_irq_synch <= tdc2_irq_synch(0) & tdc2_irq;
-      end if;
-    end if;
-  end process;
-
-
----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 --                                    Carrier CSR information                                    --
 ---------------------------------------------------------------------------------------------------
 -- Information on carrier type, mezzanine presence, pcb version
@@ -1232,7 +1044,9 @@ begin
      carrier_info_stat_p2l_pll_lck_i   => '0',
      carrier_info_stat_sys_pll_lck_i   => sys_locked,
      carrier_info_stat_ddr3_cal_done_i => '0',
-     carrier_info_stat_reserved_i      => x"000000" & "000" & tdc2_prsntm2c_n_i, --& tdc2_pll_status & tdc1_pll_status & tdc2_prsntm2c_n_i,
+
+     carrier_info_stat_reserved_i(27 downto 1)   => (others => '1'),
+     carrier_info_stat_reserved_i(0)   => tdc2_prsntm2c_n_i,
      carrier_info_ctrl_led_green_o     => open,
      carrier_info_ctrl_led_red_o       => open,
      carrier_info_ctrl_dac_clr_n_o     => open,
@@ -1252,7 +1066,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                     LEDs SVEC front panel                                     --
 ---------------------------------------------------------------------------------------------------
-  cmp_LED_ctrler : bicolor_led_ctrl
+  cmp_LED_ctrler : gc_bicolor_led_ctrl
   generic map
     (g_NB_COLUMN     => 4,
      g_NB_LINE       => 2,
@@ -1282,8 +1096,8 @@ begin
   led_state(1  downto  0) <= c_LED_GREEN when led_tdc2_ef          = '1' else c_LED_OFF;
   -- LED 5: VME access
   led_state(15 downto 14) <= c_LED_GREEN when led_vme_access       = '1' else c_LED_OFF;
-  -- LED 6: blinking using clk_62m5_sys
-  led_state(13 downto 12) <= c_LED_GREEN when led_clk_62m5         = '1' else c_LED_OFF;
+  -- LED 6: none
+  led_state(13 downto 12) <= c_LED_OFF;
   -- LED 7: TDC1 locked to White Rabbit
   led_state(11 downto 10) <= c_LED_GREEN when tm_clk_aux_locked(0) = '1' else c_LED_OFF;
   -- LED 8: TDC2 locked to White Rabbit
@@ -1322,25 +1136,6 @@ begin
      extended_o => led_tdc2_ef);
   --  --  --  --  --  --  --
   tdc2_ef <= not(tdc2_ef1_i) or not(tdc2_ef2_i);
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  clk_62m5_sys_drive_led : process (clk_62m5_sys)
-  begin
-    if rising_edge(clk_62m5_sys) then
-
-      if(rst_n_sys = '0') then
-        led_clk_62m5_aux     <= "01111111";
-        led_clk_62m5_divider <= (others => '0');
-      else
-        led_clk_62m5_divider <= led_clk_62m5_divider+ 1;
-        if(led_clk_62m5_divider = 0) then
-          led_clk_62m5_aux   <= led_clk_62m5_aux(6 downto 0) & led_clk_62m5_aux(7);
-        end if;
-      end if;
-    end if;
-  end process;
-  --  --  --  --  --
-led_clk_62m5 <= led_clk_62m5_aux(0);
 
 
 end rtl;

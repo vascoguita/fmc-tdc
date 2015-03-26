@@ -1,4 +1,4 @@
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 -- Title      : TDC FMC SVEC (Simple VME FMC Carrier) SDB descriptor
 -- Project    : TDC FMC (fmc-tdc-1ns-5cha)
 -------------------------------------------------------------------------------
@@ -42,12 +42,12 @@ package synthesis_descriptor is
   
 constant c_sdb_synthesis_info : t_sdb_synthesis :=
   (
-    syn_module_name => "svec_tdc        ",
+    syn_module_name => "wr_svec_tdc     ",
     syn_commit_id => "00000000000000000000000000000000",
     syn_tool_name => "ISE     ",
-    syn_tool_version => x"00000134",
-    syn_date => x"20140617",
-    syn_username => "egousiou       ");
+    syn_tool_version => x"00000147",
+    syn_date => x"20150326",
+    syn_username => "twlostow       ");
 
 constant c_sdb_repo_url : t_sdb_repo_url :=
   (
