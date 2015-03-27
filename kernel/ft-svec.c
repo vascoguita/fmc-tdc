@@ -22,20 +22,20 @@
 
 static int ft_svec_reset(struct fmctdc_dev *ft)
 {
-	/* FIXME: An UGLY hack: ft_svec_reset() executed on slot 0
-	   (first mezzanine to be initialized) resets BOTH cards. The reason is
-	   that we need both mezzanines PLLs running to read the entire
-	   SDB tree (parts of the system interconnect are clocked from
-	   FMC clock lines. */
-
-	if (ft->fmc->slot_id != 0)
-		return 0;
+	uint32_t val;
 
 	dev_dbg(&ft->fmc->dev, "Un-resetting FMCs...\n");
 
-	fmc_writel(ft->fmc, 0xff, TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
+	/* Reset */
+	fmc_writel(ft->fmc, ~(1 << ft->fmc->slot_id),
+		   TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
+	udelay(1000);
+	val = fmc_readl(ft->fmc, TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
 
-	msleep(3000);
+	/* Un-Reset */
+	fmc_writel(ft->fmc, val | (1 << ft->fmc->slot_id),
+		   TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
+
 	return 0;
 }
 
