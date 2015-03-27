@@ -147,7 +147,6 @@ struct fmctdc_dev {
 	int ft_core_base;
 	int ft_i2c_base;
 	int ft_owregs_base;
-	int ft_carrier_base;
 	int ft_irq_base;
 	int ft_buffer_base;
 	/* IRQ base index (for SVEC) */

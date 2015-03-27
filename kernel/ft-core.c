@@ -283,8 +283,8 @@ int ft_probe(struct fmc_device *fmc)
 
 	if (ft_verbose) {
 		dev_info(dev,
-			 "Base addrs: core 0x%x, carrier_csr 0x%x, irq 0x%x, 1wire 0x%x, buffer/DMA 0x%X\n",
-			 ft->ft_core_base, ft->ft_carrier_base, ft->ft_irq_base,
+			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/DMA 0x%X\n",
+			 ft->ft_core_base, ft->ft_irq_base,
 			 ft->ft_owregs_base, ft->ft_buffer_base);
 	}
 
