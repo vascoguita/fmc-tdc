@@ -275,7 +275,8 @@ int ft_probe(struct fmc_device *fmc)
 
 	/* Now use SDB to find the base addresses */
 	ord = fmc->slot_id;
-	ft->ft_core_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x604, &ord, NULL);
+	ft->ft_core_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x604,
+						   &ord, NULL);
 
 	ft->ft_irq_base = ft->ft_core_base + TDC_MEZZ_EIC_OFFSET;
 	ft->ft_owregs_base = ft->ft_core_base + TDC_MEZZ_ONEWIRE_OFFSET;
