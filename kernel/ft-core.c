@@ -308,7 +308,7 @@ int ft_probe(struct fmc_device *fmc)
 	if (ret < 0)
 		goto err;
 
-	ft_enable_acquisition(ft, 1);
+	ft_enable_acquisition(ft, 0);
 
 	ft->initialized = 1;
 	ft->sequence = 0;
