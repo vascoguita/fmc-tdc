@@ -191,13 +191,22 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 		channels[ch] = fmctdc_fileno_channel(brd, ch);
-
+		ret = fmctdc_flush(brd, ch);
+		if (ret)
+			fprintf(stderr,
+				"%s: failed to flush channel %d: %s\n",
+				argv[0], ch, fmctdc_strerror(errno));
 		chan_count++;
 		optind++;
 	}
 	/* If there are not channels, then dump them all */
 	if (!chan_count) {
 		for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
+			ret = fmctdc_flush(brd, i);
+			if (ret)
+				fprintf(stderr,
+					"%s: failed to flush channel %d: %s\n",
+					argv[0], i, fmctdc_strerror(errno));
 			channels[i] =
 				fmctdc_fileno_channel(brd, i);
 			ret = fmctdc_reference_set(brd, i, ref[i]);
