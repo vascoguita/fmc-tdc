@@ -27,6 +27,9 @@
 #include <linux/fmc.h>
 #include <linux/fmc-sdb.h>
 
+#include <linux/zio.h>
+#include <linux/zio-trigger.h>
+
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
@@ -139,19 +142,22 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 	ft->acquisition_on = enable;
 
 	if (!enable) {
-		/* when disabling acquisition, clear the FIFOs,
-		   reset width validation state machine and
-		   sequence IDs */
-
-		for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
-			ft_reset_channel(ft, i);
-
 		ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
 
 		ft_flush_sw_fifo(ft);
 	}
-
 	spin_unlock(&ft->lock);
+
+	if (!enable) {
+		/* Disable all running acquisition and reset channels */
+		for (i = 0; i < ft->zdev->n_cset; ++i) {
+			ft_reset_channel(ft, i + FT_CH_1);
+			zio_trigger_abort_disable(&ft->zdev->cset[i], 0);
+		}
+	} else {
+		for (i = 0; i < ft->zdev->n_cset; ++i)
+			zio_arm_trigger(ft->zdev->cset[i].ti);
+	}
 
 	if (ft->verbose)
 		dev_info(&ft->fmc->dev, "acquisition is %s\n",
