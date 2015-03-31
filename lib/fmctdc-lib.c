@@ -668,7 +668,9 @@ int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
 
 
 /**
- * It removes all samples from the channel buffer
+ * It removes all samples from the channel buffer. In order to doing this,
+ * the function temporary disable any active acquisition, only when the flush
+ * is completed the acquisition will be re-enabled
  * @param[in] userb TDC board instance token
  * @param[in] channel target channel [0, 4]
  * @return 0 on success, otherwise -1 and errno is set appropriately
