@@ -317,7 +317,8 @@ static const struct zio_sysfs_operations ft_zio_sysfs_ops = {
 		.raw_io =	ft_zio_input,\
 		.n_chan =	1,\
 		.ssize =	4, /* FIXME: 0? */\
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME,\
+		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME | \
+				ZIO_CSET_SELF_TIMED, \
 		.zattr_set = {\
 			.ext_zattr = ft_zattr_input,\
 			.n_ext_attr = ARRAY_SIZE(ft_zattr_input),\
