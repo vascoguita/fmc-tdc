@@ -678,9 +678,8 @@ int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
 int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 {
 	struct __fmctdc_board *b = (void *)(userb);
-	struct fmctdc_time t[10];
 	char path[64];
-	int i, en, err;
+	int en, err;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
@@ -694,12 +693,6 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	err = fmctdc_set_acquisition(userb, 0);
 	if (err)
 		return err;
-
-	/* FIXME when TDC driver will have its zio-trigger this is not
-	 * necessary anymore */
-	do {
-		i = fmctdc_read(userb, channel, t, 10, 0);
-	} while (i > 0);
 
 	/* Flush ZIO buffer */
 	snprintf(path, sizeof(path), "ft-ch%d/chan0/buffer/flush", channel + 1);
