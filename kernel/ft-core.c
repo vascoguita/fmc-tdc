@@ -237,28 +237,35 @@ int ft_probe(struct fmc_device *fmc)
 		return -ENODEV;
 	}
 
-	if (ft_drv.gw_n)
-		fwname = "";	/* reprogram will pick from module parameter */
-	else
-		fwname = ft->carrier_specific->gateware_name;
+	/*
+	 * If the carrier is still using the golden bitstream or the user is
+	 * asking for a particular one, then program our bistream, otherwise
+	 * we already have our bitstream
+	 */
+	if (fmc->flags & FMC_DEVICE_HAS_GOLDEN || ft_drv.gw_n) {
+		if (ft_drv.gw_n)
+			fwname = ""; /* reprogram will pick from module parameter */
+		else
+			fwname = ft->carrier_specific->gateware_name;
+		dev_info(fmc->hwdev, "Gateware (%s)\n", fwname);
 
-	/* reprogram the card, but do not try to read the SDB.
-	   Everything (including the SDB descriptor/bus logic) is clocked
-	   from the FMC oscillator which needs to be bootstrapped by
-	   the gateware with no possibility for the driver to check if
-	   something went wrong... */
-
-	ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
-	if (ret < 0) {
-		if (ret == -ESRCH) {
-			dev_info(dev, "%s: no gateware at index %i\n",
-				 KBUILD_MODNAME, index);
-			return -ENODEV;
+		ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
+		if (ret < 0) {
+			dev_err(fmc->hwdev, "write firmware \"%s\": error %i\n",
+				fwname, ret);
+			if (ret == -ESRCH) {
+				dev_err(dev, "no gateware at index %i\n",
+					index);
+				return -ENODEV;
+			}
+			return ret;	/* other error: pass over */
 		}
-		return ret;	/* other error: pass over */
-	}
 
-	dev_dbg(dev, "Gateware successfully loaded\n");
+		dev_dbg(dev, "Gateware successfully loaded\n");
+	} else {
+		dev_info(fmc->hwdev,
+			 "Gateware already there. Set the \"gateware\" parameter to overwrite the current gateware\n");
+	}
 
 	ret = ft->carrier_specific->reset_core(ft);
 	if (ret < 0)
