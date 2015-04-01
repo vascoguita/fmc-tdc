@@ -62,9 +62,6 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 
 	st = &ft->channels[channel - 1];
 
-	if (!chan->active_block)
-		return -EAGAIN;
-
 	ret = kfifo_out_spinlocked(&st->fifo, &ts,
 				   sizeof(struct ft_wr_timestamp), &ft->lock);
 	if (!ret) {
