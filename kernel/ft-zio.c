@@ -233,9 +233,6 @@ static int ft_zio_input(struct zio_cset *cset)
 	if (ft_read_sw_fifo(ft, cset->index + 1, cset->chan) == 0)
 		return 0;	/* don't call data_done, let the caller do it */
 
-	/* Mark the active block is valid, and return EAGAIN */
-
-	set_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
 	return -EAGAIN;
 }
 

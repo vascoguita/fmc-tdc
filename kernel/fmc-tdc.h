@@ -78,7 +78,6 @@ enum ft_command {
 enum ft_channel_flags {
 	FT_FLAG_CH_TERMINATED = 0,
 	FT_FLAG_CH_DO_INPUT,
-	FT_FLAG_CH_INPUT_READY
 };
 
 /* Carrier-specific operations (gateware does not fully decouple carrier specific stuff, such as

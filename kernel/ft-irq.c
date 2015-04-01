@@ -316,17 +316,15 @@ static void ft_readout_tasklet(unsigned long arg)
 		goto out;
 
 	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
-		struct ft_channel_state *st = &ft->channels[i - 1];
+		struct zio_cset *cset = &zdev->cset[i - 1];
+
 		/* FIXME: race condition */
-		if (test_bit(FT_FLAG_CH_INPUT_READY, &st->flags)) {
-			struct zio_cset *cset = &zdev->cset[i - 1];
+		if (ZIO_TI_ARMED & cset->ti->flags) {
 			/* there is an active block, try reading an
 			   accumulated sample */
 			err = ft_read_sw_fifo(ft, i, cset->chan);
-			if (!err) {
-				clear_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
+			if (!err)
 				zio_trigger_data_done(cset);
-			}
 		}
 	}
 

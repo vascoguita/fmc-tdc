@@ -64,7 +64,6 @@ static void ft_reset_channel(struct fmctdc_dev *ft, int channel)
 
 	st->cur_seq_id = 0;
 	st->expected_edge = 1;
-	clear_bit(FT_FLAG_CH_INPUT_READY, &st->flags);
 	ft_zio_kill_buffer(ft, channel);
 
 	kfifo_reset(&st->fifo);
