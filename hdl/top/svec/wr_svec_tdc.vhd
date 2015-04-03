@@ -376,16 +376,16 @@ architecture rtl of wr_svec_tdc is
   constant c_SLAVE_WRCORE    : integer := 4;  -- White Rabbit PTP core
 
   constant c_SDB_ADDRESS         : t_wishbone_address := x"00000000";
-  constant c_FMC_TDC1_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
-  constant c_FMC_TDC2_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0001FFFF", x"00000000");
+  constant c_FMC_TDC1_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0000FFFF", x"00000000");
+  constant c_FMC_TDC2_SDB_BRIDGE : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0000FFFF", x"00000000");
   constant c_WRCORE_BRIDGE_SDB   : t_sdb_bridge       := f_xwb_bridge_manual_sdb(x"0003ffff", x"00030000");
 
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(6 downto 0) :=
-    (0 => f_sdb_embed_device     (c_SVEC_INFO_SDB_DEVICE, x"00020000"),
-     1 => f_sdb_embed_device     (c_xwb_vic_sdb,          x"00030000"),
-     2 => f_sdb_embed_bridge     (c_FMC_TDC1_SDB_BRIDGE,  x"00040000"),
-     3 => f_sdb_embed_bridge     (c_FMC_TDC2_SDB_BRIDGE,  x"00060000"),
-     4 => f_sdb_embed_bridge     (c_WRCORE_BRIDGE_SDB,    x"00080000"),
+    (0 => f_sdb_embed_device     (c_SVEC_INFO_SDB_DEVICE, x"00001000"),
+     1 => f_sdb_embed_device     (c_xwb_vic_sdb,          x"00002000"),
+     2 => f_sdb_embed_bridge     (c_FMC_TDC1_SDB_BRIDGE,  x"00010000"),
+     3 => f_sdb_embed_bridge     (c_FMC_TDC2_SDB_BRIDGE,  x"00020000"),
+     4 => f_sdb_embed_bridge     (c_WRCORE_BRIDGE_SDB,    x"00040000"),
      5 => f_sdb_embed_repo_url   (c_SDB_REPO_URL),
      6 => f_sdb_embed_synthesis  (c_sdb_synthesis_info));
 
@@ -393,8 +393,8 @@ architecture rtl of wr_svec_tdc is
 --                                         VIC CONSTANT                                          --
 ---------------------------------------------------------------------------------------------------
   constant c_VIC_VECTOR_TABLE : t_wishbone_address_array(0 to 1) :=
-    (0 => x"00052000",
-     1 => x"00072000");
+    (0 => x"00013000",
+     1 => x"00023000");
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
@@ -498,9 +498,6 @@ architecture rtl of wr_svec_tdc is
   signal led_state                            : std_logic_vector(15 downto 0);
   signal tdc1_ef, tdc2_ef, led_tdc1_ef        : std_logic;
   signal led_tdc2_ef, led_vme_access          : std_logic;
-  signal led_clk_62m5_divider                 : unsigned(22 downto 0);
-  signal led_clk_62m5_aux                     : std_logic_vector(7 downto 0);
-  signal led_clk_62m5                         : std_logic;
   signal wrabbit_led_red, wrabbit_led_green   : std_logic;
 
 --=================================================================================================
@@ -524,7 +521,7 @@ begin
      CLK_FEEDBACK       => "CLKFBOUT",
      COMPENSATION       => "INTERNAL",
      DIVCLK_DIVIDE      => 1,
-     CLKFBOUT_MULT      => 50,    -- 20 MHz x 50 = 1 GHz
+     CLKFBOUT_MULT      => 8,    -- 125 MHz x 8 = 1 GHz
      CLKFBOUT_PHASE     => 0.000,
      CLKOUT0_DIVIDE     => 16,    -- 62.5 MHz
      CLKOUT0_PHASE      => 0.000,
@@ -535,7 +532,7 @@ begin
      CLKOUT2_DIVIDE     => 16,
      CLKOUT2_PHASE      => 0.000,
      CLKOUT2_DUTY_CYCLE => 0.500,
-     CLKIN_PERIOD       => 50.0,
+     CLKIN_PERIOD       => 8.0,
      REF_JITTER         => 0.016)
   port map
     (CLKFBOUT => pllout_clk_sys_fb,
@@ -548,7 +545,7 @@ begin
      LOCKED   => sys_locked,
      RST      => '0',
      CLKFBIN  => pllout_clk_sys_fb,
-     CLKIN    => clk_20m_vcxo_buf);
+     CLKIN    => clk_125m_pllref);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_clk_sys_buf : BUFG
   port map
@@ -999,10 +996,87 @@ begin
   tdc1_scl_in  <= tdc1_scl_b;
   tdc1_sda_in  <= tdc1_sda_b;
 
+  cmp_tdc_mezzanine_2: fmc_tdc_wrapper
+    generic map (
+      g_simulation          => g_simulation,
+      g_with_direct_readout => false )
+    port map (
+      clk_sys_i            => clk_62m5_sys,
+      rst_sys_n_i          => rst_n_sys,
+      rst_n_a_i            => tdc2_soft_rst_n,
+      pll_sclk_o           => tdc2_pll_sclk_o,
+      pll_sdi_o            => tdc2_pll_sdi_o,
+      pll_cs_o             => tdc2_pll_cs_n_o,
+      pll_dac_sync_o       => tdc2_pll_dac_sync_n_o,
+      pll_sdo_i            => tdc2_pll_sdo_i,
+      pll_status_i         => tdc2_pll_status_i,
+      tdc_clk_125m_p_i     => tdc2_125m_clk_p_i,
+      tdc_clk_125m_n_i     => tdc2_125m_clk_n_i,
+      acam_refclk_p_i      => tdc2_acam_refclk_p_i,
+      acam_refclk_n_i      => tdc2_acam_refclk_n_i,
+      start_from_fpga_o    => tdc2_start_from_fpga_o,
+      err_flag_i           => tdc2_err_flag_i,
+      int_flag_i           => tdc2_int_flag_i,
+      start_dis_o          => tdc2_start_dis_o,
+      stop_dis_o           => tdc2_stop_dis_o,
+      data_bus_io          => tdc2_data_bus_io,
+      address_o            => tdc2_address_o,
+      cs_n_o               => tdc2_cs_n_o,
+      oe_n_o               => tdc2_oe_n_o,
+      rd_n_o               => tdc2_rd_n_o,
+      wr_n_o               => tdc2_wr_n_o,
+      ef1_i                => tdc2_ef1_i,
+      ef2_i                => tdc2_ef2_i,
+      enable_inputs_o      => tdc2_enable_inputs_o,
+      term_en_1_o          => tdc2_term_en_1_o,
+      term_en_2_o          => tdc2_term_en_2_o,
+      term_en_3_o          => tdc2_term_en_3_o,
+      term_en_4_o          => tdc2_term_en_4_o,
+      term_en_5_o          => tdc2_term_en_5_o,
+      tdc_led_status_o     => tdc2_led_status_o,
+      tdc_led_trig1_o      => tdc2_led_trig1_o,
+      tdc_led_trig2_o      => tdc2_led_trig2_o,
+      tdc_led_trig3_o      => tdc2_led_trig3_o,
+      tdc_led_trig4_o      => tdc2_led_trig4_o,
+      tdc_led_trig5_o      => tdc2_led_trig5_o,
+      tdc_in_fpga_1_i      => tdc2_in_fpga_1_i,
+      tdc_in_fpga_2_i      => tdc2_in_fpga_2_i,
+      tdc_in_fpga_3_i      => tdc2_in_fpga_3_i,
+      tdc_in_fpga_4_i      => tdc2_in_fpga_4_i,
+      tdc_in_fpga_5_i      => tdc2_in_fpga_5_i,
+
+      mezz_scl_i           => tdc2_scl_in,
+      mezz_sda_i           => tdc2_sda_in,
+      mezz_scl_o           => tdc2_scl_oen,
+      mezz_sda_o           => tdc2_sda_oen,
+      mezz_one_wire_b      => tdc2_onewire_b,
+      
+      tm_link_up_i         => tm_link_up,
+      tm_time_valid_i      => tm_time_valid,
+      tm_cycles_i          => tm_cycles,
+      tm_tai_i             => tm_utc,
+      tm_clk_aux_lock_en_o => tm_clk_aux_lock_en(1),
+      tm_clk_aux_locked_i  => tm_clk_aux_locked(1),
+      tm_clk_dmtd_locked_i => '1',
+      tm_dac_value_i       => tm_dac_value,
+      tm_dac_wr_i          => tm_dac_wr_p(1),
+
+      slave_i        => cnx_master_out(c_SLAVE_TDC1),
+      slave_o        => cnx_master_in(c_SLAVE_TDC1),
+
+      irq_o                => tdc2_irq,
+      clk_125m_tdc_o       => tdc2_125m_clk);
+
+
+  tdc2_scl_b   <= '0' when (tdc2_scl_oen = '0') else 'Z';
+  tdc2_sda_b   <= '0' when (tdc2_sda_oen = '0') else 'Z';
+  tdc2_scl_in  <= tdc2_scl_b;
+  tdc2_sda_in  <= tdc2_sda_b;
+
   
 ---------------------------------------------------------------------------------------------------
 --                                 VECTOR INTERRUPTS CONTROLLER                                  --
----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
   cmp_irq_vic : xwb_vic
   generic map
