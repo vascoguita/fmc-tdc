@@ -249,7 +249,7 @@ int ft_probe(struct fmc_device *fmc)
 			fwname = ft->carrier_specific->gateware_name;
 		dev_info(fmc->hwdev, "Gateware (%s)\n", fwname);
 
-		ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
+		ret = fmc_reprogram(fmc, &ft_drv, fwname, 0x0);
 		if (ret < 0) {
 			dev_err(fmc->hwdev, "write firmware \"%s\": error %i\n",
 				fwname, ret);
