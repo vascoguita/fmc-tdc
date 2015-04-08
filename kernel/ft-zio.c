@@ -219,20 +219,7 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 
 static int ft_zio_input(struct zio_cset *cset)
 {
-	struct fmctdc_dev *ft;
-	struct ft_channel_state *st;
-
-	ft = cset->zdev->priv_d;
-
-	if (!ft->initialized)
-		return -EAGAIN;
-
-	st = &ft->channels[cset->index];
-
-	/* Ready for input. If there's already something, return it now */
-	if (ft_read_sw_fifo(ft, cset->index + 1, cset->chan) == 0)
-		return 0;	/* don't call data_done, let the caller do it */
-
+	/* The trigger will fire on interrupt */
 	return -EAGAIN;
 }
 

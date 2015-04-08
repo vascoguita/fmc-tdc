@@ -22,7 +22,6 @@
 #include <linux/init.h>
 #include <linux/list.h>
 #include <linux/io.h>
-#include <linux/kfifo.h>
 
 #include <linux/fmc.h>
 #include <linux/fmc-sdb.h>
@@ -42,20 +41,13 @@ static struct fmc_driver ft_drv;	/* forward declaration */
 FMC_PARAM_BUSID(ft_drv);
 FMC_PARAM_GATEWARE(ft_drv);
 
-static int ft_buffer_size = 64;
-module_param_named(buffer_size, ft_buffer_size, int, 0444);
-MODULE_PARM_DESC(verbose,
-		 "Number of timestamps in each channel's software FIFO buffer (It must be a power of 2).");
 
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
 	struct ft_channel_state *st = &ft->channels[channel - 1];
 
 	st->expected_edge = 1;
-	st->fifo_len = ft_buffer_size;
-	return kfifo_alloc(&st->fifo,
-			   sizeof(struct ft_wr_timestamp) * st->fifo_len,
-			   GFP_KERNEL);
+	return 0;
 }
 
 static void ft_reset_channel(struct fmctdc_dev *ft, int channel)
@@ -65,8 +57,6 @@ static void ft_reset_channel(struct fmctdc_dev *ft, int channel)
 	st->cur_seq_id = 0;
 	st->expected_edge = 1;
 	ft_zio_kill_buffer(ft, channel);
-
-	kfifo_reset(&st->fifo);
 }
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
@@ -97,23 +87,6 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 }
 
 
-/**
- * NOTE: this function must be invoked with st->lock taken
- */
-static void ft_flush_sw_fifo(struct fmctdc_dev *ft)
-{
-	struct ft_channel_state *st;
-	struct ft_wr_timestamp ts;
-	int i;
-
-	for (i = FT_CH_1; i <= FT_NUM_CHANNELS ; i++) {
-		st = &ft->channels[i - 1];
-		while (!kfifo_is_empty(&st->fifo))
-			kfifo_out(&st->fifo, &ts,
-				  sizeof(struct ft_wr_timestamp));
-	}
-}
-
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 {
 	uint32_t ien, cmd;
@@ -140,11 +113,8 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 
 	ft->acquisition_on = enable;
 
-	if (!enable) {
+	if (!enable)
 		ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
-
-		ft_flush_sw_fifo(ft);
-	}
 	spin_unlock(&ft->lock);
 
 	if (!enable) {
@@ -179,10 +149,7 @@ static int ft_channels_init(struct fmctdc_dev *ft)
 
 static void ft_channels_exit(struct fmctdc_dev *ft)
 {
-	int i;
-
-	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
-		kfifo_free(&ft->channels[i - 1].fifo);
+	return;
 }
 
 struct ft_modlist {

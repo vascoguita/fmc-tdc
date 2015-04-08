@@ -50,27 +50,17 @@ static void copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 }
 
 
-int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
-		    struct zio_channel *chan)
+static int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
+			   struct zio_channel *chan,
+			   struct ft_wr_timestamp *wrts)
 {
 	struct zio_control *ctrl;
 	struct zio_ti *ti = chan->cset->ti;
 	uint32_t *v;
-	struct ft_wr_timestamp ts, *reflast;
+	struct ft_wr_timestamp ts = *wrts, *reflast;
 	struct ft_channel_state *st;
-	int ret;
 
 	st = &ft->channels[channel - 1];
-
-	ret = kfifo_out_spinlocked(&st->fifo, &ts,
-				   sizeof(struct ft_wr_timestamp), &ft->lock);
-	if (!ret) {
-		return -EAGAIN;
-	} else if (ret < sizeof(struct ft_wr_timestamp)) {
-		dev_err(&ft->zdev->head.dev,
-			"Somethig wrong with kfifo buffer\n");
-		return -EINVAL;
-	}
 
 	ctrl = chan->current_ctrl;
 	v = ctrl->attr_channel.ext_val;
@@ -213,15 +203,6 @@ static inline int process_timestamp(struct fmctdc_dev *ft,
 		/* Return a valid timestamp */
 		*wrts = ts;
 		ret = 1;
-
-		/* Put the timestamp in the FIFO */
-		kfifo_in_spinlocked(&st->fifo, &ts,
-				    sizeof(struct ft_wr_timestamp), &ft->lock);
-		if (st->fifo_len <= kfifo_len(&st->fifo) / sizeof(struct ft_wr_timestamp)) {
-			kfifo_out_spinlocked(&st->fifo, &ts,
-					     sizeof(struct ft_wr_timestamp),
-					     &ft->lock);
-		}
 	}
 
 	/* Wait for the next raising edge */
@@ -292,8 +273,9 @@ static void ft_readout_tasklet(unsigned long arg)
 	struct fmc_device *fmc = ft->fmc;
 	struct zio_device *zdev = ft->zdev;
 	struct ft_wr_timestamp wrts;
+	struct zio_cset *cset;
 	uint32_t rd_ptr;
-	int count, dacapo, i, err, ret;
+	int count, dacapo, err, ret;
 
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
 	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
@@ -318,29 +300,25 @@ static void ft_readout_tasklet(unsigned long arg)
 		rd_ptr = (rd_ptr + 1) % FT_BUFFER_EVENTS;
 		if (ret) {
 			dev_dbg(&ft->fmc->dev,
-				"processed TS(%p): ch %d: seq %d: gseq %d 0x%x 0x%x 0x%x\n",
-				wrts, wrts.channel, wrts.seq_id, wrts.gseq_id,
+				"processed TS: ch %d: seq %u: gseq %llu %llu %u %u\n",
+				wrts.channel, wrts.seq_id, wrts.gseq_id,
 				wrts.seconds, wrts.coarse, wrts.frac);
+
+			if (!zdev)
+				continue;
+
+			cset = &zdev->cset[wrts.channel - 1];
+			if (ZIO_TI_ARMED & cset->ti->flags) {
+				/* there is an active block, try reading an
+				   accumulated sample */
+				err = ft_read_sw_fifo(ft, wrts.channel - 1,
+						      cset->chan, &wrts);
+				if (!err)
+					zio_trigger_data_done(cset);
+			}
 		}
 	}
 
-	if (!zdev)
-		goto out;
-
-	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
-		struct zio_cset *cset = &zdev->cset[i - 1];
-
-		/* FIXME: race condition */
-		if (ZIO_TI_ARMED & cset->ti->flags) {
-			/* there is an active block, try reading an
-			   accumulated sample */
-			err = ft_read_sw_fifo(ft, i, cset->chan);
-			if (!err)
-				zio_trigger_data_done(cset);
-		}
-	}
-
- out:
 	/* ack the irq */
 	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP,
 		   ft->ft_irq_base + TDC_REG_EIC_ISR);

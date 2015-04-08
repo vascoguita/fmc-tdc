@@ -71,7 +71,6 @@ enum ft_command {
 #include <linux/timer.h>
 #include <linux/fmc.h>
 #include <linux/version.h>
-#include <linux/kfifo.h>
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 
@@ -112,7 +111,7 @@ struct ft_hw_timestamp {
 	uint32_t metadata;	/* channel, polarity, etc. */
 } __packed;
 
-/* White Rabbit timestamp (32Byte is nice for the kfifo) */
+/* White Rabbit timestamp */
 struct ft_wr_timestamp {
 	uint64_t seconds;
 	uint32_t coarse;
@@ -134,9 +133,6 @@ struct ft_channel_state {
 					   from HW */
 	struct ft_wr_timestamp last_ts; /**< used to compute delay
 					   between pulses */
-
-	struct kfifo fifo;
-	uint32_t fifo_len;
 };
 
 /* Main TDC device context */
@@ -235,8 +231,6 @@ void ft_set_vcxo_tune (struct fmctdc_dev *ft, int value);
 
 struct zio_channel;
 
-int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
-		    struct zio_channel *chan);
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
 
 signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
