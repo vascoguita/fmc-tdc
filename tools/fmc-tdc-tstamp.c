@@ -90,11 +90,26 @@ static void help(char *name)
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
 	fprintf(stderr, "  -d <ch_ref>,<ch_tar>: difference between a reference channel and\n");
 	fprintf(stderr, "                        a target channel (<ch_tar> - <ch_ref>)\n");
+	fprintf(stderr, "  -f:           flush buffer\n");
+	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
 }
 
+static void tstamp_flush(struct fmctdc_board *brd, int ch, int flush)
+{
+	int ret;
+
+	if (!flush)
+		return;
+
+	ret = fmctdc_flush(brd, ch);
+	if (ret)
+		fprintf(stderr,
+			"fmc-tdc-tstamp: failed to flush channel %d: %s\n",
+			ch, fmctdc_strerror(errno));
+}
 
 int main(int argc, char **argv)
 {
@@ -106,7 +121,7 @@ int main(int argc, char **argv)
 	int chan_count = 0, i, n, ch, nfds, fd, byte_read, ret, n_boards;
 	int nblock = 0;
 	int n_samples = -1;
-	int fmt_wr = 0;
+	int fmt_wr = 0, flush = 0, read = 0;
 	char opt;
 	fd_set rfds;
 
@@ -124,12 +139,18 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:fr")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
 			help(argv[0]);
 			exit(EXIT_SUCCESS);
+			break;
+		case 'f':
+			flush = 1;
+			break;
+		case 'r':
+			read = 1;
 			break;
 		case 's':
 			sscanf(optarg, "%i", &n_samples);
@@ -191,22 +212,14 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 		channels[ch] = fmctdc_fileno_channel(brd, ch);
-		ret = fmctdc_flush(brd, ch);
-		if (ret)
-			fprintf(stderr,
-				"%s: failed to flush channel %d: %s\n",
-				argv[0], ch, fmctdc_strerror(errno));
+		tstamp_flush(brd, ch, flush);
 		chan_count++;
 		optind++;
 	}
 	/* If there are not channels, then dump them all */
 	if (!chan_count) {
 		for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
-			ret = fmctdc_flush(brd, i);
-			if (ret)
-				fprintf(stderr,
-					"%s: failed to flush channel %d: %s\n",
-					argv[0], i, fmctdc_strerror(errno));
+			tstamp_flush(brd, ch, flush);
 			channels[i] =
 				fmctdc_fileno_channel(brd, i);
 			ret = fmctdc_reference_set(brd, i, ref[i]);
@@ -225,7 +238,8 @@ int main(int argc, char **argv)
 
 
 	/* Enable acquisition */
-	fmctdc_set_acquisition(brd, 1);
+	if (!read)
+		fmctdc_set_acquisition(brd, 1);
 	/* Read Time-Stamps */
 	n = 0;
 	while (n < n_samples || n_samples <= 0) {
@@ -281,7 +295,8 @@ int main(int argc, char **argv)
 			fmctdc_reference_clear(brd, -1);
 	}
 	/* Disable acquisition */
-	fmctdc_set_acquisition(brd, 0);
+	if (!read)
+		fmctdc_set_acquisition(brd, 0);
 
 	fmctdc_close(brd);
 	exit(EXIT_SUCCESS);
