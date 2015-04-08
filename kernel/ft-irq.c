@@ -126,16 +126,17 @@ int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 }
 
 
-static inline void process_timestamp(struct fmctdc_dev *ft,
-				     struct ft_hw_timestamp *hwts,
-				     int dacapo_flag)
+static inline int process_timestamp(struct fmctdc_dev *ft,
+				    struct ft_hw_timestamp *hwts,
+				    struct ft_wr_timestamp *wrts,
+				    int dacapo_flag)
 {
 	struct ft_channel_state *st;
 	struct ft_wr_timestamp ts;
 	struct ft_wr_timestamp diff;
-	int channel, edge, frac;
+	int channel, edge, frac, ret = 0;
 
-	dev_dbg(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
+	dev_vdbg(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
 		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->bins);
 	channel = (hwts->metadata & 0x7) + 1;
 	edge = hwts->metadata & (1 << 4) ? 1 : 0;
@@ -169,7 +170,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	if (unlikely(edge != st->expected_edge)) {
 		/* wait unconditionally for next rising edge */
 		st->expected_edge = 1;
-		return ;
+		return 0;
 	}
 
 
@@ -180,7 +181,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 		   wait for the falling edge */
 		st->prev_ts = ts;
 		st->expected_edge = 0;
-		return ;
+		return 0;
 	}
 
 
@@ -209,6 +210,10 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 			st->cur_seq_id++;
 		}
 
+		/* Return a valid timestamp */
+		*wrts = ts;
+		ret = 1;
+
 		/* Put the timestamp in the FIFO */
 		kfifo_in_spinlocked(&st->fifo, &ts,
 				    sizeof(struct ft_wr_timestamp), &ft->lock);
@@ -221,6 +226,7 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 
 	/* Wait for the next raising edge */
 	st->expected_edge = 1;
+	return ret;
 }
 
 static irqreturn_t ft_irq_handler(int irq, void *dev_id)
@@ -285,8 +291,9 @@ static void ft_readout_tasklet(unsigned long arg)
 	struct fmctdc_dev *ft = (struct fmctdc_dev *)arg;
 	struct fmc_device *fmc = ft->fmc;
 	struct zio_device *zdev = ft->zdev;
+	struct ft_wr_timestamp wrts;
 	uint32_t rd_ptr;
-	int count, dacapo, i, err;
+	int count, dacapo, i, err, ret;
 
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
 	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
@@ -307,8 +314,14 @@ static void ft_readout_tasklet(unsigned long arg)
 
 		copy_timestamps(ft, rd_ptr * sizeof(struct ft_hw_timestamp),
 				sizeof(struct ft_hw_timestamp), &hwts);
-		process_timestamp(ft, &hwts, dacapo);
+		ret = process_timestamp(ft, &hwts, &wrts, dacapo);
 		rd_ptr = (rd_ptr + 1) % FT_BUFFER_EVENTS;
+		if (ret) {
+			dev_dbg(&ft->fmc->dev,
+				"processed TS(%p): ch %d: seq %d: gseq %d 0x%x 0x%x 0x%x\n",
+				wrts, wrts.channel, wrts.seq_id, wrts.gseq_id,
+				wrts.seconds, wrts.coarse, wrts.frac);
+		}
 	}
 
 	if (!zdev)
