@@ -26,15 +26,17 @@ static int ft_svec_reset(struct fmctdc_dev *ft)
 
 	dev_dbg(&ft->fmc->dev, "Un-resetting FMCs...\n");
 
-	/* Reset */
-	fmc_writel(ft->fmc, ~(1 << ft->fmc->slot_id),
+	/* Reset - reset bits are shifted by 1 */
+	fmc_writel(ft->fmc, ~(1 << (ft->fmc->slot_id + 1)),
 		   TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
-	udelay(1000);
+
+	udelay(5000);
+
 	val = fmc_readl(ft->fmc, TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
+	val |= (1 << (ft->fmc->slot_id + 1));
 
 	/* Un-Reset */
-	fmc_writel(ft->fmc, val | (1 << ft->fmc->slot_id),
-		   TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
+	fmc_writel(ft->fmc, val, TDC_SVEC_CARRIER_BASE + TDC_REG_CARRIER_RST);
 
 	return 0;
 }
