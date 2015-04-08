@@ -135,6 +135,8 @@ static inline void process_timestamp(struct fmctdc_dev *ft,
 	struct ft_wr_timestamp diff;
 	int channel, edge, frac;
 
+	dev_dbg(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
+		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->bins);
 	channel = (hwts->metadata & 0x7) + 1;
 	edge = hwts->metadata & (1 << 4) ? 1 : 0;
 
