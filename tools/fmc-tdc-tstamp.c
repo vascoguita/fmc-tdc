@@ -94,6 +94,8 @@ static void help(char *name)
 	fprintf(stderr, "                        a target channel (<ch_tar> - <ch_ref>)\n");
 	fprintf(stderr, "  -f:           flush buffer\n");
 	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
+	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
+	fprintf(stderr, "  -l:           maximum buffer lenght\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
@@ -127,7 +129,8 @@ int main(int argc, char **argv)
 	int channels[FMCTDC_NUM_CHANNELS];
 	int ref[FMCTDC_NUM_CHANNELS], a, b;
 	int chan_count = 0, i, n, ch, nfds, fd, byte_read, ret, n_boards;
-	int nblock = 0;
+	int nblock = 0, buflen = 16;
+	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
 	int fmt_wr = 0, flush = 0, read = 0;
 	char opt;
@@ -156,7 +159,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:fr")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:frm:l:")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
@@ -168,6 +171,19 @@ int main(int argc, char **argv)
 			break;
 		case 'r':
 			read = 1;
+			break;
+		case 'm':
+		        if (strcmp(optarg, "fifo") == 0) {
+				bufmode = FMCTDC_BUFFER_FIFO;
+			} else if (strcmp(optarg, "circ") == 0) {
+				bufmode = FMCTDC_BUFFER_CIRC;
+			} else {
+				help(argv[0]);
+				exit(EXIT_SUCCESS);
+			}
+			break;
+		case 'l':
+			sscanf(optarg, "%i", &buflen);
 			break;
 		case 's':
 			sscanf(optarg, "%i", &n_samples);
@@ -230,6 +246,22 @@ int main(int argc, char **argv)
 		}
 		channels[ch] = fmctdc_fileno_channel(brd, ch);
 		tstamp_flush(brd, ch, flush);
+
+		/* set buffer mode */
+		ret = fmctdc_set_buffer_mode(brd, ch, bufmode);
+		if (ret) {
+			fprintf(stderr,
+				"%s: chan %d: cannot set buffer mode: %s. Use default\n",
+				argv[0], ch, fmctdc_strerror(errno));
+		}
+
+		/* set buffer lenght */
+		ret = fmctdc_set_buffer_len(brd, ch, buflen);
+		if (ret) {
+			fprintf(stderr,
+				"%s: chan %d: cannot set buffer lenght: %s. Use default\n",
+				argv[0], ch, fmctdc_strerror(errno));
+		}
 		chan_count++;
 		optind++;
 	}
@@ -248,6 +280,22 @@ int main(int argc, char **argv)
 					"%s: continue in normal mode: %s\n",
 					argv[0], fmctdc_strerror(errno));
 				ref[i] = -1;
+			}
+
+			/* set buffer mode */
+			ret = fmctdc_set_buffer_mode(brd, i, bufmode);
+			if (ret) {
+				fprintf(stderr,
+					"%s: chan %d: cannot set buffer mode: %s. Use default\n",
+					argv[0], i, fmctdc_strerror(errno));
+			}
+
+			/* set buffer lenght */
+			ret = fmctdc_set_buffer_len(brd, i, buflen);
+			if (ret) {
+				fprintf(stderr,
+					"%s: chan %d: cannot set buffer lenght: %s. Use default\n",
+					argv[0], i, fmctdc_strerror(errno));
 			}
 		}
 		chan_count = i;
