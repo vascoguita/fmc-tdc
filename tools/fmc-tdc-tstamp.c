@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <signal.h>
 
 #include <getopt.h>
 
@@ -28,6 +29,7 @@
 
 /* Previous time stamp for each channel */
 struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
+static unsigned int stop = 0;
 
 
 void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
@@ -111,6 +113,12 @@ static void tstamp_flush(struct fmctdc_board *brd, int ch, int flush)
 			ch, fmctdc_strerror(errno));
 }
 
+static void termination_handler(int signum)
+{
+	fprintf(stderr, "\nfmc-tdc-tstamp: killing application\n");
+	stop = 1;
+}
+
 int main(int argc, char **argv)
 {
 	struct fmctdc_board *brd;
@@ -124,7 +132,16 @@ int main(int argc, char **argv)
 	int fmt_wr = 0, flush = 0, read = 0;
 	char opt;
 	fd_set rfds;
+	struct sigaction new_action, old_action;
 
+	/* Set up the structure to specify the new action. */
+	new_action.sa_handler = termination_handler;
+	sigemptyset (&new_action.sa_mask);
+	new_action.sa_flags = 0;
+
+	sigaction (SIGINT, NULL, &old_action);
+	if (old_action.sa_handler != SIG_IGN)
+		sigaction (SIGINT, &new_action, NULL);
 	atexit(fmctdc_exit);
 
 	/* Initialize FMC TDC library */
@@ -242,7 +259,8 @@ int main(int argc, char **argv)
 		fmctdc_set_acquisition(brd, 1);
 	/* Read Time-Stamps */
 	n = 0;
-	while (n < n_samples || n_samples <= 0) {
+	while ((n < n_samples || n_samples <= 0) && (!stop)) {
+		/* Check for pending signal */
 		nfds = 0;
 
 		/* Prepare the list of channel to observe */
@@ -264,7 +282,7 @@ int main(int argc, char **argv)
 		if (!nblock && ret <= 0) {
 			if (ret < 0)
 				fprintf(stderr,
-					"Error while waiting for timestamp: %s",
+					"Error while waiting for timestamp: %s\n",
 					strerror(errno));
 			continue;
 		}
