@@ -50,9 +50,9 @@ static void copy_timestamps(struct fmctdc_dev *ft, int base_addr,
 }
 
 
-static int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
-			   struct zio_channel *chan,
-			   struct ft_wr_timestamp *wrts)
+static void ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
+			    struct zio_channel *chan,
+			    struct ft_wr_timestamp *wrts)
 {
 	struct zio_control *ctrl;
 	struct zio_ti *ti = chan->cset->ti;
@@ -111,8 +111,6 @@ static int ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[channel - 1];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
-
-	return 0;
 }
 
 
@@ -275,7 +273,7 @@ static void ft_readout_tasklet(unsigned long arg)
 	struct ft_wr_timestamp wrts;
 	struct zio_cset *cset;
 	uint32_t rd_ptr;
-	int count, dacapo, err, ret;
+	int count, dacapo, ret;
 
 	ft->prev_wr_ptr = ft->cur_wr_ptr;
 	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
@@ -311,10 +309,9 @@ static void ft_readout_tasklet(unsigned long arg)
 			if (ZIO_TI_ARMED & cset->ti->flags) {
 				/* there is an active block, try reading an
 				   accumulated sample */
-				err = ft_read_sw_fifo(ft, wrts.channel - 1,
-						      cset->chan, &wrts);
-				if (!err)
-					zio_trigger_data_done(cset);
+				ft_read_sw_fifo(ft, wrts.channel - 1,
+						cset->chan, &wrts);
+				zio_trigger_data_done(cset);
 			}
 		}
 	}
