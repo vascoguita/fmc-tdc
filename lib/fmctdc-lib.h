@@ -25,6 +25,11 @@ enum fmctdc_channel {
 	FMCTDC_NUM_CHANNELS = 5
 };
 
+enum fmctdc_buffer_mode {
+	FMCTDC_BUFFER_FIFO = 0,
+	FMCTDC_BUFFER_CIRC,
+};
+
 /**
  * Opaque data type used as token
  */
@@ -82,7 +87,16 @@ extern int fmctdc_get_acquisition(struct fmctdc_board *b);
 extern int fmctdc_set_termination(struct fmctdc_board *b, unsigned int channel,
 				  int enable);
 extern int fmctdc_get_termination(struct fmctdc_board *b, unsigned int channel);
-
+extern int fmctdc_get_buffer_mode(struct fmctdc_board *userb,
+				  unsigned int channel);
+extern int fmctdc_set_buffer_mode(struct fmctdc_board *userb,
+				  unsigned int channel,
+				  enum fmctdc_buffer_mode mode);
+extern int fmctdc_get_buffer_len(struct fmctdc_board *userb,
+				 unsigned int channel);
+extern int fmctdc_set_buffer_len(struct fmctdc_board *userb,
+				 unsigned int channel,
+				 unsigned int lenght);
 extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
 			struct fmctdc_time *t, int n);
 extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);

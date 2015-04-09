@@ -369,6 +369,112 @@ int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
 	return fmctdc_sysfs_set(b, "enable_inputs", &val);
 }
 
+/**
+ * The function returns current buffer mode: 0 for FIFO, 1 for circular buffer.
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @return buffer mode, otherwise a negative errno code is set
+ *         appropriately
+ */
+int fmctdc_get_buffer_mode(struct fmctdc_board *userb, unsigned int channel)
+{
+	__define_board(b, userb);
+	uint32_t val;
+	char attr[64];
+	int ret;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/prefer-new", channel + 1);
+
+	ret = fmctdc_sysfs_get(b, attr, &val);
+	if (ret)
+		return ret;
+	return val;
+}
+
+/**
+ * The function sets the buffer mode for a channel
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @param[in] mode buffer mode to use
+ * @return 0 on success, otherwise a negative errno code is set
+ *         appropriately
+ */
+int fmctdc_set_buffer_mode(struct fmctdc_board *userb, unsigned int channel,
+			   enum fmctdc_buffer_mode mode)
+{
+	__define_board(b, userb);
+	uint32_t val;
+	char attr[64];
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/prefer-new", channel + 1);
+
+	val = mode;
+	return fmctdc_sysfs_set(b, attr, &val);
+}
+
+/**
+ * The function returns current buffer lenght (number of timestamps)
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @return buffer lenght, otherwise a negative errno code is set
+ *         appropriately
+ */
+int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
+{
+	__define_board(b, userb);
+	uint32_t val;
+	char attr[64];
+	int ret;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-len",
+		 channel + 1);
+
+	ret = fmctdc_sysfs_get(b, attr, &val);
+	if (ret)
+		return ret;
+	return val;
+}
+
+/**
+ * The function set the buffer lenght
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @param[in] lenght maximum number of timestamps to store
+ * @return 0 on success, otherwise a negative errno code is set
+ *         appropriately
+ */
+int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
+			  unsigned int lenght)
+{
+	__define_board(b, userb);
+	uint32_t val;
+	char attr[64];
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-len", channel + 1);
+
+	val = lenght;
+	return fmctdc_sysfs_set(b, attr, &val);
+}
 
 /**
  * It opens a TDC channel. Internally, it opens the ZIO control channel
