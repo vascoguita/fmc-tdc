@@ -56,7 +56,7 @@ static void ft_reset_channel(struct fmctdc_dev *ft, int channel)
 
 	st->cur_seq_id = 0;
 	st->expected_edge = 1;
-	ft_zio_kill_buffer(ft, channel);
+	zio_trigger_abort_disable(&ft->zdev->cset[channel - FT_CH_1], 0);
 }
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
@@ -119,10 +119,8 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 
 	if (!enable) {
 		/* Disable all running acquisition and reset channels */
-		for (i = 0; i < ft->zdev->n_cset; ++i) {
+		for (i = 0; i < ft->zdev->n_cset; ++i)
 			ft_reset_channel(ft, i + FT_CH_1);
-			zio_trigger_abort_disable(&ft->zdev->cset[i], 0);
-		}
 	} else {
 		for (i = 0; i < ft->zdev->n_cset; ++i)
 			zio_arm_trigger(ft->zdev->cset[i].ti);

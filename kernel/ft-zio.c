@@ -74,13 +74,6 @@ static enum ft_devtype __ft_get_type(struct device *dev)
 	return FT_TYPE_INPUT;
 }
 
-void ft_zio_kill_buffer(struct fmctdc_dev *ft, int channel)
-{
-	if (ft->zdev)
-		return;
-	zio_trigger_abort_disable(&ft->zdev->cset[channel - FT_CH_1], 0);
-}
-
 /* TDC input attributes: only the user offset is special */
 static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 			       uint32_t *usr_val)
