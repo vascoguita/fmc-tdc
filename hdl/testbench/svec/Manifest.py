@@ -5,5 +5,5 @@ vlog_opt="+incdir+../../sim +incdir+../include/vme64x_bfm +incdir+../include "
 
 files = [ "main.sv" ]
 
-modules = { "local" :  [ "../../top/svec/with_wrabbit" ] }
+modules = { "local" :  [ "../../top/svec" ] }
 

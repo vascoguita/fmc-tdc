@@ -582,11 +582,7 @@ begin
       if rst_in_synch(1) = '1' then
         divider   <= (others => '0');
       else
-        if(divider = "111") then
-          divider <= (others => '0');
-        else
-          divider <= divider + 1;
-        end if;
+        divider <= divider + 1;
       end if;
     end if;
   end process;

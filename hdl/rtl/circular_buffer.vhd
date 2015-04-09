@@ -281,7 +281,7 @@ begin
         g_data_width               => 32,
         g_size                     => 256,
         g_with_byte_enable         => false,
-        g_addr_conflict_resolution => "dont_care",
+        g_addr_conflict_resolution => "write_first",
         g_dual_clock               => true)
       port map (
         rst_n_i => rst_n_sys_i,
@@ -290,12 +290,12 @@ begin
         aa_i    => tstamp_wr_adr_i(7 downto 0),
         da_i    => tstamp_wr_dat_i(32*i + 31 downto 32*i),
         clkb_i  => clk_sys_i,
-        web_i   => tstamp_rd_we(i),
+        web_i   => '0',
         ab_i    => tdc_mem_wb_adr_i(9 downto 2),
         db_i    => tdc_mem_wb_dat_i,
         qb_o    => mb_data(i));
 
-    tstamp_rd_we(i) <= '1' when unsigned(tdc_mem_wb_adr_i(1 downto 0)) = i else '0';
+--    tstamp_rd_we(i) <= '1' when unsigned(tdc_mem_wb_adr_i(1 downto 0)) = i else '0';
 
     process(clk_sys_i)
     begin

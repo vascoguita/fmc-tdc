@@ -72,6 +72,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.gencores_pkg.all;
 use work.wishbone_pkg.all;
 
 --=================================================================================================
@@ -186,21 +187,36 @@ architecture rtl of reg_ctrl is
   signal wb_out : t_wishbone_slave_out;
   signal rst_n_tdc         : std_logic;
 
+
+  
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
-begin
 
+  signal cc_rst_n : std_logic;
+  signal cc_rst_n_or_sys : std_logic;
+
+begin
+  
   rst_n_tdc <= not rst_tdc_i;
 
   wb_out.stall <= '0';
   wb_out.err   <= '0';
   wb_out.rty   <= '0';
 
+ u_sync_tdc_reset : gc_sync_ffs
+    port map (
+      clk_i    => clk_sys_i,
+      rst_n_i  => rst_n_sys_i,
+      data_i   => rst_n_tdc, 
+      synced_o => cc_rst_n);
+
+  cc_rst_n_or_sys <= cc_rst_n and rst_n_sys_i;
+
   cmp_clks_crossing : xwb_clock_crossing
     port map
     (slave_clk_i    => clk_sys_i,  -- Slave control port: VME interface at 62.5 MHz 
-     slave_rst_n_i  => rst_n_sys_i,
+     slave_rst_n_i  => cc_rst_n_or_sys, -- reset the slave port also when resetting the TDC
      slave_i        => slave_i,
      slave_o        => slave_o,
      master_clk_i   => clk_tdc_i,
@@ -225,7 +241,7 @@ begin
         ack_out_pipe1       <= '0';
         ack_out_pipe0       <= '0';
         cyc_in_progress     <= '0';
-      elsif(wb_in.cyc /= '1') then
+      elsif(wb_in.cyc = '0') then
         ack_out_pipe1   <= '0';
         ack_out_pipe0   <= '0';
         cyc_in_progress <= '0';
@@ -347,7 +363,7 @@ begin
 
       elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
 
-		if reg_adr = c_STARTING_UTC_ADR then
+        if reg_adr = c_STARTING_UTC_ADR then
           starting_utc <= wb_in.dat;
         end if;
 

@@ -281,28 +281,8 @@ architecture rtl of fmc_tdc_core is
 
   signal rst_sys: std_logic;
   
--- Chipscope
-  component chipscope_ila
-    port (
-      CONTROL : inout std_logic_vector(35 downto 0);
-      CLK     : in    std_logic;
-      TRIG0   : in    std_logic_vector(31 downto 0);
-      TRIG1   : in    std_logic_vector(31 downto 0);
-      TRIG2   : in    std_logic_vector(31 downto 0);
-      TRIG3   : in    std_logic_vector(31 downto 0));
-  end component;
-  component chipscope_icon
-    port (
-      CONTROL0 : inout std_logic_vector (35 downto 0));
-  end component;
-  signal CONTROL : std_logic_vector(35 downto 0);
-  signal CLK     : std_logic;
-  signal TRIG0   : std_logic_vector(31 downto 0);
-  signal TRIG1   : std_logic_vector(31 downto 0);
-  signal TRIG2   : std_logic_vector(31 downto 0);
-  signal TRIG3   : std_logic_vector(31 downto 0);
 
-  
+
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -628,41 +608,6 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 --                                    ACAM start_dis, not used                                   --
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
-
----------------------------------------------------------------------------------------------------
---                                           CHIPSCOPE                                           --
----------------------------------------------------------------------------------------------------   
-  
---   chipscope_ila_1 : chipscope_ila
---   port map (
---     CONTROL => CONTROL,
---     CLK     => clk_tdc_i,
---     TRIG0   => TRIG0,
---     TRIG1   => TRIG1,
---     TRIG2   => TRIG2,
---     TRIG3   => TRIG3);
---
---  chipscope_icon_1 : chipscope_icon
---   port map (
---     CONTROL0 => CONTROL);
--- 
---  TRIG0(0)            <= utc_p;
---  TRIG0(1)            <= ef1_i;
---  TRIG0(2)            <= acam_intflag_f_edge_p;
---  TRIG0(15 downto 3)  <= roll_over_nb(12 downto 0);
---  TRIG0(16)           <= start_from_fpga;  
---  TRIG0(24 downto 17) <= retrig_nb_offset(7 downto 0);
---  TRIG0(31 downto 25) <= clk_i_cycles_offset(6 downto 0);  
---
---  TRIG1(30 downto 0)  <= acam_tstamp1(30 downto 0);
---  TRIG1(31)           <= acam_tstamp1_ok_p;
---
---  TRIG2(31 downto 0)  <= utc(31 downto 0); 
---  
---  TRIG3(0)            <= tdc_in_fpga_1_i;
---  TRIG3(1)            <= roll_over_incr_recent;
---  TRIG3(2)            <= wrabbit_tai_p_i;
---  TRIG3(31 downto 3)  <= current_retrig_nb(28 downto 0);
   
 end rtl;
 ----------------------------------------------------------------------------------------------------

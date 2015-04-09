@@ -873,6 +873,9 @@ begin
 --                                           VME CORE                                            --
 ---------------------------------------------------------------------------------------------------
   U_VME_Core : xvme64x_core
+  generic map (
+    g_clock_freq => 62500000,
+    g_adem_a24   => x"fff80000")
   port map
     (clk_i           => clk_62m5_sys,
      rst_n_i         => rst_n_sys,

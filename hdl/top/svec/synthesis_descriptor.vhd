@@ -6,7 +6,7 @@
 -- Author     : Evangelia Gousiou
 -- Company    : CERN
 -- Created    : 2013-04-16
--- Last update: 2013-04-16
+-- Last update: 2015-04-08
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ constant c_sdb_synthesis_info : t_sdb_synthesis :=
     syn_commit_id => "00000000000000000000000000000000",
     syn_tool_name => "ISE     ",
     syn_tool_version => x"00000147",
-    syn_date => x"20150326",
+    syn_date => x"20150408",
     syn_username => "twlostow       ");
 
 constant c_sdb_repo_url : t_sdb_repo_url :=

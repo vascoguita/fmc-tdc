@@ -106,10 +106,10 @@ use work.wishbone_pkg.all;
 --=================================================================================================
 entity fmc_tdc_mezzanine is
   generic
-    (g_with_wrabbit_core       : boolean := FALSE;
-     g_span                    : integer := 32;
-     g_width                   : integer := 32;
-     g_simulation          : boolean := FALSE);
+    (g_with_wrabbit_core : boolean := false;
+     g_span              : integer := 32;
+     g_width             : integer := 32;
+     g_simulation        : boolean := false);
   port
     -- TDC core
     (
@@ -222,11 +222,11 @@ architecture rtl of fmc_tdc_mezzanine is
 
   -- WISHBONE crossbar layout
   constant c_INTERCONNECT_LAYOUT      : t_sdb_record_array(4 downto 0) :=
-    (0 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE,    x"00010000"),
-     1 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00011000"),
-     2 => f_sdb_embed_device(c_TDC_EIC_DEVICE,        x"00012000"),
-     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE,        x"00013000"),
-     4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE,    x"00014000"));
+    (0 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE, x"00001000"),
+     1 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00002000"),
+     2 => f_sdb_embed_device(c_TDC_EIC_DEVICE, x"00003000"),
+     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE, x"00004000"),
+     4 => f_sdb_embed_device(c_TDC_MEM_SDB_DEVICE, x"00005000"));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -258,6 +258,8 @@ architecture rtl of fmc_tdc_mezzanine is
   signal wrabbit_synched           : std_logic;
 
 
+  signal irq_tstamp_sreg : std_logic_vector(7 downto 0);
+
 
 function f_wb_shift_address_word ( w: t_wishbone_master_out ) return t_wishbone_master_out is
   variable r : t_wishbone_master_out;
@@ -282,12 +284,12 @@ begin
 --                                     CSR WISHBONE CROSSBAR                                     --
 ---------------------------------------------------------------------------------------------------
 -- CSR wishbone address decoder
---   0x10000 -> TDC core configuration
---   0x11000 -> TDC mezzanine board 1-Wire
---   0x12000 -> EIC for TDC core
---   0x13000 -> TDC mezzanine board EEPROM I2C
---   0x14000 -> TDC core timestamps retrieval
-
+--   0x0000 -> SDB descriptor
+--   0x1000 -> TDC mezzanine board 1-Wire
+--   0x2000 -> TDC core registers
+--   0x3000 -> TDC core interrupt controller (EIC)
+--   0x4000 -> TDC mezzanine board I2C eeprom
+--   0x5000 -> TDC core circular buffer
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   cmp_sdb_crossbar : xwb_sdb_crossbar
@@ -379,6 +381,29 @@ begin
      
      direct_timestamp_o      => direct_timestamp_o,
      direct_timestamp_stb_o   => direct_timestamp_stb_o);
+
+
+  p_extend_irq : process(clk_tdc_i)
+  begin
+    if rising_edge(clk_tdc_i) then
+      if rst_tdc_i = '1' then
+        irq_tstamp_sreg <= (others => '0');
+      else
+        if(irq_tstamp_p = '1')then
+          irq_tstamp_sreg <= (others => '1');
+        else
+          irq_tstamp_sreg <= '0' & irq_tstamp_sreg(7 downto 1);
+        end if;
+      end if;
+    end if;
+  end process;
+
+   u_sync_irq_line : gc_sync_ffs
+    port map (
+      clk_i    => clk_sys_i,
+      rst_n_i  => rst_sys_n_i,
+      data_i   => irq_tstamp_sreg(0), 
+      ppulse_o => irq_tstamp_p_sys);
 
 
 ---------------------------------------------------------------------------------------------------
@@ -476,16 +501,6 @@ begin
      irq_tdc_time_i     => irq_time_p_sys,
      irq_tdc_acam_err_i => irq_acam_err_p_sys);
 
-
-  cmp_sync_irq_tstamp: gc_pulse_synchronizer2
-    port map (
-      clk_in_i    => clk_tdc_i,
-      rst_in_n_i  => rst_ref_0_n,
-      clk_out_i   => clk_sys_i,
-      rst_out_n_i => rst_sys_n_i,
-      d_p_i       => irq_tstamp_p,
-      q_p_o       => irq_tstamp_p_sys);
-
   irq_time_p_sys <= '0'; -- we don't need these in the driver
   irq_acam_err_p_sys <= '0'; 
   
@@ -509,12 +524,12 @@ begin
       slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
       slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
       desc_o                => open,
-      scl_pad_i(0)             => i2c_scl_i,
-      scl_pad_o(0)             => sys_scl_out,
-      scl_padoen_o(0)          => sys_scl_oe_n,
-      sda_pad_i(0)             => i2c_sda_i,
-      sda_pad_o(0)             => sys_sda_out,
-      sda_padoen_o(0)          => sys_sda_oe_n);
+      scl_pad_i    => i2c_scl_i,
+      scl_pad_o    => sys_scl_out,
+     scl_padoen_o => sys_scl_oe_n,
+     sda_pad_i    => i2c_sda_i,
+     sda_pad_o    => sys_sda_out,
+     sda_padoen_o => sys_sda_oe_n);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   i2c_sda_oen_o            <= sys_sda_oe_n;
