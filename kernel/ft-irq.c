@@ -309,7 +309,7 @@ static void ft_readout_tasklet(unsigned long arg)
 			if (ZIO_TI_ARMED & cset->ti->flags) {
 				/* there is an active block, try reading an
 				   accumulated sample */
-				ft_read_sw_fifo(ft, wrts.channel - 1,
+				ft_read_sw_fifo(ft, wrts.channel,
 						cset->chan, &wrts);
 				zio_trigger_data_done(cset);
 			}
