@@ -524,12 +524,12 @@ begin
       slave_i               => cnx_master_out(c_WB_SLAVE_TDC_I2C),
       slave_o               => cnx_master_in(c_WB_SLAVE_TDC_I2C),
       desc_o                => open,
-      scl_pad_i    => i2c_scl_i,
-      scl_pad_o    => sys_scl_out,
-     scl_padoen_o => sys_scl_oe_n,
-     sda_pad_i    => i2c_sda_i,
-     sda_pad_o    => sys_sda_out,
-     sda_padoen_o => sys_sda_oe_n);
+      scl_pad_i(0)    => i2c_scl_i,
+      scl_pad_o(0)    => sys_scl_out,
+     scl_padoen_o(0) => sys_scl_oe_n,
+     sda_pad_i(0)    => i2c_sda_i,
+     sda_pad_o(0)    => sys_sda_out,
+     sda_padoen_o(0) => sys_sda_oe_n);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   i2c_sda_oen_o            <= sys_sda_oe_n;
