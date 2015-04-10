@@ -280,12 +280,12 @@ architecture rtl of fmc_tdc_wrapper is
   signal cnx_master_out : t_wishbone_master_out_array(c_cnx_master_ports-1 downto 0);
 
   constant c_cfg_base_addr : t_wishbone_address_array(c_cnx_master_ports-1 downto 0) :=
-    (c_slave_direct => x"00010000",     -- Direct I/O
-     c_slave_regs   => x"00020000");    -- Mezzanine regs
+    (c_slave_direct => x"00008000",     -- Direct I/O
+     c_slave_regs   => x"00000000");    -- Mezzanine regs
 
   constant c_cfg_base_mask : t_wishbone_address_array(c_cnx_master_ports-1 downto 0) :=
-    (c_slave_direct => x"00030000",
-     c_slave_regs   => x"00020000");
+    (c_slave_direct => x"00008000",
+     c_slave_regs   => x"00008000");
 
 
 begin
