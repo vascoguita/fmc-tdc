@@ -30,6 +30,7 @@
 #include "fmctdc-lib.h"
 #include "fmctdc-lib-private.h"
 
+#define NSAMPLE 1 /* fake number of samples for the TDC */
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static struct __fmctdc_board *ft_boards; /**< list of available boards */
@@ -169,7 +170,7 @@ void fmctdc_exit(void)
 struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 {
 	struct __fmctdc_board *b = NULL;
-	uint32_t nsamples = 1;
+	uint32_t nsamples = NSAMPLE;
 	int i;
 
 	if (offset >= ft_nboards) {
@@ -493,7 +494,19 @@ static int __fmctdc_open_channel(struct __fmctdc_board *b, unsigned int channel)
 			 channel);
 		b->fdc[channel] = open(fname, O_RDONLY | O_NONBLOCK);
 	}
+	if (b->fdd[channel] <= 0) {
+		snprintf(fname, sizeof(fname), "%s-%d-0-data", b->devbase,
+			 channel);
+		b->fdd[channel] = open(fname, O_RDONLY | O_NONBLOCK);
+		if (b->fdd[channel] < 0)
+			goto err;
+	}
 	return b->fdc[channel];
+
+err:
+	if (b->fdc[channel] >= 0)
+		close(b->fdc[channel]);
+	return -1;
 }
 
 
@@ -545,7 +558,7 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 {
 	__define_board(b, userb);
 	struct zio_control ctrl;
-	uint32_t *attrs;
+	uint32_t *attrs, data[NSAMPLE]; /* ssize is 4 => uint32_t for data */
 	int i, j, fd;
 	fd_set set;
 
@@ -572,7 +585,15 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 			t->gseq_id = attrs[FT_ATTR_DEV_SEQUENCE];
 			t->ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 			i++;
-			continue;
+
+			/* Consume also the data even if it is empty,
+			   so it will keep clear the ZIO buffer */
+			j = read(b->fdd[channel], data,
+				 ctrl.nsamples * ctrl.ssize);
+			if (j == ctrl.nsamples * ctrl.ssize)
+				continue; /* Everything is fine */
+			/* We are not ok here because the data side has
+			   something wrong */
 		}
 		if (j > 0) {
 			errno = EIO;
