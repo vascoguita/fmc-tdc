@@ -9,7 +9,6 @@ LIBTDC = ../lib/
 
 TESTS = fmc-tdc-list \
 	fmc-tdc-term \
-	fmc-tdc-read \
 	fmc-tdc-acquisition \
 	fmc-tdc-temperature \
 	fmc-tdc-time \
