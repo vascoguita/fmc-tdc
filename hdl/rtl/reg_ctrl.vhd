@@ -84,9 +84,8 @@ entity reg_ctrl is
     (g_span                : integer := 32;
      g_width               : integer := 32);
   port
-  -- INPUTS
-     -- Signals from the clks_rsts_manager unit
-    (clk_sys_i   : in std_logic;
+    (
+      clk_sys_i   : in std_logic;
      rst_n_sys_i : in std_logic;        -- global reset, synched to clk_sys
 
      clk_tdc_i : in std_logic;
@@ -100,9 +99,6 @@ entity reg_ctrl is
      acam_ififo1_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 8; for debug reasons only
      acam_ififo2_i         : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 9; for debug reasons only
      acam_start01_i        : in std_logic_vector(g_width-1 downto 0);  -- keeps value read back from ACAM reg 10; for debug reasons only
-
-     -- Signals from the data_formatting unit
-     wr_index_i            : in std_logic_vector(g_width-1 downto 0);  -- index of the last circular_buffer adr written
 
      -- Signals from the one_hz_gen unit
      local_utc_i           : in std_logic_vector(g_width-1 downto 0);  -- local utc time
@@ -129,10 +125,6 @@ entity reg_ctrl is
      acam_rdbk_ififo1_p_o  : out std_logic;                            -- enables reading of ACAM reg 8
      acam_rdbk_ififo2_p_o  : out std_logic;                            -- enables reading of ACAM reg 9
      acam_rdbk_start01_p_o : out std_logic;                            -- enables reading of ACAM reg 10
-
-     -- Signal to the data_formatting unit
-     dacapo_c_rst_p_o      : out std_logic;                            -- clears the dacapo counter
-     deactivate_chan_o     : out std_logic_vector(4 downto 0);         -- stops registering timestamps from a specific channel
 
      -- Signals to the clks_resets_manager unit
      send_dac_word_p_o     : out std_logic;                            -- initiates the reconfiguration of the DAC
@@ -171,7 +163,7 @@ architecture rtl of reg_ctrl is
   signal dac_word                                     : std_logic_vector(23 downto 0);
   signal pulse_extender_en                            : std_logic;
   signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out, wrabbit_ctrl_reg, deactivate_chan   : std_logic_vector(g_span-1 downto 0);
+  signal dat_out, wrabbit_ctrl_reg   : std_logic_vector(g_span-1 downto 0);
   signal ack_out_pipe0, ack_out_pipe1                 : std_logic;
 
 
@@ -356,7 +348,6 @@ begin
         start_phase          <= (others =>'0');
         one_hz_phase         <= (others =>'0');
         wrabbit_ctrl_reg     <= (others =>'0');
-        deactivate_chan      <= (others =>'0');
         irq_tstamp_threshold <= x"00000001";        -- default 256 timestamps: full memory
         irq_time_threshold   <= x"00000001";        -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD; -- default DAC Vout = 1.65
@@ -395,9 +386,6 @@ begin
           wrabbit_ctrl_reg    <= wb_in.dat;
         end if;
 		
-		if reg_adr = c_DEACT_CHAN_ADR then
-          deactivate_chan     <= wb_in.dat;
-        end if;
 
       end if;
     end if;
@@ -411,7 +399,6 @@ begin
   irq_time_threshold_o         <= irq_time_threshold;
   dac_word_o                   <= dac_word;
   wrabbit_ctrl_reg_o           <= wrabbit_ctrl_reg;
-  deactivate_chan_o            <= deactivate_chan(4 downto 0);
 
 ---------------------------------------------------------------------------------------------------
 --                             Reception of TDC core Control Register                            --
@@ -453,7 +440,6 @@ begin
   acam_rdbk_start01_p_o  <= ctrl_reg(7);
   acam_rst_p_o           <= ctrl_reg(8);
   load_utc_p_o           <= ctrl_reg(9);
-  dacapo_c_rst_p_o       <= ctrl_reg(10) or ctrl_reg(1); -- dacapo register reset when the acquisition is deactivated
   send_dac_word_p        <= ctrl_reg(11);
 -- ctrl_reg bits 12 to 31 not used for the moment!
 
@@ -545,12 +531,12 @@ begin
     -- regs written locally by the TDC core units
     local_utc_i          when c_LOCAL_UTC_ADR,
     irq_code_i           when c_IRQ_CODE_ADR,
-    wr_index_i           when c_WR_INDEX_ADR,
+    x"00000000"           when c_WR_INDEX_ADR,
     core_status_i        when c_CORE_STATUS_ADR,
     -- White Rabbit regs
     wrabbit_status_reg_i when c_WRABBIT_STATUS_ADR,
     wrabbit_ctrl_reg     when c_WRABBIT_CTRL_ADR,
-    deactivate_chan      when c_DEACT_CHAN_ADR,
+    x"00000000"          when c_DEACT_CHAN_ADR,
     -- others
     x"00000000"          when others;
 

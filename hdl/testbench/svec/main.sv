@@ -1,6 +1,78 @@
 `include "simdrv_defs.svh"
 `include "vme64x_bfm.svh"
 `include "svec_vme_buffers.svh"
+`include "../../rtl/timestamp_fifo_regs.vh"
+
+module fake_acam(
+		 input [3:0] addr,
+		 output reg [27:0] data,
+		 input 	      wr,
+		 input 	      rd,
+		 output       reg ef1,
+		 output       reg ef2
+		 );
+
+   typedef struct {
+      int 	  channel;
+      time 	  ts;
+   } acam_fifo_entry;
+
+   acam_fifo_entry fifo1[$], fifo2[$];
+
+   task pulse(int channel, time ts);
+      
+     acam_fifo_entry ent;
+
+      ent.channel = channel % 4;
+      ent.ts = ts;
+      
+      if (channel >= 0 && channel <= 3) 
+	 fifo1.push_back(ent);
+      else
+	fifo2.push_back(ent);
+
+      #100ns;
+      if(fifo1.size())
+	ef1 = 0;
+      if(fifo2.size())
+	ef2 = 0;
+      
+      endtask // pulse
+
+   initial begin
+      ef1 = 1;
+      ef2 = 1;
+      data = 28'bz;
+      
+   end
+   
+   
+   always@(negedge rd) begin
+      if (addr == 8) begin
+	 acam_fifo_entry ent;
+	 ent=fifo1.pop_front();
+	 data <= ent.ts | (ent.channel << 26);
+	 
+      end else if (addr == 9) begin
+	 acam_fifo_entry ent;
+	 ent=fifo2.pop_front();
+	 data <= ent.ts | (ent.channel << 26);
+
+      end else
+	data <= 28'bz;
+
+      #10ns;
+
+      	ef1 <= (fifo1.size() ? 0 : 1);
+      	ef2 <= (fifo2.size() ? 0 : 1);
+      
+	
+   end
+   
+   
+   
+endmodule
+   
 
 module main;
 
@@ -19,20 +91,6 @@ module main;
 
    `DECLARE_VME_BUFFERS(VME.slave);
 
-   reg tdc_ef1 = 1;
-   reg tdc_pulse = 0;
-   wire tdc_rd_n;
-
-
-   always@(posedge tdc_pulse) begin
-      #100ns;
-      tdc_ef1 <= 0;
-      while(tdc_rd_n != 0)
-	#1ns;
-      #10ns;
-      tdc_ef1 <= 1;
-   end
-
    reg clk_acam = 0;
    reg clk_62m5 = 0;
    
@@ -42,6 +100,10 @@ module main;
 
    always@(posedge clk_62m5)
      clk_acam <= ~clk_acam;
+   
+   wire [3:0] tdc_addr;
+
+   wire [27:0] tdc_data;
    
    
    wr_svec_tdc #(
@@ -65,20 +127,24 @@ module main;
 		     .por_n_i(rst_n),
 
 		     .tdc1_ef1_i(tdc_ef1),
-		     .tdc1_ef2_i(1'b1),
+		     .tdc1_ef2_i(tdc_ef2),
 		     .tdc1_err_flag_i(1'b0),
 		     .tdc1_int_flag_i(1'b0),
 		     .tdc1_rd_n_o(tdc_rd_n),
-		     .tdc1_in_fpga_1_i(tdc_pulse),
-		     .tdc1_in_fpga_2_i(1'b0),
-		     .tdc1_in_fpga_3_i(1'b0),
-		     .tdc1_in_fpga_4_i(1'b0),
-		     .tdc1_in_fpga_5_i(1'b0),
-		     .tdc1_data_bus_io(28'hcafebab),
+		     .tdc1_data_bus_io(tdc_data),
+		     .tdc1_address_o(tdc_addr),
 		     
-
 		     `WIRE_VME_PINS(8)
 		     );
+
+   fake_acam ACAM(
+		 .addr(tdc_addr),
+		 .data(tdc_data),
+		 .wr(1'b0),
+		 .rd(tdc_rd_n),
+		 .ef1(tdc_ef1),
+		 .ef2(tdc_ef2)
+		 );
    
 
    
@@ -139,30 +205,60 @@ module main;
 
       $display("Un-reset FMCs...");
       
-      acc.write('hc2000c, 'h3); 
+      acc.write('hc0100c, 'h3); 
 
       #500us;
       
-      acc.read('hc40000, d); 
+      acc.read('hc10000, d); 
       $display("TDC SDB ID : %x", d);
 
 
-      acc.write('hc510a0, 1234);  // set UTC
-      acc.write('hc510fc, 1<<9); // load UTC
+      acc.write('hc120a0, 1234);  // set UTC
+      acc.write('hc120fc, 1<<9); // load UTC
 
-      acc.write('hc52004, 'hf); // enable EIC irq
+      acc.write('hc13004, 'hf); // enable EIC irq
 
-      acc.write('hc51084, 'h1f); // enable all ACAM inputs
-      acc.write('hc510fc, (1<<0)); // start acquisition
+      acc.write('hc12084, 'h1f); // enable all ACAM inputs
+      acc.write('hc120fc, (1<<0)); // start acquisition
       
-         
+      acc.write('hc120fc, (1<<0)); // start acquisition
+      acc.write('hc12090, 2); // thr = 2 ts
+      acc.write('hc12094, 10); // thr = 10 ms
+      
+      
+      
       #300us;
-      forever begin
-	 tdc_pulse <= 1;
-	 #1000ns;
-	 tdc_pulse <= 0;
-	 #10ns;
-      end
+      fork
+	 forever begin
+	    acc.read('hc15000 + `ADDR_TSF_LTSCTL, d); 
+	    if(d&1)  begin
+	       uint64_t t0,t1,t2,t3;
+	       
+	       acc.write('hc15000 + `ADDR_TSF_LTSCTL, 0);
+	       acc.read('hc15000 + `ADDR_TSF_LTS0, t0);
+	       acc.read('hc15000 + `ADDR_TSF_LTS1, t1);
+	       acc.read('hc15000 + `ADDR_TSF_LTS2, t2);
+	       acc.read('hc15000 + `ADDR_TSF_LTS3, t3);
+
+	       $display("Last: %08x %08x %08x %08x",t0,t1,t2,t3);
+	       
+	    end
+	    
+	      
+
+	 end
+	 
+      
+	 forever begin
+	    $display("Pulse!");
+	 
+	    ACAM.pulse(0, 0);
+	    ACAM.pulse(1, 0);
+	    ACAM.pulse(2, 0);
+	    #10us;
+	 end
+      join
+      
       
      
       

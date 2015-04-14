@@ -170,7 +170,7 @@ package tdc_core_pkg is
            date      => x"20130429",
            name      => "WB-TDC-Core-Config ")));
 
-  constant c_TDC_MEM_SDB_DEVICE : t_sdb_device :=
+  constant c_TDC_FIFO_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -178,13 +178,13 @@ package tdc_core_pkg is
      wbd_width     => x"4",                  -- 32-bit port granularity
      sdb_component =>
        (addr_first  => x"0000000000000000",
-        addr_last   => x"0000000000000FFF",
+        addr_last   => x"00000000000000FF",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000601",         -- "WB-TDC-Mem         " | md5sum | cut -c1-8
+           device_id => x"00000622",         -- "WB-TDC-Mem         " | md5sum | cut -c1-8
            version   => x"00000001",
-           date      => x"20121116",
-           name      => "WB-TDC-Mem         ")));
+           date      => x"20150415",
+           name      => "WB-TDC-TsFIFO      ")));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -432,12 +432,11 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-
   component fmc_tdc_core is
-  generic
-    (g_span                 : integer := 32;
-     g_width                : integer := 32;
-     g_simulation       : boolean := FALSE);
+    generic (
+      g_span       : integer;
+      g_width      : integer;
+      g_simulation : boolean);
     port (
       clk_sys_i              : in    std_logic;
       rst_n_sys_i            : in    std_logic;
@@ -476,9 +475,6 @@ package tdc_core_pkg is
       tdc_in_fpga_3_i        : in    std_logic;
       tdc_in_fpga_4_i        : in    std_logic;
       tdc_in_fpga_5_i        : in    std_logic;
-      irq_tstamp_p_o         : out   std_logic;
-      irq_time_p_o           : out   std_logic;
-      irq_acam_err_p_o       : out   std_logic;
       wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
       wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
       wrabbit_synched_i      : in    std_logic;
@@ -486,10 +482,11 @@ package tdc_core_pkg is
       wrabbit_tai_i          : in    std_logic_vector(31 downto 0);
       cfg_slave_i            : in    t_wishbone_slave_in;
       cfg_slave_o            : out   t_wishbone_slave_out;
-      mem_slave_i            : in    t_wishbone_slave_in;
-      mem_slave_o            : out   t_wishbone_slave_out;
-      direct_timestamp_o     : out   std_logic_vector(127 downto 0);
-      direct_timestamp_stb_o : out   std_logic);
+      timestamp_o            : out   std_logic_vector(127 downto 0);
+      timestamp_stb_o        : out   std_logic;
+      channel_enable_o       : out   std_logic_vector(4 downto 0);
+      irq_threshold_o        : out   std_logic_vector(9 downto 0);
+      irq_timeout_o          : out   std_logic_vector(9 downto 0));
   end component fmc_tdc_core;
   
 ---------------------------------------------------------------------------------------------------
@@ -647,60 +644,46 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-
-  
-  component reg_ctrl
-    generic
-      (g_span                 : integer := 32;
-       g_width                : integer := 32);
-    port
-      (clk_sys_i   : in std_logic;
-       rst_n_sys_i : in std_logic;        -- global reset, synched to clk_sys_i
-
-       clk_tdc_i : in std_logic;
-       rst_tdc_i : in std_logic;
-
-       slave_i: in t_wishbone_slave_in;   -- WB interface (clk_sys domain)
-       slave_o: out t_wishbone_slave_out;
-       
-      
-       acam_config_rdbk_i     : in config_vector;
-       acam_ififo1_i          : in std_logic_vector(g_width-1 downto 0);
-       acam_ififo2_i          : in std_logic_vector(g_width-1 downto 0);
-       acam_start01_i         : in std_logic_vector(g_width-1 downto 0);
-       local_utc_i            : in std_logic_vector(g_width-1 downto 0);
-       irq_code_i             : in std_logic_vector(g_width-1 downto 0);
-       wr_index_i             : in std_logic_vector(g_width-1 downto 0);
-       core_status_i          : in std_logic_vector(g_width-1 downto 0);
-       wrabbit_status_reg_i   : in std_logic_vector(g_width-1 downto 0);
-      ----------------------------------------------------------------------
-     
-       activate_acq_p_o       : out std_logic;
-       deactivate_acq_p_o     : out std_logic;
-       deactivate_chan_o      : out std_logic_vector(4 downto 0);
-       acam_wr_config_p_o     : out std_logic;
-       acam_rdbk_config_p_o   : out std_logic;
-       acam_rdbk_status_p_o   : out std_logic;
-       acam_rdbk_ififo1_p_o   : out std_logic;
-       acam_rdbk_ififo2_p_o   : out std_logic;
-       acam_rdbk_start01_p_o  : out std_logic;
-       acam_rst_p_o           : out std_logic;
-       load_utc_p_o           : out std_logic;
-       irq_tstamp_threshold_o : out std_logic_vector(g_width-1 downto 0);
-       irq_time_threshold_o   : out std_logic_vector(g_width-1 downto 0);
-       send_dac_word_p_o      : out std_logic; 
-       dac_word_o             : out std_logic_vector(23 downto 0);
-       dacapo_c_rst_p_o       : out std_logic;
-       acam_config_o          : out config_vector;
-       starting_utc_o         : out std_logic_vector(g_width-1 downto 0);
-       acam_inputs_en_o       : out std_logic_vector(g_width-1 downto 0);
-       start_phase_o          : out std_logic_vector(g_width-1 downto 0);
-       one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0);
-       wrabbit_ctrl_reg_o     : out std_logic_vector(g_width-1 downto 0));
-      ----------------------------------------------------------------------
-  end component;
-
-
+  component reg_ctrl is
+    generic (
+      g_span  : integer := 32;
+      g_width : integer := 32);
+    port (
+      clk_sys_i              : in  std_logic;
+      rst_n_sys_i            : in  std_logic;
+      clk_tdc_i              : in  std_logic;
+      rst_tdc_i              : in  std_logic;
+      slave_i                : in  t_wishbone_slave_in;
+      slave_o                : out t_wishbone_slave_out;
+      acam_config_rdbk_i     : in  config_vector;
+      acam_ififo1_i          : in  std_logic_vector(g_width-1 downto 0);
+      acam_ififo2_i          : in  std_logic_vector(g_width-1 downto 0);
+      acam_start01_i         : in  std_logic_vector(g_width-1 downto 0);
+      local_utc_i            : in  std_logic_vector(g_width-1 downto 0);
+      core_status_i          : in  std_logic_vector(g_width-1 downto 0);
+      irq_code_i             : in  std_logic_vector(g_width-1 downto 0);
+      wrabbit_status_reg_i   : in  std_logic_vector(g_width-1 downto 0);
+      acam_config_o          : out config_vector;
+      activate_acq_p_o       : out std_logic;
+      deactivate_acq_p_o     : out std_logic;
+      acam_wr_config_p_o     : out std_logic;
+      acam_rdbk_config_p_o   : out std_logic;
+      acam_rst_p_o           : out std_logic;
+      acam_rdbk_status_p_o   : out std_logic;
+      acam_rdbk_ififo1_p_o   : out std_logic;
+      acam_rdbk_ififo2_p_o   : out std_logic;
+      acam_rdbk_start01_p_o  : out std_logic;
+      send_dac_word_p_o      : out std_logic;
+      dac_word_o             : out std_logic_vector(23 downto 0);
+      load_utc_p_o           : out std_logic;
+      starting_utc_o         : out std_logic_vector(g_width-1 downto 0);
+      irq_tstamp_threshold_o : out std_logic_vector(g_width-1 downto 0);
+      irq_time_threshold_o   : out std_logic_vector(g_width-1 downto 0);
+      one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0);
+      acam_inputs_en_o       : out std_logic_vector(g_width-1 downto 0);
+      wrabbit_ctrl_reg_o     : out std_logic_vector(g_width-1 downto 0);
+      start_phase_o          : out std_logic_vector(g_width-1 downto 0));
+  end component reg_ctrl;
 ---------------------------------------------------------------------------------------------------
   component acam_timecontrol_interface
     port
@@ -721,58 +704,26 @@ package tdc_core_pkg is
        acam_intflag_f_edge_p_o : out std_logic);
       ----------------------------------------------------------------------
   end component;
+  
+  component data_formatting is
+    port (
+      clk_i                   : in  std_logic;
+      rst_i                   : in  std_logic;
+      acam_tstamp1_ok_p_i     : in  std_logic;
+      acam_tstamp1_i          : in  std_logic_vector(31 downto 0);
+      acam_tstamp2_ok_p_i     : in  std_logic;
+      acam_tstamp2_i          : in  std_logic_vector(31 downto 0);
+      utc_i                   : in  std_logic_vector(31 downto 0);
+      roll_over_incr_recent_i : in  std_logic;
+      clk_i_cycles_offset_i   : in  std_logic_vector(31 downto 0);
+      roll_over_nb_i          : in  std_logic_vector(31 downto 0);
+      retrig_nb_offset_i      : in  std_logic_vector(31 downto 0);
+      utc_p_i                 : in  std_logic;
+      timestamp_o             : out std_logic_vector(127 downto 0);
+      timestamp_valid_o       : out std_logic);
+  end component data_formatting;
 
 
----------------------------------------------------------------------------------------------------
-  component data_formatting
-    port
-      (tstamp_wr_wb_ack_i      : in std_logic;
-       acam_tstamp1_i          : in std_logic_vector(31 downto 0);
-       acam_tstamp1_ok_p_i     : in std_logic;
-       acam_tstamp2_i          : in std_logic_vector(31 downto 0);
-       acam_tstamp2_ok_p_i     : in std_logic;
-       clk_i                   : in std_logic;
-       dacapo_c_rst_p_i        : in std_logic;
-       deactivate_chan_i       : in std_logic_vector(4 downto 0);
-       rst_i                   : in std_logic;
-       roll_over_incr_recent_i : in std_logic;
-       clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
-       roll_over_nb_i          : in std_logic_vector(31 downto 0);
-       utc_i                   : in std_logic_vector(31 downto 0);
-       retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
-       utc_p_i                 : in std_logic;
-      ----------------------------------------------------------------------
-       tstamp_wr_wb_adr_o      : out std_logic_vector(7 downto 0);
-       tstamp_wr_wb_cyc_o      : out std_logic;
-       tstamp_wr_dat_o         : out std_logic_vector(127 downto 0);
-       tstamp_wr_wb_stb_o      : out std_logic;
-       tstamp_wr_wb_we_o       : out std_logic;
-       tstamp_wr_p_o           : out std_logic;
-       acam_channel_o          : out std_logic_vector(2 downto 0);
-       wr_index_o              : out std_logic_vector(31 downto 0));
-      ----------------------------------------------------------------------
-  end component;
-
-
----------------------------------------------------------------------------------------------------
-  component irq_generator is
-    generic
-      (g_width                 : integer := 32);
-    port
-      (clk_i                   : in std_logic;
-       rst_i                   : in std_logic;
-       irq_tstamp_threshold_i  : in std_logic_vector(g_width-1 downto 0);
-       irq_time_threshold_i    : in std_logic_vector(g_width-1 downto 0);
-       activate_acq_p_i        : in std_logic;
-       deactivate_acq_p_i      : in std_logic;
-       tstamp_wr_p_i           : in std_logic;
-       acam_errflag_r_edge_p_i : in std_logic;
-      ----------------------------------------------------------------------
-       irq_tstamp_p_o          : out std_logic;
-       irq_acam_err_p_o        : out std_logic;
-       irq_time_p_o            : out std_logic);
-      ----------------------------------------------------------------------
-  end component;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -914,29 +865,6 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
 
 
-  component circular_buffer
-    port (
-        clk_tdc_i                : in std_logic;   
-        clk_sys_i : in std_logic;
-        rst_n_sys_i : in std_logic;
-        tstamp_wr_rst_i    : in std_logic; 
-        tstamp_wr_stb_i    : in std_logic;
-        tstamp_wr_cyc_i    : in std_logic;
-        tstamp_wr_we_i     : in std_logic;
-        tstamp_wr_adr_i    : in std_logic_vector(7 downto 0);
-        tstamp_wr_dat_i    : in std_logic_vector(127 downto 0);
-        tdc_mem_wb_rst_i   : in std_logic;
-        tdc_mem_wb_stb_i   : in std_logic;
-        tdc_mem_wb_cyc_i   : in std_logic;
-        tdc_mem_wb_we_i    : in std_logic;
-        tdc_mem_wb_adr_i   : in std_logic_vector(31 downto 0);
-        tdc_mem_wb_dat_i   : in std_logic_vector(31 downto 0);
-        tstamp_wr_ack_p_o  : out std_logic;
-        tstamp_wr_dat_o    : out std_logic_vector(127 downto 0);
-        tdc_mem_wb_ack_o   : out std_logic;
-        tdc_mem_wb_dat_o   : out std_logic_vector(31 downto 0);
-        tdc_mem_wb_stall_o : out std_logic);
-  end component;
 
   component fmc_tdc_wrapper is
     generic (

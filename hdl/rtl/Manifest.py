@@ -3,7 +3,6 @@ files = [
 "acam_databus_interface.vhd",
 "acam_timecontrol_interface.vhd",
 "carrier_info.vhd",
-"circular_buffer.vhd",
 "clks_rsts_manager.vhd",
 "data_engine.vhd",
 "data_formatting.vhd",
@@ -12,7 +11,6 @@ files = [
 "fmc_tdc_mezzanine.vhd",
 "free_counter.vhd",
 "incr_counter.vhd",
-"irq_generator.vhd",
 "leds_manager.vhd",
 "local_pps_gen.vhd",
 "reg_ctrl.vhd",
@@ -23,5 +21,8 @@ files = [
 "fmc_tdc_direct_readout_slave.vhd",
 "fmc_tdc_direct_readout_slave_pkg.vhd",
 "fmc_tdc_wrapper.vhd",
+"timestamp_fifo.vhd",
+"timestamp_fifo_wb.vhd",
+"timestamp_fifo_wbgen2_pkg.vhd"
 ];
 

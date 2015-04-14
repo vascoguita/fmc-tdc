@@ -1,0 +1,102 @@
+-- -*- Mode: LUA; tab-width: 2 -*-
+
+peripheral {
+	 name = "Timestamp FIFO";
+	 prefix="tsf";
+
+	 hdl_entity="timestamp_fifo_wb";
+	 
+	 -- TXTSU shared FIFO
+
+	 fifo_reg {
+			size = 1024; -- or more. We'll see :)
+			direction = CORE_TO_BUS;
+			prefix = "fifo";
+			name = "Timestamp FIFO";
+			clock = "clk_tdc_i";
+
+			flags_bus = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT};
+			flags_dev = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT};
+
+			field {
+				 name = "The timestamp";
+				 prefix = "value";
+				 type = SLV;
+				 size = 128;
+			};
+	 };
+
+
+	 reg {
+			name = "Last Timestamp Word 0";
+			prefix = "LTS0";
+			
+			field {
+				 name = "Last Timestamp Word 0";
+				 clock = "clk_tdc_i";
+				 type = SLV;
+				 size = 32;
+				 access_bus = READ_ONLY;
+				 access_dev = WRITE_ONLY;
+
+			};
+	 };
+	 reg {
+			name = "Last Timestamp Word 1";
+			prefix = "LTS1";
+			
+			field {
+				 name = "Last Timestamp Word 1";
+				 clock = "clk_tdc_i";
+				 type = SLV;
+				 size = 32;
+				 access_bus = READ_ONLY;
+				 access_dev = WRITE_ONLY;
+			};
+	 };
+
+	 reg {
+			name = "Last Timestamp Word 2";
+			prefix = "LTS2";
+			
+			field {
+				 name = "Last Timestamp Word 2";
+				 clock = "clk_tdc_i";
+				 type = SLV;
+				 size = 32;
+				 access_bus = READ_ONLY;
+				 access_dev = WRITE_ONLY;
+
+			};
+	 };
+
+	 reg {
+			name = "Last Timestamp Word 3";
+			prefix = "LTS3";
+			
+			field {
+				 name = "Last Timestamp Word 3";
+				 clock = "clk_tdc_i";
+				 type = SLV;
+				 size = 32;
+				 access_bus = READ_ONLY;
+				 access_dev = WRITE_ONLY;
+			};
+	 };
+
+	 reg {
+			name = "Last Timestamp Control/Status";
+			prefix = "LTSCTL";
+			
+			field {
+				 name = "Last Timestamp Valid";
+				 clock = "clk_tdc_i";
+				 prefix = "VALID";
+				 type = BIT;
+				 access_bus = READ_WRITE;
+				 access_dev = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+	 };
+
+};
