@@ -60,6 +60,11 @@ static void ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	struct ft_wr_timestamp ts = *wrts, *reflast;
 	struct ft_channel_state *st;
 
+	dev_dbg(&ft->fmc->dev,
+		"Set in ZIO block ch %d: seq %u: gseq %llu %llu %u %u\n",
+		ts.channel, ts.seq_id, ts.gseq_id,
+		ts.seconds, ts.coarse, ts.frac);
+
 	st = &ft->channels[channel - 1];
 
 	ctrl = chan->current_ctrl;
