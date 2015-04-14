@@ -1,7 +1,8 @@
 /*
  * The fmc-tdc (a.k.a. FmcTdc1ns5cha) library.
  *
- * Copyright (C) 2012-2013 CERN (www.cern.ch)
+ * Copyright (C) 2012-2015 CERN (www.cern.ch)
+ * Author: Federico Vaga <federico.vaga@cern.ch
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
