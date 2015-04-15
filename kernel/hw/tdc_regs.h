@@ -53,10 +53,10 @@
 #define TDC_INPUT_ENABLE_FLAG BIT(7)
 
 /* IRQ controler registers */
-#define TDC_REG_EIC_IDR 		0x0
-#define TDC_REG_EIC_IER 		0x4
-#define TDC_REG_EIC_IMR 		0x8
-#define TDC_REG_EIC_ISR 		0xc
+#define TDC_REG_EIC_IDR 		0x20
+#define TDC_REG_EIC_IER 		0x24
+#define TDC_REG_EIC_IMR 		0x28
+#define TDC_REG_EIC_ISR 		0x2c
 
 /* IRQ status/enable bits */
 #define TDC_IRQ_TDC_TSTAMP		BIT(0)

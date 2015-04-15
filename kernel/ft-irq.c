@@ -221,7 +221,8 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 
 	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
 
-	if (irq_stat & (TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME)) {
+	/* If there is something in any of the FIFO */
+	if (irq_stat & (FT_NUM_CHANNELS - 1)) {
 		/* clear the IRQ */
 		fmc_writel(ft->fmc, irq_stat,
 			   ft->ft_irq_base + TDC_REG_EIC_ISR);
@@ -322,7 +323,7 @@ static void ft_readout_tasklet(unsigned long arg)
 	}
 
 	/* ack the irq */
-	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP,
+	fmc_writel(ft->fmc, (FT_NUM_CHANNELS - 1),
 		   ft->ft_irq_base + TDC_REG_EIC_ISR);
 	fmc->op->irq_ack(fmc);
 }
@@ -341,7 +342,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	ft_writel(ft, 1, TDC_REG_IRQ_TIMEOUT);
 
 	/* enable timestamp readout IRQ */
-	fmc_writel(ft->fmc, TDC_IRQ_TDC_TSTAMP | TDC_IRQ_TDC_TIME,
+	fmc_writel(ft->fmc, (FT_NUM_CHANNELS - 1),
 		   ft->ft_irq_base + TDC_REG_EIC_IER);
 
 	/* pass the core's base addr as the VIC IRQ vector. */
