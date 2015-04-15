@@ -288,10 +288,35 @@ static const struct zio_sysfs_operations ft_zio_sysfs_ops = {
 	.info_get = ft_zio_info_get,
 };
 
+/**
+ * It enables/disables interrupts according to the enable/disable
+ * status of the correspondent channel
+ */
+static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
+{
+	struct zio_channel *chan;
+	struct fmctdc_dev *ft;
+	unsigned int offset;
+
+	/* We manage only status flag */
+	if (!(mask & ZIO_STATUS))
+		return;
+
+	ft = zdev->priv_d;
+	chan = to_zio_chan(&head->dev);
+	offset = (chan->flags & ZIO_STATUS ? TDC_REG_EIC_IDR : TDC_REG_EIC_IER);
+	fmc_writel(ft->fmc, 1 << cset->index, ft->ft_irq_base + offset);
+}
+
+static struct zio_channel ft_chan_tmpl = {
+	.change_flags = ft_change_flags,
+};
+
 #define DECLARE_CHANNEL(ch_name) \
 	{\
 		ZIO_SET_OBJ_NAME(ch_name),\
 		.raw_io =	ft_zio_input,\
+		.chan_template = &ft_chan_tmpl,\
 		.n_chan =	1,\
 		.ssize =	4, /* FIXME: 0? */\
 		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME | \
