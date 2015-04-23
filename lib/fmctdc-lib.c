@@ -334,18 +334,27 @@ int fmctdc_get_termination(struct fmctdc_board *userb, unsigned int channel)
 
 
 /**
- * It gets the acquisition status of a TDC device
+ * It gets the acquisition status of a TDC channel
  * @param[in] userb TDC board instance token
+ * @param[in] channel channel to which we want read the status
  * @return the acquisition status (0 disabled, 1 enabled), otherwise -1 and
  *         errno is set appropriately
  */
-int fmctdc_get_acquisition(struct fmctdc_board *userb)
+int fmctdc_channel_status_get(struct fmctdc_board *userb, unsigned int channel)
 {
 	__define_board(b, userb);
 	uint32_t val;
+	char attr[64];
 	int ret;
 
-	ret = fmctdc_sysfs_get(b, "enable_inputs", &val);
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(attr, sizeof(attr), "ft-ch%d/enable", channel + 1);
+
+	ret = fmctdc_sysfs_get(b, attr, &val);
 	if (ret)
 		return ret;
 	return val;
@@ -353,22 +362,51 @@ int fmctdc_get_acquisition(struct fmctdc_board *userb)
 
 
 /**
- * The function globally enables/disables timestamp acquisition for the given
- * mezzanine. Due to limitations in the gateware, it is not possible to
- * enable/disable channels individually. Certain operations such as setting
- * board's time require acquisition to be disabled. Disabling acqusition also
- * clears all timestamp buffers and resets sequence IDs of the timestamps.
+ * The function enables/disables timestamp acquisition for the given channel.
  * @param[in] userb TDC board instance token
- * @param[in] on acquisition status to set (0 disable, 1 enable)
+ * @param[in] channel channel to which we want change status
+ * @param[in] status enable status to set
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
-int fmctdc_set_acquisition(struct fmctdc_board *userb, int on)
+int fmctdc_channel_status_set(struct fmctdc_board *userb, unsigned int channel,
+			      enum fmctdc_channel_status status)
 {
 	__define_board(b, userb);
-	uint32_t val;
+	uint32_t val = status;
+	char attr[64];
 
-	val = on ? 1 : 0;
-	return fmctdc_sysfs_set(b, "enable_inputs", &val);
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(attr, sizeof(attr), "ft-ch%d/enable", channel + 1);
+
+	return fmctdc_sysfs_set(b, attr, &val);
+}
+
+/**
+ * It enables a given channel.
+ * NOTE: it is just a wrapper of fmctdc_channel_status_set()
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to which we want change status
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_channel_enable(struct fmctdc_board *userb, unsigned int channel)
+{
+	return fmctdc_channel_status_set(userb, channel, FMCTDC_STATUS_ENABLE);
+}
+
+/**
+ * It disable a given channel.
+ * NOTE: it is just a wrapper of fmctdc_channel_status_set()
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to which we want change status
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_channel_disable(struct fmctdc_board *userb, unsigned int channel)
+{
+	return fmctdc_channel_status_set(userb, channel, FMCTDC_STATUS_DISABLE);
 }
 
 /**
@@ -813,12 +851,12 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 		errno = EINVAL;
 		return -1;
 	}
-	en = fmctdc_get_acquisition(userb);
+	en = fmctdc_channel_status_get(userb, channel);
 	if (en < 0)
 		return -1;
 
 	/* Disable acquisition, it will flush the hw buffer */
-	err = fmctdc_set_acquisition(userb, 0);
+	err = fmctdc_channel_status_set(userb, channel, FMCTDC_STATUS_DISABLE);
 	if (err)
 		return err;
 
@@ -830,5 +868,5 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	}
 
 	/* Re-enable if it was enable */
-	return fmctdc_set_acquisition(userb, en);
+	return fmctdc_channel_status_set(userb, channel, en);
 }

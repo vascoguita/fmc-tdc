@@ -262,6 +262,12 @@ int main(int argc, char **argv)
 				"%s: chan %d: cannot set buffer lenght: %s. Use default\n",
 				argv[0], ch, fmctdc_strerror(errno));
 		}
+		if (!read)
+			ret = fmctdc_channel_enable(brd, i);
+		if (ret)
+			fprintf(stderr,
+				"%s: chan %d: cannot enable acquisition: %s.\n",
+				argv[0], i, fmctdc_strerror(errno));
 		chan_count++;
 		optind++;
 	}
@@ -297,14 +303,18 @@ int main(int argc, char **argv)
 					"%s: chan %d: cannot set buffer lenght: %s. Use default\n",
 					argv[0], i, fmctdc_strerror(errno));
 			}
+
+			if (!read)
+				ret = fmctdc_channel_enable(brd, i);
+			if (ret)
+				fprintf(stderr,
+					"%s: chan %d: cannot enable acquisition: %s.\n",
+					argv[0], i, fmctdc_strerror(errno));
 		}
 		chan_count = i;
 	}
 
 
-	/* Enable acquisition */
-	if (!read)
-		fmctdc_set_acquisition(brd, 1);
 	/* Read Time-Stamps */
 	n = 0;
 	while ((n < n_samples || n_samples <= 0) && (!stop)) {
@@ -359,10 +369,13 @@ int main(int argc, char **argv)
 	for (i = 0; i <= FMCTDC_CH_LAST; i++) {
 		if (channels[i] > 0)
 			fmctdc_reference_clear(brd, -1);
+		if (!read)
+			ret = fmctdc_channel_disable(brd, i);
+		if (ret)
+			fprintf(stderr,
+				"%s: chan %d: cannot disable acquisition: %s.\n",
+				argv[0], i, fmctdc_strerror(errno));
 	}
-	/* Disable acquisition */
-	if (!read)
-		fmctdc_set_acquisition(brd, 0);
 
 	fmctdc_close(brd);
 	exit(EXIT_SUCCESS);

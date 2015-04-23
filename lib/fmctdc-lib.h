@@ -30,6 +30,11 @@ enum fmctdc_buffer_mode {
 	FMCTDC_BUFFER_CIRC,
 };
 
+enum fmctdc_channel_status {
+	FMCTDC_STATUS_DISABLE = 0,
+	FMCTDC_STATUS_ENABLE,
+};
+
 /**
  * Opaque data type used as token
  */
@@ -81,8 +86,15 @@ extern int fmctdc_set_time(struct fmctdc_board *b, struct fmctdc_time *t);
 extern int fmctdc_get_time(struct fmctdc_board *b, struct fmctdc_time *t);
 extern int fmctdc_set_host_time(struct fmctdc_board *b);
 
-extern int fmctdc_set_acquisition(struct fmctdc_board *b, int enable);
-extern int fmctdc_get_acquisition(struct fmctdc_board *b);
+extern int fmctdc_channel_status_set(struct fmctdc_board *userb,
+				     unsigned int channel,
+				     enum fmctdc_channel_status status);
+extern int fmctdc_channel_enable(struct fmctdc_board *userb,
+				 unsigned int channel);
+extern int fmctdc_channel_disable(struct fmctdc_board *userb,
+				  unsigned int channel);
+extern int fmctdc_channel_status_get(struct fmctdc_board *userb,
+				     unsigned int channel);
 
 extern int fmctdc_set_termination(struct fmctdc_board *b, unsigned int channel,
 				  int enable);
