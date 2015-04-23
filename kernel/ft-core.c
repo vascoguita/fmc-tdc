@@ -50,14 +50,6 @@ static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 	return 0;
 }
 
-static void ft_reset_channel(struct fmctdc_dev *ft, int channel)
-{
-	struct ft_channel_state *st = &ft->channels[channel - FT_CH_1];
-
-	st->cur_seq_id = 0;
-	st->expected_edge = 1;
-	zio_trigger_abort_disable(&ft->zdev->cset[channel - FT_CH_1], 0);
-}
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 {
@@ -86,50 +78,26 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 	return 0;
 }
 
-
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 {
-	uint32_t ien, cmd;
-	int i;
-
-	if (ft->acquisition_on == (enable ? 1 : 0))
-		return;
+	uint32_t ien;
 
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
-
 	if (enable) {
-		ien |= TDC_INPUT_ENABLE_FLAG;
-		cmd = TDC_CTRL_EN_ACQ;
+		/* Enable TDC acquisition */
+		ft_writel(ft, ien | TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG,
+			  TDC_REG_INPUT_ENABLE);
+		/* Enable ACAM acquisition */
+		ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 	} else {
-		ien &= ~TDC_INPUT_ENABLE_FLAG;
-		cmd = TDC_CTRL_DIS_ACQ;
+		/* Disable ACAM acquisition */
+		ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
+		/* Disable TDC acquisition */
+		ft_writel(ft, ien & ~(TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG),
+			  TDC_REG_INPUT_ENABLE);
 	}
-
-	spin_lock(&ft->lock);
-
-	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
-	ft_writel(ft, TDC_CTRL_CLEAR_DACAPO_FLAG, TDC_REG_CTRL);
-	ft_writel(ft, cmd, TDC_REG_CTRL);
-
-	ft->acquisition_on = enable;
-
-	if (!enable)
-		ft->prev_wr_ptr = ft->cur_wr_ptr = 0;
-	spin_unlock(&ft->lock);
-
-	if (!enable) {
-		/* Disable all running acquisition and reset channels */
-		for (i = 0; i < ft->zdev->n_cset; ++i)
-			ft_reset_channel(ft, i + FT_CH_1);
-	} else {
-		for (i = 0; i < ft->zdev->n_cset; ++i)
-			zio_arm_trigger(ft->zdev->cset[i].ti);
-	}
-
-	if (ft->verbose)
-		dev_info(&ft->fmc->dev, "acquisition is %s\n",
-			 enable ? "on" : "off");
 }
+
 
 static int ft_channels_init(struct fmctdc_dev *ft)
 {
@@ -280,8 +248,7 @@ int ft_probe(struct fmc_device *fmc)
 	if (ret < 0)
 		goto err;
 
-	ft_enable_acquisition(ft, 0);
-
+	ft_enable_acquisition(ft, 1);
 	ft->initialized = 1;
 	ft->sequence = 0;
 

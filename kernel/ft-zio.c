@@ -27,8 +27,8 @@
 #include <linux/fmc.h>
 
 #include "fmc-tdc.h"
+#include "hw/tdc_regs.h"
 
-#define _RW_ (S_IRUGO | S_IWUGO)    /* I want 80-col lines so this lazy thing */
 
 /* The sample size. Mandatory, device-wide */
 ZIO_ATTR_DEFINE_STD(ZIO_DEV, ft_zattr_dev_std) = {
@@ -41,7 +41,6 @@ static struct zio_attribute ft_zattr_dev[] = {
 	ZIO_ATTR_EXT("seconds", ZIO_RW_PERM, FT_ATTR_DEV_SECONDS, 0),
 	ZIO_ATTR_EXT("coarse", ZIO_RW_PERM, FT_ATTR_DEV_COARSE, 0),
 	ZIO_ATTR_EXT("command", ZIO_WO_PERM, FT_ATTR_DEV_COMMAND, 0),
-	ZIO_ATTR_EXT("enable_inputs", ZIO_RW_PERM, FT_ATTR_DEV_ENABLE_INPUTS, 0),
 	ZIO_ATTR_EXT("sequence", ZIO_RW_PERM, FT_ATTR_DEV_SEQUENCE, 0),
 	ZIO_ATTR_EXT("wr-offset", ZIO_RO_PERM, FT_ATTR_TDC_WR_OFFSET, 0),
 	ZIO_PARAM_EXT("temperature", ZIO_RO_PERM, FT_ATTR_PARAM_TEMP, 0),
@@ -154,11 +153,6 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 			     FT_ATTR_DEV_COARSE ? coarse : (uint32_t) seconds);
 			break;
 		}
-	case FT_ATTR_DEV_ENABLE_INPUTS:
-		attr[FT_ATTR_DEV_ENABLE_INPUTS].value =
-		    ft->acquisition_on ? 1 : 0;
-		*usr_val = ft->acquisition_on ? 1 : 0;
-		break;
 	case FT_ATTR_TDC_WR_OFFSET:
 		*usr_val = ft->calib.wr_offset;
 		break;
@@ -235,14 +229,10 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	if (zattr->id == FT_ATTR_DEV_SECONDS) {
 		attr[FT_ATTR_DEV_SECONDS].value = usr_val;
 
-		return ft_set_tai_time(ft,
-				       attr[FT_ATTR_DEV_SECONDS].value,
-				       attr[FT_ATTR_DEV_COARSE].value);
-		return -ENOTSUPP;
-	} else if (zattr->id == FT_ATTR_DEV_ENABLE_INPUTS) {
-		attr[FT_ATTR_DEV_ENABLE_INPUTS].value = usr_val ? 1 : 0;
-
-		ft_enable_acquisition(ft, usr_val);
+		ft_set_tai_time(ft,
+				attr[FT_ATTR_DEV_SECONDS].value,
+				attr[FT_ATTR_DEV_COARSE].value);
+		return 0;
 	}
 
 	/* Not command, nothing to do */
@@ -295,21 +285,52 @@ static const struct zio_sysfs_operations ft_zio_sysfs_ops = {
 static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 {
 	struct zio_channel *chan;
+	struct ft_channel_state *st;
 	struct fmctdc_dev *ft;
-	unsigned int offset;
+	uint32_t ien;
 
 	/* We manage only status flag */
 	if (!(mask & ZIO_STATUS))
 		return;
 
-	ft = zdev->priv_d;
 	chan = to_zio_chan(&head->dev);
-	offset = (chan->flags & ZIO_STATUS ? TDC_REG_EIC_IDR : TDC_REG_EIC_IER);
-	fmc_writel(ft->fmc, 1 << cset->index, ft->ft_irq_base + offset);
+	ft = chan->cset->zdev->priv_d;
+	st = &ft->channels[chan->cset->index];
+
+	dev_dbg(&chan->head.dev, "change status flag to %d\n",
+		!!(chan->flags & ZIO_STATUS));
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	if (chan->flags & ZIO_STATUS) {
+		/* DISABLED */
+		fmc_writel(ft->fmc, 1 << chan->cset->index,
+			   ft->ft_irq_base + TDC_REG_EIC_IDR);
+
+		st->cur_seq_id = 0;
+		st->expected_edge = 1;
+		zio_trigger_abort_disable(chan->cset, 0);
+		/* Reset last time-stamp (seq number and valid)*/
+		//ft_writel(ft, TDC_FIFO_LAST_CSR_VALID | TDC_FIFO_LAST_CSR_RST_SEQ,
+		//	  TDC_FIFO_LAST_CSR);
+	} else {
+		/* ENABLED */
+		fmc_writel(ft->fmc, 1 << chan->cset->index,
+			   ft->ft_irq_base + TDC_REG_EIC_IER);
+		zio_arm_trigger(chan->cset->ti);
+	}
+	/*
+	 * NOTE: above we have a little HACK. According to ZIO v1.1, ZIO invokes
+	 * this function in a spin-lock context. The TDC assigns this function to
+	 * the channel, so ZIO will take the channel lock. Then on arm() and
+	 * abort() ZIO takes the cset flag. So this will not fail, but bear in
+	 * mind that if you do this when it is assigned to a cset it wont work
+	 */
+	dev_dbg(&chan->head.dev, "trigger status 0x%lx\n",
+		chan->cset->ti->flags);
 }
 
 static struct zio_channel ft_chan_tmpl = {
 	.change_flags = ft_change_flags,
+	.flags = ZIO_DISABLED,
 };
 
 #define DECLARE_CHANNEL(ch_name) \
@@ -319,7 +340,8 @@ static struct zio_channel ft_chan_tmpl = {
 		.chan_template = &ft_chan_tmpl,\
 		.n_chan =	1,\
 		.ssize =	4, /* FIXME: 0? */\
-		.flags =	ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME | \
+		.flags =	ZIO_DISABLED | \
+				ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |	\
 				ZIO_CSET_SELF_TIMED, \
 		.zattr_set = {\
 			.ext_zattr = ft_zattr_input,\
