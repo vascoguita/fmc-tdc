@@ -16,6 +16,7 @@ ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
 	-I$(FMC_BUS)/sdb-lib \
 	-I$(SPEC_SW)/kernel
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
+ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
 
 # For this CSM_VERSION, please see ohwr.org/csm documentation
 ifdef CONFIG_CSM_VERSION
