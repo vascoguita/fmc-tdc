@@ -148,8 +148,6 @@ struct fmctdc_dev {
 	/* IRQ base index (for SVEC) */
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;
-	/* is acquisition mode active? */
-	int acquisition_on;
 	/* carrier specific functions (init/exit/reset/readout/irq handling) */
 	struct ft_carrier_specific *carrier_specific;
 	/* carrier private data */
@@ -204,10 +202,10 @@ void ft_pll_exit(struct fmctdc_dev *ft);
 void ft_ts_apply_offset(struct ft_wr_timestamp *ts, int32_t offset_picos);
 void ft_ts_sub(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b);
 
-int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse);
-int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,
+void ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse);
+void ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,
 		    uint32_t * coarse);
-int ft_set_host_time(struct fmctdc_dev *ft);
+void ft_set_host_time(struct fmctdc_dev *ft);
 
 int ft_wr_mode(struct fmctdc_dev *ft, int on);
 int ft_wr_query(struct fmctdc_dev *ft);

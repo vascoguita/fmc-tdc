@@ -142,8 +142,7 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 			uint64_t seconds;
 			uint32_t coarse;
 
-			if (ft_get_tai_time(ft, &seconds, &coarse) < 0)
-				return -EAGAIN;
+			ft_get_tai_time(ft, &seconds, &coarse);
 
 			attr[FT_ATTR_DEV_COARSE].value = coarse;
 			attr[FT_ATTR_DEV_SECONDS].value = (uint32_t) seconds;
@@ -241,7 +240,8 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 
 	switch (usr_val) {
 	case FT_CMD_SET_HOST_TIME:
-		return ft_set_host_time(ft);
+		ft_set_host_time(ft);
+		return 0;
 	case FT_CMD_WR_ENABLE:
 		return ft_wr_mode(ft, 1);
 	case FT_CMD_WR_DISABLE:

@@ -83,10 +83,10 @@ void ft_ts_apply_offset(struct ft_wr_timestamp *ts, int32_t offset_picos)
 		ft_ts_add(ts, &offset_ts);
 }
 
-int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
+void ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 {
-	if (ft->acquisition_on)	/* can't change time when inputs are enabled */
-		return -EAGAIN;
+	/* can't change time when inputs are enabled */
+	ft_enable_acquisition(ft, 0);
 
 	if (ft->verbose)
 		dev_info(&ft->fmc->dev, "Setting TAI time to %lld:%d\n",
@@ -99,29 +99,30 @@ int ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 
 	ft_writel(ft, seconds & 0xffffffff, TDC_REG_START_UTC);
 	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
-	return 0;
+
+	ft_enable_acquisition(ft, 1);
 }
 
-int ft_get_tai_time(struct fmctdc_dev *ft, uint64_t *seconds,
+void ft_get_tai_time(struct fmctdc_dev *ft, uint64_t *seconds,
 		      uint32_t *coarse)
 {
 	*seconds = ft_readl(ft, TDC_REG_CURRENT_UTC);
 	*coarse = 0;
-	return 0;
 }
 
-int ft_set_host_time(struct fmctdc_dev *ft)
+void ft_set_host_time(struct fmctdc_dev *ft)
 {
 	struct timespec local_ts;
 
-	if (ft->acquisition_on)	/* can't change time when inputs are enabled */
-		return -EAGAIN;
+	/* can't change time when inputs are enabled */
+	ft_enable_acquisition(ft, 0);
 
 	getnstimeofday(&local_ts);
 
 	ft_writel(ft, local_ts.tv_sec & 0xffffffff, TDC_REG_START_UTC);
 	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
-	return 0;
+
+	ft_enable_acquisition(ft, 1);
 }
 
 void ft_set_vcxo_tune(struct fmctdc_dev *ft, int value)
@@ -173,7 +174,8 @@ int ft_time_init(struct fmctdc_dev *ft)
 {
 	/* program the VCXO DAC to the default calibration value */
 	ft_set_vcxo_tune(ft, ft->calib.vcxo_default_tune);
-	return ft_set_tai_time(ft, 0, 0);
+	ft_set_tai_time(ft, 0, 0);
+	return 0;
 }
 
 void ft_time_exit(struct fmctdc_dev *ft)
