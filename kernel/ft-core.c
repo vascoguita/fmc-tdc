@@ -148,7 +148,7 @@ int ft_probe(struct fmc_device *fmc)
 		return -ENOMEM;
 	}
 
-	index = fmc->op->validate(fmc, &ft_drv);
+	index = fmc_validate(fmc, &ft_drv);
 	if (index < 0) {
 		dev_info(dev, "not using \"%s\" according to modparam\n",
 			 KBUILD_MODNAME);

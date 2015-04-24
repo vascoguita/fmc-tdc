@@ -321,7 +321,7 @@ irq:
 		goto irq;
 
 	/* Ack the FMC signal, we have finished */
-	fmc->op->irq_ack(fmc);
+	fmc_irq_ack(fmc);
 
 	return IRQ_HANDLED;
 }
@@ -342,7 +342,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	/* fixme: vector table points to the bridge instead of
 	   the core's base address */
 	ft->fmc->irq = ft->ft_irq_base;
-	ret = ft->fmc->op->irq_request(ft->fmc, ft_irq_handler, "fmc-tdc", 0);
+	ret = fmc_irq_request(ft->fmc, ft_irq_handler, "fmc-tdc", 0);
 
 	if (ret < 0) {
 		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);
@@ -350,7 +350,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	}
 
 	/* kick off the interrupts (fixme: possible issue with the HDL) */
-	ft->fmc->op->irq_ack(ft->fmc);
+	fmc_irq_ack(ft->fmc);
 
 	return 0;
 }
@@ -358,5 +358,5 @@ int ft_irq_init(struct fmctdc_dev *ft)
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
 	fmc_writel(ft->fmc, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
-	ft->fmc->op->irq_free(ft->fmc);
+	fmc_irq_free(ft->fmc);
 }
