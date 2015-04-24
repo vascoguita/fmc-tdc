@@ -297,8 +297,6 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	ft = chan->cset->zdev->priv_d;
 	st = &ft->channels[chan->cset->index];
 
-	dev_dbg(&chan->head.dev, "change status flag to %d\n",
-		!!(chan->flags & ZIO_STATUS));
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (chan->flags & ZIO_STATUS) {
 		/* DISABLED */
@@ -324,8 +322,6 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	 * abort() ZIO takes the cset flag. So this will not fail, but bear in
 	 * mind that if you do this when it is assigned to a cset it wont work
 	 */
-	dev_dbg(&chan->head.dev, "trigger status 0x%lx\n",
-		chan->cset->ti->flags);
 }
 
 static struct zio_channel ft_chan_tmpl = {

@@ -117,8 +117,9 @@ struct ft_wr_timestamp {
 	uint32_t coarse;
 	uint32_t frac;
 	uint32_t channel;
-	uint32_t seq_id;
-	uint64_t gseq_id;
+	uint32_t hseq_id; /* hardware channel sequence id */
+	uint32_t dseq_id; /* channel sequence id */
+	uint64_t gseq_id; /* global sequence id */
 };
 
 struct ft_channel_state {
@@ -154,7 +155,6 @@ struct fmctdc_dev {
 	void *carrier_data;
 	/* current calibration block */
 	struct ft_calibration calib;
-	struct tasklet_struct readout_tasklet;
 	int initialized;
 	/* DS18S20 temperature sensor 1-wire ID */
 	uint8_t ds18_id[8];
@@ -167,8 +167,6 @@ struct fmctdc_dev {
 	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
-	/* hardware buffer pointers / dacapo regs */
-	uint32_t cur_wr_ptr, prev_wr_ptr;
 
 	uint64_t sequence; /**< Board time-stamp sequence number */
 };

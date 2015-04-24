@@ -2,6 +2,7 @@
  * Interrupt handling and timestamp readout for fmc-tdc driver.
  *
  * Copyright (C) 2012-2013 CERN (www.cern.ch)
+ * Author: Federico Vaga <federico.vaga@cern.ch>
  * Author: Tomasz Wlostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
@@ -29,45 +30,25 @@
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
-static void ft_readout_tasklet(unsigned long arg);
 
-static void copy_timestamps(struct fmctdc_dev *ft, int base_addr,
-			      int size, void *dst)
+static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 {
-	int i;
-	uint32_t addr;
-	uint32_t *dptr;
-
-	/* no unaligned reads, please. */
-	BUG_ON(size & 3 || base_addr & 3);
-
-	/* FIXME: use SDB to determine buffer base address
-	   (after fixing the HDL) */
-	addr = ft->ft_buffer_base + base_addr;
-
-	for (i = 0, dptr = (uint32_t *) dst; i < size / 4; i++, dptr++)
-		*dptr = fmc_readl(ft->fmc, addr + i * 4);
-}
-
-
-static void ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
-			    struct zio_channel *chan,
-			    struct ft_wr_timestamp *wrts)
-{
+	struct zio_device *zdev = cset->zdev;
+	struct fmctdc_dev *ft = zdev->priv_d;
 	struct zio_control *ctrl;
-	struct zio_ti *ti = chan->cset->ti;
+	struct zio_ti *ti = cset->ti;
 	uint32_t *v;
 	struct ft_wr_timestamp ts = *wrts, *reflast;
 	struct ft_channel_state *st;
 
 	dev_dbg(&ft->fmc->dev,
-		"Set in ZIO block ch %d: seq %u: gseq %llu %llu %u %u\n",
-		ts.channel, ts.seq_id, ts.gseq_id,
+		"Set in ZIO block ch %d: hseq %u: dseq %u: gseq %llu %llu %u %u\n",
+		ts.channel, ts.hseq_id, ts.dseq_id, ts.gseq_id,
 		ts.seconds, ts.coarse, ts.frac);
 
-	st = &ft->channels[channel - 1];
+	st = &ft->channels[cset->index];
 
-	ctrl = chan->current_ctrl;
+	ctrl = cset->chan->current_ctrl;
 	v = ctrl->attr_channel.ext_val;
 
 	/* Update last time stamp of the current channel,
@@ -111,35 +92,48 @@ static void ft_read_sw_fifo(struct fmctdc_dev *ft, int channel,
 	 * sequence number insted of using the ZIO one. decrement because
 	 * zio will increment it.
 	 */
-	ctrl->seq_num = ts.seq_id--;
+	ctrl->seq_num = ts.dseq_id--;
 
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
-	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[channel - 1];
+	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 }
 
 
-static inline int process_timestamp(struct fmctdc_dev *ft,
+/**
+ * It proccess a given timestamp and when it correspond to a pulse it
+ * converts the timestamp from the hardware format to the white rabbit format
+ */
+static inline int process_timestamp(struct zio_cset *cset,
 				    struct ft_hw_timestamp *hwts,
 				    struct ft_wr_timestamp *wrts,
 				    int dacapo_flag)
 {
+	struct zio_device *zdev = cset->zdev;
+	struct fmctdc_dev *ft = zdev->priv_d;
 	struct ft_channel_state *st;
 	struct ft_wr_timestamp ts;
 	struct ft_wr_timestamp diff;
 	int channel, edge, frac, ret = 0;
 
+	st = &ft->channels[cset->index];
+
 	dev_vdbg(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
 		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->bins);
-	channel = (hwts->metadata & 0x7) + 1;
+	channel = (hwts->metadata & 0x7);
+	/* channel from 1 to 5, cset is from 0 to 4 */
+	if (channel != cset->index) {
+		dev_err(&ft->fmc->dev,
+			"reading from the wrong channel (expected %d, given %d)\n",
+			channel, cset->index);
+		return 0;
+	}
 	edge = hwts->metadata & (1 << 4) ? 1 : 0;
-
-	st = &ft->channels[channel - 1];
 
 	/* first, convert the timestamp from the HDL units (81 ps bins)
 	   to the WR format (where fractional part is 8 ns rescaled to
 	   4096 units) */
-	ts.channel = channel;
+	ts.channel = channel + 1; /* We want to see channels starting from 1*/
 	ts.seconds = hwts->utc;
 	/* 64/125 = 4096/8000: reduce fraction to avoid 64-bit division */
 	frac = hwts->bins * 81 * 64 / 125;
@@ -197,11 +191,13 @@ static inline int process_timestamp(struct fmctdc_dev *ft,
 		/* Got a dacapo flag? make a gap in the sequence ID to indicate
 		   an unknown loss of timestamps */
 
-		ts.seq_id = st->cur_seq_id++;
+		ts.dseq_id = st->cur_seq_id++;
 		if (dacapo_flag) {
-			ts.seq_id++;
+			ts.dseq_id++;
 			st->cur_seq_id++;
 		}
+
+		ts.hseq_id = hwts->metadata >> 5;
 
 		/* Return a valid timestamp */
 		*wrts = ts;
@@ -210,140 +206,137 @@ static inline int process_timestamp(struct fmctdc_dev *ft,
 
 	/* Wait for the next raising edge */
 	st->expected_edge = 1;
+
+	dev_vdbg(&cset->head.dev,
+		 "processed TS: ch %d: hseq_id %u:  dseq %u: gseq %llu %llu %u %u\n",
+		 wrts->channel, wrts->hseq_id, wrts->dseq_id, wrts->gseq_id,
+		 wrts->seconds, wrts->coarse, wrts->frac);
+
 	return ret;
 }
 
+/**
+ * Get a time stamp from the fifo, if you set the 'last' flag it takes the last
+ * recorded time-stamp
+ */
+static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
+			   unsigned int last)
+{
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
+	uint32_t fifo_addr = ft->ft_buffer_base + TDC_FIFO_OFFSET * cset->index;
+	uint32_t data[TDC_FIFO_OUT_N - 1];
+	int i, valid = 1;
+
+	fifo_addr += last ? TDC_FIFO_LAST : TDC_FIFO_OUT;
+	for (i = 0; i < TDC_FIFO_OUT_N; ++i) {
+		data[i] = fmc_readl(ft->fmc, fifo_addr + i * 4);
+		dev_vdbg(&cset->head.dev, "FIFO read 0x%x from 0x%x\n",
+			 data[i], fifo_addr + i * 4);
+	}
+
+	if (last) {
+		valid = !!(fmc_readl(ft->fmc, fifo_addr + TDC_FIFO_LAST_CSR) &
+			   TDC_FIFO_LAST_CSR_VALID);
+	}
+
+	memcpy(hwts, data, TDC_FIFO_OUT_N * 4);
+	return valid;
+}
+
+/**
+ * Extract a timestamp from the FIFO
+ */
+static void ft_readout_fifo_one(struct zio_cset *cset)
+{
+	struct ft_hw_timestamp hwts;
+	struct ft_wr_timestamp wrts;
+	int ret, dacapo = 0; 	/* FIXME dacapo flag */
+
+	ft_timestap_get(cset, &hwts, 0);
+
+	ret = process_timestamp(cset, &hwts, &wrts, dacapo);
+	if (!ret)
+		return; /* Nothing to do, is not the right pulse */
+
+	if (!(ZIO_TI_ARMED & cset->ti->flags)) {
+		dev_warn(&cset->head.dev,
+			 "Time stamp lost, trigger was not armed\n");
+		return; /* Nothing to do, ZIO was not ready */
+	}
+	/* there is an active block, store data there */
+	ft_read_sw_fifo(cset, &wrts);
+	zio_trigger_data_done(cset);
+}
+
+
+/**
+ * An interrupt is ready, get time stamps from the FIFOs
+ */
 static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
-	uint32_t irq_stat;
+	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
+	struct zio_cset *cset;
+	int i;
 
 	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	if (!irq_stat)
+		return IRQ_NONE;
 
-	/* If there is something in any of the FIFO */
-	if (irq_stat & (FT_NUM_CHANNELS - 1)) {
-		/* clear the IRQ */
-		fmc_writel(ft->fmc, irq_stat,
-			   ft->ft_irq_base + TDC_REG_EIC_ISR);
+irq:
+	dev_vdbg(&ft->fmc->dev, "pending IRQ 0x%x\n", irq_stat);
+	/*
+	 * Go through all FIFOs and read data. Democracy is a complicated thing,
+	 * the following loops is a democratic loop, so it goes trough all
+	 * channels without any priority. This avoid to be late to read the last
+	 * channel on high frequency where the risk is to have an oligarchy
+	 * where the first and second channel are read, but not the others.
+	 */
+	tmp_irq_stat = 0xFF;
+	do {
+		tmp_irq_stat &= irq_stat;
+		for (i = 0; i < FT_NUM_CHANNELS; i++) {
+			cset = &ft->zdev->cset[i];
+			if (!(tmp_irq_stat & (1 << i)))
+				continue; /* Nothing to do for this FIFO */
 
-		tasklet_schedule(&ft->readout_tasklet);
-		return IRQ_HANDLED;
-	}
+			ft_readout_fifo_one(cset);
+			fifo_csr_addr = ft->ft_buffer_base +
+				TDC_FIFO_OFFSET * cset->index + TDC_FIFO_CSR;
+			fifo_stat = fmc_readl(ft->fmc, fifo_csr_addr);
+			if (!(fifo_stat & TDC_FIFO_CSR_EMPTY))
+				continue; /* Still something to read */
 
-	return IRQ_NONE;
-}
-
-static inline int check_lost_events(uint32_t curr_wr_ptr, uint32_t prev_wr_ptr,
-				    int *count)
-{
-	uint32_t dacapo_prev, dacapo_curr;
-	int dacapo_diff, ptr_diff = 0;
-
-	dacapo_prev = prev_wr_ptr >> 12;
-	dacapo_curr = curr_wr_ptr >> 12;
-	curr_wr_ptr &= 0x00fff;	/* Pick last 12 bits */
-	curr_wr_ptr >>= 4;	/* Remove last 4 bits. */
-	prev_wr_ptr &= 0x00fff;	/* Pick last 12 bits */
-	prev_wr_ptr >>= 4;	/* Remove last 4 bits. */
-	dacapo_diff = dacapo_curr - dacapo_prev;
-
-	switch (dacapo_diff) {
-
-	case 1:
-		ptr_diff = curr_wr_ptr - prev_wr_ptr;
-		if (ptr_diff > 0) {
-			*count = FT_BUFFER_EVENTS;
-			return 1;	/* We lost data */
+			/* Ack the interrupt, nothing to read anymore */
+			fmc_writel(ft->fmc, 1 << i,
+				   ft->ft_irq_base + TDC_REG_EIC_ISR);
+			tmp_irq_stat &= (~(1 << i));
 		}
-		*count = curr_wr_ptr - prev_wr_ptr + FT_BUFFER_EVENTS;
-		break;
-	case 0:
-		/* We didn't lose data */
-		*count = curr_wr_ptr - prev_wr_ptr;
-		break;
-	default:
-		/* We lost data for sure. Notify to the user */
-		*count = FT_BUFFER_EVENTS;
-		return 1;
-	}
+	} while (tmp_irq_stat);
 
-	return 0;
-}
+	/* Meanwhile we got another interrupt? then repeat */
+	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	if (irq_stat)
+		goto irq;
 
-static void ft_readout_tasklet(unsigned long arg)
-{
-	struct fmctdc_dev *ft = (struct fmctdc_dev *)arg;
-	struct fmc_device *fmc = ft->fmc;
-	struct zio_device *zdev = ft->zdev;
-	struct ft_wr_timestamp wrts;
-	struct zio_cset *cset;
-	uint32_t rd_ptr;
-	int count, dacapo, ret;
-
-	ft->prev_wr_ptr = ft->cur_wr_ptr;
-	ft->cur_wr_ptr = ft_readl(ft, TDC_REG_BUFFER_PTR);
-
-	dacapo = check_lost_events(ft->cur_wr_ptr, ft->prev_wr_ptr, &count);
-
-	/* Start reading from the oldest event */
-	if (count == FT_BUFFER_EVENTS)
-		/* The oldest is curr_wr_ptr */
-		rd_ptr = (ft->cur_wr_ptr >> 4) & 0x000ff;
-	else
-		/* The oldest is prev_wr_ptr */
-		rd_ptr = (ft->prev_wr_ptr >> 4) & 0x000ff;
-
-	/* Get from the hardware all available time stamps */
-	for (; count > 0; count--) {
-		struct ft_hw_timestamp hwts;
-
-		copy_timestamps(ft, rd_ptr * sizeof(struct ft_hw_timestamp),
-				sizeof(struct ft_hw_timestamp), &hwts);
-		ret = process_timestamp(ft, &hwts, &wrts, dacapo);
-		rd_ptr = (rd_ptr + 1) % FT_BUFFER_EVENTS;
-		if (ret) {
-			dev_dbg(&ft->fmc->dev,
-				"processed TS: ch %d: seq %u: gseq %llu %llu %u %u\n",
-				wrts.channel, wrts.seq_id, wrts.gseq_id,
-				wrts.seconds, wrts.coarse, wrts.frac);
-
-			if (!zdev)
-				continue;
-
-			cset = &zdev->cset[wrts.channel - 1];
-			if (ZIO_TI_ARMED & cset->ti->flags) {
-				/* there is an active block, try reading an
-				   accumulated sample */
-				ft_read_sw_fifo(ft, wrts.channel,
-						cset->chan, &wrts);
-				zio_trigger_data_done(cset);
-			}
-		}
-	}
-
-	/* ack the irq */
-	fmc_writel(ft->fmc, (FT_NUM_CHANNELS - 1),
-		   ft->ft_irq_base + TDC_REG_EIC_ISR);
+	/* Ack the FMC signal, we have finished */
 	fmc->op->irq_ack(fmc);
+
+	return IRQ_HANDLED;
 }
+
 
 int ft_irq_init(struct fmctdc_dev *ft)
 {
 	int ret;
 
-	tasklet_init(&ft->readout_tasklet, ft_readout_tasklet,
-		     (unsigned long)ft);
-
-	/* FIXME coalescing is not working on VHDL side, set to 1 timestamp
-	   and 1 milliseconds can fix the problem (no coalescing) */
 	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
-	ft_writel(ft, 1, TDC_REG_IRQ_THRESHOLD);
-	ft_writel(ft, 1, TDC_REG_IRQ_TIMEOUT);
+	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
+	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
 
-	/* enable timestamp readout IRQ */
-	fmc_writel(ft->fmc, (FT_NUM_CHANNELS - 1),
-		   ft->ft_irq_base + TDC_REG_EIC_IER);
+	/* disable timestamp readout IRQ, user will enable it manually */
+	fmc_writel(ft->fmc, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
 
 	/* pass the core's base addr as the VIC IRQ vector. */
 	/* fixme: vector table points to the bridge instead of

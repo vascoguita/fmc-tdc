@@ -51,12 +51,22 @@
 
 /* TDC_REG_INPUT_ENABLE bits */
 #define TDC_INPUT_ENABLE_FLAG BIT(7)
+#define TDC_INPUT_ENABLE_CH1 BIT(16)
+#define TDC_INPUT_ENABLE_CH2 BIT(17)
+#define TDC_INPUT_ENABLE_CH3 BIT(18)
+#define TDC_INPUT_ENABLE_CH4 BIT(19)
+#define TDC_INPUT_ENABLE_CH5 BIT(20)
+#define TDC_INPUT_ENABLE_CH_ALL (TDC_INPUT_ENABLE_CH1 | \
+				 TDC_INPUT_ENABLE_CH2 | \
+				 TDC_INPUT_ENABLE_CH3 | \
+				 TDC_INPUT_ENABLE_CH4 | \
+				 TDC_INPUT_ENABLE_CH5)
 
 /* IRQ controler registers */
-#define TDC_REG_EIC_IDR 		0x20
-#define TDC_REG_EIC_IER 		0x24
-#define TDC_REG_EIC_IMR 		0x28
-#define TDC_REG_EIC_ISR 		0x2c
+#define TDC_REG_EIC_IDR 		0x0
+#define TDC_REG_EIC_IER 		0x4
+#define TDC_REG_EIC_IMR 		0x8
+#define TDC_REG_EIC_ISR 		0xc
 
 /* IRQ status/enable bits */
 #define TDC_IRQ_TDC_TSTAMP		BIT(0)
@@ -68,6 +78,20 @@
 #define TDC_EVENT_FIFO_LF_MASK		0xF00
 #define TDC_EVENT_FIFO_EF_MASK		0xF000
 #define TDC_EVENT_DACAPO_FLAG		BIT(0)
+
+/* FIFO registers */
+#define TDC_FIFO_OFFSET			0x100
+#define TDC_FIFO_LAST			0x0
+#define TDC_FIFO_LAST_N			4
+#define TDC_FIFO_LAST_CSR		0x10
+#define TDC_FIFO_LAST_CSR_VALID		BIT(0)
+#define TDC_FIFO_LAST_CSR_RST_SEQ	BIT(1)
+#define TDC_FIFO_OUT			0x14
+#define TDC_FIFO_OUT_N			4
+#define TDC_FIFO_CSR			0x24
+#define TDC_FIFO_CSR_EMPTY		BIT(17)
+#define TDC_FIFO_CSR_FULL		BIT(16)
+#define TDC_FIFO_CSR_USEDW
 
 /* Carrier CSRs */
 #define TDC_REG_CARRIER_CTL0		0x0 /* a.k.a. Carrier revision/PCB id reg */
@@ -101,9 +125,9 @@
 
 /* TDC core submodule offsets (wrs to the TDC control registers block) */
 
-#define TDC_MEZZ_I2C_OFFSET	(0x2000)
 #define TDC_MEZZ_ONEWIRE_OFFSET	(-0x1000)
 #define TDC_MEZZ_EIC_OFFSET	(0x1000)
+#define TDC_MEZZ_I2C_OFFSET	(0x2000)
 #define TDC_MEZZ_MEM_OFFSET	(0x3000)
 
 
