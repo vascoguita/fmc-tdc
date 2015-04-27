@@ -224,7 +224,7 @@ static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	uint32_t fifo_addr = ft->ft_buffer_base + TDC_FIFO_OFFSET * cset->index;
-	uint32_t data[TDC_FIFO_OUT_N - 1];
+	uint32_t data[TDC_FIFO_OUT_N];
 	int i, valid = 1;
 
 	fifo_addr += last ? TDC_FIFO_LAST : TDC_FIFO_OUT;
