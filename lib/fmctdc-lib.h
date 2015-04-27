@@ -135,17 +135,7 @@ extern int fmctdc_reference_set(struct fmctdc_board *userb,
 				unsigned int ch_target, int ch_reference);
 extern int fmctdc_reference_get(struct fmctdc_board *userb,
 				unsigned int ch_target);
-/**
- * It removes the time reference from a target channel
- * @param[in] userb TDC board instance token
- * @param[in] ch_target target channel [1, 5]
- * @return 0 on success, otherwise -1 and errno is set appropriately
- */
-static inline int fmctdc_reference_clear(struct fmctdc_board *userb,
-					 int ch_target)
-{
-	return fmctdc_reference_set(userb, ch_target, 0);
-}
+extern int fmctdc_reference_clear(struct fmctdc_board *userb, int ch_target);
 /**@}*/
 
 
@@ -175,21 +165,12 @@ extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
  * @{
  */
 
-/**
- * It compares two time-stamps.
- * @param[in] a first time stamp
- * @param[in] b second time stamp
- * @return like memcmp(2) and strcmp(2)
- */
-static inline int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b)
-{
-	/* FIXME integer overflow to be managed */
-	return a->gseq_id - b->seq_id;
-}
+
 extern uint64_t fmctdc_ts_approx_ns(struct fmctdc_time *a);
 extern uint64_t fmctdc_ts_ps(struct fmctdc_time *a);
 extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
 extern void ft_ts_add(struct fmctdc_time *a, struct fmctdc_time *b);
+extern int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b);
 /**@}*/
 
 #endif /* __FMCTDC_LIB_H__ */

@@ -808,6 +808,18 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 
 
 /**
+ * It removes the time reference from a target channel
+ * @param[in] userb TDC board instance token
+ * @param[in] ch_target target channel [1, 5]
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_reference_clear(struct fmctdc_board *userb, int ch_target)
+{
+	return fmctdc_reference_set(userb, ch_target, 0);
+}
+
+
+/**
  * It get the current reference channel of a given target channel
  * @param[in] userb TDC board instance token
  * @param[in] ch_target target channel [0, 4]
