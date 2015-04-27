@@ -15,28 +15,41 @@
 
 #include <stdint.h>
 
+/**
+ * Enumeration for all TDC channels
+ */
 enum fmctdc_channel {
 	FMCTDC_CH_1 = 0,
 	FMCTDC_CH_2,
 	FMCTDC_CH_3,
 	FMCTDC_CH_4,
 	FMCTDC_CH_5,
-	FMCTDC_CH_LAST = 4,
+	FMCTDC_CH_LAST = FMCTDC_CH_5,
 	FMCTDC_NUM_CHANNELS = 5
 };
 
+/**
+ * Enumeration of all buffer modes
+ */
 enum fmctdc_buffer_mode {
-	FMCTDC_BUFFER_FIFO = 0,
-	FMCTDC_BUFFER_CIRC,
+	FMCTDC_BUFFER_FIFO = 0, /**< FIFO policy: when buffer is full, new
+				 time-stamps will be dropped */
+	FMCTDC_BUFFER_CIRC, /**< circular buffer policy: when the buffer is
+			       full, old time-stamps will be overwritten by
+			       new ones */
 };
 
+
+/**
+ * Enumeration for all possible status of a channel
+ */
 enum fmctdc_channel_status {
-	FMCTDC_STATUS_DISABLE = 0,
-	FMCTDC_STATUS_ENABLE,
+	FMCTDC_STATUS_DISABLE = 0, /**< The cannel is disable */
+	FMCTDC_STATUS_ENABLE, /**< the channel is enable */
 };
 
 /**
- * Opaque data type used as token
+ * Opaque data type used as token. Do not try to access.
  */
 struct fmctdc_board;
 
@@ -56,7 +69,8 @@ struct fmctdc_time {
 			  4095 = 7.999 ns. */
 	uint32_t seq_id; /**< channel sequence number*/
 	uint32_t gseq_id; /**< board sequence number */
-	uint32_t ref_gseq_id; /**< board sequence number of the reference */
+	uint32_t ref_gseq_id; /**< board sequence number of the reference
+				 channel time-stamp */
 };
 
 
