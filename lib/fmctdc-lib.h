@@ -75,31 +75,40 @@ struct fmctdc_time {
 
 
 /**
- * It compares two time-stamps.
- * @param[in] a first time stamp
- * @param[in] b second time stamp
- * @return like memcmp(2) and strcmp(2)
- */
-static inline int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b)
-{
-	return a->gseq_id - b->seq_id;
-}
-
-/**
  * @file fmctdc-lib.c
+ */
+/**
+ * @defgroup libutil Utilities
+ * Set of library utilities
+ * @{
  */
 extern char *fmctdc_strerror(int err);
 extern int fmctdc_init(void);
 extern void fmctdc_exit(void);
+/**@}*/
 
-extern struct fmctdc_board *fmctdc_open(int offset, int dev_id);
-extern struct fmctdc_board *fmctdc_open_by_lun(int lun);
-extern int fmctdc_close(struct fmctdc_board *);
 
+/**
+ * @defgroup libboard Board Configuration
+ * Set of function to configure TDC board and retrieve information
+ * about the current status
+ * @{
+ */
 extern int fmctdc_set_time(struct fmctdc_board *b, struct fmctdc_time *t);
 extern int fmctdc_get_time(struct fmctdc_board *b, struct fmctdc_time *t);
 extern int fmctdc_set_host_time(struct fmctdc_board *b);
+extern int fmctdc_wr_mode(struct fmctdc_board *b, int on);
+extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
+extern float fmctdc_read_temperature(struct fmctdc_board *b);
+/**@}*/
 
+
+/**
+ * @defgroup libchan Channel Configuration
+ * Set of function to configure TDC channels and retrieve information
+ * about the current status
+ * @{
+ */
 extern int fmctdc_channel_status_set(struct fmctdc_board *userb,
 				     unsigned int channel,
 				     enum fmctdc_channel_status status);
@@ -109,7 +118,6 @@ extern int fmctdc_channel_disable(struct fmctdc_board *userb,
 				  unsigned int channel);
 extern int fmctdc_channel_status_get(struct fmctdc_board *userb,
 				     unsigned int channel);
-
 extern int fmctdc_set_termination(struct fmctdc_board *b, unsigned int channel,
 				  int enable);
 extern int fmctdc_get_termination(struct fmctdc_board *b, unsigned int channel);
@@ -123,32 +131,10 @@ extern int fmctdc_get_buffer_len(struct fmctdc_board *userb,
 extern int fmctdc_set_buffer_len(struct fmctdc_board *userb,
 				 unsigned int channel,
 				 unsigned int lenght);
-extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
-			struct fmctdc_time *t, int n);
-extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);
-extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
-		       struct fmctdc_time *t, int n, int flags);
-
-extern float fmctdc_read_temperature(struct fmctdc_board *b);
-
-extern int fmctdc_wr_mode(struct fmctdc_board *b, int on);
-extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
-
-extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
 extern int fmctdc_reference_set(struct fmctdc_board *userb,
 				unsigned int ch_target, int ch_reference);
-extern int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target);
-extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
-
-/**
- *@file fmctdc-lib-math.c
- */
-extern uint64_t fmctdc_ts_approx_ns(struct fmctdc_time *a);
-extern uint64_t fmctdc_ts_ps(struct fmctdc_time *a);
-extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
-extern void ft_ts_add(struct fmctdc_time *a, struct fmctdc_time *b);
-
-
+extern int fmctdc_reference_get(struct fmctdc_board *userb,
+				unsigned int ch_target);
 /**
  * It removes the time reference from a target channel
  * @param[in] userb TDC board instance token
@@ -160,4 +146,50 @@ static inline int fmctdc_reference_clear(struct fmctdc_board *userb,
 {
 	return fmctdc_reference_set(userb, ch_target, 0);
 }
+/**@}*/
+
+
+/**
+ * @defgroup libacq Time-stamps Acquisition
+ * Set of functions to read time-stamps from the board
+ * @{
+ */
+extern struct fmctdc_board *fmctdc_open(int offset, int dev_id);
+extern struct fmctdc_board *fmctdc_open_by_lun(int lun);
+extern int fmctdc_close(struct fmctdc_board *);
+extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
+			struct fmctdc_time *t, int n);
+extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);
+extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
+		       struct fmctdc_time *t, int n, int flags);
+extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
+/**@}*/
+
+
+/**
+ *@file fmctdc-lib-math.c
+ */
+/**
+ * @defgroup libmath Time-Stamp Math
+ * Set of mathematical functions on time-stamps
+ * @{
+ */
+
+/**
+ * It compares two time-stamps.
+ * @param[in] a first time stamp
+ * @param[in] b second time stamp
+ * @return like memcmp(2) and strcmp(2)
+ */
+static inline int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b)
+{
+	/* FIXME integer overflow to be managed */
+	return a->gseq_id - b->seq_id;
+}
+extern uint64_t fmctdc_ts_approx_ns(struct fmctdc_time *a);
+extern uint64_t fmctdc_ts_ps(struct fmctdc_time *a);
+extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
+extern void ft_ts_add(struct fmctdc_time *a, struct fmctdc_time *b);
+/**@}*/
+
 #endif /* __FMCTDC_LIB_H__ */

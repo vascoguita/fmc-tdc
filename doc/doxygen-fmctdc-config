@@ -12,7 +12,7 @@ CASE_SENSE_NAMES       = YES
 
 WARN_NO_PARAMDOC       = YES
 
-INPUT                  = ../lib
+INPUT                  = ../lib readme.md
 RECURSIVE              = YES
 EXCLUDE                = $(EXCLUDE_FILES)
 
