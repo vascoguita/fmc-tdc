@@ -416,9 +416,6 @@ begin
 
   end generate gen_fifos;
 
-  irq_tstamp <= '1' when unsigned(irq_channel) /= 0 else '0';
-
-
   p_gen_1ms_tick : process(clk_tdc_i)
   begin
     if rising_edge(clk_tdc_i) then
@@ -515,21 +512,23 @@ begin
 -- 2 -> ACAM error
   cmp_tdc_eic : tdc_eic
     port map
-    (clk_sys_i          => clk_sys_i,
-     rst_n_i            => rst_sys_n_i,
-     wb_adr_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(3 downto 2),
-     wb_dat_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
-     wb_dat_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
-     wb_cyc_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
-     wb_sel_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
-     wb_stb_i           => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
-     wb_we_i            => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
-     wb_ack_o           => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
-     wb_stall_o         => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
-     wb_int_o           => wb_irq_o,
-     irq_tdc_tstamps_i  => irq_tstamp,
-     irq_tdc_time_i     => '0',
-     irq_tdc_acam_err_i => '0');
+    (clk_sys_i       => clk_sys_i,
+     rst_n_i         => rst_sys_n_i,
+     wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(3 downto 2),
+     wb_dat_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
+     wb_dat_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
+     wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
+     wb_sel_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
+     wb_stb_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
+     wb_we_i         => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
+     wb_ack_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
+     wb_stall_o      => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
+     wb_int_o        => wb_irq_o,
+     irq_tdc_fifo1_i => irq_channel(0),
+     irq_tdc_fifo2_i => irq_channel(1),
+     irq_tdc_fifo3_i => irq_channel(2),
+     irq_tdc_fifo4_i => irq_channel(3),
+     irq_tdc_fifo5_i => irq_channel(4));
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals

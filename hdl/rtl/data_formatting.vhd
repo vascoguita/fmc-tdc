@@ -137,7 +137,7 @@ architecture rtl of data_formatting is
   signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
   signal un_acam_fine_time                                    : unsigned(31 downto 0);
   signal previous_utc                                         : std_logic_vector(31 downto 0);
-
+  signal timestamp_valid_int : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
@@ -149,9 +149,9 @@ begin
   begin
     if rising_edge (clk_i) then
       if rst_i = '1' then
-        timestamp_valid_o <= '0';
+        timestamp_valid_int <= '0';
       else
-        timestamp_valid_o <= acam_tstamp1_ok_p_i or acam_tstamp2_ok_p_i;
+        timestamp_valid_int <= acam_tstamp1_ok_p_i or acam_tstamp2_ok_p_i;
       end if;
     end if;
   end process;
@@ -333,8 +333,15 @@ begin
   full_timestamp(63 downto 32)  <= coarse_time;
   full_timestamp(95 downto 64)  <= utc;
   full_timestamp(127 downto 96) <= metadata;
-  timestamp_o                   <= full_timestamp;
 
+
+  process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      timestamp_o <= full_timestamp;
+      timestamp_valid_o <= timestamp_valid_int;
+      end if;
+  end process;
   
 end rtl;
 ----------------------------------------------------------------------------------------------------

@@ -51,12 +51,12 @@ module fake_acam(
       if (addr == 8) begin
 	 acam_fifo_entry ent;
 	 ent=fifo1.pop_front();
-	 data <= ent.ts | (ent.channel << 26);
+	 data <= ent.ts | (ent.channel << 26) | (1<<17);
 	 
       end else if (addr == 9) begin
 	 acam_fifo_entry ent;
 	 ent=fifo2.pop_front();
-	 data <= ent.ts | (ent.channel << 26);
+	 data <= ent.ts | (ent.channel << 26) | (1<<17);
 
       end else
 	data <= 28'bz;
@@ -218,7 +218,7 @@ module main;
 
       acc.write('hc13004, 'hf); // enable EIC irq
 
-      acc.write('hc12084, 'h1f); // enable all ACAM inputs
+      acc.write('hc12084, 'h1f0000); // enable all ACAM inputs
       acc.write('hc120fc, (1<<0)); // start acquisition
       
       acc.write('hc120fc, (1<<0)); // start acquisition
@@ -230,11 +230,11 @@ module main;
       #300us;
       fork
 	 forever begin
-	    acc.read('hc15000 + `ADDR_TSF_LTSCTL, d); 
+	    acc.read('hc15000 + `ADDR_TSF_CSR, d); 
 	    if(d&1)  begin
 	       uint64_t t0,t1,t2,t3;
 	       
-	       acc.write('hc15000 + `ADDR_TSF_LTSCTL, 0);
+	       acc.write('hc15000 + `ADDR_TSF_CSR, 0);
 	       acc.read('hc15000 + `ADDR_TSF_LTS0, t0);
 	       acc.read('hc15000 + `ADDR_TSF_LTS1, t1);
 	       acc.read('hc15000 + `ADDR_TSF_LTS2, t2);
@@ -244,8 +244,23 @@ module main;
 	       
 	    end
 	    
-	      
 
+	    acc.read('hc15000 + `ADDR_TSF_FIFO_CSR, d);
+//	    $display("FIFO CSR %x", d);
+	    
+/* -----\/----- EXCLUDED -----\/-----
+	       if(!(d&`TSF_FIFO_CSR_EMPTY))  begin
+		    uint64_t t0,t1,t2,t3;
+	       
+	       acc.read('hc15000 + `ADDR_TSF_FIFO_R0, t0);
+	       acc.read('hc15000 + `ADDR_TSF_FIFO_R1, t1);
+	       acc.read('hc15000 + `ADDR_TSF_FIFO_R2, t2);
+	       acc.read('hc15000 + `ADDR_TSF_FIFO_R3, t3);
+
+	       $display("Fifo: %08x %08x %08x %08x",t0,t1,t2,t3);
+	       end
+ -----/\----- EXCLUDED -----/\----- */
+	    
 	 end
 	 
       

@@ -549,7 +549,7 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
 
-  channel_enable_o <= acam_inputs_en(4 downto 0);
+  channel_enable_o <= acam_inputs_en(20 downto 16);
   
 end rtl;
 ----------------------------------------------------------------------------------------------------

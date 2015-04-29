@@ -5,25 +5,41 @@ peripheral {
     prefix = "tdc_eic";
 
 
-    irq {
-            name = "FMC TDC timestamps interrupt";
-            description = "FMC TDC timestamp interrupt (rising edge sensitive).";
-            prefix = "tdc_tstamps";
-            trigger = EDGE_RISING;
+     irq {
+     name = "FMC TDC timestamps interrupt (FIFO1)";
+            description = "FMC TDC FIFO1 not empty.";
+            prefix = "tdc_fifo1";
+            trigger = LEVEL_1;
         };
 
     irq {
-            name = "FMC TDC time interrupt";
-            description = "FMC TDC time interrupt (rising edge sensitive).";
-            prefix = "tdc_time";
-            trigger = EDGE_RISING;
+            name = "FMC TDC timestamps interrupt (FIFO2)";
+            description = "FMC TDC FIFO1 not empty.";
+            prefix = "tdc_fifo2";
+            trigger = LEVEL_1;
         };
 
     irq {
-            name = "FMC TDC acam error interrupt";
-            description = "FMC slot 1 acam error interrupt (rising edge sensitive).";
-            prefix = "tdc_acam_err";
-            trigger = EDGE_RISING;
+            name = "FMC TDC timestamps interrupt (FIFO3)";
+            description = "FMC TDC FIFO3 not empty.";
+            prefix = "tdc_fifo3";
+            trigger = LEVEL_1;
         };
+
+    irq {
+            name = "FMC TDC timestamps interrupt (FIFO4)";
+            description = "FMC TDC FIFO4 not empty.";
+            prefix = "tdc_fifo4";
+            trigger = LEVEL_1;
+        };
+
+    irq {
+            name = "FMC TDC timestamps interrupt (FIFO5)";
+            description = "FMC TDC FIFO5 not empty.";
+            prefix = "tdc_fifo5";
+            trigger = LEVEL_1;
+        };
+
+    
 
 };

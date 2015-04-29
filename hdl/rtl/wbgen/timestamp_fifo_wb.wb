@@ -15,14 +15,35 @@ peripheral {
 			name = "Timestamp FIFO";
 			clock = "clk_tdc_i";
 
-			flags_bus = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT};
+			flags_bus = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT, FIFO_CLEAR};
 			flags_dev = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT};
 
 			field {
-				 name = "The timestamp";
-				 prefix = "value";
+				 name = "The timestamp (word 0)";
+				 prefix = "ts0";
 				 type = SLV;
-				 size = 128;
+				 size = 32;
+			};		
+			
+			field {
+					name = "The timestamp (word 1)";
+					prefix = "ts1";
+					type = SLV;
+				 size = 32;
+			};
+
+			field {
+				 name = "The timestamp (word 2)";
+				 prefix = "ts2";
+				 type = SLV;
+				 size = 32;
+			};		
+
+			field {
+				 name = "The timestamp (word 4)";
+				 prefix = "ts3";
+				 type = SLV;
+				 size = 32;
 			};
 	 };
 
@@ -84,19 +105,31 @@ peripheral {
 			};
 	 };
 
+
+
+
 	 reg {
-			name = "Last Timestamp Control/Status";
-			prefix = "LTSCTL";
+			name = "Control/Status";
+			prefix = "CSR";
 			
 			field {
 				 name = "Last Timestamp Valid";
 				 clock = "clk_tdc_i";
-				 prefix = "VALID";
+				 prefix = "LAST_VALID";
 				 type = BIT;
 				 access_bus = READ_WRITE;
 				 access_dev = READ_WRITE;
 				 load = LOAD_EXT;
 			};
+
+			field {
+				 name = "Reset Sequence Counter";
+				 clock = "clk_tdc_i";
+				 prefix = "RST_SEQ";
+				 type = MONOSTABLE;
+			};
+
+
 	 };
 
 };

@@ -85,8 +85,17 @@ architecture rtl of timestamp_fifo is
   signal channel_id : std_logic_vector(2 downto 0);
 
   signal ts_match : std_logic;
+
+  signal seq_counter : unsigned(31 downto 0);
+  signal timestamp_with_seq : std_logic_vector(127 downto 0);
 begin
 
+  timestamp_with_seq(95 downto 0) <= timestamp_i(95 downto 0); -- TS
+  timestamp_with_seq(98 downto 96) <= timestamp_i(98 downto 96); -- channel
+  timestamp_with_seq(100) <= timestamp_i(100); -- slope
+  timestamp_with_seq(127 downto 101) <= std_logic_vector(seq_counter(26 downto 0));
+
+  
   U_WB_Slave : timestamp_fifo_wb
     port map (
       rst_n_i    => rst_n_sys_i,
@@ -114,6 +123,7 @@ begin
       if rst_tdc_i = '1' then
         regs_in.fifo_wr_req_i <= '0';
       else
+        
         if(enable_i = '1' and regs_out.fifo_wr_full_o = '0' and ts_match = '1') then
           regs_in.fifo_wr_req_i <= '1';
         else
@@ -123,24 +133,43 @@ begin
     end if;
   end process;
 
+  regs_in.fifo_ts0_i <= timestamp_with_seq(31 downto 0);
+  regs_in.fifo_ts1_i <= timestamp_with_seq(63 downto 32);
+  regs_in.fifo_ts2_i <= timestamp_with_seq(95 downto 64);
+  regs_in.fifo_ts3_i <= timestamp_with_seq(127 downto 96);
+
+  p_seq_counter : process(clk_tdc_i)
+  begin
+    if rising_edge(clk_tdc_i) then
+      if rst_tdc_i = '1' or regs_out.csr_rst_seq_o = '1' then
+        seq_counter <= (others => '0');
+      else
+        if(enable_i = '1' and ts_match = '1') then
+          seq_counter <= seq_counter + 1;
+        end if;
+      end if;
+    end if;
+  end process;
+
   p_latch_last_timestamp : process(clk_tdc_i)
   begin
     if rising_edge(clk_tdc_i) then
       if rst_tdc_i = '1' then
-        regs_in.ltsctl_valid_i <= '0';
+        regs_in.csr_last_valid_i <= '0';
       else
-        if (enable_i = '1' and ts_match = '1') then
-          regs_in.ltsctl_valid_i <= '1';
-          last_ts                <= timestamp_i;
-        elsif (regs_out.ltsctl_valid_o = '0' and regs_out.ltsctl_valid_load_o = '1') then
-          regs_in.ltsctl_valid_i <= '0';
+        -- latch only the last rising edge TS
+        if (enable_i = '1' and ts_match = '1' and timestamp_with_seq(100) = '1') then
+          regs_in.csr_last_valid_i <= '1';
+          last_ts                <= timestamp_with_seq;
+        elsif (regs_out.csr_last_valid_o = '0' and regs_out.csr_last_valid_load_o = '1') then
+          regs_in.csr_last_valid_i <= '0';
         end if;
 
-        if (regs_out.ltsctl_valid_o = '0' and regs_out.ltsctl_valid_load_o = '1') then
-          regs_in.lts0_i <= last_ts(127 downto 96);
-          regs_in.lts1_i <= last_ts(95 downto 64);
-          regs_in.lts2_i <= last_ts(63 downto 32);
-          regs_in.lts3_i <= last_ts(31 downto 0);
+        if (regs_out.csr_last_valid_o = '0' and regs_out.csr_last_valid_load_o = '1') then
+          regs_in.lts0_i <= last_ts(31 downto 0);
+          regs_in.lts1_i <= last_ts(63 downto 32);
+          regs_in.lts2_i <= last_ts(95 downto 64);
+          regs_in.lts3_i <= last_ts(127 downto 96);
         end if;
       end if;
     end if;
@@ -152,7 +181,7 @@ begin
       if rst_tdc_i = '1' or enable_i = '0' then
         buf_irq_int <= '0';
       else
-        if(buf_count = 0) then
+        if(regs_out.fifo_wr_empty_o = '1') then
           buf_irq_int <= '0';
           tmr_timeout <= (others => '0');
         else
@@ -172,7 +201,7 @@ begin
 
           -- Case 2: amount of data exceeded the threshold - assert the IRQ
           -- line immediately.
-          if(buf_count > unsigned(irq_threshold_i(9 downto 0))) then
+          if(regs_out.fifo_wr_full_o = '1' or (buf_count > unsigned(irq_threshold_i(9 downto 0)))) then
             buf_irq_int <= '1';
           end if;
         end if;
