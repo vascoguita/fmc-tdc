@@ -252,8 +252,15 @@ int ft_probe(struct fmc_device *fmc)
 	ft->initialized = 1;
 	ft->sequence = 0;
 
+	/* Pin the carrier */
+	if (!try_module_get(fmc->owner))
+		goto out_mod;
+
 	return 0;
- err:
+
+out_mod:
+	ft_irq_exit(ft);
+err:
 	while (--m, --i >= 0)
 		if (m->exit)
 			m->exit(ft);
@@ -278,6 +285,10 @@ int ft_remove(struct fmc_device *fmc)
 		if (m->exit)
 			m->exit(ft);
 	}
+
+	/* Release the carrier */
+	module_put(fmc->owner);
+
 	return 0;
 }
 
