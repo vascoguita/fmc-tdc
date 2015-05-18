@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
--- Title      : Fine Delay FMC SPEC (Simple PCIe FMC Carrier) SDB descriptor
--- Project    : Fine Delay FMC (fmc-delay-1ns-4cha)
+-- Title      : TDC FMC SPEC (Simple VME FMC Carrier) SDB descriptor
+-- Project    : TDC FMC (fmc-tdc-1ns-5cha)
 -------------------------------------------------------------------------------
 -- File       : synthesis_descriptor.vhd
 -- Author     : Evangelia Gousiou
@@ -42,11 +42,11 @@ package synthesis_descriptor is
   
 constant c_sdb_synthesis_info : t_sdb_synthesis :=
   (
-    syn_module_name => "tdc-spec        ",
+    syn_module_name => "wr_spec_tdc     ",
     syn_commit_id => "00000000000000000000000000000000",
     syn_tool_name => "ISE     ",
     syn_tool_version => x"00000134",
-    syn_date => x"00000000",
+    syn_date => x"20140617",
     syn_username => "egousiou       ");
 
 constant c_sdb_repo_url : t_sdb_repo_url :=
