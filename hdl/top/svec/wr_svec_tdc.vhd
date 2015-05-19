@@ -25,18 +25,14 @@
 --              All these cores communicate with the VME core through the WISHBONE.               |
 --              The SDB crossbar is mapping the different slaves into the WISHBONE address space. |
 --                                                                                                |
---              The speed for the VME core is 62.5 MHz. The TDC mezzanine cores however operate at|
---              125 MHz (like this the TDC core can keep up to speed with the maximum speed the   |
---              ACAM can be receiving timestamps). The crossing from the 62.5 MHz world to the    |
---              125 MHz world takes place through dedicated clock_crossing modules.               |
+--              The speed for the VME core is 62.5 MHz. The TDC mezzanine cores
+--              internally operate at 125 MHz, but the wishbone bus works still
+--              at system-wide 62.5 MHz clock.
 --                                                                                                |
 --              The 62.5 MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of|
 --              the SVEC board.                                                                   |
 --                                                                                                |
 --              The 125 MHz clock for each TDC mezzanine comes from the PLL located on it.        |
---              A clks_rsts_manager unit is responsible for automatically configuring the PLL upon|
---              the FPGA startup, using the 62.5 MHz clock. The clks_rsts_manager is keeping the  |
---              the TDC mezzanine core under reset until the respective PLL gets locked.          |
 --                                                                                                |
 --              Upon powering up of the FPGA as well as after a VME reset, the whole logic gets   |
 --              reset (FMC1 125 MHz, FMC2 125 MHz and 62.5 MHz). This also triggers a             |
@@ -53,23 +49,23 @@
 --               |  |   |____________________________| \    |   |                   |             |
 --               |                             62.5MHz   \  |   |                   |             |
 --               |  |    ____________________________      \|   |       _____       |             |
---               |  |   |   ____________   _______   |      |   |      |     |      |             |
---               |  |---|->|            | | clk   |  |      |   |      |     |      |             |
---               |  |   |  | TDC mezz 1 | | cross |  |      |   |      |     |      |             |
---         FMC1  |  |   |  |____________| |_______|  |\     |   |      |     |      |             |
---               |  |   |    FMC1 125MHz             | \    |   |      |     |      |             |
---               |  |   |     ___________________    |   \  |   |      |     |      |             |
---               |  |---|--->|_clks_rsts_manager_|   |    \ |   |      |     |      |             |
+--               |  |   |                            |      |   |      |     |      |             |
+--               |  |---|                            |      |   |      |     |      |             |
+--               |  |   |                            |      |   |      |     |      |             |
+--         FMC1  |  |   |      TDC mezzanine 1       |\     |   |      |     |      |             |
+--               |  |   |          wrapper           | \    |   |      |     |      |             |
+--               |  |   |                            |   \  |   |      |     |      |             |
+--               |  |---|                            |    \ |   |      |     |      |             |
 --               |  |   |____________________________|     \|   |      |     |      |             |
 --               |  |                                       |   |      |     |      |             |
 --               |  |    ____________________________       |   |      |     |      |             |
---               |  |   |   ____________   _______   |      |   |      |     |      |             |
---               |  |   |  |            | | clk   |  |      |   |      |     |      |             |
---               |  |---|->| TDC mezz 2 | | cross |  |      | S |      |  V  |      |             |
---         FMC2  |  |   |  |____________| |_______|  | ---- |   |      |     |      |             |
---               |  |   |    FMC2 125MHz             |      |   |      |     |      |             |
---               |  |   |     ___________________    |      |   |      |     |      |             |
---               |  |---|--->|_clks_rsts_manager_|   |      |   |      |     |      |             |
+--               |  |   |                            |      |   |      |     |      |             |
+--               |  |   |                            |      |   |      |     |      |             |
+--               |  |---|                            |      | S |      |  V  |      |             |
+--         FMC2  |  |   |     TDC mezzanine 2        | ---- |   |      |     |      |             |
+--               |  |   |         wrapper            |      |   |      |     |      |             |
+--               |  |   |                            |      |   |      |     |      |             |
+--               |  |---|                            |      |   |      |     |      |             |
 --               |      |____________________________|      | D | <--> |  M  |      |             |
 --               |                                          |   |      |     |      |             |
 --               |       ____________________________       |   |      |     |      |             |
@@ -137,10 +133,8 @@ use work.synthesis_descriptor.all;
 --                                   Entity declaration for top_tdc
 --=================================================================================================
 entity wr_svec_tdc is
-  generic
-    (g_span                  : integer := 32;          -- address span in bus interfaces
-     g_width                 : integer := 32;          -- data width in bus interfaces
-     g_simulation        : boolean := false;
+  generic (
+     g_simulation           : boolean := false;
      g_with_wr_phy : boolean := true);
   port
     (-- SVEC carrier
@@ -323,6 +317,15 @@ end wr_svec_tdc;
 --                                    architecture declaration
 --=================================================================================================
 architecture rtl of wr_svec_tdc is
+
+  function f_bool2int (x : boolean) return integer is
+  begin
+    if(x) then
+      return 1;
+    else
+      return 0;
+    end if;
+  end f_bool2int;
 
   component spec_serial_dac is
     generic (
@@ -664,7 +667,7 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   U_WR_CORE : xwr_core
   generic map
-    (g_simulation                => 0,
+    (g_simulation                => f_bool2int(g_simulation),
      g_phys_uart                 => true,
      g_virtual_uart              => true,
      g_with_external_clock_input => false,
