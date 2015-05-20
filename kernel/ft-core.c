@@ -41,6 +41,35 @@ static struct fmc_driver ft_drv;	/* forward declaration */
 FMC_PARAM_BUSID(ft_drv);
 FMC_PARAM_GATEWARE(ft_drv);
 
+static char bitstream_name[32];
+
+static int ft_reset_core(struct fmctdc_dev *ft)
+{
+	uint32_t val, shift = 0, addr;
+
+	if (!strcmp(ft->fmc->carrier_name, "SVEC")) {
+		shift = 1;
+		addr = TDC_SVEC_CARRIER_BASE;
+	} else {
+		addr = TDC_SPEC_CARRIER_BASE;
+	}
+	addr += TDC_REG_CARRIER_RST;
+
+	dev_dbg(&ft->fmc->dev, "Un-resetting FMCs...\n");
+
+	/* Reset - reset bits are shifted by 1 */
+	fmc_writel(ft->fmc, ~(1 << (ft->fmc->slot_id + shift)), addr);
+
+	udelay(5000);
+
+	val = fmc_readl(ft->fmc, addr);
+	val |= (1 << (ft->fmc->slot_id + shift));
+
+	/* Un-Reset */
+	fmc_writel(ft->fmc, val, addr);
+
+	return 0;
+}
 
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
@@ -160,13 +189,12 @@ int ft_probe(struct fmc_device *fmc)
 	ft->verbose = ft_verbose;
 
 	/* apply carrier-specific hacks and workarounds */
-	if (!strcmp(fmc->carrier_name, "SPEC"))
-		ft->carrier_specific = &ft_carrier_spec;
-	else if (!strcmp(fmc->carrier_name, "SVEC"))
-		ft->carrier_specific = &ft_carrier_svec;
-	else {
-		dev_err(dev, "unsupported carrier '%s'\n",
-			fmc->carrier_name);
+	if (!strcmp(ft->fmc->carrier_name, "SVEC")) {
+	        sprintf(bitstream_name, "svec-fmc-tdc.bin");
+	} else if (!strcmp(fmc->carrier_name, "SPEC")) {
+		sprintf(bitstream_name, "svec-fmc-tdc.bin");
+	} else {
+		dev_err(dev, "unsupported carrier '%s'\n", fmc->carrier_name);
 		return -ENODEV;
 	}
 
@@ -179,7 +207,7 @@ int ft_probe(struct fmc_device *fmc)
 		if (ft_drv.gw_n)
 			fwname = ""; /* reprogram will pick from module parameter */
 		else
-			fwname = ft->carrier_specific->gateware_name;
+			fwname = bitstream_name;
 		dev_info(fmc->hwdev, "Gateware (%s)\n", fwname);
 
 		ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
@@ -200,7 +228,7 @@ int ft_probe(struct fmc_device *fmc)
 			 "Gateware already there. Set the \"gateware\" parameter to overwrite the current gateware\n");
 	}
 
-	ret = ft->carrier_specific->reset_core(ft);
+	ret = ft_reset_core(ft);
 	if (ret < 0)
 		return ret;
 

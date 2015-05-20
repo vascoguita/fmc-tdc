@@ -122,6 +122,7 @@
 #define TDC_DMA_STAT_ERROR 0x3
 
 #define TDC_SVEC_CARRIER_BASE           0x1000
+#define TDC_SPEC_CARRIER_BASE           0x20000
 
 /* TDC core submodule offsets (wrs to the TDC control registers block) */
 

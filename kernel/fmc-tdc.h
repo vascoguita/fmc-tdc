@@ -84,11 +84,6 @@ enum ft_channel_flags {
 
 struct fmctdc_dev;
 
-struct ft_carrier_specific {
-	char *gateware_name;
-	int (*reset_core) (struct fmctdc_dev *);
-};
-
 struct ft_calibration {		/* All of these are big endian in the EEPROM */
 	/* Input-to-WR timebase offset in ps. */
 	int32_t zero_offset[5];
@@ -149,8 +144,6 @@ struct fmctdc_dev {
 	/* IRQ base index (for SVEC) */
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;
-	/* carrier specific functions (init/exit/reset/readout/irq handling) */
-	struct ft_carrier_specific *carrier_specific;
 	/* carrier private data */
 	void *carrier_data;
 	/* current calibration block */
@@ -170,9 +163,6 @@ struct fmctdc_dev {
 
 	uint64_t sequence; /**< Board time-stamp sequence number */
 };
-
-extern struct ft_carrier_specific ft_carrier_spec;
-extern struct ft_carrier_specific ft_carrier_svec;
 
 static inline uint32_t ft_readl(struct fmctdc_dev *ft, unsigned long reg)
 {
