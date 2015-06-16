@@ -190,9 +190,9 @@ int ft_probe(struct fmc_device *fmc)
 
 	/* apply carrier-specific hacks and workarounds */
 	if (!strcmp(ft->fmc->carrier_name, "SVEC")) {
-	        sprintf(bitstream_name, "svec-fmc-tdc.bin");
+	        sprintf(bitstream_name, FT_GATEWARE_SVEC);
 	} else if (!strcmp(fmc->carrier_name, "SPEC")) {
-		sprintf(bitstream_name, "svec-fmc-tdc.bin");
+		sprintf(bitstream_name, FT_GATEWARE_SPEC);
 	} else {
 		dev_err(dev, "unsupported carrier '%s'\n", fmc->carrier_name);
 		return -ENODEV;
