@@ -379,6 +379,11 @@ static struct zio_driver ft_zdrv = {
 		   },
 	.id_table = ft_table,
 	.probe = ft_zio_probe,
+	/* Take the version from ZIO git sub-module */
+	.min_version = ZIO_VERSION(__ZIO_MIN_MAJOR_VERSION,
+				   __ZIO_MIN_MINOR_VERSION,
+				   0), /* Change it if you use new features from
+					  a specific patch */
 };
 
 /* Register and unregister are used to set up the template driver */

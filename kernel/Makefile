@@ -18,6 +18,10 @@ ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
 ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
 
+# Extract minimum com major, minor and patch number
+ccflags-y += -D__ZIO_MIN_MAJOR_VERSION=$(shell echo $(ZIO_VERSION) | cut -d '-' -f 2 | cut -d '.' -f 1; )
+ccflags-y += -D__ZIO_MIN_MINOR_VERSION=$(shell echo $(ZIO_VERSION) | cut -d '-' -f 2 | cut -d '.' -f 2; )
+
 # For this CSM_VERSION, please see ohwr.org/csm documentation
 ifdef CONFIG_CSM_VERSION
   ccflags-y += -D"CERN_SUPER_MODULE=MODULE_VERSION(\"$(CONFIG_CSM_VERSION)\")"

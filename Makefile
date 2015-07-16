@@ -28,6 +28,8 @@ export FMC_BUS
 
 ZIO ?= $(shell /bin/pwd)/zio
 export ZIO
+ZIO_VERSION = $(shell cd $(ZIO); git describe --always --dirty --long --tags)
+export ZIO_VERSION
 
 SPEC_SW ?= $(shell /bin/pwd)/spec-sw
 export SPEC_SW
