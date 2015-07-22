@@ -53,9 +53,6 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
-	ZIO_PARAM_EXT("last_seconds", ZIO_RO_PERM, FT_ATTR_TDC_SECONDS, 0),
-	ZIO_PARAM_EXT("last_coarse", ZIO_RO_PERM, FT_ATTR_TDC_COARSE, 0),
-	ZIO_PARAM_EXT("last_frac", ZIO_RO_PERM, FT_ATTR_TDC_FRAC, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -97,16 +94,6 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
 		*usr_val = st->delay_reference;
-		break;
-	/* Parameters */
-	case FT_ATTR_TDC_SECONDS:
-		*usr_val = st->last_ts.seconds;
-		break;
-	case FT_ATTR_TDC_COARSE:
-		*usr_val = st->last_ts.coarse;
-		break;
-	case FT_ATTR_TDC_FRAC:
-		*usr_val = st->last_ts.frac;
 		break;
 	}
 
