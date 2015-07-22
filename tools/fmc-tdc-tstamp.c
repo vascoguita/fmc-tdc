@@ -99,6 +99,7 @@ static void help(char *name)
 	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
 	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
 	fprintf(stderr, "  -l:           maximum buffer lenght\n");
+	fprintf(stderr, "  -L:\tkeep reading from the last hardware timestamp instead than from the proper buffer\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
@@ -150,7 +151,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:frm:l:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
@@ -202,6 +203,9 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 			ref[b] = a;
+			break;
+		case 'L':
+			last = 1;
 			break;
 		case 'c':
 			if (chan_count >= FMCTDC_NUM_CHANNELS) {
@@ -292,7 +296,7 @@ int main(int argc, char **argv)
 	/* Read Time-Stamps */
 	n = 0;
 	while ((n < n_samples || n_samples <= 0) && (!stop)) {
-		if (!nblock) {
+		if (!nblock && !last) {
 			ret = poll(p, FMCTDC_NUM_CHANNELS, 10);
 			if (ret <= 0)
 				continue;
@@ -304,10 +308,15 @@ int main(int argc, char **argv)
 			if (fd < 0)
 				continue;
 
-			if (!(p[ch_valid[i]].revents & POLLIN))
-				continue;
-			byte_read = fmctdc_read(brd, i, &ts, 1,
-						nblock ? O_NONBLOCK : 0);
+			/* Read from buffer */
+			if (last) {
+				byte_read = fmctdc_read_last(brd, i, &ts);
+			} else {
+				if (!(p[ch_valid[i]].revents & POLLIN))
+					continue;
+				byte_read = fmctdc_read(brd, i, &ts, 1,
+							nblock ? O_NONBLOCK : 0);
+			}
 			if (byte_read > 0) {
 				dump(i, &ts, ref[i] < 0 ? 0 : 1);
 
