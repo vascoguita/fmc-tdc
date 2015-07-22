@@ -649,12 +649,12 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 		if (j == sizeof(ctrl)) {
 			/* one sample: pick it */
 			attrs = ctrl.attr_channel.ext_val;
-			t->seconds = ctrl.tstamp.secs;
-			t->coarse = ctrl.tstamp.ticks;
-			t->frac = ctrl.tstamp.bins;
-			t->seq_id = ctrl.seq_num;
-			t->gseq_id = attrs[FT_ATTR_DEV_SEQUENCE];
-			t->ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
+			t[i].seconds = ctrl.tstamp.secs;
+			t[i].coarse = ctrl.tstamp.ticks;
+			t[i].frac = ctrl.tstamp.bins;
+			t[i].seq_id = ctrl.seq_num;
+			t[i].gseq_id = attrs[FT_ATTR_DEV_SEQUENCE];
+			t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 			i++;
 
 			/* Consume also the data even if it is empty,
