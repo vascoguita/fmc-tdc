@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <poll.h>
 #include <signal.h>
 
 #include <getopt.h>
@@ -117,15 +118,15 @@ int main(int argc, char **argv)
 	struct fmctdc_time ts;
 	int channels[FMCTDC_NUM_CHANNELS];
 	int ref[FMCTDC_NUM_CHANNELS], a, b;
-	int chan_count = 0, i, n, ch, nfds, fd, byte_read, ret, n_boards;
+	int chan_count = 0, i, n, ch, fd, byte_read, ret, n_boards;
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
 	int fmt_wr = 0, flush = 0, read = 0, last = 0;
 	char opt;
-	fd_set rfds;
 	struct sigaction new_action, old_action;
 	int ch_valid[FMCTDC_NUM_CHANNELS] = {0, 1, 2, 3, 4};
+	struct pollfd p[FMCTDC_NUM_CHANNELS];
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -248,6 +249,10 @@ int main(int argc, char **argv)
 		}
 
 		channels[ch] = fmctdc_fileno_channel(brd, ch);
+
+		p[ch].fd = channels[ch];
+		p[ch].events = POLLIN | POLLERR;
+
 		ret = fmctdc_reference_set(brd, ch, ref[ch]);
 		if (ret) {
 			fprintf(stderr,
@@ -287,32 +292,10 @@ int main(int argc, char **argv)
 	/* Read Time-Stamps */
 	n = 0;
 	while ((n < n_samples || n_samples <= 0) && (!stop)) {
-
-		/* Check for pending signal */
-		nfds = 0;
-
-		/* Prepare the list of channel to observe */
-		FD_ZERO(&rfds);
-		for (i = 0; i <= FMCTDC_CH_LAST; i++) {
-			fd = channels[i];
-			if (fd < 0) {
-				fprintf(stderr, "Can't open channel %d\n", i);
-				exit(EXIT_FAILURE);
-			} else {
-				FD_SET(fd, &rfds);
-				nfds = fd > nfds ? fd : nfds;
-			}
-		}
-
-		/* non-blocking mode: do nothing, otherwise wait until one
-		   of the channels becomes active */
-		ret = select(nfds + 1, &rfds, NULL, NULL, NULL);
-		if (!nblock && ret <= 0) {
-			if (ret < 0)
-				fprintf(stderr,
-					"Error while waiting for timestamp: %s\n",
-					strerror(errno));
-			continue;
+		if (!nblock) {
+			ret = poll(p, FMCTDC_NUM_CHANNELS, 10);
+			if (ret <= 0)
+				continue;
 		}
 
 		/* Now we can read the timestamp */
@@ -321,9 +304,8 @@ int main(int argc, char **argv)
 			if (fd < 0)
 				continue;
 
-			if (!(nblock || FD_ISSET(fd, &rfds)))
+			if (!(p[ch_valid[i]].revents & POLLIN))
 				continue;
-
 			byte_read = fmctdc_read(brd, i, &ts, 1,
 						nblock ? O_NONBLOCK : 0);
 			if (byte_read > 0) {
