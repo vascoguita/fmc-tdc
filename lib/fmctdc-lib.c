@@ -205,6 +205,23 @@ found:
 	fmctdc_sysfs_set(b, "ft-ch5/trigger/post-samples", &nsamples);
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
+		b->fdc[i] = -1;
+		b->fdd[i] = -1;
+		b->fdcc[i] = -1;
+
+		/* Open Control */
+		snprintf(path, sizeof(path), "%s-%d-0-ctrl",
+			 b->devbase, i);
+		b->fdc[i] = open(path, O_RDONLY | O_NONBLOCK);
+		if (b->fdc[i] < 0)
+			goto error;
+		/* Open Data - even if not really used for the time being */
+		snprintf(path, sizeof(path), "%s-%d-0-data",
+			 b->devbase, i);
+		b->fdd[i] = open(path, O_RDONLY | O_NONBLOCK);
+		if (b->fdd[i] < 0)
+			goto error;
+		/* Open Current Control */
 		snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/current-control",
 			 b->sysbase, i + 1);
 		b->fdcc[i] = open(path, O_RDONLY);
@@ -215,8 +232,14 @@ found:
 	return (void *)b;
 
 error:
-	while (--i)
-		close(b->fdcc[i]);
+	while (i--) {
+		if (b->fdc[i] >= 0)
+			close(b->fdc[i]);
+		if (b->fdd[i] >= 0)
+			close(b->fdd[i]);
+		if (b->fdcc[i] >= 0)
+			close(b->fdcc[i]);
+	}
 	return NULL;
 }
 
@@ -533,37 +556,6 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 	return fmctdc_sysfs_set(b, attr, &val);
 }
 
-/**
- * It opens a TDC channel. Internally, it opens the ZIO control channel
- * associated.
- * @param[in] b TDC board instance token
- * @param[in] channel channel to open [0, 4]
- * @return a file descriptor, otherwise -1 and errno is set appropriately
- */
-static int __fmctdc_open_channel(struct __fmctdc_board *b, unsigned int channel)
-{
-	char fname[128];
-
-	if (b->fdc[channel] <= 0) {
-		snprintf(fname, sizeof(fname), "%s-%d-0-ctrl", b->devbase,
-			 channel);
-		b->fdc[channel] = open(fname, O_RDONLY | O_NONBLOCK);
-	}
-	if (b->fdd[channel] <= 0) {
-		snprintf(fname, sizeof(fname), "%s-%d-0-data", b->devbase,
-			 channel);
-		b->fdd[channel] = open(fname, O_RDONLY | O_NONBLOCK);
-		if (b->fdd[channel] < 0)
-			goto err;
-	}
-	return b->fdc[channel];
-
-err:
-	if (b->fdc[channel] >= 0)
-		close(b->fdc[channel]);
-	return -1;
-}
-
 
 /**
  * It get the file descriptor of a TDC channel. So, for example, you can
@@ -578,7 +570,7 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 {
 	__define_board(b, userb);
 
-	return __fmctdc_open_channel(b, channel);
+	return b->fdc[channel];
 }
 
 
@@ -642,7 +634,7 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 	__define_board(b, userb);
 	struct zio_control ctrl;
 	uint32_t *attrs, data[NSAMPLE]; /* ssize is 4 => uint32_t for data */
-	int i, j, fd;
+	int i, j;
 	fd_set set;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
@@ -650,12 +642,8 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 		return -1;
 	}
 
-	fd = __fmctdc_open_channel(b, channel);
-	if (fd < 0)
-		return fd;	/* errno already set */
-
 	for (i = 0; i < n;) {
-		j = read(fd, &ctrl, sizeof(ctrl));
+		j = read(b->fdc[channel], &ctrl, sizeof(ctrl));
 		if (j < 0 && errno != EAGAIN)
 			return -1;
 		if (j == sizeof(ctrl)) {
@@ -691,8 +679,8 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 
 		/* So, first sample and blocking read. Wait.. */
 		FD_ZERO(&set);
-		FD_SET(fd, &set);
-		if (select(fd + 1, &set, NULL, NULL, NULL) < 0)
+		FD_SET(b->fdc[channel], &set);
+		if (select(b->fdc[channel] + 1, &set, NULL, NULL, NULL) < 0)
 			return -1;
 		continue;
 	}
