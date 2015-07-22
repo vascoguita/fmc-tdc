@@ -152,6 +152,8 @@ extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
 extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);
 extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
 		       struct fmctdc_time *t, int n, int flags);
+extern int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
+			    struct fmctdc_time *t);
 extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
 /**@}*/
 

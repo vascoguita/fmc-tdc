@@ -171,6 +171,7 @@ struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 {
 	struct __fmctdc_board *b = NULL;
 	uint32_t nsamples = NSAMPLE;
+	char path[128];
 	int i;
 
 	if (offset >= ft_nboards) {
@@ -203,7 +204,20 @@ found:
 	fmctdc_sysfs_set(b, "ft-ch4/trigger/post-samples", &nsamples);
 	fmctdc_sysfs_set(b, "ft-ch5/trigger/post-samples", &nsamples);
 
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
+		snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/current-control",
+			 b->sysbase, i + 1);
+		b->fdcc[i] = open(path, O_RDONLY);
+		if (b->fdcc[i] < 0)
+			goto error;
+	}
+
 	return (void *)b;
+
+error:
+	while (--i)
+		close(b->fdcc[i]);
+	return NULL;
 }
 
 
@@ -255,6 +269,9 @@ int fmctdc_close(struct fmctdc_board *userb)
 		if (b->fdd[j] >= 0)
 			close(b->fdd[j]);
 		b->fdd[j] = -1;
+		if (b->fdcc[j] >= 0)
+			close(b->fdcc[j]);
+		b->fdcc[j] = -1;
 	}
 	return 0;
 
@@ -562,6 +579,34 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 	__define_board(b, userb);
 
 	return __fmctdc_open_channel(b, channel);
+}
+
+
+/**
+ * It reads the very last time-stamp produced by a given channel. Note that
+ * the last time-stamp is the last produced by the hardware and not the last
+ * read by the user. Between the hardware and the user there is a buffer.
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to use [0, 4]
+ * @param[out] t where to write the time-stamps
+ * @return number of acquired time-stamps, otherwise -1 and errno is set
+ */
+int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
+		     struct fmctdc_time *t)
+{
+	__define_board(b, userb);
+	struct zio_control ctrl;
+	int n;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	n = read(b->fdcc[channel], &ctrl, sizeof(struct zio_control));
+	if (n != sizeof(struct zio_control))
+		return -1;
+	return 1;
 }
 
 

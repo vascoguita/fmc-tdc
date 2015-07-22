@@ -28,6 +28,7 @@ struct __fmctdc_board {
 	int dev_id;
 	char *devbase;
 	char *sysbase;
+	int fdcc[FMCTDC_NUM_CHANNELS]; /**< current controls */
 	int fdc[5];		/* The 5 control channels */
 	int fdd[5];		/* The 5 data channels */
 	int ch_ref[FMCTDC_NUM_CHANNELS];  /**< reference channel */
