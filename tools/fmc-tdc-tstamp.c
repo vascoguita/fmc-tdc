@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <poll.h>
 #include <signal.h>
 
 #include <getopt.h>
@@ -29,10 +30,10 @@
 
 /* Previous time stamp for each channel */
 struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
-static unsigned int stop = 0;
+static unsigned int stop = 0, fmt_wr = 0;
 
 
-void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
+void dump_timestamp(struct fmctdc_time ts)
 {
 	uint64_t picoseconds;
 
@@ -50,28 +51,30 @@ void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
 	}
 }
 
-void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr, int diff_mode)
+void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 {
 	struct fmctdc_time ts_tmp;
 	uint64_t ns;
 	double s, hz;
 
-	fprintf(stdout, "channel %d | channel seq %-12u | board seq %-12u\n    ts   ",
+	fprintf(stdout,
+		"channel %d | channel seq %-12u | board seq %-12u\n    ts   ",
 		ch, ts->seq_id, ts->gseq_id);
-	dump_timestamp(*ts, fmt_wr);
+	dump_timestamp(*ts);
 	fprintf(stdout, "\n");
 
 	ts_tmp = *ts;
 	fmctdc_ts_sub(&ts_tmp, &ts_prev[ch]);
 
 	if (diff_mode) {
-		fprintf(stdout, "    refer to board seq %-12u\n", ts->ref_gseq_id);
+		fprintf(stdout, "    refer to board seq %-12u\n",
+			ts->ref_gseq_id);
 		return;
 	}
 
 	/* We are in normal mode, calculate the difference */
 	fprintf(stdout, "    diff ");
-	dump_timestamp(ts_tmp, fmt_wr);
+	dump_timestamp(ts_tmp);
 
 	ns  = (uint64_t) ts_tmp.coarse * 8ULL;
 	ns += (uint64_t) (ts_tmp.frac * 8000ULL / 4096ULL) / 1000ULL;
@@ -96,24 +99,12 @@ static void help(char *name)
 	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
 	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
 	fprintf(stderr, "  -l:           maximum buffer lenght\n");
+	fprintf(stderr, "  -L:\tkeep reading from the last hardware timestamp instead than from the proper buffer\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
 }
 
-static void tstamp_flush(struct fmctdc_board *brd, int ch, int flush)
-{
-	int ret;
-
-	if (!flush)
-		return;
-
-	ret = fmctdc_flush(brd, ch);
-	if (ret)
-		fprintf(stderr,
-			"fmc-tdc-tstamp: failed to flush channel %d: %s\n",
-			ch, fmctdc_strerror(errno));
-}
 
 static void termination_handler(int signum)
 {
@@ -128,14 +119,15 @@ int main(int argc, char **argv)
 	struct fmctdc_time ts;
 	int channels[FMCTDC_NUM_CHANNELS];
 	int ref[FMCTDC_NUM_CHANNELS], a, b;
-	int chan_count = 0, i, n, ch, nfds, fd, byte_read, ret, n_boards;
+	int chan_count = 0, i, n, ch, fd, byte_read, ret, n_boards;
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
-	int fmt_wr = 0, flush = 0, read = 0;
+	int fmt_wr = 0, flush = 0, read = 0, last = 0;
 	char opt;
-	fd_set rfds;
 	struct sigaction new_action, old_action;
+	int ch_valid[FMCTDC_NUM_CHANNELS] = {0, 1, 2, 3, 4};
+	struct pollfd p[FMCTDC_NUM_CHANNELS];
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -159,7 +151,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:frm:l:")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
@@ -212,6 +204,18 @@ int main(int argc, char **argv)
 			}
 			ref[b] = a;
 			break;
+		case 'L':
+			last = 1;
+			break;
+		case 'c':
+			if (chan_count >= FMCTDC_NUM_CHANNELS) {
+				fprintf(stderr,
+					"%s: too many channels, maximum %d\n",
+					argv[0],  FMCTDC_NUM_CHANNELS);
+				break;
+			}
+			sscanf(optarg, "%i", &ch_valid[chan_count++]);
+			break;
 		}
 	}
 	if (optind >= argc) {
@@ -236,16 +240,33 @@ int main(int argc, char **argv)
 
 	/* Open Channels from command line */
 	memset(channels, 0, sizeof(channels));
-	while (optind < argc) {
-		ch = atoi(argv[optind]);
-
-		if (ch < FMCTDC_CH_1 || ch > FMCTDC_CH_LAST) {
-			fprintf(stderr, "%s: invalid channel.\n", argv[0]);
-			fmctdc_close(brd);
-			exit(EXIT_FAILURE);
+	if (!chan_count)
+		chan_count = FMCTDC_NUM_CHANNELS;
+	for (i = 0; i < chan_count; i++) {
+		ch = ch_valid[i];
+		if (flush) {
+			ret = fmctdc_flush(brd, ch);
+			if (ret)
+				fprintf(stderr,
+					"fmc-tdc-tstamp: failed to flush channel %d: %s\n",
+					ch, fmctdc_strerror(errno));
 		}
+
 		channels[ch] = fmctdc_fileno_channel(brd, ch);
-		tstamp_flush(brd, ch, flush);
+
+		p[ch].fd = channels[ch];
+		p[ch].events = POLLIN | POLLERR;
+
+		ret = fmctdc_reference_set(brd, ch, ref[ch]);
+		if (ret) {
+			fprintf(stderr,
+				"%s: cannot set reference mode: %s\n",
+				argv[0], fmctdc_strerror(errno));
+			fprintf(stderr,
+				"%s: continue in normal mode: %s\n",
+				argv[0], fmctdc_strerror(errno));
+			ref[ch] = -1;
+		}
 
 		/* set buffer mode */
 		ret = fmctdc_set_buffer_mode(brd, ch, bufmode);
@@ -262,102 +283,42 @@ int main(int argc, char **argv)
 				"%s: chan %d: cannot set buffer lenght: %s. Use default\n",
 				argv[0], ch, fmctdc_strerror(errno));
 		}
+
 		if (!read)
-			ret = fmctdc_channel_enable(brd, i);
+			ret = fmctdc_channel_enable(brd, ch);
 		if (ret)
 			fprintf(stderr,
 				"%s: chan %d: cannot enable acquisition: %s.\n",
 				argv[0], i, fmctdc_strerror(errno));
-		chan_count++;
-		optind++;
-	}
-	/* If there are not channels, then dump them all */
-	if (!chan_count) {
-		for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
-			tstamp_flush(brd, ch, flush);
-			channels[i] =
-				fmctdc_fileno_channel(brd, i);
-			ret = fmctdc_reference_set(brd, i, ref[i]);
-			if (ret) {
-				fprintf(stderr,
-					"%s: cannot set reference mode: %s\n",
-					argv[0], fmctdc_strerror(errno));
-				fprintf(stderr,
-					"%s: continue in normal mode: %s\n",
-					argv[0], fmctdc_strerror(errno));
-				ref[i] = -1;
-			}
-
-			/* set buffer mode */
-			ret = fmctdc_set_buffer_mode(brd, i, bufmode);
-			if (ret) {
-				fprintf(stderr,
-					"%s: chan %d: cannot set buffer mode: %s. Use default\n",
-					argv[0], i, fmctdc_strerror(errno));
-			}
-
-			/* set buffer lenght */
-			ret = fmctdc_set_buffer_len(brd, i, buflen);
-			if (ret) {
-				fprintf(stderr,
-					"%s: chan %d: cannot set buffer lenght: %s. Use default\n",
-					argv[0], i, fmctdc_strerror(errno));
-			}
-
-			if (!read)
-				ret = fmctdc_channel_enable(brd, i);
-			if (ret)
-				fprintf(stderr,
-					"%s: chan %d: cannot enable acquisition: %s.\n",
-					argv[0], i, fmctdc_strerror(errno));
-		}
-		chan_count = i;
 	}
 
 
 	/* Read Time-Stamps */
 	n = 0;
 	while ((n < n_samples || n_samples <= 0) && (!stop)) {
-		/* Check for pending signal */
-		nfds = 0;
-
-		/* Prepare the list of channel to observe */
-		FD_ZERO(&rfds);
-		for (i = 0; i <= FMCTDC_CH_LAST; i++) {
-			fd = channels[i];
-			if (fd < 0) {
-				fprintf(stderr, "Can't open channel %d\n", i);
-				exit(EXIT_FAILURE);
-			} else {
-				FD_SET(fd, &rfds);
-				nfds = fd > nfds ? fd : nfds;
-			}
-		}
-
-		/* non-blocking mode: do nothing, otherwise wait until one
-		   of the channels becomes active */
-		ret = select(nfds + 1, &rfds, NULL, NULL, NULL);
-		if (!nblock && ret <= 0) {
-			if (ret < 0)
-				fprintf(stderr,
-					"Error while waiting for timestamp: %s\n",
-					strerror(errno));
-			continue;
+		if (!nblock && !last) {
+			ret = poll(p, FMCTDC_NUM_CHANNELS, 10);
+			if (ret <= 0)
+				continue;
 		}
 
 		/* Now we can read the timestamp */
-		for (i = 0; i <= FMCTDC_CH_LAST; i++) {
-			fd = channels[i];
+		for (i = 0; i < chan_count; i++) {
+			fd = channels[ch_valid[i]];
 			if (fd < 0)
 				continue;
 
-			if (!(nblock || FD_ISSET(fd, &rfds)))
-				continue;
-
-			byte_read = fmctdc_read(brd, i, &ts, 1,
-						nblock ? O_NONBLOCK : 0);
+			/* Read from buffer */
+			if (last) {
+				byte_read = fmctdc_read_last(brd, i, &ts);
+			} else {
+				if (!(p[ch_valid[i]].revents & POLLIN))
+					continue;
+				byte_read = fmctdc_read(brd, i, &ts, 1,
+							nblock ? O_NONBLOCK : 0);
+			}
 			if (byte_read > 0) {
-				dump(i, &ts, fmt_wr, ref[i] < 0 ? 0 : 1);
+				dump(i, &ts, ref[i] < 0 ? 0 : 1);
 
 				ts_prev[i] = ts;
 				n++;
