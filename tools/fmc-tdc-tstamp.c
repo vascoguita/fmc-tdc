@@ -29,10 +29,10 @@
 
 /* Previous time stamp for each channel */
 struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
-static unsigned int stop = 0;
+static unsigned int stop = 0, fmt_wr = 0;
 
 
-void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
+void dump_timestamp(struct fmctdc_time ts)
 {
 	uint64_t picoseconds;
 
@@ -50,7 +50,7 @@ void dump_timestamp(struct fmctdc_time ts, int fmt_wr)
 	}
 }
 
-void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr, int diff_mode)
+void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 {
 	struct fmctdc_time ts_tmp;
 	uint64_t ns;
@@ -58,7 +58,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr, int diff_mode)
 
 	fprintf(stdout, "channel %d | channel seq %-12u | board seq %-12u\n    ts   ",
 		ch, ts->seq_id, ts->gseq_id);
-	dump_timestamp(*ts, fmt_wr);
+	dump_timestamp(*ts);
 	fprintf(stdout, "\n");
 
 	ts_tmp = *ts;
@@ -71,7 +71,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int fmt_wr, int diff_mode)
 
 	/* We are in normal mode, calculate the difference */
 	fprintf(stdout, "    diff ");
-	dump_timestamp(ts_tmp, fmt_wr);
+	dump_timestamp(ts_tmp);
 
 	ns  = (uint64_t) ts_tmp.coarse * 8ULL;
 	ns += (uint64_t) (ts_tmp.frac * 8000ULL / 4096ULL) / 1000ULL;
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
-	int fmt_wr = 0, flush = 0, read = 0;
+	int fmt_wr = 0, flush = 0, read = 0, last = 0;
 	char opt;
 	fd_set rfds;
 	struct sigaction new_action, old_action;
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 			byte_read = fmctdc_read(brd, i, &ts, 1,
 						nblock ? O_NONBLOCK : 0);
 			if (byte_read > 0) {
-				dump(i, &ts, fmt_wr, ref[i] < 0 ? 0 : 1);
+				dump(i, &ts, ref[i] < 0 ? 0 : 1);
 
 				ts_prev[i] = ts;
 				n++;
