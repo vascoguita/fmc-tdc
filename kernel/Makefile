@@ -8,13 +8,16 @@ KBUILD_EXTRA_SYMBOLS := \
 
 GIT_VERSION = $(shell cd $(src); git describe --always --dirty --long --tags)
 
+# The library includes <sdb.h>, so point -I directtly there
+# include our header before to avoid conflicts with the kernel
+LINUXINCLUDE := -I$(FMC_BUS)/kernel/include -I$(FMC_BUS)/kernel/include/linux $(LINUXINCLUDE)
+
 ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
 	-I$(src) \
 	-I$(ZIO)/include \
-	-I$(FMC_BUS)/kernel/include \
-	-I$(FMC_BUS)/kernel/include/linux \
-	-I$(FMC_BUS)/sdb-lib \
+	-I$(FMC_BUS)/sdb-lib/ \
 	-I$(SPEC_SW)/kernel
+
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
 ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
 
