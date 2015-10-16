@@ -5,6 +5,9 @@
 # build a particular environment.
 -include Makefile.specific
 
+# include parent_common.mk for buildsystem's defines
+REPO_PARENT=../..
+-include $(REPO_PARENT)/parent_common.mk
 
 #ZIO := $(shell ../scripts/check-submodule zio $(ZIO))
 ZIO ?= ../zio
