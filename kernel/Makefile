@@ -1,9 +1,11 @@
 LINUX ?= /lib/modules/$(shell uname -r)/build
 # FMC_BUS, ZIO, SPEC_SW comes from the upper level
 
-GIT_VERSION = $(shell cd $(src); git describe --always --dirty --long --tags)
+GIT_VERSION = $(shell git describe --always --dirty --long --tags)
 export GIT_VERSION
 
+ZIO_VERSION = $(shell cd $(ZIO); git describe --always --dirty --long --tags)
+export ZIO_VERSION
 
 all: modules
 
