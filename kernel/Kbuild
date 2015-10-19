@@ -1,19 +1,19 @@
-# FMC_BUS, ZIO, SPEC_SW comes from the upper level
+# FMC_BUS, ZIO, SPEC_SW comes from the Makefile
 
 KBUILD_EXTRA_SYMBOLS := \
-	$(ZIO)/Module.symvers \
-	$(SPEC_SW)/kernel/Module.symvers \
-	$(FMC_BUS)/kernel/Module.symvers
+	$(ZIO_ABS)/Module.symvers \
+	$(SPEC_SW_ABS)/kernel/Module.symvers \
+	$(FMC_BUS_ABS)/kernel/Module.symvers
 
 # The library includes <sdb.h>, so point -I directtly there
 # include our header before to avoid conflicts with the kernel
-LINUXINCLUDE := -I$(FMC_BUS)/kernel/include -I$(FMC_BUS)/kernel/include/linux $(LINUXINCLUDE)
+LINUXINCLUDE := -I$(FMC_BUS_ABS)/kernel/include -I$(FMC_BUS_ABS)/kernel/include/linux $(LINUXINCLUDE)
 
 ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
 	-I$(src) \
-	-I$(ZIO)/include \
-	-I$(FMC_BUS)/sdb-lib/ \
-	-I$(SPEC_SW)/kernel
+	-I$(ZIO_ABS)/include \
+	-I$(FMC_BUS_ABS)/sdb-lib/ \
+	-I$(SPEC_SW_ABS)/kernel
 
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
 ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
