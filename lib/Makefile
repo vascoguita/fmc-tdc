@@ -8,7 +8,6 @@
 # include parent_common.mk for buildsystem's defines
 REPO_PARENT=../..
 -include $(REPO_PARENT)/parent_common.mk
-
 #ZIO := $(shell ../scripts/check-submodule zio $(ZIO))
 ZIO ?= ../zio
 
@@ -28,7 +27,7 @@ lib: $(LIB)
 	$(CC) $(CFLAGS) $*.c $(LDFLAGS) -o $@
 
 $(LIB): $(LOBJ)
-	ar r $@ $^
+	$(AR) r $@ $^
 
 clean:
 	rm -f $(LIB) .depend *.o *~
