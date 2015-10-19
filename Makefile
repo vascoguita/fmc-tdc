@@ -3,28 +3,11 @@
 REPO_PARENT=$(shell /bin/pwd)/..
 -include $(REPO_PARENT)/parent_common.mk
 
-.PHONY: all clean modules install modules_install
-.PHONY: gitmodules prereq prereq_install prereq_install_warn
-
-DIRS = kernel lib tools
-
-all clean modules install modules_install: gitmodules
-	for d in $(DIRS); do $(MAKE) -C $$d $@ || exit 1; done
-	@if echo $@ | grep -q install; then $(MAKE) prereq_install_warn; fi
-
-all modules: prereq
-
-clean_all: clean prereq_clean
+all: kernel lib tools
 
 # a hack, to prevent compiling wr-nic.ko, which won't work on older kernels
 CONFIG_WR_NIC=n
 export CONFIG_WR_NIC
-
-#### The following targets are used to manage prerequisite repositories
-gitmodules:
-	@test -d fmc-bus/doc || echo "Checking out submodules"
-	@test -d fmc-bus/doc || git submodule update --init
-	@git submodule update
 
 # The user can override, using environment variables, all these three:
 FMC_BUS ?= $(shell pwd)/fmc-bus
@@ -44,18 +27,35 @@ export FMC_BUS_ABS
 export ZIO_ABS
 export SPEC_SW_ABS
 
-ZIO ?= $(shell /bin/pwd)/zio
-export ZIO
 ZIO_VERSION = $(shell cd $(ZIO); git describe --always --dirty --long --tags)
 export ZIO_VERSION
 
-SPEC_SW ?= $(shell /bin/pwd)/spec-sw
-export SPEC_SW
+
+DIRS = $(FMC_BUS) $(ZIO) $(SPEC_SW) kernel lib tools
+
+$(SPEC_SW): $(FMC_BUS)
+kernel: $(FMC_BUS) $(ZIO) $(SPEC_SW)
+lib: $(ZIO)
+tools: lib
+
+.PHONY: all clean modules install modules_install $(DIRS)
+.PHONY: gitmodules prereq_install prereq_install_warn
+
+install modules_install: prereq_install_warn
+
+all clean modules install modules_install: $(DIRS)
+
+clean: TARGET = clean
+modules: TARGET = modules
+install: TARGET = install
+modules_install: TARGET = modules_install
+
+
+$(DIRS):
+	$(MAKE) -C $@ $(TARGET)
+
 
 SUBMOD = $(FMC_BUS) $(ZIO) $(SPEC_SW)
-
-prereq:
-	for d in $(SUBMOD); do $(MAKE) -C $$d || exit 1; done
 
 prereq_install_warn:
 	@test -f .prereq_installed || \
@@ -65,5 +65,18 @@ prereq_install:
 	for d in $(SUBMOD); do $(MAKE) -C $$d modules_install || exit 1; done
 	touch .prereq_installed
 
-prereq_clean:
-	for d in $(SUBMOD); do $(MAKE) -C $$d clean || exit 1; done
+$(FMC_BUS): fmc-bus-init_repo
+$(ZIO): zio-init_repo
+$(SPEC_SW): spec-sw-init_repo
+
+# init submodule if missing
+fmc-bus-init_repo:
+	@test -d $(FMC_BUS)/doc || ( echo "Checking out submodule $(FMC_BUS)"; git submodule update --init $(FMC_BUS) )
+
+# init submodule if missing
+zio-init_repo:
+	@test -d $(ZIO)/doc || ( echo "Checking out submodule $(ZIO)" && git submodule update --init $(ZIO) )
+
+# init submodule if missing
+spec-sw-init_repo:
+	@test -d $(SPEC_SW)/doc || ( echo "Checking out submodule $(SPEC_SW)" && git submodule update --init $(SPEC_SW) )
