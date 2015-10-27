@@ -8,14 +8,15 @@
 # include parent_common.mk for buildsystem's defines
 REPO_PARENT=../..
 -include $(REPO_PARENT)/parent_common.mk
-#ZIO := $(shell ../scripts/check-submodule zio $(ZIO))
+
 ZIO ?= ../zio
+ZIO_ABS ?= $(abspath $(ZIO) )
 
 LIB = libfmctdc.a
 LOBJ := fmctdc-lib.o
 LOBJ += fmctdc-lib-math.o
 
-CFLAGS = -Wall -ggdb -O2 -I../kernel -I$(ZIO)/include $(EXTRACFLAGS)
+CFLAGS = -Wall -ggdb -O2 -I../kernel -I$(ZIO_ABS)/include $(EXTRACFLAGS)
 
 DESTDIR ?= /usr/local
 

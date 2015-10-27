@@ -5,9 +5,9 @@ REPO_PARENT=$(shell /bin/pwd)/../..
 
 LINUX ?= /lib/modules/$(shell uname -r)/build
 
-FMC_BUS ?= $(shell pwd)/../fmc-bus
-ZIO ?= $(shell pwd)/../zio
-SPEC_SW ?= $(shell pwd)/../spec-sw
+FMC_BUS ?= ../fmc-bus
+ZIO ?= ../zio
+SPEC_SW ?= ../spec-sw
 
 # FMC_BUS_ABS, ZIO_ABS and SPEC_SW_ABS has to be absolut path, due to beeing
 # passed to the Kbuild

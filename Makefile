@@ -14,9 +14,6 @@ FMC_BUS ?= $(shell pwd)/fmc-bus
 ZIO ?= $(shell pwd)/zio
 SPEC_SW ?= $(shell pwd)/spec-sw
 
-export FMC_BUS
-export ZIO
-export SPEC_SW
 # FMC_BUS_ABS, ZIO_ABS and SPEC_SW_ABS has to be absolut path, due to beeing
 # passed to the Kbuild
 FMC_BUS_ABS ?= $(abspath $(FMC_BUS) )
@@ -27,15 +24,15 @@ export FMC_BUS_ABS
 export ZIO_ABS
 export SPEC_SW_ABS
 
-ZIO_VERSION = $(shell cd $(ZIO); git describe --always --dirty --long --tags)
+ZIO_VERSION = $(shell cd $(ZIO_ABS); git describe --always --dirty --long --tags)
 export ZIO_VERSION
 
 
-DIRS = $(FMC_BUS) $(ZIO) $(SPEC_SW) kernel lib tools
+DIRS = $(FMC_BUS_ABS) $(ZIO_ABS) $(SPEC_SW_ABS) kernel lib tools
 
-$(SPEC_SW): $(FMC_BUS)
-kernel: $(FMC_BUS) $(ZIO) $(SPEC_SW)
-lib: $(ZIO)
+$(SPEC_SW_ABS): $(FMC_BUS_ABS)
+kernel: $(FMC_BUS_ABS) $(ZIO_ABS) $(SPEC_SW_ABS)
+lib: $(ZIO_ABS)
 tools: lib
 
 .PHONY: all clean modules install modules_install $(DIRS)
@@ -55,7 +52,7 @@ $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
 
-SUBMOD = $(FMC_BUS) $(ZIO) $(SPEC_SW)
+SUBMOD = $(FMC_BUS_ABS) $(ZIO_ABS) $(SPEC_SW_ABS)
 
 prereq_install_warn:
 	@test -f .prereq_installed || \
@@ -65,18 +62,18 @@ prereq_install:
 	for d in $(SUBMOD); do $(MAKE) -C $$d modules_install || exit 1; done
 	touch .prereq_installed
 
-$(FMC_BUS): fmc-bus-init_repo
-$(ZIO): zio-init_repo
-$(SPEC_SW): spec-sw-init_repo
+$(FMC_BUS_ABS): fmc-bus-init_repo
+$(ZIO_ABS): zio-init_repo
+$(SPEC_SW_ABS): spec-sw-init_repo
 
 # init submodule if missing
 fmc-bus-init_repo:
-	@test -d $(FMC_BUS)/doc || ( echo "Checking out submodule $(FMC_BUS)"; git submodule update --init $(FMC_BUS) )
+	@test -d $(FMC_BUS_ABS)/doc || ( echo "Checking out submodule $(FMC_BUS_ABS)"; git submodule update --init $(FMC_BUS_ABS) )
 
 # init submodule if missing
 zio-init_repo:
-	@test -d $(ZIO)/doc || ( echo "Checking out submodule $(ZIO)" && git submodule update --init $(ZIO) )
+	@test -d $(ZIO_ABS)/doc || ( echo "Checking out submodule $(ZIO_ABS)" && git submodule update --init $(ZIO_ABS) )
 
 # init submodule if missing
 spec-sw-init_repo:
-	@test -d $(SPEC_SW)/doc || ( echo "Checking out submodule $(SPEC_SW)" && git submodule update --init $(SPEC_SW) )
+	@test -d $(SPEC_SW_ABS)/doc || ( echo "Checking out submodule $(SPEC_SW_ABS)" && git submodule update --init $(SPEC_SW_ABS) )
