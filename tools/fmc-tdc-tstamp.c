@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
-	int fmt_wr = 0, flush = 0, read = 0, last = 0;
+	int flush = 0, read = 0, last = 0;
 	char opt;
 	struct sigaction new_action, old_action;
 	int ch_valid[FMCTDC_NUM_CHANNELS] = {0, 1, 2, 3, 4};
