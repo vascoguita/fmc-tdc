@@ -3,6 +3,9 @@
 # build a particular environment.
 -include Makefile.specific
 
+# include parent_common.mk for buildsystem's defines
+REPO_PARENT=../..
+-include $(REPO_PARENT)/parent_common.mk
 
 DESTDIR ?= /usr/local/
 LIBTDC = ../lib/
@@ -16,13 +19,12 @@ TESTS = fmc-tdc-list \
 CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall $(EXTRACFLAGS)
 
 COMMON_SRCS = test-common.c
-LDFLAGS = -L$(LIBTDC) -lfmctdc
+LDFLAGS = -L$(LIBTDC) 
+LDLIBS = -lfmctdc
 
 all: $(TESTS)
 
-%: %.c $(COMMON_SRCS)
-	$(CC) $(CFLAGS) $*.c $(COMMON_SRCS) $(LDFLAGS) -o $@
-
+$(TESTS): $(COMMON_SRCS:.c=.o)
 
 clean:
 	rm -f $(TESTS) test-common.o

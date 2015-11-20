@@ -1,0 +1,44 @@
+# FMC_BUS, ZIO, SPEC_SW comes from the Makefile
+
+KBUILD_EXTRA_SYMBOLS := \
+	$(ZIO_ABS)/Module.symvers \
+	$(SPEC_SW_ABS)/kernel/Module.symvers \
+	$(FMC_BUS_ABS)/kernel/Module.symvers
+
+# The library includes <sdb.h>, so point -I directtly there
+# include our header before to avoid conflicts with the kernel
+LINUXINCLUDE := -I$(FMC_BUS_ABS)/kernel/include -I$(FMC_BUS_ABS)/kernel/include/linux $(LINUXINCLUDE)
+
+ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
+	-I$(src) \
+	-I$(ZIO_ABS)/include \
+	-I$(FMC_BUS_ABS)/sdb-lib/ \
+	-I$(SPEC_SW_ABS)/kernel
+
+ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
+ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
+
+# Extract minimum com major, minor and patch number
+ccflags-y += -D__ZIO_MIN_MAJOR_VERSION=$(shell echo $(ZIO_VERSION) | cut -d '-' -f 2 | cut -d '.' -f 1; )
+ccflags-y += -D__ZIO_MIN_MINOR_VERSION=$(shell echo $(ZIO_VERSION) | cut -d '-' -f 2 | cut -d '.' -f 2; )
+
+# add versions of supermodule. It is useful when fine-delay-sw is included as sub-module
+# of a bigger project that we want to track
+ifdef CONFIG_SUPER_REPO
+ifdef CONFIG_SUPER_REPO_VERSION
+SUBMODULE_VERSIONS += MODULE_INFO(version_$(CONFIG_SUPER_REPO),\"$(CONFIG_SUPER_REPO_VERSION)\");
+endif
+endif
+# add versions of used submodules
+SUBMODULE_VERSIONS += MODULE_INFO(version_fmc_bus,\"$(FMC_BUS_VERSION)\");
+SUBMODULE_VERSIONS += MODULE_INFO(version_zio,\"$(ZIO_VERSION)\");
+SUBMODULE_VERSIONS += MODULE_INFO(version_spec_sw,\"$(SPEC_SW_VERSION)\");
+
+ccflags-y += -DADDITIONAL_VERSIONS="$(SUBMODULE_VERSIONS)"
+
+subdirs-ccflags-y = $(ccflags-y)
+
+obj-m := fmc-tdc.o
+fmc-tdc-objs = acam.o calibration.o fmc-util.o \
+		ft-core.o onewire.o ft-time.o ft-irq.o ft-zio.o\
+		fmc-bus-link/sdb-lib/access.o fmc-bus-link/sdb-lib/glue.o
