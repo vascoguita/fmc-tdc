@@ -13,12 +13,14 @@
 
 #include "test-common.h"
 
+char git_version[] = "git version: " GIT_VERSION;
+
 int main(int argc, char **argv)
 {
 	init(argc, argv);
 
 	check_help(argc, argv, 2,
-		   "[-h] <device> <channel> [on/off]",
+		   "[-h] [-V] <device> <channel> [on/off]",
 		   "Enables or disables the 50 Ohm termination of a given input channel.\n"
 		   "No on/off command returns the current state of termination resistor.",
 		   "");;

@@ -28,6 +28,8 @@
 
 #include "fmctdc-lib.h"
 
+char git_version[] = "git_version: " GIT_VERSION;
+
 /* Previous time stamp for each channel */
 struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
 static unsigned int stop = 0, fmt_wr = 0;
@@ -83,6 +85,15 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	fprintf(stdout, " [%f Hz]\n", hz);
 }
 
+/* We could use print_version from test-common.c, but to avoid creating
+ * dependencies use local copy */
+static void print_version(char *pname)
+{
+	printf("%s %s\n", pname, git_version);
+	printf("%s\n", libfmctdc_version_s);
+	printf("%s\n", libfmctdc_zio_version_s);
+}
+
 /* Print help message */
 static void help(char *name)
 {
@@ -101,6 +112,7 @@ static void help(char *name)
 	fprintf(stderr, "  -l:           maximum buffer lenght\n");
 	fprintf(stderr, "  -L:\tkeep reading from the last hardware timestamp instead than from the proper buffer\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
+	fprintf(stderr, "  -V:           print version info\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
 }
@@ -151,13 +163,16 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:V")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
 			help(argv[0]);
 			exit(EXIT_SUCCESS);
 			break;
+		case 'V':
+			print_version(argv[0]);
+			exit(EXIT_SUCCESS);
 		case 'f':
 			flush = 1;
 			break;
