@@ -175,4 +175,14 @@ extern void ft_ts_add(struct fmctdc_time *a, struct fmctdc_time *b);
 extern int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b);
 /**@}*/
 
+/**
+ * libfmctdc version string
+ */
+extern const char * const libfmctdc_version_s;
+
+/**
+ * zio version string used during compilation of libfmctdc
+ */
+extern const char * const libfmctdc_zio_version_s;
+
 #endif /* __FMCTDC_LIB_H__ */
