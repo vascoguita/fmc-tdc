@@ -13,6 +13,8 @@
 
 #include "test-common.h"
 
+char git_version[] = "git version: " GIT_VERSION;
+
 void perror_hint ( const char *func )
 {
 	perror(func);
@@ -27,7 +29,7 @@ int main(int argc, char **argv)
 	init(argc, argv);
 
 	check_help(argc, argv, 3,
-		   	"[-h] <device> <command> [timeval]",
+			"[-h] [-V] <device> <command> [timeval]",
 		   	"Gets/sets the mezzanine TAI time and controls White Rabbit timing.",
 		   	"Commands are:\n"
 			"     get                    - shows current time and White Rabbit status.\n"

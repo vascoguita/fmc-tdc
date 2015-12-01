@@ -13,12 +13,14 @@
 
 #include "test-common.h"
 
+char git_version[] = "git version: " GIT_VERSION;
+
 int main(int argc, char **argv)
 {
 	init(argc, argv);
 
 	check_help(argc, argv, 2,
-		   "[-h] <device>",
+		   "[-h] [-V] <device>",
 		   "Displays current temperature of the mezzanine.\n", "");
 
 	open_board(argv[1]);

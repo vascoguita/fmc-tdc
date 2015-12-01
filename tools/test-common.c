@@ -13,6 +13,7 @@
 
 #include "test-common.h"
 
+extern char git_version[];
 int n_boards;
 struct fmctdc_board *brd = NULL;
 
@@ -39,6 +40,13 @@ void open_board(char *dev_id_str)
 	}
 }
 
+static void print_version(char *pname)
+{
+	printf("%s %s\n", pname, git_version);
+	printf("%s\n", libfmctdc_version_s);
+	printf("%s\n", libfmctdc_zio_version_s);
+}
+
 void check_help(int argc, char **argv, int min_args, char *usage, char *desc,
 		char *options)
 {
@@ -46,6 +54,9 @@ void check_help(int argc, char **argv, int min_args, char *usage, char *desc,
 		printf("%s: %s\n", argv[0], desc);
 		printf("usage: %s %s\n", argv[0], usage);
 		printf("%s\n", options);
+		exit(0);
+	} else if ((argc >= 2) && (!strcmp(argv[1], "-V"))) {
+		print_version(argv[0]);
 		exit(0);
 	} else if (argc < min_args) {
 		printf("usage: %s %s\n", argv[0], usage);

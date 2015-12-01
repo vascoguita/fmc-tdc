@@ -14,6 +14,8 @@
 
 #include "test-common.h"
 
+char git_version[] = "git version: " GIT_VERSION;
+
 int main(int argc, char **argv)
 {
 	int i;
@@ -21,7 +23,7 @@ int main(int argc, char **argv)
 	init(argc, argv);
 
 	check_help(argc, argv, 1,
-		   "[-h]", "lists all installed fmc-tdc boards.", "");
+		   "[-h] [-V]", "lists all installed fmc-tdc boards.", "");
 
 	printf("Found %i board(s): \n", n_boards);
 

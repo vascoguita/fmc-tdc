@@ -17,6 +17,8 @@ TESTS = fmc-tdc-list \
 	fmc-tdc-tstamp
 
 CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall $(EXTRACFLAGS)
+GIT_VERSION := $(shell git describe --dirty --long --tags)
+CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
 
 COMMON_SRCS = test-common.c
 LDFLAGS = -L$(LIBTDC) 

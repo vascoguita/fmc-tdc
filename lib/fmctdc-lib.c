@@ -30,6 +30,9 @@
 #include "fmctdc-lib.h"
 #include "fmctdc-lib-private.h"
 
+const char * const libfmctdc_version_s = "libfmctdc version: " GIT_VERSION;
+const char * const libfmctdc_zio_version_s = "libfmctdc is using zio version: " ZIO_GIT_VERSION;
+
 #define NSAMPLE 1 /* fake number of samples for the TDC */
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
