@@ -287,18 +287,18 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (chan->flags & ZIO_STATUS) {
 		/* DISABLED */
-		fmc_writel(ft->fmc, 1 << chan->cset->index,
+		ft_iowrite(ft, 1 << chan->cset->index,
 			   ft->ft_irq_base + TDC_REG_EIC_IDR);
 
 		st->cur_seq_id = 0;
 		st->expected_edge = 1;
 		zio_trigger_abort_disable(chan->cset, 0);
 		/* Reset last time-stamp (seq number and valid)*/
-		//ft_writel(ft, TDC_FIFO_LAST_CSR_VALID | TDC_FIFO_LAST_CSR_RST_SEQ,
+		//ft_iowrite(ft, TDC_FIFO_LAST_CSR_VALID | TDC_FIFO_LAST_CSR_RST_SEQ,
 		//	  TDC_FIFO_LAST_CSR);
 	} else {
 		/* ENABLED */
-		fmc_writel(ft->fmc, 1 << chan->cset->index,
+		ft_iowrite(ft, 1 << chan->cset->index,
 			   ft->ft_irq_base + TDC_REG_EIC_IER);
 		zio_arm_trigger(chan->cset->ti);
 	}

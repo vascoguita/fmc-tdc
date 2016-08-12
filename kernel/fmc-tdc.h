@@ -164,17 +164,6 @@ struct fmctdc_dev {
 	uint64_t sequence; /**< Board time-stamp sequence number */
 };
 
-static inline uint32_t ft_readl(struct fmctdc_dev *ft, unsigned long reg)
-{
-	return fmc_readl(ft->fmc, ft->ft_core_base + reg);
-}
-
-static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
-			     unsigned long reg)
-{
-	fmc_writel(ft->fmc, v, ft->ft_core_base + reg);
-}
-
 static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)
 {
 	return fmc_readl(ft->fmc, addr);
@@ -185,6 +174,19 @@ static inline void ft_iowrite(struct fmctdc_dev *ft,
 {
 	fmc_writel(ft->fmc, value, addr);
 }
+
+static inline uint32_t ft_readl(struct fmctdc_dev *ft, unsigned long reg)
+{
+	return ft_ioread(ft, ft->ft_core_base + reg);
+}
+
+static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
+			     unsigned long reg)
+{
+	ft_iowrite(ft, v, ft->ft_core_base + reg);
+}
+
+
 
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable);
 

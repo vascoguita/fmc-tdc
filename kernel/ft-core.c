@@ -58,15 +58,15 @@ static int ft_reset_core(struct fmctdc_dev *ft)
 	dev_dbg(&ft->fmc->dev, "Un-resetting FMCs...\n");
 
 	/* Reset - reset bits are shifted by 1 */
-	fmc_writel(ft->fmc, ~(1 << (ft->fmc->slot_id + shift)), addr);
+	ft_iowrite(ft, ~(1 << (ft->fmc->slot_id + shift)), addr);
 
 	udelay(5000);
 
-	val = fmc_readl(ft->fmc, addr);
+	val = ft_ioread(ft, addr);
 	val |= (1 << (ft->fmc->slot_id + shift));
 
 	/* Un-Reset */
-	fmc_writel(ft->fmc, val, addr);
+	ft_iowrite(ft, val, addr);
 
 	return 0;
 }

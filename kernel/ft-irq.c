@@ -229,13 +229,13 @@ static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
 
 	fifo_addr += last ? TDC_FIFO_LAST : TDC_FIFO_OUT;
 	for (i = 0; i < TDC_FIFO_OUT_N; ++i) {
-		data[i] = fmc_readl(ft->fmc, fifo_addr + i * 4);
+		data[i] = ft_ioread(ft, fifo_addr + i * 4);
 		dev_vdbg(&cset->head.dev, "FIFO read 0x%x from 0x%x\n",
 			 data[i], fifo_addr + i * 4);
 	}
 
 	if (last) {
-		valid = !!(fmc_readl(ft->fmc, fifo_addr + TDC_FIFO_LAST_CSR) &
+		valid = !!(ft_ioread(ft, fifo_addr + TDC_FIFO_LAST_CSR) &
 			   TDC_FIFO_LAST_CSR_VALID);
 	}
 
@@ -280,7 +280,7 @@ static irqreturn_t ft_irq_handler(int irq, void *dev_id)
 	struct zio_cset *cset;
 	int i;
 
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
 	if (!irq_stat)
 		return IRQ_NONE;
 
@@ -304,19 +304,19 @@ irq:
 			ft_readout_fifo_one(cset);
 			fifo_csr_addr = ft->ft_buffer_base +
 				TDC_FIFO_OFFSET * cset->index + TDC_FIFO_CSR;
-			fifo_stat = fmc_readl(ft->fmc, fifo_csr_addr);
+			fifo_stat = ft_ioread(ft, fifo_csr_addr);
 			if (!(fifo_stat & TDC_FIFO_CSR_EMPTY))
 				continue; /* Still something to read */
 
 			/* Ack the interrupt, nothing to read anymore */
-			fmc_writel(ft->fmc, 1 << i,
+			ft_iowrite(ft, 1 << i,
 				   ft->ft_irq_base + TDC_REG_EIC_ISR);
 			tmp_irq_stat &= (~(1 << i));
 		}
 	} while (tmp_irq_stat);
 
 	/* Meanwhile we got another interrupt? then repeat */
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
 	if (irq_stat)
 		goto irq;
 
@@ -336,7 +336,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
 
 	/* disable timestamp readout IRQ, user will enable it manually */
-	fmc_writel(ft->fmc, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
+	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
 
 	/* pass the core's base addr as the VIC IRQ vector. */
 	/* fixme: vector table points to the bridge instead of
@@ -357,6 +357,6 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
-	fmc_writel(ft->fmc, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
+	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
 	fmc_irq_free(ft->fmc);
 }

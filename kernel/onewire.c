@@ -56,12 +56,12 @@
 
 static void ow_writel(struct fmctdc_dev *ft, uint32_t val, unsigned long reg)
 {
-	fmc_writel(ft->fmc, val, ft->ft_owregs_base + reg);
+	ft_iowrite(ft, val, ft->ft_owregs_base + reg);
 }
 
 static uint32_t ow_readl(struct fmctdc_dev *ft, unsigned long reg)
 {
-	return fmc_readl(ft->fmc, ft->ft_owregs_base + reg);
+	return ft_ioread(ft, ft->ft_owregs_base + reg);
 }
 
 static int ow_reset(struct fmctdc_dev *ft, int port)
