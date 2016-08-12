@@ -175,6 +175,17 @@ static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
 	fmc_writel(ft->fmc, v, ft->ft_core_base + reg);
 }
 
+static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)
+{
+	return fmc_readl(ft->fmc, addr);
+}
+
+static inline void ft_iowrite(struct fmctdc_dev *ft,
+			      u32 value, unsigned long addr)
+{
+	fmc_writel(ft->fmc, value, addr);
+}
+
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable);
 
 int ft_acam_init(struct fmctdc_dev *ft);
