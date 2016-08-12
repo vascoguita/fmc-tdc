@@ -31,6 +31,12 @@
 #define FT_CH_1   1
 #define FT_NUM_CHANNELS 5
 
+enum mock_turtle_versions {
+	TDC_VER_SPEC = 0,
+	TDC_VER_SVEC,
+};
+
+
 enum ft_zattr_dev_idx {
 	FT_ATTR_DEV_VERSION = 0,
 	FT_ATTR_DEV_SECONDS,
@@ -118,8 +124,26 @@ struct ft_calibration_raw {
 #include <linux/dma-mapping.h>
 #include <linux/spinlock.h>
 #include <linux/timer.h>
-#include <linux/fmc.h>
 #include <linux/version.h>
+#include <linux/platform_device.h>
+
+struct ft_memory_ops {
+	u32 (*read)(void *addr);
+	void (*write)(u32 value, void *addr);
+};
+
+enum mockturtle_irq_resource {
+	TDC_IRQ = 0,
+};
+
+enum mockturtle_mem_resource {
+	TDC_MEM_BASE = 0,
+	TDC_CARR_MEM_BASE,
+};
+
+enum mockturtle_bus_resource {
+	TDC_BUS_FMC_SLOT = 0,
+};
 
 #include <linux/zio-dma.h>
 #include <linux/zio-trigger.h>
@@ -212,15 +236,18 @@ struct fmctdc_dev {
 	/* HW buffer/FIFO access lock */
 	spinlock_t lock;
 	/* base addresses, taken from SDB */
-	int ft_core_base;
-	int ft_i2c_base;
-	int ft_owregs_base;
-	int ft_irq_base;
-	int ft_fifo_base;
-	int ft_dma_base;
-	int ft_dma_eic_base;
+	void *ft_carrier_base;
+	void *ft_base;
+	void *ft_core_base;
+	void *ft_i2c_base;
+	void *ft_owregs_base;
+	void *ft_irq_base;
+	void *ft_fifo_base;
+	void *ft_dma_base;
+	void *ft_dma_eic_base;
+	struct ft_memory_ops memops;
 	/* IRQ base index (for SVEC) */
-	struct fmc_device *fmc;
+	struct platform_device *pdev;
 	struct zio_device *zdev, *hwzdev;
 	/* carrier private data */
 	void *carrier_data;
@@ -245,15 +272,15 @@ struct fmctdc_dev {
 	int dma_chan_mask;
 };
 
-static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)
+static inline u32 ft_ioread(struct fmctdc_dev *ft, void *addr)
 {
-	return fmc_readl(ft->fmc, addr);
+	return ft->memops.read(addr);
 }
 
 static inline void ft_iowrite(struct fmctdc_dev *ft,
-			      u32 value, unsigned long addr)
+			      u32 value, void *addr)
 {
-	fmc_writel(ft->fmc, value, addr);
+	ft->memops.write(value, addr);
 }
 
 static inline uint32_t ft_readl(struct fmctdc_dev *ft, unsigned long reg)
@@ -269,14 +296,14 @@ static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
 
 static inline uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
 {
-	return ft_ioread(ft, TDC_SPEC_DMA_BASE + reg);
+	return ft_ioread(ft, ft->ft_carrier_base + TDC_SPEC_DMA_BASE + reg);
 }
 
 static inline void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
 {
-	dev_vdbg(&ft->fmc->dev, "%s %x %x\n",
+	dev_vdbg(&ft->pdev->dev, "%s %x %x\n",
 		 __func__, data, TDC_SPEC_DMA_BASE + reg);
-	ft_iowrite(ft, data, TDC_SPEC_DMA_BASE + reg);
+	ft_iowrite(ft, data, ft->ft_carrier_base + TDC_SPEC_DMA_BASE + reg);
 }
 
 
@@ -324,10 +351,6 @@ void ft_set_vcxo_tune (struct fmctdc_dev *ft, int value);
 struct zio_channel;
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
-
-signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
-				     uint32_t did, int *ordinal,
-				     uint32_t *size );
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
 int gn4124_dma_sg(struct fmctdc_dev *ft,
@@ -407,13 +430,13 @@ static inline enum gncore_dma_status gn4124_dma_wait_done(struct fmctdc_dev *ft,
 		tmp = dma_readl(ft, GENNUM_DMA_STA);
 		switch (tmp & GENUM_DMA_STA_MASK) {
 		case GENNUM_DMA_STA_ERROR:
-			dev_err(&ft->fmc->dev, "DMA problem: 0x%x", tmp);
+			dev_err(&ft->pdev->dev, "DMA problem: 0x%x", tmp);
 		case GENNUM_DMA_STA_ABORT:
 		case GENNUM_DMA_STA_DONE:
 			return tmp;
 		default:
 			if (time_after(jiffies, timeout)) {
-				dev_err(&ft->fmc->dev, "DMA timeout: 0x%x", tmp);
+				dev_err(&ft->pdev->dev, "DMA timeout: 0x%x", tmp);
 				gn4124_dma_abort(ft);
 			}
 			cpu_relax();
@@ -439,7 +462,6 @@ static inline void gn4124_dma_config(struct fmctdc_dev *ft,
 	dma_writel(ft, item->next_addr_l, GENNUM_DMA_NEXT_L);
 	dma_writel(ft, item->attribute, GENNUM_DMA_ATTR);
 }
-
 
 #endif // __KERNEL__
 

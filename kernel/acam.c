@@ -62,7 +62,7 @@ int ft_acam_init(struct fmctdc_dev *ft)
 	int i;
 	unsigned long tmo;
 
-	dev_dbg(&ft->fmc->dev, "%s: initializing ACAM TDC...\n", __func__);
+	dev_dbg(&ft->pdev->dev, "%s: initializing ACAM TDC...\n", __func__);
 
 	ft_writel(ft, TDC_CTRL_RESET_ACAM, TDC_REG_CTRL);
 
@@ -85,13 +85,13 @@ int ft_acam_init(struct fmctdc_dev *ft)
 	tmo = jiffies + 2 * HZ;
 	while (time_before(jiffies, tmo)) {
 		if (acam_is_pll_locked(ft)) {
-			dev_dbg(&ft->fmc->dev, "%s: ACAM initialization OK.\n",
+			dev_dbg(&ft->pdev->dev, "%s: ACAM initialization OK.\n",
 				__func__);
 			return 0;
 		}
 	}
 
-	dev_err(&ft->fmc->dev, "%s: ACAM PLL doesn't lock\n", __func__);
+	dev_err(&ft->pdev->dev, "%s: ACAM PLL doesn't lock\n", __func__);
 	return -EIO;
 }
 

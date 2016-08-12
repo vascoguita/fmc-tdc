@@ -19,9 +19,7 @@
 #include <linux/init.h>
 #include <linux/list.h>
 #include <linux/io.h>
-
-#include <linux/fmc.h>
-#include <linux/fmc-sdb.h>
+#include <linux/platform_device.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -42,11 +40,6 @@ static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
 
-static struct fmc_driver ft_drv;	/* forward declaration */
-FMC_PARAM_BUSID(ft_drv);
-FMC_PARAM_GATEWARE(ft_drv);
-
-static char bitstream_name[32];
 
 /**
  * It sets the coalescing timeout for the DMA buffers
@@ -63,7 +56,8 @@ static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 	for (i = (chan == -1 ? 0 : chan);
 	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
 	     ++i) {
-		uint32_t base, tmp;
+		uint32_t tmp;
+		void *base;
 
 		base = ft->ft_dma_base + (0x40 * i);
 		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
@@ -83,7 +77,7 @@ static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 static uint32_t ft_dma_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 						  unsigned int chan)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	void *base = ft->ft_dma_base + (0x40 * chan);
 	uint32_t tmp;
 
 	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
@@ -105,7 +99,7 @@ void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
 		if (unlikely(chan != -1)) {
-			dev_warn(&ft->fmc->dev,
+			dev_warn(&ft->pdev->dev,
 				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, set global value\n",
 				 __func__, chan);
 		}
@@ -132,7 +126,7 @@ uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
 		if (unlikely(chan != -1)) {
-			dev_warn(&ft->fmc->dev,
+			dev_warn(&ft->pdev->dev,
 				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, get global value\n",
 				 __func__, chan);
 		}
@@ -143,7 +137,7 @@ uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 		timeout = ft_dma_irq_coalescing_timeout_get(ft, chan);
 		break;
 	default:
-		dev_err(&ft->fmc->dev, "%s: unknown acquisition mode %d\n",
+		dev_err(&ft->pdev->dev, "%s: unknown acquisition mode %d\n",
 			__func__, ft->mode);
 	}
 
@@ -163,7 +157,7 @@ void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
 		if (unlikely(chan != -1)) {
-			dev_warn(&ft->fmc->dev,
+			dev_warn(&ft->pdev->dev,
 				 "FIFO acquisition mode has a gobal coalesing size. Ignore channel %d, apply globally\n",
 				 chan);
 		}
@@ -178,25 +172,33 @@ void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
 
 static int ft_reset_core(struct fmctdc_dev *ft)
 {
-	uint32_t val, shift = 0, addr;
+	struct resource *r;
+	uint32_t val, shift = 0;
+	void *addr;
 
-	if (!strcmp(ft->fmc->carrier_name, "SVEC")) {
-		shift = 1;
-		addr = TDC_SVEC_CARRIER_BASE;
-	} else {
-		addr = TDC_SPEC_CARRIER_BASE;
+	addr = ft->ft_carrier_base + TDC_REG_CARRIER_RST;
+	switch (ft->pdev->id_entry->driver_data) {
+	case TDC_VER_SPEC:
+		shift = -1;
+		break;
+	default:
+		break;
 	}
-	addr += TDC_REG_CARRIER_RST;
 
-	dev_dbg(&ft->fmc->dev, "Un-resetting FMCs...\n");
+	dev_dbg(&ft->pdev->dev, "Un-resetting FMCs...\n");
+
+	/* FMC slot counting starts from 1 */
+	r = platform_get_resource(ft->pdev, IORESOURCE_BUS, TDC_BUS_FMC_SLOT);
 
 	/* Reset - reset bits are shifted by 1 */
-	ft_iowrite(ft, ~(1 << (ft->fmc->slot_id + shift)), addr);
+	/* FIXME pdev->id is not correct because we mayhave different TDCs
+	   in slot 0 on different carriers */
+	ft_iowrite(ft, ~(1 << (r->start + shift)), addr);
 
 	udelay(5000);
 
 	val = ft_ioread(ft, addr);
-	val |= (1 << (ft->fmc->slot_id + shift));
+	val |= (1 << (r->start + shift));
 
 	/* Un-Reset */
 	ft_iowrite(ft, val, addr);
@@ -280,9 +282,9 @@ dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem,
 	struct gncore_dma_item item;
 	dma_addr_t dma_handle;
 
-	dma_handle = dma_map_single(ft->fmc->hwdev, hostmem, len, DMA_TO_DEVICE);
-	if (dma_mapping_error(ft->fmc->hwdev, dma_handle)) {
-		dev_err(ft->fmc->hwdev, "Failed to map DMA buffer\n");
+	dma_handle = dma_map_single(&ft->pdev->dev, hostmem, len, DMA_TO_DEVICE);
+	if (dma_mapping_error(&ft->pdev->dev, dma_handle)) {
+		dev_err(&ft->pdev->dev, "Failed to map DMA buffer\n");
 		return dma_handle;
 	}
 
@@ -308,7 +310,7 @@ dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem,
  */
 void gn4124_dma_unmap(struct fmctdc_dev *ft, dma_addr_t dma_handle, int len)
 {
-	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_FROM_DEVICE);
+	dma_unmap_single(&ft->pdev->dev, dma_handle, len, DMA_FROM_DEVICE);
 }
 
 /**
@@ -324,7 +326,7 @@ void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem, int 
 	dma_addr_t dma_handle;
 
 	dma_handle = gn4124_dma_map(ft, devmem, hostmem, len);
-	if (dma_mapping_error(ft->fmc->hwdev, dma_handle))
+	if (dma_mapping_error(&ft->pdev->dev, dma_handle))
 		return;
 
 	gn4124_dma_start(ft);
@@ -341,13 +343,13 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	struct gncore_dma_item item;
 	dma_addr_t dma_handle;
 
-	dma_handle = dma_map_single(ft->fmc->hwdev, src, len, DMA_TO_DEVICE);
-	if (dma_mapping_error(ft->fmc->hwdev, dma_handle)) {
-		dev_err(ft->fmc->hwdev, "Can't map buffer for DMA\n");
+	dma_handle = dma_map_single(&ft->pdev->dev, src, len, DMA_TO_DEVICE);
+	if (dma_mapping_error(&ft->pdev->dev, dma_handle)) {
+		dev_err(&ft->pdev->dev, "Can't map buffer for DMA\n");
 		return;
 	}
 
-	dev_dbg(&ft->fmc->dev, "0x%llx %d\n", dma_handle, len);
+	dev_dbg(&ft->pdev->dev, "0x%llx %d\n", dma_handle, len);
 
 	item.start_addr = dst;
 	item.dma_addr_h = dma_handle >> 32;
@@ -360,8 +362,8 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	gn4124_dma_start(ft);
 	gn4124_dma_wait_done(ft, 10000);
 
-	dma_sync_single_for_device(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
-	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
+	dma_sync_single_for_device(&ft->pdev->dev, dma_handle, len, DMA_TO_DEVICE);
+	dma_unmap_single(&ft->pdev->dev, dma_handle, len, DMA_TO_DEVICE);
 }
 
 int gn4124_dma_sg(struct fmctdc_dev *ft,
@@ -386,10 +388,10 @@ int gn4124_dma_sg(struct fmctdc_dev *ft,
 	if (!item)
 		return -ENOMEM;
 
-	item_pool = dma_map_single(ft->fmc->hwdev, item,
+	item_pool = dma_map_single(&ft->pdev->dev, item,
 				   sizeof(struct gncore_dma_item) * (n + 1),
 				   DMA_TO_DEVICE);
-	if (dma_mapping_error(ft->fmc->hwdev, item_pool)) {
+	if (dma_mapping_error(&ft->pdev->dev, item_pool)) {
 		ret = -EINVAL;
 		goto out_dma_item;
 	}
@@ -412,7 +414,7 @@ int gn4124_dma_sg(struct fmctdc_dev *ft,
 		bufp = ((char *)bufp) + mapbytes;
 	}
 
-	ret = dma_map_sg(ft->fmc->hwdev, sgt.sgl, sgt.nents, dir);
+	ret = dma_map_sg(&ft->pdev->dev, sgt.sgl, sgt.nents, dir);
 	if (ret < 0)
 		goto out_map_sg;
 
@@ -447,26 +449,26 @@ int gn4124_dma_sg(struct fmctdc_dev *ft,
 	}
 
 	gn4124_dma_config(ft, &item[0]);
-	dma_sync_single_for_device(ft->fmc->hwdev, item_pool,
+	dma_sync_single_for_device(&ft->pdev->dev, item_pool,
 				   sizeof(struct gncore_dma_item) * sgt.nents,
 				   DMA_TO_DEVICE);
 
 	gn4124_dma_start(ft);
 	status = gn4124_dma_wait_done(ft, 500);
 	if (status == GENNUM_DMA_STA_ERROR) {
-		dev_err(ft->fmc->hwdev, "DMA transfer error\n");
+		dev_err(&ft->pdev->dev, "DMA transfer error\n");
 		ret = -EIO;
 	} else if (status == GENNUM_DMA_STA_ABORT) {
-		dev_err(ft->fmc->hwdev,
+		dev_err(&ft->pdev->dev,
 			"DMA transfer timeout or manually aborted\n");
 		ret = -EIO;
 	}
 
-	dma_unmap_sg(ft->fmc->hwdev, sgt.sgl, sgt.nents, dir);
+	dma_unmap_sg(&ft->pdev->dev, sgt.sgl, sgt.nents, dir);
 out_map_sg:
 	sg_free_table(&sgt);
 out_sg_alloc:
-	dma_unmap_single(ft->fmc->hwdev, item_pool,
+	dma_unmap_single(&ft->pdev->dev, item_pool,
 			 sizeof(struct gncore_dma_item) * n,
 			 DMA_TO_DEVICE);
 out_dma_item:
@@ -496,7 +498,7 @@ int test_dma(struct fmctdc_dev *ft, unsigned int buf_size, unsigned int use_sg)
 	int i, ret = 0;
 	uint32_t eic;
 
-	dev_dbg(&ft->fmc->dev, "Test DMA - scatterlist: %d\n", use_sg);
+	dev_dbg(&ft->pdev->dev, "Test DMA - scatterlist: %d\n", use_sg);
 
 	/* Disable DMA interrupts, we do active waits here */
 	eic = ft_ioread(ft, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IMR);
@@ -536,10 +538,10 @@ int test_dma(struct fmctdc_dev *ft, unsigned int buf_size, unsigned int use_sg)
 	ret = 0;
 	/* Validate */
 	for (i = 0; i < buf_size; i++) {
-		dev_vdbg(&ft->fmc->dev, "%d 0x%02x 0x%02x\n",
+		dev_vdbg(&ft->pdev->dev, "%d 0x%02x 0x%02x\n",
 			i, buf1[i], buf2[i]);
 		if (buf1[i] != buf2[i]) {
-			dev_err(&ft->fmc->dev, "ERROR %d 0x%02x 0x%02x\n",
+			dev_err(&ft->pdev->dev, "ERROR %d 0x%02x 0x%02x\n",
 				i, buf1[i], buf2[i]);
 			ret = -EINVAL;
 		}
@@ -558,7 +560,7 @@ out_buf1:
 	ft_iowrite(ft, 0xFFFFFFFF, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_ISR);
 	ft_iowrite(ft, eic, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
 
-	dev_dbg(&ft->fmc->dev, "Test DMA complete, status: %d\n", ret);
+	dev_dbg(&ft->pdev->dev, "Test DMA complete, status: %d\n", ret);
 	return ret;
 }
 
@@ -581,13 +583,13 @@ void ft_test_data(struct fmctdc_dev *ft,
 		return;
 
 	if (chan >= ft->zdev->n_cset) {
-		dev_err(&ft->fmc->dev, "%s Invalid channel %d\n",
+		dev_err(&ft->pdev->dev, "%s Invalid channel %d\n",
 			__func__, chan);
 		return;
 	}
 
 	if (period == 0) {
-		dev_err(&ft->fmc->dev, "%s Invalid period %d\n",
+		dev_err(&ft->pdev->dev, "%s Invalid period %d\n",
 			__func__, period);
 		return;
 	}
@@ -597,106 +599,122 @@ void ft_test_data(struct fmctdc_dev *ft,
 	tmp |= ((period << TDC_FAKE_TS_PERIOD_SHIFT) & TDC_FAKE_TS_PERIOD_MASK);
 	ft_writel(ft, tmp, TDC_REG_FAKE_TS_CSR);
 
-	dev_warn(&ft->fmc->dev,
+	dev_warn(&ft->pdev->dev,
 		 "Channel 0 is running in test mode 0x%x\n",
 		 tmp);
 }
 
-/* probe and remove are called by the FMC bus core */
-int ft_probe(struct fmc_device *fmc)
+static int ft_resource_validation(struct platform_device *pdev)
+{
+	struct resource *r;
+
+	r = platform_get_resource(pdev, IORESOURCE_IRQ, TDC_IRQ);
+	if (!r) {
+		dev_err(&pdev->dev,
+			"The TDC needs an interrupt number\n");
+		return -ENXIO;
+	}
+
+	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_MEM_BASE);
+	if (!r) {
+		dev_err(&pdev->dev,
+			"The TDC needs base address\n");
+		return -ENXIO;
+	}
+
+	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_CARR_MEM_BASE);
+	if (!r) {
+		dev_err(&pdev->dev,
+			"The TDC needs the carrier base address\n");
+		return -ENXIO;
+	}
+
+	r = platform_get_resource(pdev, IORESOURCE_BUS, TDC_BUS_FMC_SLOT);
+	if (!r) {
+		dev_err(&pdev->dev,
+			"The TDC needs to be assigned to an FMC slot\n");
+		return -ENXIO;
+	}
+
+	return 0;
+}
+
+static int ft_endianess(struct fmctdc_dev *ft)
+{
+	switch (ft->pdev->id_entry->driver_data) {
+	case TDC_VER_SPEC:
+		return 0;
+	case TDC_VER_SVEC:
+		return 1;
+	default:
+		return -1;
+	}
+}
+static int ft_memops_detect(struct fmctdc_dev *ft)
+{
+	int ret;
+
+	ret = ft_endianess(ft);
+	if (ret < 0) {
+		dev_err(&ft->pdev->dev, "Failed to detect endianess\n");
+		return -EINVAL;
+	}
+
+	if (ret) {
+		ft->memops.read = ioread32be;
+		ft->memops.write = iowrite32be;
+	} else {
+		ft->memops.read = ioread32;
+		ft->memops.write = iowrite32;
+	}
+
+	return 0;
+}
+
+/**
+ * probe and remove are called by the FMC bus core
+ */
+int ft_probe(struct platform_device *pdev)
 {
 	struct ft_modlist *m;
 	struct fmctdc_dev *ft;
-	struct device *dev = &fmc->dev;
-	char *fwname;
-	int i, index, ret, ord;
+	struct device *dev = &pdev->dev;
+	struct resource *r;
+	int i, ret, err;
 	uint32_t stat;
+
+	err = ft_resource_validation(pdev);
+	if (err)
+		return err;
 
 	ft = kzalloc(sizeof(struct fmctdc_dev), GFP_KERNEL);
 	if (!ft)
 		return -ENOMEM;
 
-	index = fmc_validate(fmc, &ft_drv);
-	if (index < 0) {
-		dev_info(dev, "not using \"%s\" according to modparam\n",
-			 KBUILD_MODNAME);
-		return -ENODEV;
-	}
-
-	fmc->mezzanine_data = ft;
-	ft->fmc = fmc;
+	platform_set_drvdata(pdev, ft);
+	ft->pdev = pdev;
 	ft->verbose = ft_verbose;
-
-	/* apply carrier-specific hacks and workarounds */
-	if (!strcmp(ft->fmc->carrier_name, "SVEC")) {
-		sprintf(bitstream_name, FT_GATEWARE_SVEC);
-	} else if (!strcmp(fmc->carrier_name, "SPEC")) {
-		sprintf(bitstream_name, FT_GATEWARE_SPEC);
-	} else {
-		dev_err(dev, "unsupported carrier '%s'\n", fmc->carrier_name);
-		return -ENODEV;
-	}
-
-	/*
-	 * If the carrier is still using the golden bitstream or the user is
-	 * asking for a particular one, then program our bistream, otherwise
-	 * we already have our bitstream
-	 */
-	if (fmc->flags & FMC_DEVICE_HAS_GOLDEN || ft_drv.gw_n) {
-		if (ft_drv.gw_n)
-			fwname = ""; /* reprogram will pick from module parameter */
-		else
-			fwname = bitstream_name;
-		dev_info(fmc->hwdev, "Gateware (%s)\n", fwname);
-
-		ret = fmc_reprogram(fmc, &ft_drv, fwname, -1);
-		if (ret < 0) {
-			dev_err(fmc->hwdev, "write firmware \"%s\": error %i\n",
-				fwname, ret);
-			if (ret == -ESRCH) {
-				dev_err(dev, "no gateware at index %i\n",
-					index);
-				return -ENODEV;
-			}
-			return ret;	/* other error: pass over */
-		}
-
-		dev_dbg(dev, "Gateware successfully loaded\n");
-	} else {
-		dev_info(fmc->hwdev,
-			 "Gateware already there. Set the \"gateware\" parameter to overwrite the current gateware\n");
-	}
-
-	ret = ft_reset_core(ft);
-	if (ret < 0)
-		return ret;
-
-	/* Now that the PLL is locked, we can read the SDB info */
-	ret = fmc_scan_sdb_tree(fmc, 0);
-	if (ret < 0 && ret != -EBUSY) {
-		dev_err(dev,
-			"%s: no SDB in the bitstream. Are you sure you've provided the correct one?\n",
-			KBUILD_MODNAME);
-		return ret;
-	}
-
-	/* Now use SDB to find the base addresses */
-	ord = fmc->slot_id;
-	ft->ft_core_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x604,
-						   &ord, NULL);
-
-	ft->ft_irq_base = ft->ft_core_base + TDC_MEZZ_EIC_OFFSET;
-	ft->ft_owregs_base = ft->ft_core_base + TDC_MEZZ_ONEWIRE_OFFSET;
-	ft->ft_fifo_base = ft->ft_core_base + TDC_MEZZ_MEM_FIFO_OFFSET;
-	ft->ft_dma_base = ft->ft_core_base + TDC_MEZZ_MEM_DMA_OFFSET;
-	ft->ft_dma_eic_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x12000661,
-						      &ord, NULL);
+	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_CARR_MEM_BASE);
+	ft->ft_carrier_base = ioremap(r->start, resource_size(r));
+	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_MEM_BASE);
+	ft->ft_base = ioremap(r->start, resource_size(r));
+	ft->ft_core_base = ft->ft_base + TDC_MEZZ_CORE_OFFSET;
+	ft->ft_irq_base = ft->ft_base + TDC_MEZZ_EIC_OFFSET;
+	ft->ft_owregs_base = ft->ft_base + TDC_MEZZ_ONEWIRE_OFFSET;
+	ft->ft_fifo_base = ft->ft_base + TDC_MEZZ_MEM_OFFSET;
+	ft->ft_dma_base = ft->ft_base + TDC_MEZZ_MEM_DMA_OFFSET;
+	ft->ft_dma_eic_base = ft->ft_base + TDC_MEZZ_MEM_DMA_EIC_OFFSET;
+	spin_lock_init(&ft->lock);
+	ret = ft_memops_detect(ft);
+	if (ret)
+		goto err_memops;
 
 	if (ft_verbose) {
 		dev_info(dev,
-			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/FIFO 0x%X, buffer/DMA 0x%x\n",
-			 ft->ft_core_base, ft->ft_irq_base, ft->ft_owregs_base,
-			 ft->ft_fifo_base, ft->ft_dma_base);
+			 "Base addrs: carr %p, core %p, irq %p, 1wire %p, buffer/DMA %p\n",
+			 ft->ft_carrier_base,
+			 ft->ft_core_base, ft->ft_irq_base,
+			 ft->ft_owregs_base, ft->ft_dma_base);
 	}
 
 	/*
@@ -705,9 +723,9 @@ int ft_probe(struct fmc_device *fmc)
 	 */
 	stat = ft_ioread(ft, ft->ft_core_base + TDC_REG_STAT);
 
-	if (dma_set_mask(ft->fmc->hwdev, DMA_BIT_MASK(64)) ||
-	    dma_set_mask(ft->fmc->hwdev, DMA_BIT_MASK(32))) {
-		dev_warn(ft->fmc->hwdev, "No suitable DMA available\n");
+	if (dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(64)) ||
+	    dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(32))) {
+		dev_warn(&ft->pdev->dev, "No suitable DMA available\n");
 		stat &= ~TDC_STAT_DMA;
 	}
 
@@ -719,15 +737,18 @@ int ft_probe(struct fmc_device *fmc)
 		dev_err(dev,
 			"Unsupported acquisition type, tdc_reg_stat 0x%x\n",
 			stat);
-		return -ENODEV;
+		ret = -ENODEV;
+		goto err_mode_selection;
 	}
 
-	spin_lock_init(&ft->lock);
+	ret = ft_reset_core(ft);
+	if (ret < 0)
+		return ret;
 
 	/* Retrieve calibration from the eeprom, and validate */
 	ret = ft_handle_eeprom_calibration(ft);
 	if (ret < 0)
-		return ret;
+		goto err_calib;
 
 	/* init all subsystems */
 	for (i = 0, m = init_subsystems; i < ARRAY_SIZE(init_subsystems);
@@ -755,31 +776,24 @@ int ft_probe(struct fmc_device *fmc)
 
 	ft->initialized = 1;
 
-	/* Pin the carrier */
-	if (!try_module_get(fmc->owner))
-		goto out_mod;
-
 	return 0;
 
-out_mod:
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_DMA:
-		ft_buf_exit(ft);
-		break;
-	case FT_ACQ_TYPE_FIFO:
-		ft_fifo_exit(ft);
-		break;
-	}
 err:
 	while (--m, --i >= 0)
 		if (m->exit)
 			m->exit(ft);
+err_calib:
+err_mode_selection:
+err_memops:
+	iounmap(ft->ft_base);
+	iounmap(ft->ft_carrier_base);
+	kfree(ft);
 	return ret;
 }
 
-int ft_remove(struct fmc_device *fmc)
+int ft_remove(struct platform_device *pdev)
 {
-	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	struct fmctdc_dev *ft = platform_get_drvdata(pdev);
 	int i;
 
 	if (!ft->initialized)
@@ -803,28 +817,33 @@ int ft_remove(struct fmc_device *fmc)
 		if (m->exit)
 			m->exit(ft);
 	}
-
-	/* Release the carrier */
-	module_put(fmc->owner);
+	iounmap(ft->ft_base);
+	iounmap(ft->ft_carrier_base);
+	kfree(ft);
 
 	return 0;
 }
 
-static struct fmc_fru_id ft_fru_id[] = {
+
+static const struct platform_device_id ft_id[] = {
 	{
-	 .product_name = "FmcTdc1ns5cha",
-	 },
+		.name = "fmc-tdc-spec",
+		.driver_data = TDC_VER_SPEC,
+	}, {
+		.name = "fmc-tdc-svec",
+		.driver_data = TDC_VER_SVEC,
+	},
+
+	/* TODO we should support different version */
 };
 
-static struct fmc_driver ft_drv = {
-	.version = FMC_VERSION,
-	.driver.name = KBUILD_MODNAME,
+static struct platform_driver ft_platform_driver = {
+	.driver = {
+		.name = KBUILD_MODNAME,
+	},
 	.probe = ft_probe,
 	.remove = ft_remove,
-	.id_table = {
-		     .fru_id = ft_fru_id,
-		     .fru_id_nr = ARRAY_SIZE(ft_fru_id),
-		     },
+	.id_table = ft_id,
 };
 
 static int ft_init(void)
@@ -842,13 +861,12 @@ static int ft_init(void)
 	if (ret < 0)
 		goto err_zio;
 
-	ret = fmc_driver_register(&ft_drv);
+	ret = platform_driver_register(&ft_platform_driver);
 	if (ret < 0)
-		goto err_fmc;
-
+		goto err_plat;
 	return 0;
 
-err_fmc:
+err_plat:
 	ft_zio_unregister();
 err_zio:
 	zio_unregister_trig(&ft_trig_type);
@@ -858,7 +876,7 @@ err_zio_trg:
 
 static void ft_exit(void)
 {
-	fmc_driver_unregister(&ft_drv);
+	platform_driver_unregister(&ft_platform_driver);
 	ft_zio_unregister();
 	zio_unregister_trig(&ft_trig_type);
 }

@@ -13,6 +13,7 @@
 #include <linux/bitops.h>
 #include <linux/io.h>
 #include <linux/moduleparam.h>
+#include <linux/interrupt.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -35,7 +36,7 @@
 static int ft_timestamp_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
-	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * cset->index;
+	void *fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * cset->index;
 
 	hwts->seconds = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R0);
 	hwts->coarse = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R1);
@@ -87,9 +88,9 @@ static inline uint32_t ft_irq_fifo_status(struct fmctdc_dev *ft)
 
 static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
 {
-	struct fmc_device *fmc = dev_id;
-	struct fmctdc_dev *ft = fmc->mezzanine_data;
-	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
+	struct fmctdc_dev *ft = dev_id;
+	uint32_t irq_stat, tmp_irq_stat, fifo_stat;
+	void *fifo_csr_addr;
 	unsigned long *loop;
 	struct zio_cset *cset;
 	int i;
@@ -131,25 +132,23 @@ irq:
 	if (irq_stat)
 		goto irq;
 
-	/* Ack the FMC signal, we have finished */
-	fmc_irq_ack(fmc);
-
 	return IRQ_HANDLED;
 }
 
 
 int ft_fifo_init(struct fmctdc_dev *ft)
 {
+	struct resource *r;
 	int ret;
 
 	ft_irq_coalescing_timeout_set(ft, -1, irq_timeout_ms_default);
 	ft_irq_coalescing_size_set(ft, -1, 40);
 
-	ft->fmc->irq = ft->ft_irq_base;
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_fifo,
-			      "fmc-tdc-fifo", 0);
+	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, 0);
+	ret = request_any_context_irq(r->start, ft_irq_handler_ts_fifo, 0,
+				      r->name, ft);
 	if (ret < 0) {
-		dev_err(&ft->fmc->dev,
+		dev_err(&ft->pdev->dev,
 			"Request interrupt 'FIFO' failed: %d\n",
 			ret);
 		return ret;
@@ -166,6 +165,5 @@ void ft_fifo_exit(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 
-	ft->fmc->irq = ft->ft_irq_base;
-	fmc_irq_free(ft->fmc);
+	free_irq(platform_get_irq(ft->pdev, 0), ft);
 }

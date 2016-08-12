@@ -21,8 +21,6 @@
 #include <linux/zio-buffer.h>
 #include <linux/zio-trigger.h>
 
-#include <linux/fmc.h>
-
 #include "fmc-tdc.h"
 #include "hw/timestamp_fifo_regs.h"
 #include "hw/tdc_onewire_regs.h"
@@ -73,7 +71,7 @@ static void ft_update_offsets(struct fmctdc_dev *ft, int channel)
 {
 	struct ft_channel_state *st = &ft->channels[channel];
 	struct ft_hw_timestamp hw_offset = {0, 0, 0, 0};
-	uint32_t fifo_addr;
+	void *fifo_addr;
 
 	fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * channel;
 
@@ -107,7 +105,8 @@ static int ft_delta_reference_set(struct fmctdc_dev *ft,
 				  unsigned int chan,
 				  unsigned int ref)
 {
-	uint32_t fifo_addr, csr;
+	uint32_t csr;
+	void *fifo_addr;
 
 	if (ref > ft->zdev->n_cset || chan > ft->zdev->n_cset)
 		return -EINVAL;
@@ -133,7 +132,8 @@ static int ft_delta_reference_get(struct fmctdc_dev *ft,
 				  unsigned int chan,
 				  int *ref)
 {
-	uint32_t fifo_addr, csr;
+	uint32_t csr;
+	void *fifo_addr;
 
 	if (chan > ft->zdev->n_cset)
 		return -EINVAL;
@@ -151,7 +151,7 @@ static void ft_raw_mode_set(struct fmctdc_dev *ft,
 			       unsigned int chan,
 			       unsigned int raw_enable)
 {
-	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
+	void *fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
 	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
 
 	if (raw_enable)
@@ -166,7 +166,7 @@ static void ft_raw_mode_set(struct fmctdc_dev *ft,
 static int ft_raw_mode_get(struct fmctdc_dev *ft,
 			      unsigned int chan)
 {
-	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
+	void *fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
 	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
 
 	return (csr & TSF_CSR_RAW_MODE) ? 1 : 0;
@@ -457,7 +457,8 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (chan->flags & ZIO_STATUS) {
-		uint32_t csr, fifo_addr;
+		uint32_t csr;
+		void *fifo_addr;
 
 		/* DISABLED */
 		ft_disable(ft, chan->cset->index);
@@ -735,7 +736,7 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	ft->hwzdev->owner = THIS_MODULE;
 	ft->hwzdev->priv_d = ft;
 
-	dev_id = ft->fmc->device_id;
+	dev_id = ft->pdev->id;
 
 	err = zio_register_device(ft->hwzdev, "tdc-1n5c", dev_id);
 	if (err)

@@ -13,6 +13,7 @@
 #include <linux/bitops.h>
 #include <linux/io.h>
 #include <linux/moduleparam.h>
+#include <linux/interrupt.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -40,7 +41,7 @@ static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
 				     unsigned int chan,
 				     uint32_t size)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	void *base = ft->ft_dma_base + (0x40 * chan);
 	uint32_t tmp;
 
 	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
@@ -52,7 +53,7 @@ static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
 static void ft_buffer_burst_enable(struct fmctdc_dev *ft,
 				   unsigned int chan)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	void *base = ft->ft_dma_base + (0x40 * chan);
 	uint32_t tmp;
 
 	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
@@ -64,7 +65,7 @@ static void ft_buffer_burst_enable(struct fmctdc_dev *ft,
 static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
 				    unsigned int chan)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	void *base = ft->ft_dma_base + (0x40 * chan);
 	uint32_t tmp;
 
 	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
@@ -191,7 +192,7 @@ static int gennum_dma_fill(struct zio_dma_sg *zsg)
 	if (zsg->page_idx == 0)
 		gn4124_dma_config(ft, item);
 
-	dev_dbg(ft->fmc->hwdev, "DMA item %d (block %d)\n"
+	dev_dbg(&ft->pdev->dev, "DMA item %d (block %d)\n"
 		"    pool   0x%llx\n"
 		"    addr   0x%x\n"
 		"    addr_l 0x%x\n"
@@ -223,7 +224,7 @@ static int gennum_dma_fill(struct zio_dma_sg *zsg)
 static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
 {
 	struct ft_channel_state *st = &ft->channels[chan];
-	uint32_t base = ft->ft_dma_base + chan * 0x40;
+	void *base = ft->ft_dma_base + chan * 0x40;
 	uint32_t csr, base_cur;
 	unsigned int transfer_buffer;
 
@@ -275,7 +276,7 @@ static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
  */
 static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
 {
-	uint32_t base = ft->ft_dma_base + chan * 0x40;
+	void *base = ft->ft_dma_base + chan * 0x40;
 
 	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 }
@@ -297,8 +298,7 @@ static void ft_abort_acquisition(struct zio_cset *cset)
 
 static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 {
-	struct fmc_device *fmc = dev_id;
-	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	struct fmctdc_dev *ft = dev_id;
 	uint32_t irq_stat;
 	unsigned long *loop;
 	int i;
@@ -323,7 +323,7 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 		zio_cset_busy_clear(&ft->zdev->cset[i], 1);
 
 	if (irq_stat & DMA_EIC_EIC_IDR_DMA_ERROR) {
-		dev_err(ft->fmc->hwdev, "0x%X 0x%X",
+		dev_err(&ft->pdev->dev, "0x%X 0x%X",
 			irq_stat, dma_readl(ft, GENNUM_DMA_STA));
 
 		for_each_set_bit(i, loop, FT_NUM_CHANNELS)
@@ -338,7 +338,6 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 	}
 
 out:
-	fmc_irq_ack(fmc);
 
 	/* Re-Enable interrupts that were disabled in the IRQ handler */
 	ft_irq_enable_restore(ft);
@@ -390,8 +389,7 @@ static inline unsigned int ft_irq_status_is_valid(struct fmctdc_dev *ft,
 
 static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
 {
-	struct fmc_device *fmc = dev_id;
-	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	struct fmctdc_dev *ft = dev_id;
 	struct ft_channel_state *st;
 	struct zio_cset *cset;
 	struct zio_block *blocks[ft->zdev->n_cset];
@@ -434,7 +432,7 @@ static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
 
 	cset = &ft->zdev->cset[0]; /* ZIO is not really using the channel,
 				      and probably it should not */
-	ft->zdma = zio_dma_alloc_sg(cset->chan, ft->fmc->hwdev,
+	ft->zdma = zio_dma_alloc_sg(cset->chan, &ft->pdev->dev,
 				    blocks, n_block, GFP_ATOMIC);
 	if (IS_ERR_OR_NULL(ft->zdma))
 		goto err_alloc;
@@ -449,19 +447,17 @@ static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
 
 	for_each_set_bit(i, loop, ft->zdev->n_cset)
 		zio_cset_busy_set(&ft->zdev->cset[i], 1);
-	dma_sync_single_for_device(ft->fmc->hwdev, ft->zdma->dma_page_desc_pool,
+	dma_sync_single_for_device(&ft->pdev->dev, ft->zdma->dma_page_desc_pool,
 				   sizeof(struct gncore_dma_item) * ft->zdma->sgt.nents,
 				   DMA_TO_DEVICE);
 	gn4124_dma_start(ft);
-
-	fmc_irq_ack(fmc);
 
 	return IRQ_HANDLED;
 
 err_map:
 	zio_dma_free_sg(ft->zdma);
 err_alloc:
-	dev_err(ft->fmc->hwdev, "Cannot execute DMA\n");
+	dev_err(&ft->pdev->dev, "Cannot execute DMA\n");
 	ft->zdma = NULL;
 	for_each_set_bit(i, loop, ft->zdev->n_cset) {
 		zio_cset_busy_clear(&ft->zdev->cset[i], 1);
@@ -469,9 +465,6 @@ err_alloc:
 	}
 
 	ft_irq_enable_restore(ft);
-
-	/* Ack the FMC signal, we have finished */
-	fmc_irq_ack(fmc);
 
 	return IRQ_HANDLED;
 }
@@ -483,7 +476,7 @@ err_alloc:
  */
 static void ft_buffer_size_set(struct fmctdc_dev *ft, int channel)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
+	void *base = ft->ft_dma_base + (0x40 * channel);
 	uint32_t val;
 	struct ft_channel_state *st;
 
@@ -514,11 +507,11 @@ static void ft_buffer_size_set(struct fmctdc_dev *ft, int channel)
 	ft_buffer_burst_size_set(ft, channel, dma_buf_ddr_burst_size_default);
 	ft_buffer_burst_enable(ft, channel);
 
-	dev_vdbg(&ft->fmc->dev,
-		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
+	dev_vdbg(&ft->pdev->dev,
+		 "Config channel %d: base = %p buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
 		 channel, base, st->buf_addr[0], st->buf_addr[1],
 		 st->buf_size);
-	dev_vdbg(&ft->fmc->dev, "CSR: %08x\n",
+	dev_vdbg(&ft->pdev->dev, "CSR: %08x\n",
 		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
 }
 
@@ -529,7 +522,7 @@ static void ft_buffer_size_set(struct fmctdc_dev *ft, int channel)
  */
 static void ft_buffer_size_clr(struct fmctdc_dev *ft, int channel)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
+	void *base = ft->ft_dma_base + (0x40 * channel);
 
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
@@ -539,17 +532,18 @@ static void ft_buffer_size_clr(struct fmctdc_dev *ft, int channel)
 
 int ft_buf_init(struct fmctdc_dev *ft)
 {
+	struct resource *r;
 	unsigned int i;
 	int ret;
 
 	ft_irq_coalescing_timeout_set(ft, -1, irq_timeout_ms_default);
 	ft_irq_coalescing_size_set(ft, -1, 40);
 
-	ft->fmc->irq = ft->ft_irq_base;
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_dma,
-			      "fmc-tdc-dma-start", 0);
+	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, 0);
+	ret = request_any_context_irq(r->start, ft_irq_handler_ts_dma, 0,
+				      r->name, ft);
 	if (ret < 0) {
-		dev_err(&ft->fmc->dev,
+		dev_err(&ft->pdev->dev,
 			"Request interrupt 'DMA Start' failed: %d\n",
 			ret);
 		return ret;
@@ -558,18 +552,16 @@ int ft_buf_init(struct fmctdc_dev *ft)
 	 * DMA completion interrupt (from the GN4124 core), like in
 	 * the FMCAdc design
 	 */
-	ft->fmc->irq = ft->ft_irq_base + 1;
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
-			      "fmc-tdc-dma-over", 0);
+	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, 1);
+	ret = request_any_context_irq(r->start, ft_irq_handler_dma_complete, 0,
+				      r->name, ft);
 	if (ret < 0) {
-		dev_err(&ft->fmc->dev,
+		dev_err(&ft->pdev->dev,
 			"Request interrupt 'DMA Over' failed: %d\n",
 			ret);
-		ft->fmc->irq = ft->ft_irq_base;
-		fmc_irq_free(ft->fmc);
+		free_irq(platform_get_irq(ft->pdev, 0), ft);
 	}
-	/* kick off the interrupts (fixme: possible issue with the HDL) */
-	fmc_irq_ack(ft->fmc);
+
 	/*
 	 * We enable interrupts on all channel. but if we do not enable
 	 * the channel, we should not receive anything. So, even if
@@ -600,11 +592,8 @@ void ft_buf_exit(struct fmctdc_dev *ft)
 		   DMA_EIC_EIC_IDR_DMA_DONE | DMA_EIC_EIC_IDR_DMA_ERROR,
 		   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
 
-	ft->fmc->irq = ft->ft_irq_base;
-	fmc_irq_free(ft->fmc);
-
-	ft->fmc->irq = ft->ft_irq_base + 1;
-	fmc_irq_free(ft->fmc);
+	free_irq(platform_get_irq(ft->pdev, 0), ft);
+	free_irq(platform_get_irq(ft->pdev, 1), ft);
 
 	for (i = 0; i < FT_NUM_CHANNELS; i++)
 		ft_buffer_size_clr(ft, i);

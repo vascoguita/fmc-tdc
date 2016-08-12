@@ -88,11 +88,11 @@ void ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 
 
 	if (ft->verbose)
-		dev_info(&ft->fmc->dev, "Setting TAI time to %lld:%d\n",
+		dev_info(&ft->pdev->dev, "Setting TAI time to %lld:%d\n",
 			 seconds, coarse);
 
 	if (coarse != 0)
-		dev_warn(&ft->fmc->dev,
+		dev_warn(&ft->pdev->dev,
 			 "Warning: ignoring sub-second part (%d) when setting time.\n",
 			 coarse);
 
