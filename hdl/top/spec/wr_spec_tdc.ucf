@@ -416,9 +416,6 @@ TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_62m5_sys" 10ns DATAPATHONLY;
 
 
 ##Created by Constraints Editor (xc6slx45t-fgg484-3) - 2012/08/07
-INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
-INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
-TIMESPEC TS_ = FROM "skew_limit" TO "FFS" 2 ns DATAPATHONLY;
 
 #Created by Constraints Editor (xc6slx45t-fgg484-3) - 2012/08/08
 INST "U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_RX_PCS/timestamp_trigger_p_a_o" TNM = rx_ts_trig;
@@ -428,3 +425,8 @@ NET "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" TNM_NET = gen_with_wr_phy.U_GT
 TIMESPEC TS_gen_with_wr_phy_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
 NET "cmp_gn4124_core/cmp_clk_in/feedback" TNM_NET = cmp_gn4124_core/cmp_clk_in/feedback;
 TIMESPEC TS_cmp_gn4124_core_cmp_clk_in_feedback = PERIOD "cmp_gn4124_core/cmp_clk_in/feedback" 5 ns HIGH 50%;
+
+INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
+INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
+
+TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 1 ns DATAPATHONLY;

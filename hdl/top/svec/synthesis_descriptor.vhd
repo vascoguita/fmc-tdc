@@ -6,7 +6,7 @@
 -- Author     : Evangelia Gousiou
 -- Company    : CERN
 -- Created    : 2013-04-16
--- Last update: 2015-04-08
+-- Last update: 2015-05-27
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -46,12 +46,12 @@ constant c_sdb_synthesis_info : t_sdb_synthesis :=
     syn_commit_id => "5765c94d3f0b118adcc9bfea880aca75",
     syn_tool_name => "ISE     ",
     syn_tool_version => x"00000147",
-    syn_date => x"20150522",
+    syn_date => x"20150527",
     syn_username => "twlostow       ");
 
 constant c_sdb_repo_url : t_sdb_repo_url :=
   (
-    repo_url => "http://svn.ohwr.org/fmc-tdc                                    " 
+    repo_url => "git://ohwr.org/fmc-projects/fmc-tdc/fmc-tdc-1ns-5cha-gw.git    "
   );
 
 end package synthesis_descriptor;

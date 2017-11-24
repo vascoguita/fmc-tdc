@@ -459,8 +459,8 @@ architecture rtl of wr_svec_tdc is
   signal tm_dac_wr_p                          : std_logic_vector(1 downto 0);
   -- White Rabbit PHY
   signal phy_tx_data, phy_rx_data             : std_logic_vector(7 downto 0);
-  signal phy_tx_k, phy_tx_disparity, phy_rx_k : std_logic;
-  signal phy_tx_enc_err, phy_rx_rbclk         : std_logic;
+  signal phy_tx_k,  phy_rx_k : std_logic_vector(0 downto 0);
+  signal phy_tx_enc_err, phy_rx_rbclk,phy_tx_disparity         : std_logic;
   signal phy_rx_enc_err, phy_rst, phy_loopen  : std_logic;
   signal phy_rx_bitslide                      : std_logic_vector(3 downto 0);
   -- White Rabbit serial DAC
@@ -667,17 +667,20 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   U_WR_CORE : xwr_core
   generic map
-    (g_simulation                => f_bool2int(g_simulation),
+     (g_simulation                => f_bool2int(g_simulation),
      g_phys_uart                 => true,
      g_virtual_uart              => true,
      g_with_external_clock_input => false,
+     g_board_name                => "SVEC",
      g_aux_clks                  => 2,
      g_ep_rxbuf_size             => 1024,
-     g_dpram_initf               => "wrc.ram",
-     g_dpram_size                => 90112/4,
+     g_dpram_initf               => "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram",
+     g_dpram_size                => 131072/4,
      g_interface_mode            => PIPELINED,
      g_address_granularity       => BYTE,
-     g_softpll_enable_debugger   => false)
+     g_softpll_enable_debugger   => false,
+     g_pcs_16bit                 => false,
+     g_records_for_phy           => false)
   port map
     (clk_sys_i                   => clk_62m5_sys,
      clk_dmtd_i                  => clk_dmtd,
@@ -764,12 +767,12 @@ begin
      ch0_loopen_i       => '0',
      ch1_ref_clk_i      => clk_125m_pllref,
      ch1_tx_data_i      => phy_tx_data,
-     ch1_tx_k_i         => phy_tx_k,
+     ch1_tx_k_i         => phy_tx_k(0),
      ch1_tx_disparity_o => phy_tx_disparity,
      ch1_tx_enc_err_o   => phy_tx_enc_err,
      ch1_rx_data_o      => phy_rx_data,
      ch1_rx_rbclk_o     => phy_rx_rbclk,
-     ch1_rx_k_o         => phy_rx_k,
+     ch1_rx_k_o         => phy_rx_k(0),
      ch1_rx_enc_err_o   => phy_rx_enc_err,
      ch1_rx_bitslide_o  => phy_rx_bitslide,
      ch1_rst_i          => phy_rst,

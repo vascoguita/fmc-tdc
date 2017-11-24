@@ -181,9 +181,9 @@ entity wr_spec_tdc is
       ------------------------------------------------------------------------
       -- GN4124 PCI bridge pins
       ------------------------------------------------------------------------
-      
+
       l_rst_n : in std_logic;           -- reset from gn4124 (rstout18_n)
-      
+
       -- general purpose interface
       gpio       : inout std_logic_vector(1 downto 0);  -- gpio[0] -> gn4124 gpio8
                                         -- gpio[1] -> gn4124 gpio9
@@ -303,21 +303,21 @@ architecture rtl of wr_spec_tdc is
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
 
-    constant c_SPEC_INFO_SDB_DEVICE : t_sdb_device :=
-    (abi_class     => x"0000",               -- undocumented device
+  constant c_SPEC_INFO_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",          -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
      wbd_endian    => c_sdb_endian_big,
-     wbd_width     => x"4",                  -- 32-bit port granularity
+     wbd_width     => x"4",             -- 32-bit port granularity
      sdb_component =>
-       (addr_first  => x"0000000000000000",
-        addr_last   => x"000000000000001F",
-        product     =>
-          (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000603",         -- "WB-SPEC.CSR        " | md5sum | cut -c1-8
-           version   => x"00000001",
-           date      => x"20121116",
-           name      => "WB-SPEC.CSR        ")));
+     (addr_first   => x"0000000000000000",
+      addr_last    => x"000000000000001F",
+      product =>
+      (vendor_id   => x"000000000000CE42",  -- CERN
+       device_id   => x"00000603",  -- "WB-SPEC.CSR        " | md5sum | cut -c1-8
+       version     => x"00000001",
+       date        => x"20121116",
+       name        => "WB-SPEC.CSR        ")));
 
 -- Note: All address in sdb and crossbar are BYTE addresses!
 
@@ -346,7 +346,7 @@ architecture rtl of wr_spec_tdc is
      4 => f_sdb_embed_repo_url (c_SDB_REPO_URL),
      5 => f_sdb_embed_synthesis (c_sdb_synthesis_info));
 
-  
+
 ---------------------------------------------------------------------------------------------------
 --                                         VIC CONSTANT                                          --
 ---------------------------------------------------------------------------------------------------
@@ -366,7 +366,7 @@ architecture rtl of wr_spec_tdc is
   -- TDC core clocks and resets
   signal clk_20m_vcxo, clk_20m_vcxo_buf                   : std_logic;
   signal clk_62m5_sys, sys_locked                         : std_logic;
-  signal rst_n_sys                               : std_logic;
+  signal rst_n_sys                                        : std_logic;
   -- DAC configuration through PCIe/VME
   -- WISHBONE from crossbar master port
   signal cnx_master_out                                   : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
@@ -380,7 +380,7 @@ architecture rtl of wr_spec_tdc is
   -- Carrier 1-wire
   signal carrier_owr_en, carrier_owr_i                    : std_logic_vector(c_FMC_ONEWIRE_NB - 1 downto 0);
   -- VIC
-  signal irq_to_gn4124                       : std_logic;
+  signal irq_to_gn4124                                    : std_logic;
   -- WRabbit time
   signal tm_link_up, tm_time_valid, tm_dac_wr_p           : std_logic;
   signal tm_tai                                           : std_logic_vector(39 downto 0);
@@ -389,8 +389,8 @@ architecture rtl of wr_spec_tdc is
   signal tm_clk_aux_lock_en, tm_clk_aux_locked            : std_logic;
   -- WRabbit PHY
   signal phy_tx_data, phy_rx_data                         : std_logic_vector(7 downto 0);
-  signal phy_tx_k, phy_tx_disparity, phy_rx_k             : std_logic;
-  signal phy_tx_enc_err, phy_rx_rbclk                     : std_logic;
+  signal phy_tx_k,  phy_rx_k             : std_logic_vector(0 downto 0);
+  signal phy_tx_enc_err, phy_rx_rbclk, phy_tx_disparity                     : std_logic;
   signal phy_rx_enc_err, phy_rst, phy_loopen              : std_logic;
   signal phy_rx_bitslide                                  : std_logic_vector(3 downto 0);
   -- DAC configuration through WRabbit
@@ -406,12 +406,12 @@ architecture rtl of wr_spec_tdc is
   signal wrc_owr_en, wrc_owr_in                           : std_logic_vector(1 downto 0);
   -- aux
 
-  signal tdc0_irq: std_logic;
-  signal tdc0_clk_125m : std_logic;
-  signal tdc0_soft_rst_n: std_logic;
+  signal tdc0_irq        : std_logic;
+  signal tdc0_clk_125m   : std_logic;
+  signal tdc0_soft_rst_n : std_logic;
 
-  signal powerup_rst_cnt                      : unsigned(7 downto 0) := "00000000";
-  signal carrier_info_fmc_rst                 : std_logic_vector(30 downto 0);
+  signal powerup_rst_cnt      : unsigned(7 downto 0) := "00000000";
+  signal carrier_info_fmc_rst : std_logic_vector(30 downto 0);
 
 --=================================================================================================
 --                                       architecture begin
@@ -545,27 +545,27 @@ begin
 -- waits for the system clock PLL to lock + additional 256 clk_62m5_sys cycles before de-asserting
 -- the reset.
 
-  p_powerup_reset : process(clk_62m5_sys,l_rst_n)
+  p_powerup_reset : process(clk_62m5_sys, l_rst_n)
   begin
     if(l_rst_n = '0') then
-      rst_n_sys           <= '0';
+      rst_n_sys <= '0';
     elsif rising_edge(clk_62m5_sys) then
       if sys_locked = '1' then
         if(powerup_rst_cnt = "11111111") then
-          rst_n_sys       <= '1';
+          rst_n_sys <= '1';
         else
           rst_n_sys       <= '0';
           powerup_rst_cnt <= powerup_rst_cnt + 1;
         end if;
       else
-        rst_n_sys         <= '0';
-        powerup_rst_cnt   <= "00000000";
+        rst_n_sys       <= '0';
+        powerup_rst_cnt <= "00000000";
       end if;
     end if;
   end process;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  tdc0_soft_rst_n             <= carrier_info_fmc_rst(0) and rst_n_sys;
+  tdc0_soft_rst_n <= carrier_info_fmc_rst(0) and rst_n_sys;
 
 ---------------------------------------------------------------------------------------------------
 --                                  White Rabbit Core + PHY                                      --
@@ -578,13 +578,16 @@ begin
      g_phys_uart                 => true,
      g_virtual_uart              => true,
      g_with_external_clock_input => false,
+     g_board_name                => "SPEC",
      g_aux_clks                  => 1,
      g_ep_rxbuf_size             => 1024,
-     g_dpram_initf => "wrc.ram",
-     g_dpram_size                => 90112/4,
+     g_dpram_initf               => "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram",
+     g_dpram_size                => 131072/4,
      g_interface_mode            => PIPELINED,
      g_address_granularity       => BYTE,
-     g_softpll_enable_debugger   => false)
+     g_softpll_enable_debugger   => false,
+     g_pcs_16bit                 => false,
+     g_records_for_phy           => false)
     port map
     (clk_sys_i               => clk_62m5_sys,
      clk_dmtd_i              => clk_dmtd,
@@ -646,51 +649,51 @@ begin
      -- aux reset
      rst_aux_n_o             => open);
 
-gen_with_wr_phy:  if g_with_wr_phy generate
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  U_GTP : wr_gtp_phy_spartan6
-    generic map
-    (g_simulation => 0,
-     g_enable_ch0 => 0,
-     g_enable_ch1 => 1)
-    port map
-    (gtp_clk_i          => clk_125m_gtp,
-     ch0_ref_clk_i      => clk_125m_pllref,
-     ch0_tx_data_i      => x"00",
-     ch0_tx_k_i         => '0',
-     ch0_tx_disparity_o => open,
-     ch0_tx_enc_err_o   => open,
-     ch0_rx_rbclk_o     => open,
-     ch0_rx_data_o      => open,
-     ch0_rx_k_o         => open,
-     ch0_rx_enc_err_o   => open,
-     ch0_rx_bitslide_o  => open,
-     ch0_rst_i          => '1',
-     ch0_loopen_i       => '0',
-     ch1_ref_clk_i      => clk_125m_pllref,
-     ch1_tx_data_i      => phy_tx_data,
-     ch1_tx_k_i         => phy_tx_k,
-     ch1_tx_disparity_o => phy_tx_disparity,
-     ch1_tx_enc_err_o   => phy_tx_enc_err,
-     ch1_rx_data_o      => phy_rx_data,
-     ch1_rx_rbclk_o     => phy_rx_rbclk,
-     ch1_rx_k_o         => phy_rx_k,
-     ch1_rx_enc_err_o   => phy_rx_enc_err,
-     ch1_rx_bitslide_o  => phy_rx_bitslide,
-     ch1_rst_i          => phy_rst,
-     ch1_loopen_i       => '0',         -- phy_loopen,
-     pad_txn0_o         => open,
-     pad_txp0_o         => open,
-     pad_rxn0_i         => '0',
-     pad_rxp0_i         => '0',
-     pad_txn1_o         => sfp_txn_o,
-     pad_txp1_o         => sfp_txp_o,
-     pad_rxn1_i         => sfp_rxn_i,
-     pad_rxp1_i         => sfp_rxp_i);
+  gen_with_wr_phy : if g_with_wr_phy generate
+    --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+    U_GTP : wr_gtp_phy_spartan6
+      generic map
+      (g_simulation => 0,
+       g_enable_ch0 => 0,
+       g_enable_ch1 => 1)
+      port map
+      (gtp_clk_i          => clk_125m_gtp,
+       ch0_ref_clk_i      => clk_125m_pllref,
+       ch0_tx_data_i      => x"00",
+       ch0_tx_k_i         => '0',
+       ch0_tx_disparity_o => open,
+       ch0_tx_enc_err_o   => open,
+       ch0_rx_rbclk_o     => open,
+       ch0_rx_data_o      => open,
+       ch0_rx_k_o         => open,
+       ch0_rx_enc_err_o   => open,
+       ch0_rx_bitslide_o  => open,
+       ch0_rst_i          => '1',
+       ch0_loopen_i       => '0',
+       ch1_ref_clk_i      => clk_125m_pllref,
+       ch1_tx_data_i      => phy_tx_data,
+       ch1_tx_k_i         => phy_tx_k(0),
+       ch1_tx_disparity_o => phy_tx_disparity,
+       ch1_tx_enc_err_o   => phy_tx_enc_err,
+       ch1_rx_data_o      => phy_rx_data,
+       ch1_rx_rbclk_o     => phy_rx_rbclk,
+       ch1_rx_k_o         => phy_rx_k(0),
+       ch1_rx_enc_err_o   => phy_rx_enc_err,
+       ch1_rx_bitslide_o  => phy_rx_bitslide,
+       ch1_rst_i          => phy_rst,
+       ch1_loopen_i       => '0',       -- phy_loopen,
+       pad_txn0_o         => open,
+       pad_txp0_o         => open,
+       pad_rxn0_i         => '0',
+       pad_rxp0_i         => '0',
+       pad_txn1_o         => sfp_txn_o,
+       pad_txp1_o         => sfp_txp_o,
+       pad_rxn1_i         => sfp_rxn_i,
+       pad_rxp1_i         => sfp_rxp_i);
 
 
   end generate gen_with_wr_phy;
-  
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   U_DAC_ARB : spec_serial_dac_arb
     generic map
@@ -745,39 +748,39 @@ gen_with_wr_phy:  if g_with_wr_phy generate
 ---------------------------------------------------------------------------------------------------
   cmp_gn4124_core : gn4124_core
     port map
-    (rst_n_a_i       => l_rst_n,
-     status_o        => gn4124_status,
-      ---------------------------------------------------------
-      -- P2L Direction
-      --
-      -- Source Sync DDR related signals
-      p2l_clk_p_i  => P2L_CLKp,
-      p2l_clk_n_i  => P2L_CLKn,
-      p2l_data_i   => P2L_DATA,
-      p2l_dframe_i => P2L_DFRAME,
-      p2l_valid_i  => P2L_VALID,
-      -- P2L Control
-      p2l_rdy_o    => P2L_RDY,
-      p_wr_req_i   => P_WR_REQ,
-      p_wr_rdy_o   => P_WR_RDY,
-      rx_error_o   => RX_ERROR,
-      vc_rdy_i     => VC_RDY,
+    (rst_n_a_i    => l_rst_n,
+     status_o     => gn4124_status,
+     ---------------------------------------------------------
+     -- P2L Direction
+     --
+     -- Source Sync DDR related signals
+     p2l_clk_p_i  => P2L_CLKp,
+     p2l_clk_n_i  => P2L_CLKn,
+     p2l_data_i   => P2L_DATA,
+     p2l_dframe_i => P2L_DFRAME,
+     p2l_valid_i  => P2L_VALID,
+     -- P2L Control
+     p2l_rdy_o    => P2L_RDY,
+     p_wr_req_i   => P_WR_REQ,
+     p_wr_rdy_o   => P_WR_RDY,
+     rx_error_o   => RX_ERROR,
+     vc_rdy_i     => VC_RDY,
 
-      ---------------------------------------------------------
-      -- L2P Direction
-      --
-      -- Source Sync DDR related signals
-      l2p_clk_p_o  => L2P_CLKp,
-      l2p_clk_n_o  => L2P_CLKn,
-      l2p_data_o   => L2P_DATA,
-      l2p_dframe_o => L2P_DFRAME,
-      l2p_valid_o  => L2P_VALID,
-      -- L2P Control
-      l2p_edb_o    => L2P_EDB,
-      l2p_rdy_i    => L2P_RDY,
-      l_wr_rdy_i   => L_WR_RDY,
-      p_rd_d_rdy_i => P_RD_D_RDY,
-      tx_error_i   => TX_ERROR,
+     ---------------------------------------------------------
+     -- L2P Direction
+     --
+     -- Source Sync DDR related signals
+     l2p_clk_p_o  => L2P_CLKp,
+     l2p_clk_n_o  => L2P_CLKn,
+     l2p_data_o   => L2P_DATA,
+     l2p_dframe_o => L2P_DFRAME,
+     l2p_valid_o  => L2P_VALID,
+     -- L2P Control
+     l2p_edb_o    => L2P_EDB,
+     l2p_rdy_i    => L2P_RDY,
+     l_wr_rdy_i   => L_WR_RDY,
+     p_rd_d_rdy_i => P_RD_D_RDY,
+     tx_error_i   => TX_ERROR,
 
      dma_irq_o => open,
      irq_p_i   => '0',
@@ -794,9 +797,9 @@ gen_with_wr_phy:  if g_with_wr_phy generate
      csr_dat_i       => cnx_slave_out(c_MASTER_GENNUM).dat,
      csr_ack_i       => cnx_slave_out(c_MASTER_GENNUM).ack,
      csr_stall_i     => cnx_slave_out(c_MASTER_GENNUM).stall,
-     csr_err_i => '0',
-     csr_rty_i => '0',
-     csr_int_i => '0',
+     csr_err_i       => '0',
+     csr_rty_i       => '0',
+     csr_int_i       => '0',
      -- DMA: not used
      dma_clk_i       => clk_62m5_sys,
      dma_adr_o       => open,
@@ -808,9 +811,9 @@ gen_with_wr_phy:  if g_with_wr_phy generate
      dma_ack_i       => '1',
      dma_dat_i       => (others => '0'),
      dma_stall_i     => '0',
-     dma_err_i => '0',
-     dma_rty_i => '0',
-     dma_int_i => '0',
+     dma_err_i       => '0',
+     dma_rty_i       => '0',
+     dma_int_i       => '0',
      dma_reg_clk_i   => clk_62m5_sys,
      dma_reg_adr_i   => (others => '0'),
      dma_reg_dat_i   => (others => '0'),
@@ -893,7 +896,7 @@ gen_with_wr_phy:  if g_with_wr_phy generate
       irq_o                => tdc0_irq,
       clk_125m_tdc_o       => tdc0_clk_125m);
 
-  
+
 ---------------------------------------------------------------------------------------------------
 --                                              VIC                                              --
 ---------------------------------------------------------------------------------------------------
@@ -913,7 +916,7 @@ gen_with_wr_phy:  if g_with_wr_phy generate
 
   gpio(0) <= irq_to_gn4124;
   gpio(1) <= '0';
-  
+
 ---------------------------------------------------------------------------------------------------
 --                                    Carrier CSR information                                    --
 ---------------------------------------------------------------------------------------------------
@@ -940,15 +943,15 @@ gen_with_wr_phy:  if g_with_wr_phy generate
      carrier_info_stat_sys_pll_lck_i   => sys_locked,
      carrier_info_stat_ddr3_cal_done_i => '0',
      carrier_info_stat_reserved_i      => x"0000000",
-     
-     carrier_info_ctrl_led_green_o     => open,
-     carrier_info_ctrl_led_red_o       => open,
-     carrier_info_ctrl_dac_clr_n_o     => open,
-     carrier_info_ctrl_reserved_o      => open,
-     carrier_info_rst_fmc0_n_o         => open,
-     carrier_info_rst_fmc0_n_i         => '1',
-     carrier_info_rst_fmc0_n_load_o    => open,
-     carrier_info_rst_reserved_o       => carrier_info_fmc_rst);
+
+     carrier_info_ctrl_led_green_o  => open,
+     carrier_info_ctrl_led_red_o    => open,
+     carrier_info_ctrl_dac_clr_n_o  => open,
+     carrier_info_ctrl_reserved_o   => open,
+     carrier_info_rst_fmc0_n_o      => open,
+     carrier_info_rst_fmc0_n_i      => '1',
+     carrier_info_rst_fmc0_n_load_o => open,
+     carrier_info_rst_reserved_o    => carrier_info_fmc_rst);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
@@ -957,7 +960,7 @@ gen_with_wr_phy:  if g_with_wr_phy generate
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).int <= '0';
 
 
-    --  --  --  --  --  --
+  --  --  --  --  --  --
   sfp_tx_disable_o <= '0';
   -- dac_clr_n_o   <= '1';
 

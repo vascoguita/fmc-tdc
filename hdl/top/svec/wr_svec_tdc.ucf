@@ -661,29 +661,6 @@ TIMESPEC TS_gen_with_wr_phy_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD "gen_with_wr_ph
 
 # PlanAhead Generated miscellaneous constraints 
 
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds[0].DMTD_REF/clk_i_d0" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds[0].DMTD_REF/clk_i_d1" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds[0].DMTD_REF/clk_in" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds[0].DMTD_REF/clk_i_d2" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds[0].DMTD_REF/clk_i_d3" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[0].gen_output_pd_ddmtd.DMTD_FB/clk_i_d0" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[0].gen_output_pd_ddmtd.DMTD_FB/clk_i_d1" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[0].gen_output_pd_ddmtd.DMTD_FB/clk_i_d2" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[0].gen_output_pd_ddmtd.DMTD_FB/clk_i_d3" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[0].gen_output_pd_ddmtd.DMTD_FB/clk_in" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[1].gen_output_pd_ddmtd.DMTD_FB/clk_i_d0" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[1].gen_output_pd_ddmtd.DMTD_FB/clk_i_d1" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[1].gen_output_pd_ddmtd.DMTD_FB/clk_i_d2" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[1].gen_output_pd_ddmtd.DMTD_FB/clk_i_d3" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[1].gen_output_pd_ddmtd.DMTD_FB/clk_in" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[2].gen_output_pd_ddmtd.DMTD_FB/clk_i_d0" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[2].gen_output_pd_ddmtd.DMTD_FB/clk_i_d1" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[2].gen_output_pd_ddmtd.DMTD_FB/clk_i_d2" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[2].gen_output_pd_ddmtd.DMTD_FB/clk_i_d3" KEEP = "TRUE";
-NET "U_WR_CORE/WRPC/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds[2].gen_output_pd_ddmtd.DMTD_FB/clk_in" KEEP = "TRUE";
-
-# PlanAhead Generated IO constraints 
-
 NET "tdc1_address_o[3]" SLEW = FAST;
 NET "tdc1_address_o[2]" SLEW = FAST;
 NET "tdc1_address_o[1]" SLEW = FAST;
@@ -748,3 +725,8 @@ NET "tdc2_data_bus_io[3]" SLEW = FAST;
 NET "tdc2_data_bus_io[2]" SLEW = FAST;
 NET "tdc2_data_bus_io[1]" SLEW = FAST;
 NET "tdc2_data_bus_io[0]" SLEW = FAST;
+
+INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
+INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
+
+TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 1 ns DATAPATHONLY;
