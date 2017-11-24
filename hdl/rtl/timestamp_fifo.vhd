@@ -113,7 +113,7 @@ begin
       regs_i     => regs_in,
       regs_o     => regs_out);
 
-  buf_count <= unsigned(regs_out.fifo_wr_usedw_o);
+  buf_count <= resize(unsigned(regs_out.fifo_wr_usedw_o), 10);
 
   ts_match <= '1' when timestamp_valid_i = '1' and unsigned(timestamp_i(98 downto 96)) = g_channel else '0';
   
