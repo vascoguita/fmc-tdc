@@ -8,6 +8,12 @@ NET "tdc1_prsntm2c_n_i" IOSTANDARD = LVCMOS33;
 NET "tdc2_prsntm2c_n_i" IOSTANDARD = LVCMOS33;
 
 #----------------------------------------
+#----------------------------------------
+#
+NET "pps_o"      LOC = T28;
+NET "pps_o"      IOSTANDARD = "LVCMOS33";
+
+#----------------------------------------
 # FMC1/FMC2 I2C
 #----------------------------------------
 NET "tdc1_scl_b" LOC = P28;
@@ -27,6 +33,18 @@ NET "tdc2_sda_b" IOSTANDARD = LVCMOS33;
 #----------------------------------------
 NET "carrier_onewire_b" LOC = AC30;
 NET "carrier_onewire_b" IOSTANDARD = LVCMOS33;
+
+#----------------------------------------
+# SPI FLASH
+#----------------------------------------
+NET "spi_ncs_o"  LOC = AG27;
+NET "spi_ncs_o"  IOSTANDARD = "LVCMOS33";
+NET "spi_sclk_o" LOC = AG26;
+NET "spi_sclk_o"  IOSTANDARD = "LVCMOS33";
+NET "spi_mosi_o" LOC = AH26;
+NET "spi_mosi_o"  IOSTANDARD = "LVCMOS33";
+NET "spi_miso_i" LOC = AH27;
+NET "spi_miso_i"  IOSTANDARD = "LVCMOS33";
 
 #----------------------------------------
 # PCB version

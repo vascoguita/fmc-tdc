@@ -171,6 +171,11 @@ entity wr_svec_tdc is
       uart_txd_o             : out   std_logic;
       -- 1-wire
       carrier_onewire_b      : inout std_logic;        
+      -- SPI Flash
+      spi_sclk_o             : out std_logic;
+      spi_ncs_o              : out std_logic;
+      spi_mosi_o             : out std_logic;
+      spi_miso_i             : in  std_logic;
       -- SVEC PCB version
       pcb_ver_i              : in    std_logic_vector(3 downto 0);
       -- Mezzanines presence
@@ -180,6 +185,8 @@ entity wr_svec_tdc is
       fp_led_line_oen_o      : out   std_logic_vector(1 downto 0);
       fp_led_line_o          : out   std_logic_vector(1 downto 0);
       fp_led_column_o        : out   std_logic_vector(3 downto 0);
+
+      pps_o : out std_logic;
 
      -- VME interface
       VME_AS_n_i             : in    std_logic;
@@ -737,10 +744,15 @@ begin
      tm_time_valid_o             => tm_time_valid,
      tm_tai_o                    => tm_utc,
      tm_cycles_o                 => tm_cycles,
+     -- SPI Flash
+     spi_sclk_o                  => spi_sclk_o,
+     spi_ncs_o                   => spi_ncs_o,
+     spi_mosi_o                  => spi_mosi_o,
+     spi_miso_i                  => spi_miso_i,
      -- not used
      btn1_i                      => '0',
      btn2_i                      => '0',
-     pps_p_o                     => open,
+     pps_p_o                     => pps_o,
      -- aux reset
      rst_aux_n_o                 => open);
 
