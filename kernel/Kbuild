@@ -1,8 +1,7 @@
-# FMC_BUS, ZIO, SPEC_SW comes from the Makefile
+# FMC_BUS, ZIO, comes from the Makefile
 
 KBUILD_EXTRA_SYMBOLS := \
 	$(ZIO_ABS)/Module.symvers \
-	$(SPEC_SW_ABS)/kernel/Module.symvers \
 	$(FMC_BUS_ABS)/kernel/Module.symvers
 
 # The library includes <sdb.h>, so point -I directtly there
@@ -12,8 +11,7 @@ LINUXINCLUDE := -I$(FMC_BUS_ABS)/kernel/include -I$(FMC_BUS_ABS)/kernel/include/
 ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
 	-I$(src) \
 	-I$(ZIO_ABS)/include \
-	-I$(FMC_BUS_ABS)/sdb-lib/ \
-	-I$(SPEC_SW_ABS)/kernel
+	-I$(FMC_BUS_ABS)/sdb-lib/
 
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
 ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
@@ -32,7 +30,6 @@ endif
 # add versions of used submodules
 SUBMODULE_VERSIONS += MODULE_INFO(version_fmc_bus,\"$(FMC_BUS_VERSION)\");
 SUBMODULE_VERSIONS += MODULE_INFO(version_zio,\"$(ZIO_VERSION)\");
-SUBMODULE_VERSIONS += MODULE_INFO(version_spec_sw,\"$(SPEC_SW_VERSION)\");
 
 ccflags-y += -DADDITIONAL_VERSIONS="$(SUBMODULE_VERSIONS)"
 

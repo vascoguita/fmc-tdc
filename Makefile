@@ -12,26 +12,22 @@ export CONFIG_WR_NIC
 # The user can override, using environment variables, all these three:
 FMC_BUS ?= $(shell pwd)/fmc-bus
 ZIO ?= $(shell pwd)/zio
-SPEC_SW ?= $(shell pwd)/spec-sw
 
-# FMC_BUS_ABS, ZIO_ABS and SPEC_SW_ABS has to be absolut path, due to beeing
+# FMC_BUS_ABS and ZIO_ABS has to be absolut path, due to beeing
 # passed to the Kbuild
 FMC_BUS_ABS ?= $(abspath $(FMC_BUS) )
 ZIO_ABS ?= $(abspath $(ZIO) )
-SPEC_SW_ABS ?= $(abspath $(SPEC_SW) )
 
 export FMC_BUS_ABS
 export ZIO_ABS
-export SPEC_SW_ABS
 
 ZIO_VERSION = $(shell cd $(ZIO_ABS); git describe --always --dirty --long --tags)
 export ZIO_VERSION
 
 
-DIRS = $(FMC_BUS_ABS) $(ZIO_ABS) $(SPEC_SW_ABS) kernel lib tools
+DIRS = $(FMC_BUS_ABS) $(ZIO_ABS) kernel lib tools
 
-$(SPEC_SW_ABS): $(FMC_BUS_ABS)
-kernel: $(FMC_BUS_ABS) $(ZIO_ABS) $(SPEC_SW_ABS)
+kernel: $(FMC_BUS_ABS) $(ZIO_ABS)
 lib: $(ZIO_ABS)
 tools: lib
 
@@ -52,7 +48,7 @@ $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
 
-SUBMOD = $(FMC_BUS_ABS) $(ZIO_ABS) $(SPEC_SW_ABS)
+SUBMOD = $(FMC_BUS_ABS) $(ZIO_ABS)
 
 prereq_install_warn:
 	@test -f .prereq_installed || \
@@ -64,7 +60,6 @@ prereq_install:
 
 $(FMC_BUS_ABS): fmc-bus-init_repo
 $(ZIO_ABS): zio-init_repo
-$(SPEC_SW_ABS): spec-sw-init_repo
 
 # init submodule if missing
 fmc-bus-init_repo:
@@ -73,7 +68,3 @@ fmc-bus-init_repo:
 # init submodule if missing
 zio-init_repo:
 	@test -d $(ZIO_ABS)/doc || ( echo "Checking out submodule $(ZIO_ABS)" && git submodule update --init $(ZIO_ABS) )
-
-# init submodule if missing
-spec-sw-init_repo:
-	@test -d $(SPEC_SW_ABS)/doc || ( echo "Checking out submodule $(SPEC_SW_ABS)" && git submodule update --init $(SPEC_SW_ABS) )
