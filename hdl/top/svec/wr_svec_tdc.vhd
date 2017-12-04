@@ -185,8 +185,10 @@ entity wr_svec_tdc is
       fp_led_line_oen_o      : out   std_logic_vector(1 downto 0);
       fp_led_line_o          : out   std_logic_vector(1 downto 0);
       fp_led_column_o        : out   std_logic_vector(3 downto 0);
-
-      pps_o : out std_logic;
+      -- SVEC Front panel LEMOs
+      fp_gpio1_o      : out std_logic;              -- PPS output
+      fp_term_en_o    : out std_logic_vector(4 downto 1); 
+      fp_gpio1_a2b_o  : out std_logic;
 
      -- VME interface
       VME_AS_n_i             : in    std_logic;
@@ -752,7 +754,7 @@ begin
      -- not used
      btn1_i                      => '0',
      btn2_i                      => '0',
-     pps_p_o                     => pps_o,
+     pps_p_o                     => fp_gpio1_o,
      -- aux reset
      rst_aux_n_o                 => open);
 
@@ -1231,6 +1233,9 @@ begin
      extended_o => led_tdc2_ef);
   --  --  --  --  --  --  --
   tdc2_ef <= not(tdc2_ef1_i) or not(tdc2_ef2_i);
+
+  fp_term_en_o    <= (others => '0');
+  fp_gpio1_a2b_o  <= '1';
 
 
 end rtl;
