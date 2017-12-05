@@ -205,7 +205,7 @@ entity wr_svec_tdc is
       vme_addr_b             : inout std_logic_vector(31 downto 1);
       vme_data_b             : inout std_logic_vector(31 downto 0);
       vme_bbsy_n_i           : in    std_logic;
-      vme_irq_n_o            : out   std_logic_vector(6 downto 0);
+      vme_irq_o              : out   std_logic_vector(6 downto 0);
       vme_iack_n_i           : in    std_logic;
       vme_iackin_n_i         : in    std_logic;
       vme_iackout_n_o        : out   std_logic;
@@ -451,11 +451,13 @@ architecture rtl of wr_svec_tdc is
 
 ---------------------------------------------------------------------------------------------------
  -- VME interface
-  signal VME_DATA_b_out                       : std_logic_vector(31 downto 0);
-  signal VME_ADDR_b_out                       : std_logic_vector(31 downto 1);
-  signal VME_LWORD_n_b_out                    : std_logic;
-  signal VME_DATA_DIR_int                     : std_logic;
-  signal VME_ADDR_DIR_int                     : std_logic;
+  signal vme_data_b_out                       : std_logic_vector(31 downto 0);
+  signal vme_addr_b_out                       : std_logic_vector(31 downto 1);
+  signal vme_lword_n_b_out                    : std_logic;
+  signal vme_data_dir_int                     : std_logic;
+  signal vme_addr_dir_int                     : std_logic;
+  signal vme_berr_n                           : std_logic;
+  signal vme_irq_n                            : std_logic_vector(6 downto 0);
 
 ---------------------------------------------------------------------------------------------------
   -- White Rabbit signals to TDC mezzanine
@@ -492,6 +494,7 @@ architecture rtl of wr_svec_tdc is
   -- WISHBONE to crossbar slave port
   signal cnx_slave_out                        : t_wishbone_slave_out_array (c_NUM_WB_SLAVES-1 downto 0);
   signal cnx_slave_in                         : t_wishbone_slave_in_array  (c_NUM_WB_SLAVES-1 downto 0);
+  signal vme_wb_in                            : t_wishbone_master_in;
 
 ---------------------------------------------------------------------------------------------------
 -- Interrupts
@@ -894,45 +897,57 @@ begin
 ---------------------------------------------------------------------------------------------------
   U_VME_Core : xvme64x_core
   generic map (
-    g_clock_freq => 62500000,
-    g_adem_a24   => x"fff80000")
+    g_CLOCK_PERIOD => 16,
+    g_DECODE_AM    => True,
+    g_USER_CSR_EXT => False,
+    g_MANUFACTURER_ID => c_CERN_ID,
+    g_BOARD_ID        => c_SVEC_ID,
+    g_REVISION_ID     => c_SVEC_REVISION_ID,
+    g_PROGRAM_ID      => c_SVEC_PROGRAM_ID)
   port map
     (clk_i           => clk_62m5_sys,
      rst_n_i         => rst_n_sys,
-     VME_AS_n_i      => vme_as_n_i,
-     VME_RST_n_i     => vme_rst_n_i,
-     VME_WRITE_n_i   => vme_write_n_i,
-     VME_AM_i        => vme_am_i,
-     VME_DS_n_i      => vme_ds_n_i,
-     VME_GA_i        => vme_ga_i,
-     VME_BERR_o      => vme_lword_n_b,
-     VME_DTACK_n_o   => vme_addr_b,
-     VME_RETRY_n_o   => vme_data_b,
-     VME_RETRY_OE_o  => vme_iack_n_i,
-     VME_LWORD_n_b_i => vme_iackin_n_i,
-     VME_LWORD_n_b_o => vme_berr_n_o,
-     VME_ADDR_b_i    => vme_dtack_n_o,
-     VME_DATA_b_o    => vme_retry_n_o,
-     VME_ADDR_b_o    => vme_retry_oe_o,
-     VME_DATA_b_i    => vme_lword_n_b_out,
-     VME_IRQ_n_o     => vme_data_b_out,
-     VME_IACK_n_i    => vme_addr_b_out,
-     VME_IACKIN_n_i  => vme_irq_n_o,
-     VME_IACKOUT_n_o => vme_iackout_n_o,
-     VME_DTACK_OE_o  => vme_dtack_oe_o,
-     VME_DATA_DIR_o  => vme_data_dir_int,
-     VME_DATA_OE_N_o => vme_data_oe_n_o,
-     VME_ADDR_DIR_o  => vme_addr_dir_int,
-     VME_ADDR_OE_N_o => vme_addr_oe_n_o,
-     master_o        => cnx_slave_in (c_MASTER_VME),
-     master_i        => cnx_slave_out(c_MASTER_VME),
-     irq_i           => irq_to_vmecore);
+     vme_i.as_n      => vme_as_n_i,
+     vme_i.rst_n     => vme_rst_n_i,
+     vme_i.write_n   => vme_write_n_i,
+     vme_i.am        => vme_am_i,
+     vme_i.ds_n      => vme_ds_n_i,
+     vme_i.ga        => vme_ga_i,
+     vme_i.lword_n   => vme_lword_n_b,
+     vme_i.addr      => vme_addr_b,
+     vme_i.data      => vme_data_b,
+     vme_i.iack_n    => vme_iack_n_i,
+     vme_i.iackin_n  => vme_iackin_n_i,
+     vme_o.berr_n    => vme_berr_n,
+     vme_o.dtack_n   => vme_dtack_n_o,
+     vme_o.retry_n   => vme_retry_n_o,
+     vme_o.retry_oe  => vme_retry_oe_o,
+     vme_o.lword_n   => vme_lword_n_b_out,
+     vme_o.data      => vme_data_b_out,
+     vme_o.addr      => vme_addr_b_out,
+     vme_o.irq_n     => vme_irq_n,
+     vme_o.iackout_n => vme_iackout_n_o,
+     vme_o.dtack_oe  => vme_dtack_oe_o,
+     vme_o.data_dir  => vme_data_dir_int,
+     vme_o.data_oe_n => vme_data_oe_n_o,
+     vme_o.addr_dir  => vme_addr_dir_int,
+     vme_o.addr_oe_n => vme_addr_oe_n_o,
+     wb_o            => cnx_slave_in (c_MASTER_VME),
+     wb_i            => cnx_slave_out(c_MASTER_VME)); --vme_wb_in);
  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  VME_DATA_b         <= VME_DATA_b_out    when VME_DATA_DIR_int = '1' else (others => 'Z');
-  VME_ADDR_b         <= VME_ADDR_b_out    when VME_ADDR_DIR_int = '1' else (others => 'Z');
-  VME_LWORD_n_b      <= VME_LWORD_n_b_out when VME_ADDR_DIR_int = '1' else 'Z';
-  VME_ADDR_DIR_o     <= VME_ADDR_DIR_int;
-  VME_DATA_DIR_o     <= VME_DATA_DIR_int;
+  vme_wb_in.ack      <= cnx_slave_out(c_MASTER_VME).ack;
+  vme_wb_in.err      <= cnx_slave_out(c_MASTER_VME).err;
+  vme_wb_in.rty      <= cnx_slave_out(c_MASTER_VME).rty;
+  vme_wb_in.stall    <= cnx_slave_out(c_MASTER_VME).stall;
+  vme_wb_in.dat      <= cnx_slave_out(c_MASTER_VME).dat;
+  vme_wb_in.int      <= irq_to_vmecore;
+  vme_data_b         <= vme_data_b_out    when vme_data_dir_int = '1' else (others => 'Z');
+  vme_addr_b         <= vme_addr_b_out    when vme_addr_dir_int = '1' else (others => 'Z');
+  vme_lword_n_b      <= vme_lword_n_b_out when vme_addr_dir_int = '1' else 'Z';
+  vme_addr_dir_o     <= vme_addr_dir_int;
+  vme_data_dir_o     <= vme_data_dir_int;
+  vme_berr_o         <= not vme_berr_n;
+  vme_irq_o          <= not vme_irq_n;
 
 
 ---------------------------------------------------------------------------------------------------
