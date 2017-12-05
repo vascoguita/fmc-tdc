@@ -122,7 +122,7 @@ use work.wishbone_pkg.all;
 use work.wrcore_pkg.all;
 use work.wr_fabric_pkg.all;
 use work.wr_xilinx_pkg.all;
-use work.xvme64x_core_pkg.all;
+use work.vme64x_pkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -191,29 +191,29 @@ entity wr_svec_tdc is
       fp_gpio1_a2b_o  : out std_logic;
 
      -- VME interface
-      VME_AS_n_i             : in    std_logic;
-      VME_RST_n_i            : in    std_logic;
-      VME_WRITE_n_i          : in    std_logic;
-      VME_AM_i               : in    std_logic_vector(5 downto 0);
-      VME_DS_n_i             : in    std_logic_vector(1 downto 0);
-      VME_GA_i               : in    std_logic_vector(5 downto 0);
-      VME_BERR_o             : inout std_logic;
-      VME_DTACK_n_o          : inout std_logic;
-      VME_RETRY_n_o          : out   std_logic;
-      VME_RETRY_OE_o         : out   std_logic;
-      VME_LWORD_n_b          : inout std_logic;
-      VME_ADDR_b             : inout std_logic_vector(31 downto 1);
-      VME_DATA_b             : inout std_logic_vector(31 downto 0);
-      VME_BBSY_n_i           : in    std_logic;
-      VME_IRQ_n_o            : out   std_logic_vector(6 downto 0);
-      VME_IACK_n_i           : in    std_logic;
-      VME_IACKIN_n_i         : in    std_logic;
-      VME_IACKOUT_n_o        : out   std_logic;
-      VME_DTACK_OE_o         : inout std_logic;
-      VME_DATA_DIR_o         : inout std_logic;
-      VME_DATA_OE_N_o        : inout std_logic;
-      VME_ADDR_DIR_o         : inout std_logic;
-      VME_ADDR_OE_N_o        : inout std_logic;
+      vme_as_n_i             : in    std_logic;
+      vme_rst_n_i            : in    std_logic;
+      vme_write_n_i          : in    std_logic;
+      vme_am_i               : in    std_logic_vector(5 downto 0);
+      vme_ds_n_i             : in    std_logic_vector(1 downto 0);
+      vme_ga_i               : in    std_logic_vector(5 downto 0);
+      vme_berr_o             : inout std_logic;
+      vme_dtack_n_o          : inout std_logic;
+      vme_retry_n_o          : out   std_logic;
+      vme_retry_oe_o         : out   std_logic;
+      vme_lword_n_b          : inout std_logic;
+      vme_addr_b             : inout std_logic_vector(31 downto 1);
+      vme_data_b             : inout std_logic_vector(31 downto 0);
+      vme_bbsy_n_i           : in    std_logic;
+      vme_irq_n_o            : out   std_logic_vector(6 downto 0);
+      vme_iack_n_i           : in    std_logic;
+      vme_iackin_n_i         : in    std_logic;
+      vme_iackout_n_o        : out   std_logic;
+      vme_dtack_oe_o         : inout std_logic;
+      vme_data_dir_o         : inout std_logic;
+      vme_data_oe_n_o        : inout std_logic;
+      vme_addr_dir_o         : inout std_logic;
+      vme_addr_oe_n_o        : inout std_logic;
 
      -- TDC mezzanine board on FMC slot 1
       -- TDC1 PLL AD9516 and DAC AD5662 interface
@@ -899,31 +899,31 @@ begin
   port map
     (clk_i           => clk_62m5_sys,
      rst_n_i         => rst_n_sys,
-     VME_AS_n_i      => VME_AS_n_i,
-     VME_RST_n_i     => VME_RST_n_i,
-     VME_WRITE_n_i   => VME_WRITE_n_i,
-     VME_AM_i        => VME_AM_i,
-     VME_DS_n_i      => VME_DS_n_i,
-     VME_GA_i        => VME_GA_i,
-     VME_BERR_o      => VME_BERR_o,
-     VME_DTACK_n_o   => VME_DTACK_n_o,
-     VME_RETRY_n_o   => VME_RETRY_n_o,
-     VME_RETRY_OE_o  => VME_RETRY_OE_o,
-     VME_LWORD_n_b_i => VME_LWORD_n_b,
-     VME_LWORD_n_b_o => VME_LWORD_n_b_out,
-     VME_ADDR_b_i    => VME_ADDR_b,
-     VME_DATA_b_o    => VME_DATA_b_out,
-     VME_ADDR_b_o    => VME_ADDR_b_out,
-     VME_DATA_b_i    => VME_DATA_b,
-     VME_IRQ_n_o     => VME_IRQ_n_o,
-     VME_IACK_n_i    => VME_IACK_n_i,
-     VME_IACKIN_n_i  => VME_IACKIN_n_i,
-     VME_IACKOUT_n_o => VME_IACKOUT_n_o,
-     VME_DTACK_OE_o  => VME_DTACK_OE_o,
-     VME_DATA_DIR_o  => VME_DATA_DIR_int,
-     VME_DATA_OE_N_o => VME_DATA_OE_N_o,
-     VME_ADDR_DIR_o  => VME_ADDR_DIR_int,
-     VME_ADDR_OE_N_o => VME_ADDR_OE_N_o,
+     VME_AS_n_i      => vme_as_n_i,
+     VME_RST_n_i     => vme_rst_n_i,
+     VME_WRITE_n_i   => vme_write_n_i,
+     VME_AM_i        => vme_am_i,
+     VME_DS_n_i      => vme_ds_n_i,
+     VME_GA_i        => vme_ga_i,
+     VME_BERR_o      => vme_lword_n_b,
+     VME_DTACK_n_o   => vme_addr_b,
+     VME_RETRY_n_o   => vme_data_b,
+     VME_RETRY_OE_o  => vme_iack_n_i,
+     VME_LWORD_n_b_i => vme_iackin_n_i,
+     VME_LWORD_n_b_o => vme_berr_n_o,
+     VME_ADDR_b_i    => vme_dtack_n_o,
+     VME_DATA_b_o    => vme_retry_n_o,
+     VME_ADDR_b_o    => vme_retry_oe_o,
+     VME_DATA_b_i    => vme_lword_n_b_out,
+     VME_IRQ_n_o     => vme_data_b_out,
+     VME_IACK_n_i    => vme_addr_b_out,
+     VME_IACKIN_n_i  => vme_irq_n_o,
+     VME_IACKOUT_n_o => vme_iackout_n_o,
+     VME_DTACK_OE_o  => vme_dtack_oe_o,
+     VME_DATA_DIR_o  => vme_data_dir_int,
+     VME_DATA_OE_N_o => vme_data_oe_n_o,
+     VME_ADDR_DIR_o  => vme_addr_dir_int,
+     VME_ADDR_OE_N_o => vme_addr_oe_n_o,
      master_o        => cnx_slave_in (c_MASTER_VME),
      master_i        => cnx_slave_out(c_MASTER_VME),
      irq_i           => irq_to_vmecore);
