@@ -449,9 +449,6 @@ architecture rtl of wr_svec_tdc is
   -- White Rabbit signals to clks_rsts_manager
   signal tm_dac_value                         : std_logic_vector(23 downto 0);
   signal tm_dac_wr_p                          : std_logic_vector(1 downto 0);
-  -- White Rabbit to mezzanine EEPROM
-  signal wrc_scl_out, wrc_scl_in              : std_logic;
-  signal wrc_sda_out, wrc_sda_in              : std_logic;
   -- White Rabbit to SFP EEPROM
   signal sfp_scl_out, sfp_scl_in              : std_logic;
   signal sfp_sda_out, sfp_sda_in              : std_logic;
@@ -543,10 +540,6 @@ begin
       sfp_tx_fault_i      => sfp_tx_fault_i,
       sfp_tx_disable_o    => sfp_tx_disable_o,
       sfp_los_i           => sfp_los_i,
-      eeprom_sda_i        => wrc_sda_in,
-      eeprom_sda_o        => wrc_sda_out,
-      eeprom_scl_i        => wrc_scl_in,
-      eeprom_scl_o        => wrc_scl_out,
       onewire_i           => wrc_owr_data,
       onewire_oen_o       => wrc_owr_oe,
       uart_rxd_i          => uart_rxd_i,
@@ -753,10 +746,8 @@ begin
       clk_125m_tdc_o       => tdc1_125m_clk);
 
 
-  tdc1_scl_b   <= '0' when (tdc1_scl_oen = '0' or wrc_scl_out = '0') else 'Z';
-  tdc1_sda_b   <= '0' when (tdc1_sda_oen = '0' or wrc_sda_out = '0') else 'Z';
-  wrc_scl_in   <= tdc1_scl_b;
-  wrc_sda_in   <= tdc1_sda_b;
+  tdc1_scl_b   <= '0' when (tdc1_scl_oen = '0') else 'Z';
+  tdc1_sda_b   <= '0' when (tdc1_sda_oen = '0') else 'Z';
   tdc1_scl_in  <= tdc1_scl_b;
   tdc1_sda_in  <= tdc1_sda_b;
 
