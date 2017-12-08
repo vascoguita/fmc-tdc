@@ -135,192 +135,190 @@ use work.synthesis_descriptor.all;
 --=================================================================================================
 entity wr_svec_tdc is
   generic (
-     g_simulation           : boolean := false;
-     g_with_wr_phy : boolean := true);
-  port
-    (-- SVEC carrier
-      -- VCXO clock, PoR
-      por_n_i                : in    std_logic;        -- PoR
-      clk_20m_vcxo_i         : in    std_logic;        -- 20 MHz VCXO
-      -- 125 MHz PLL reference
-      clk_125m_pllref_p_i    : in    std_logic;
-      clk_125m_pllref_n_i    : in    std_logic;
-      -- 125 MHz GTP reference
-      clk_125m_gtp_p_i       : in    std_logic;
-      clk_125m_gtp_n_i       : in    std_logic;
-      -- SFP
-      sfp_txp_o              : out   std_logic;
-      sfp_txn_o              : out   std_logic;
-      sfp_rxp_i              : in    std_logic := '0';
-      sfp_rxn_i              : in    std_logic := '1';
-      sfp_mod_def0_i         : in    std_logic;        -- SFP detect pin
-      sfp_mod_def1_b         : inout std_logic;        -- SFP scl
-      sfp_mod_def2_b         : inout std_logic;        -- SFP sda
-      sfp_rate_select_b      : inout std_logic := '0';
-      sfp_tx_fault_i         : in    std_logic := '0';
-      sfp_tx_disable_o       : out   std_logic;
-      sfp_los_i              : in    std_logic := '0';
-      -- Serial DAC
-      pll20dac_din_o         : out   std_logic;
-      pll20dac_sclk_o        : out   std_logic;
-      pll20dac_sync_n_o      : out   std_logic;
-      pll25dac_din_o         : out   std_logic;
-      pll25dac_sclk_o        : out   std_logic;
-      pll25dac_sync_n_o      : out   std_logic;
-      -- UART
-      uart_rxd_i             : in    std_logic := '1';
-      uart_txd_o             : out   std_logic;
-      -- 1-wire
-      carrier_onewire_b      : inout std_logic;        
-      -- SPI Flash
-      spi_sclk_o             : out std_logic;
-      spi_ncs_o              : out std_logic;
-      spi_mosi_o             : out std_logic;
-      spi_miso_i             : in  std_logic;
-      -- SVEC PCB version
-      pcb_ver_i              : in    std_logic_vector(3 downto 0);
-      -- Mezzanines presence
-      tdc1_prsntm2c_n_i      : in    std_logic;        -- Presence of mezzanine #1
-      tdc2_prsntm2c_n_i      : in    std_logic;        -- Presence of mezzanine #2
-      -- SVEC Front panel LEDs
-      fp_led_line_oen_o      : out   std_logic_vector(1 downto 0);
-      fp_led_line_o          : out   std_logic_vector(1 downto 0);
-      fp_led_column_o        : out   std_logic_vector(3 downto 0);
-      -- SVEC Front panel LEMOs
-      fp_gpio1_o      : out std_logic;              -- PPS output
-      fp_term_en_o    : out std_logic_vector(4 downto 1); 
-      fp_gpio1_a2b_o  : out std_logic;
+    g_simulation           : boolean := false);
+  port (
+    -- VCXO clock, PoR
+    por_n_i                : in    std_logic;        -- PoR
+    clk_20m_vcxo_i         : in    std_logic;        -- 20 MHz VCXO
+    -- 125 MHz PLL reference
+    clk_125m_pllref_p_i    : in    std_logic;
+    clk_125m_pllref_n_i    : in    std_logic;
+    -- 125 MHz GTP reference
+    clk_125m_gtp_p_i       : in    std_logic;
+    clk_125m_gtp_n_i       : in    std_logic;
+    -- SFP
+    sfp_txp_o              : out   std_logic;
+    sfp_txn_o              : out   std_logic;
+    sfp_rxp_i              : in    std_logic := '0';
+    sfp_rxn_i              : in    std_logic := '1';
+    sfp_mod_def0_i         : in    std_logic;        -- SFP detect pin
+    sfp_mod_def1_b         : inout std_logic;        -- SFP scl
+    sfp_mod_def2_b         : inout std_logic;        -- SFP sda
+    sfp_rate_select_b      : inout std_logic := '0';
+    sfp_tx_fault_i         : in    std_logic := '0';
+    sfp_tx_disable_o       : out   std_logic;
+    sfp_los_i              : in    std_logic := '0';
+    -- Serial DAC
+    pll20dac_din_o         : out   std_logic;
+    pll20dac_sclk_o        : out   std_logic;
+    pll20dac_sync_n_o      : out   std_logic;
+    pll25dac_din_o         : out   std_logic;
+    pll25dac_sclk_o        : out   std_logic;
+    pll25dac_sync_n_o      : out   std_logic;
+    -- UART
+    uart_rxd_i             : in    std_logic := '1';
+    uart_txd_o             : out   std_logic;
+    -- 1-wire
+    carrier_onewire_b      : inout std_logic;        
+    -- SPI Flash
+    spi_sclk_o             : out   std_logic;
+    spi_ncs_o              : out   std_logic;
+    spi_mosi_o             : out   std_logic;
+    spi_miso_i             : in    std_logic;
+    -- SVEC PCB version
+    pcb_ver_i              : in    std_logic_vector(3 downto 0);
+    -- Mezzanines presence
+    tdc1_prsntm2c_n_i      : in    std_logic;        -- Presence of mezzanine #1
+    tdc2_prsntm2c_n_i      : in    std_logic;        -- Presence of mezzanine #2
+    -- SVEC Front panel LEDs
+    fp_led_line_oen_o      : out   std_logic_vector(1 downto 0);
+    fp_led_line_o          : out   std_logic_vector(1 downto 0);
+    fp_led_column_o        : out   std_logic_vector(3 downto 0);
+    -- SVEC Front panel LEMOs
+    fp_gpio1_o             : out   std_logic;        -- PPS output
+    fp_term_en_o           : out   std_logic_vector(4 downto 1); 
+    fp_gpio1_a2b_o         : out   std_logic;
 
-     -- VME interface
-      vme_as_n_i             : in    std_logic;
-      vme_rst_n_i            : in    std_logic;
-      vme_write_n_i          : in    std_logic;
-      vme_am_i               : in    std_logic_vector(5 downto 0);
-      vme_ds_n_i             : in    std_logic_vector(1 downto 0);
-      vme_ga_i               : in    std_logic_vector(5 downto 0);
-      vme_berr_o             : inout std_logic;
-      vme_dtack_n_o          : inout std_logic;
-      vme_retry_n_o          : out   std_logic;
-      vme_retry_oe_o         : out   std_logic;
-      vme_lword_n_b          : inout std_logic;
-      vme_addr_b             : inout std_logic_vector(31 downto 1);
-      vme_data_b             : inout std_logic_vector(31 downto 0);
-      vme_bbsy_n_i           : in    std_logic;
-      vme_irq_o              : out   std_logic_vector(6 downto 0);
-      vme_iack_n_i           : in    std_logic;
-      vme_iackin_n_i         : in    std_logic;
-      vme_iackout_n_o        : out   std_logic;
-      vme_dtack_oe_o         : inout std_logic;
-      vme_data_dir_o         : inout std_logic;
-      vme_data_oe_n_o        : inout std_logic;
-      vme_addr_dir_o         : inout std_logic;
-      vme_addr_oe_n_o        : inout std_logic;
+    -- VME interface
+    vme_as_n_i             : in    std_logic;
+    vme_rst_n_i            : in    std_logic;
+    vme_write_n_i          : in    std_logic;
+    vme_am_i               : in    std_logic_vector(5 downto 0);
+    vme_ds_n_i             : in    std_logic_vector(1 downto 0);
+    vme_ga_i               : in    std_logic_vector(5 downto 0);
+    vme_berr_o             : inout std_logic;
+    vme_dtack_n_o          : inout std_logic;
+    vme_retry_n_o          : out   std_logic;
+    vme_retry_oe_o         : out   std_logic;
+    vme_lword_n_b          : inout std_logic;
+    vme_addr_b             : inout std_logic_vector(31 downto 1);
+    vme_data_b             : inout std_logic_vector(31 downto 0);
+    vme_bbsy_n_i           : in    std_logic;
+    vme_irq_o              : out   std_logic_vector(6 downto 0);
+    vme_iack_n_i           : in    std_logic;
+    vme_iackin_n_i         : in    std_logic;
+    vme_iackout_n_o        : out   std_logic;
+    vme_dtack_oe_o         : inout std_logic;
+    vme_data_dir_o         : inout std_logic;
+    vme_data_oe_n_o        : inout std_logic;
+    vme_addr_dir_o         : inout std_logic;
+    vme_addr_oe_n_o        : inout std_logic;
 
-     -- TDC mezzanine board on FMC slot 1
-      -- TDC1 PLL AD9516 and DAC AD5662 interface
-      tdc1_pll_sclk_o        : out   std_logic;
-      tdc1_pll_sdi_o         : out   std_logic;
-      tdc1_pll_cs_n_o        : out   std_logic;
-      tdc1_pll_dac_sync_n_o  : out   std_logic;
-      tdc1_pll_sdo_i         : in    std_logic;
-      tdc1_pll_status_i      : in    std_logic;
-      tdc1_125m_clk_p_i      : in    std_logic;
-      tdc1_125m_clk_n_i      : in    std_logic;
-      tdc1_acam_refclk_p_i   : in    std_logic;
-      tdc1_acam_refclk_n_i   : in    std_logic;
-      -- TDC1 ACAM timing interface
-      tdc1_start_from_fpga_o : out   std_logic;
-      tdc1_err_flag_i        : in    std_logic;
-      tdc1_int_flag_i        : in    std_logic;
-      tdc1_start_dis_o       : out   std_logic;
-      tdc1_stop_dis_o        : out   std_logic;
-      -- TDC1 ACAM data interface
-      tdc1_data_bus_io       : inout std_logic_vector(27 downto 0);
-      tdc1_address_o         : out   std_logic_vector(3 downto 0);
-      tdc1_cs_n_o            : out   std_logic;
-      tdc1_oe_n_o            : out   std_logic;
-      tdc1_rd_n_o            : out   std_logic;
-      tdc1_wr_n_o            : out   std_logic;
-      tdc1_ef1_i             : in    std_logic;
-      tdc1_ef2_i             : in    std_logic;
-      -- TDC1 Input Logic
-      tdc1_enable_inputs_o   : out   std_logic;
-      tdc1_term_en_1_o       : out   std_logic;
-      tdc1_term_en_2_o       : out   std_logic;
-      tdc1_term_en_3_o       : out   std_logic;
-      tdc1_term_en_4_o       : out   std_logic;
-      tdc1_term_en_5_o       : out   std_logic;
-      -- TDC1 1-wire UniqueID & Thermometer
-      tdc1_onewire_b         : inout std_logic;
-      -- TDC1 EEPROM I2C
-      tdc1_scl_b             : inout std_logic;
-      tdc1_sda_b             : inout std_logic;
-      -- TDC1 LEDs
-      tdc1_led_status_o      : out   std_logic;
-      tdc1_led_trig1_o       : out   std_logic;
-      tdc1_led_trig2_o       : out   std_logic;
-      tdc1_led_trig3_o       : out   std_logic;
-      tdc1_led_trig4_o       : out   std_logic;
-      tdc1_led_trig5_o       : out   std_logic;
-      -- TDC1 Input channels, also arriving to the FPGA (not used for the moment)
-      tdc1_in_fpga_1_i       : in    std_logic;
-      tdc1_in_fpga_2_i       : in    std_logic;
-      tdc1_in_fpga_3_i       : in    std_logic;
-      tdc1_in_fpga_4_i       : in    std_logic;
-      tdc1_in_fpga_5_i       : in    std_logic;
+    -- TDC mezzanine board on FMC slot 1
+    -- TDC1 PLL AD9516 and DAC AD5662 interface
+    tdc1_pll_sclk_o        : out   std_logic;
+    tdc1_pll_sdi_o         : out   std_logic;
+    tdc1_pll_cs_n_o        : out   std_logic;
+    tdc1_pll_dac_sync_n_o  : out   std_logic;
+    tdc1_pll_sdo_i         : in    std_logic;
+    tdc1_pll_status_i      : in    std_logic;
+    tdc1_125m_clk_p_i      : in    std_logic;
+    tdc1_125m_clk_n_i      : in    std_logic;
+    tdc1_acam_refclk_p_i   : in    std_logic;
+    tdc1_acam_refclk_n_i   : in    std_logic;
+    -- TDC1 ACAM timing interface
+    tdc1_start_from_fpga_o : out   std_logic;
+    tdc1_err_flag_i        : in    std_logic;
+    tdc1_int_flag_i        : in    std_logic;
+    tdc1_start_dis_o       : out   std_logic;
+    tdc1_stop_dis_o        : out   std_logic;
+    -- TDC1 ACAM data interface
+    tdc1_data_bus_io       : inout std_logic_vector(27 downto 0);
+    tdc1_address_o         : out   std_logic_vector(3 downto 0);
+    tdc1_cs_n_o            : out   std_logic;
+    tdc1_oe_n_o            : out   std_logic;
+    tdc1_rd_n_o            : out   std_logic;
+    tdc1_wr_n_o            : out   std_logic;
+    tdc1_ef1_i             : in    std_logic;
+    tdc1_ef2_i             : in    std_logic;
+    -- TDC1 Input Logic
+    tdc1_enable_inputs_o   : out   std_logic;
+    tdc1_term_en_1_o       : out   std_logic;
+    tdc1_term_en_2_o       : out   std_logic;
+    tdc1_term_en_3_o       : out   std_logic;
+    tdc1_term_en_4_o       : out   std_logic;
+    tdc1_term_en_5_o       : out   std_logic;
+    -- TDC1 1-wire UniqueID & Thermometer
+    tdc1_onewire_b         : inout std_logic;
+    -- TDC1 EEPROM I2C
+    tdc1_scl_b             : inout std_logic;
+    tdc1_sda_b             : inout std_logic;
+    -- TDC1 LEDs
+    tdc1_led_status_o      : out   std_logic;
+    tdc1_led_trig1_o       : out   std_logic;
+    tdc1_led_trig2_o       : out   std_logic;
+    tdc1_led_trig3_o       : out   std_logic;
+    tdc1_led_trig4_o       : out   std_logic;
+    tdc1_led_trig5_o       : out   std_logic;
+    -- TDC1 Input channels, also arriving to the FPGA (not used for the moment)
+    tdc1_in_fpga_1_i       : in    std_logic;
+    tdc1_in_fpga_2_i       : in    std_logic;
+    tdc1_in_fpga_3_i       : in    std_logic;
+    tdc1_in_fpga_4_i       : in    std_logic;
+    tdc1_in_fpga_5_i       : in    std_logic;
 
-     -- TDC mezzanine board on FMC slot 2
-      -- TDC2 PLL AD9516 and DAC AD5662 interface
-      tdc2_pll_sclk_o        : out   std_logic;
-      tdc2_pll_sdi_o         : out   std_logic;
-      tdc2_pll_cs_n_o        : out   std_logic;
-      tdc2_pll_dac_sync_n_o  : out   std_logic;
-      tdc2_pll_sdo_i         : in    std_logic;
-      tdc2_pll_status_i      : in    std_logic;
-      tdc2_125m_clk_p_i      : in    std_logic;
-      tdc2_125m_clk_n_i      : in    std_logic;
-      tdc2_acam_refclk_p_i   : in    std_logic;
-      tdc2_acam_refclk_n_i   : in    std_logic;
-      -- TDC2 ACAM timing interface
-      tdc2_start_from_fpga_o : out   std_logic;
-      tdc2_err_flag_i        : in    std_logic;
-      tdc2_int_flag_i        : in    std_logic;
-      tdc2_start_dis_o       : out   std_logic;
-      tdc2_stop_dis_o        : out   std_logic;
-      -- TDC2 ACAM data interface
-      tdc2_data_bus_io       : inout std_logic_vector(27 downto 0);
-      tdc2_address_o         : out   std_logic_vector(3 downto 0);
-      tdc2_cs_n_o            : out   std_logic;
-      tdc2_oe_n_o            : out   std_logic;
-      tdc2_rd_n_o            : out   std_logic;
-      tdc2_wr_n_o            : out   std_logic;
-      tdc2_ef1_i             : in    std_logic;
-      tdc2_ef2_i             : in    std_logic;
-      -- TDC2 Input Logic
-      tdc2_enable_inputs_o   : out   std_logic;
-      tdc2_term_en_1_o       : out   std_logic;
-      tdc2_term_en_2_o       : out   std_logic;
-      tdc2_term_en_3_o       : out   std_logic;
-      tdc2_term_en_4_o       : out   std_logic;
-      tdc2_term_en_5_o       : out   std_logic;
-      -- TDC2 1-wire UniqueID & Thermometer
-      tdc2_onewire_b         : inout std_logic;
-      -- TDC2 EEPROM I2C
-      tdc2_scl_b             : inout std_logic;
-      tdc2_sda_b             : inout std_logic;
-      -- TDC2 LEDs
-      tdc2_led_status_o      : out   std_logic;
-      tdc2_led_trig1_o       : out   std_logic;
-      tdc2_led_trig2_o       : out   std_logic;
-      tdc2_led_trig3_o       : out   std_logic;
-      tdc2_led_trig4_o       : out   std_logic;
-      tdc2_led_trig5_o       : out   std_logic;
-      -- TDC2 Input channels, also arriving to the FPGA (not used for the moment)
-      tdc2_in_fpga_1_i       : in    std_logic;
-      tdc2_in_fpga_2_i       : in    std_logic;
-      tdc2_in_fpga_3_i       : in    std_logic;
-      tdc2_in_fpga_4_i       : in    std_logic;
-      tdc2_in_fpga_5_i       : in    std_logic);
+    -- TDC mezzanine board on FMC slot 2
+    -- TDC2 PLL AD9516 and DAC AD5662 interface
+    tdc2_pll_sclk_o        : out   std_logic;
+    tdc2_pll_sdi_o         : out   std_logic;
+    tdc2_pll_cs_n_o        : out   std_logic;
+    tdc2_pll_dac_sync_n_o  : out   std_logic;
+    tdc2_pll_sdo_i         : in    std_logic;
+    tdc2_pll_status_i      : in    std_logic;
+    tdc2_125m_clk_p_i      : in    std_logic;
+    tdc2_125m_clk_n_i      : in    std_logic;
+    tdc2_acam_refclk_p_i   : in    std_logic;
+    tdc2_acam_refclk_n_i   : in    std_logic;
+    -- TDC2 ACAM timing interface
+    tdc2_start_from_fpga_o : out   std_logic;
+    tdc2_err_flag_i        : in    std_logic;
+    tdc2_int_flag_i        : in    std_logic;
+    tdc2_start_dis_o       : out   std_logic;
+    tdc2_stop_dis_o        : out   std_logic;
+    -- TDC2 ACAM data interface
+    tdc2_data_bus_io       : inout std_logic_vector(27 downto 0);
+    tdc2_address_o         : out   std_logic_vector(3 downto 0);
+    tdc2_cs_n_o            : out   std_logic;
+    tdc2_oe_n_o            : out   std_logic;
+    tdc2_rd_n_o            : out   std_logic;
+    tdc2_wr_n_o            : out   std_logic;
+    tdc2_ef1_i             : in    std_logic;
+    tdc2_ef2_i             : in    std_logic;
+    -- TDC2 Input Logic
+    tdc2_enable_inputs_o   : out   std_logic;
+    tdc2_term_en_1_o       : out   std_logic;
+    tdc2_term_en_2_o       : out   std_logic;
+    tdc2_term_en_3_o       : out   std_logic;
+    tdc2_term_en_4_o       : out   std_logic;
+    tdc2_term_en_5_o       : out   std_logic;
+    -- TDC2 1-wire UniqueID & Thermometer
+    tdc2_onewire_b         : inout std_logic;
+    -- TDC2 EEPROM I2C
+    tdc2_scl_b             : inout std_logic;
+    tdc2_sda_b             : inout std_logic;
+    -- TDC2 LEDs
+    tdc2_led_status_o      : out   std_logic;
+    tdc2_led_trig1_o       : out   std_logic;
+    tdc2_led_trig2_o       : out   std_logic;
+    tdc2_led_trig3_o       : out   std_logic;
+    tdc2_led_trig4_o       : out   std_logic;
+    tdc2_led_trig5_o       : out   std_logic;
+    -- TDC2 Input channels, also arriving to the FPGA (not used for the moment)
+    tdc2_in_fpga_1_i       : in    std_logic;
+    tdc2_in_fpga_2_i       : in    std_logic;
+    tdc2_in_fpga_3_i       : in    std_logic;
+    tdc2_in_fpga_4_i       : in    std_logic;
+    tdc2_in_fpga_5_i       : in    std_logic);
 end wr_svec_tdc;
 
 --=================================================================================================
@@ -415,38 +413,32 @@ architecture rtl of wr_svec_tdc is
 
   signal areset_n : std_logic;
 
- -- Clocks
+  -- Clocks
   -- CLOCK DOMAIN: 62.5 MHz system clock derived from clk_20m_vcxo_i by a Xilinx PLL: clk_62m5_sys
-  signal clk_sys_62m5                         : std_logic;
-  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1: tdc1_125m_clk
-  signal tdc1_125m_clk                        : std_logic;
-  signal tdc1_send_dac_word_p                 : std_logic;
-  signal tdc1_dac_word                        : std_logic_vector(23 downto 0);
-  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC2: tdc2_125m_clk
-  signal tdc2_125m_clk       : std_logic;
-  signal tdc2_send_dac_word_p                 : std_logic;
-  signal tdc2_dac_word                        : std_logic_vector(23 downto 0);
+  signal clk_sys_62m5  : std_logic;
+  -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1 and TDC2
+  signal tdc1_125m_clk : std_logic;
+  signal tdc2_125m_clk : std_logic;
 
 ---------------------------------------------------------------------------------------------------
- -- Resets
+  -- Resets
   -- system reset, synched with 62.5 MHz clock,driven by the VME reset and power-up reset pins.
-  signal rst_sys_62m5_n                       : std_logic;
+  signal rst_sys_62m5_n       : std_logic;
   -- reset input to the clks_rsts_manager units of the two TDC cores;
   -- this reset initiates the configuration of the mezzanines PLL
-  signal tdc1_soft_rst_n                      : std_logic; -- driven by carrier CSR reserved bit 0
-  signal tdc2_soft_rst_n                      : std_logic; -- driven by carrier CSR reserved bit 1
-  signal carrier_info_fmc_rst                 : std_logic_vector(30 downto 0);
-  signal carrier_info_stat_reserv             : std_logic_vector(27 downto 0);
+  signal tdc1_soft_rst_n      : std_logic; -- driven by carrier CSR reserved bit 0
+  signal tdc2_soft_rst_n      : std_logic; -- driven by carrier CSR reserved bit 1
+  signal carrier_info_fmc_rst : std_logic_vector(30 downto 0);
 
 ---------------------------------------------------------------------------------------------------
  -- VME interface
-  signal vme_data_b_out                       : std_logic_vector(31 downto 0);
-  signal vme_addr_b_out                       : std_logic_vector(31 downto 1);
-  signal vme_lword_n_b_out                    : std_logic;
-  signal vme_data_dir_int                     : std_logic;
-  signal vme_addr_dir_int                     : std_logic;
-  signal vme_berr_n                           : std_logic;
-  signal vme_irq_n                            : std_logic_vector(6 downto 0);
+  signal vme_data_b_out       : std_logic_vector(31 downto 0);
+  signal vme_addr_b_out       : std_logic_vector(31 downto 1);
+  signal vme_lword_n_b_out    : std_logic;
+  signal vme_data_dir_int     : std_logic;
+  signal vme_addr_dir_int     : std_logic;
+  signal vme_berr_n           : std_logic;
+  signal vme_irq_n            : std_logic_vector(6 downto 0);
 
 ---------------------------------------------------------------------------------------------------
   -- White Rabbit signals to TDC mezzanine
@@ -620,46 +612,46 @@ begin
 ---------------------------------------------------------------------------------------------------
   U_VME_Core : xvme64x_core
   generic map (
-    g_CLOCK_PERIOD => 16,
-    g_DECODE_AM    => True,
-    g_USER_CSR_EXT => False,
+    g_CLOCK_PERIOD    => 16,
+    g_DECODE_AM       => True,
+    g_USER_CSR_EXT    => False,
     g_MANUFACTURER_ID => c_CERN_ID,
     g_BOARD_ID        => c_SVEC_ID,
     g_REVISION_ID     => c_SVEC_REVISION_ID,
     g_PROGRAM_ID      => c_SVEC_PROGRAM_ID)
   port map
-    (clk_i           => clk_sys_62m5,
-     rst_n_i         => rst_sys_62m5_n,
-     vme_i.as_n      => vme_as_n_i,
-     vme_i.rst_n     => vme_rst_n_i,
-     vme_i.write_n   => vme_write_n_i,
-     vme_i.am        => vme_am_i,
-     vme_i.ds_n      => vme_ds_n_i,
-     vme_i.ga        => vme_ga_i,
-     vme_i.lword_n   => vme_lword_n_b,
-     vme_i.addr      => vme_addr_b,
-     vme_i.data      => vme_data_b,
-     vme_i.iack_n    => vme_iack_n_i,
-     vme_i.iackin_n  => vme_iackin_n_i,
-     vme_o.berr_n    => vme_berr_n,
-     vme_o.dtack_n   => vme_dtack_n_o,
-     vme_o.retry_n   => vme_retry_n_o,
-     vme_o.retry_oe  => vme_retry_oe_o,
-     vme_o.lword_n   => vme_lword_n_b_out,
-     vme_o.data      => vme_data_b_out,
-     vme_o.addr      => vme_addr_b_out,
-     vme_o.irq_n     => vme_irq_n,
-     vme_o.iackout_n => vme_iackout_n_o,
-     vme_o.dtack_oe  => vme_dtack_oe_o,
-     vme_o.data_dir  => vme_data_dir_int,
-     vme_o.data_oe_n => vme_data_oe_n_o,
-     vme_o.addr_dir  => vme_addr_dir_int,
-     vme_o.addr_oe_n => vme_addr_oe_n_o,
-     wb_o            => vme_wb_out,
-     wb_i            => vme_wb_in);
+    (clk_i            => clk_sys_62m5,
+     rst_n_i          => rst_sys_62m5_n,
+     vme_i.as_n       => vme_as_n_i,
+     vme_i.rst_n      => vme_rst_n_i,
+     vme_i.write_n    => vme_write_n_i,
+     vme_i.am         => vme_am_i,
+     vme_i.ds_n       => vme_ds_n_i,
+     vme_i.ga         => vme_ga_i,
+     vme_i.lword_n    => vme_lword_n_b,
+     vme_i.addr       => vme_addr_b,
+     vme_i.data       => vme_data_b,
+     vme_i.iack_n     => vme_iack_n_i,
+     vme_i.iackin_n   => vme_iackin_n_i,
+     vme_o.berr_n     => vme_berr_n,
+     vme_o.dtack_n    => vme_dtack_n_o,
+     vme_o.retry_n    => vme_retry_n_o,
+     vme_o.retry_oe   => vme_retry_oe_o,
+     vme_o.lword_n    => vme_lword_n_b_out,
+     vme_o.data       => vme_data_b_out,
+     vme_o.addr       => vme_addr_b_out,
+     vme_o.irq_n      => vme_irq_n,
+     vme_o.iackout_n  => vme_iackout_n_o,
+     vme_o.dtack_oe   => vme_dtack_oe_o,
+     vme_o.data_dir   => vme_data_dir_int,
+     vme_o.data_oe_n  => vme_data_oe_n_o,
+     vme_o.addr_dir   => vme_addr_dir_int,
+     vme_o.addr_oe_n  => vme_addr_oe_n_o,
+     wb_o             => vme_wb_out,
+     wb_i             => vme_wb_in);
  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  vme_berr_o         <= not vme_berr_n;
-  vme_irq_o          <= not vme_irq_n;
+  vme_berr_o <= not vme_berr_n;
+  vme_irq_o  <= not vme_irq_n;
 
   -- Shift address for byte addressing.
   cnx_slave_in(c_MASTER_VME).cyc <= vme_wb_out.cyc;
@@ -754,8 +746,8 @@ begin
       tm_dac_value_i       => tm_dac_value,
       tm_dac_wr_i          => tm_dac_wr_p(0),
 
-      slave_i        => cnx_master_out(c_SLAVE_TDC0),
-      slave_o        => cnx_master_in(c_SLAVE_TDC0),
+      slave_i              => cnx_master_out(c_SLAVE_TDC0),
+      slave_o              => cnx_master_in(c_SLAVE_TDC0),
 
       irq_o                => tdc1_irq,
       clk_125m_tdc_o       => tdc1_125m_clk);
@@ -833,8 +825,8 @@ begin
       tm_dac_value_i       => tm_dac_value,
       tm_dac_wr_i          => tm_dac_wr_p(1),
 
-      slave_i        => cnx_master_out(c_SLAVE_TDC1),
-      slave_o        => cnx_master_in(c_SLAVE_TDC1),
+      slave_i              => cnx_master_out(c_SLAVE_TDC1),
+      slave_o              => cnx_master_in(c_SLAVE_TDC1),
 
       irq_o                => tdc2_irq,
       clk_125m_tdc_o       => tdc2_125m_clk);
