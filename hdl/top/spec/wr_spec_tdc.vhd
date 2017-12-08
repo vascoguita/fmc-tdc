@@ -150,10 +150,10 @@ entity wr_spec_tdc is
 
       clk_20m_vcxo_i : in std_logic;    -- 20 MHz VCXO
 
-      dac_sclk_o  : out std_logic;      -- PLL VCXO DAC Drive
-      dac_din_o   : out std_logic;
-      dac_cs1_n_o : out std_logic;
-      dac_cs2_n_o : out std_logic;
+      wr_dac_sclk_o  : out std_logic;      -- PLL VCXO DAC Drive
+      wr_dac_din_o   : out std_logic;
+      wr_dac_cs1_n_o : out std_logic;
+      wr_dac_cs2_n_o : out std_logic;
 
       sfp_txp_o         : out   std_logic;  -- SFP
       sfp_txn_o         : out   std_logic;
@@ -182,40 +182,37 @@ entity wr_spec_tdc is
       -- GN4124 PCI bridge pins
       ------------------------------------------------------------------------
 
-      l_rst_n : in std_logic;           -- reset from gn4124 (rstout18_n)
-
+      gn_rst_n   : in std_logic;           -- reset from gn4124 (rstout18_n)
       -- general purpose interface
-      gpio       : inout std_logic_vector(1 downto 0);  -- gpio[0] -> gn4124 gpio8
-                                        -- gpio[1] -> gn4124 gpio9
+      gn_gpio    : inout std_logic_vector(1 downto 0);  -- gpio[0] -> gn4124 gpio8
       -- pcie to local [inbound data] - rx
-      p2l_rdy    : out   std_logic;     -- rx buffer full flag
-      p2l_clkn   : in    std_logic;     -- receiver source synchronous clock-
-      p2l_clkp   : in    std_logic;     -- receiver source synchronous clock+
-      p2l_data   : in    std_logic_vector(15 downto 0);  -- parallel receive data
-      p2l_dframe : in    std_logic;     -- receive frame
-      p2l_valid  : in    std_logic;     -- receive data valid
-
+      gn_p2l_rdy    : out   std_logic;     -- rx buffer full flag
+      gn_p2l_clkn   : in    std_logic;     -- receiver source synchronous clock-
+      gn_p2l_clkp   : in    std_logic;     -- receiver source synchronous clock+
+      gn_p2l_data   : in    std_logic_vector(15 downto 0);  -- parallel receive data
+      gn_p2l_dframe : in    std_logic;     -- receive frame
+      gn_p2l_valid  : in    std_logic;     -- receive data valid
       -- inbound buffer request/status
-      p_wr_req : in  std_logic_vector(1 downto 0);  -- pcie write request
-      p_wr_rdy : out std_logic_vector(1 downto 0);  -- pcie write ready
-      rx_error : out std_logic;                     -- receive error
-
+      gn_p_wr_req : in  std_logic_vector(1 downto 0);  -- pcie write request
+      gn_p_wr_rdy : out std_logic_vector(1 downto 0);  -- pcie write ready
+      gn_rx_error : out std_logic;                     -- receive error
       -- local to parallel [outbound data] - tx
-      l2p_data   : out std_logic_vector(15 downto 0);  -- parallel transmit data
-      l2p_dframe : out std_logic;       -- transmit data frame
-      l2p_valid  : out std_logic;       -- transmit data valid
-      l2p_clkn   : out std_logic;  -- transmitter source synchronous clock-
-      l2p_clkp   : out std_logic;  -- transmitter source synchronous clock+
-      l2p_edb    : out std_logic;       -- packet termination and discard
-
+      gn_l2p_data   : out std_logic_vector(15 downto 0);  -- parallel transmit data
+      gn_l2p_dframe : out std_logic;       -- transmit data frame
+      gn_l2p_valid  : out std_logic;       -- transmit data valid
+      gn_l2p_clkn   : out std_logic;  -- transmitter source synchronous clock-
+      gn_l2p_clkp   : out std_logic;  -- transmitter source synchronous clock+
+      gn_l2p_edb    : out std_logic;       -- packet termination and discard
       -- outbound buffer status
-      l2p_rdy    : in std_logic;        -- tx buffer full flag
-      l_wr_rdy   : in std_logic_vector(1 downto 0);  -- local-to-pcie write
-      p_rd_d_rdy : in std_logic_vector(1 downto 0);  -- pcie-to-local read response data ready
-      tx_error   : in std_logic;        -- transmit error
-      vc_rdy     : in std_logic_vector(1 downto 0);  -- channel ready
+      gn_l2p_rdy    : in std_logic;        -- tx buffer full flag
+      gn_l_wr_rdy   : in std_logic_vector(1 downto 0);  -- local-to-pcie write
+      gn_p_rd_d_rdy : in std_logic_vector(1 downto 0);  -- pcie-to-local read response data ready
+      gn_tx_error   : in std_logic;        -- transmit error
+      gn_vc_rdy     : in std_logic_vector(1 downto 0);  -- channel ready
 
+      ------------------------------------------------------------------------
       -- Interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
+      ------------------------------------------------------------------------
       pll_sclk_o       : out std_logic;  -- SPI clock
       pll_sdi_o        : out std_logic;  -- data line for PLL and DAC
       pll_cs_o         : out std_logic;  -- PLL chip select
@@ -274,8 +271,8 @@ entity wr_spec_tdc is
       mezz_onewire_b : inout std_logic;
 
       -- font panel leds
-      led_red   : out std_logic;
-      led_green : out std_logic;
+      led_act_o   : out std_logic;
+      led_link_o  : out std_logic;
 
       -- Carrier other signals
       pcb_ver_i     : in std_logic_vector(3 downto 0);  -- PCB version
@@ -545,9 +542,9 @@ begin
 -- waits for the system clock PLL to lock + additional 256 clk_62m5_sys cycles before de-asserting
 -- the reset.
 
-  p_powerup_reset : process(clk_62m5_sys, l_rst_n)
+  p_powerup_reset : process(clk_62m5_sys, gn_rst_n)
   begin
-    if(l_rst_n = '0') then
+    if(gn_rst_n = '0') then
       rst_n_sys <= '0';
     elsif rising_edge(clk_62m5_sys) then
       if sys_locked = '1' then
@@ -613,8 +610,8 @@ begin
      phy_rst_o               => phy_rst,
      phy_loopen_o            => phy_loopen,
      -- SPEC LEDs
-     led_act_o               => LED_RED,
-     led_link_o              => LED_GREEN,
+     led_act_o               => led_act_o,
+     led_link_o              => led_link_o,
      -- SFP
      scl_o                   => wrc_scl_out,
      scl_i                   => wrc_scl_in,
@@ -706,11 +703,11 @@ begin
      load1_i       => dac_dpll_load_p1,
      val2_i        => dac_hpll_data,
      load2_i       => dac_hpll_load_p1,
-     dac_cs_n_o(0) => dac_cs1_n_o,
-     dac_cs_n_o(1) => dac_cs2_n_o,
+     dac_cs_n_o(0) => wr_dac_cs1_n_o,
+     dac_cs_n_o(1) => wr_dac_cs2_n_o,
      -- dac_clr_n_o   => open,
-     dac_sclk_o    => dac_sclk_o,
-     dac_din_o     => dac_din_o);
+     dac_sclk_o    => wr_dac_sclk_o,
+     dac_din_o     => wr_dac_din_o);
 
 
 ---------------------------------------------------------------------------------------------------
@@ -748,39 +745,39 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_gn4124_core : gn4124_core
     port map
-    (rst_n_a_i    => l_rst_n,
+    (rst_n_a_i    => gn_rst_n,
      status_o     => gn4124_status,
      ---------------------------------------------------------
      -- P2L Direction
      --
      -- Source Sync DDR related signals
-     p2l_clk_p_i  => P2L_CLKp,
-     p2l_clk_n_i  => P2L_CLKn,
-     p2l_data_i   => P2L_DATA,
-     p2l_dframe_i => P2L_DFRAME,
-     p2l_valid_i  => P2L_VALID,
+     p2l_clk_p_i  => gn_p2l_clkp,
+     p2l_clk_n_i  => gn_p2l_clkn,
+     p2l_data_i   => gn_p2l_data,
+     p2l_dframe_i => gn_p2l_dframe,
+     p2l_valid_i  => gn_p2l_valid,
      -- P2L Control
-     p2l_rdy_o    => P2L_RDY,
-     p_wr_req_i   => P_WR_REQ,
-     p_wr_rdy_o   => P_WR_RDY,
-     rx_error_o   => RX_ERROR,
-     vc_rdy_i     => VC_RDY,
+     p2l_rdy_o    => gn_p2l_rdy,
+     p_wr_req_i   => gn_p_wr_req,
+     p_wr_rdy_o   => gn_p_wr_rdy,
+     rx_error_o   => gn_rx_error,
+     vc_rdy_i     => gn_vc_rdy,
 
      ---------------------------------------------------------
      -- L2P Direction
      --
      -- Source Sync DDR related signals
-     l2p_clk_p_o  => L2P_CLKp,
-     l2p_clk_n_o  => L2P_CLKn,
-     l2p_data_o   => L2P_DATA,
-     l2p_dframe_o => L2P_DFRAME,
-     l2p_valid_o  => L2P_VALID,
+     l2p_clk_p_o  => gn_l2p_clkp,
+     l2p_clk_n_o  => gn_l2p_clkn,
+     l2p_data_o   => gn_l2p_data,
+     l2p_dframe_o => gn_l2p_dframe,
+     l2p_valid_o  => gn_l2p_valid,
      -- L2P Control
-     l2p_edb_o    => L2P_EDB,
-     l2p_rdy_i    => L2P_RDY,
-     l_wr_rdy_i   => L_WR_RDY,
-     p_rd_d_rdy_i => P_RD_D_RDY,
-     tx_error_i   => TX_ERROR,
+     l2p_edb_o    => gn_l2p_edb,
+     l2p_rdy_i    => gn_l2p_rdy,
+     l_wr_rdy_i   => gn_l_wr_rdy,
+     p_rd_d_rdy_i => gn_p_rd_d_rdy,
+     tx_error_i   => gn_tx_error,
 
      dma_irq_o => open,
      irq_p_i   => '0',
@@ -914,8 +911,8 @@ begin
      irqs_i(0)    => tdc0_irq,
      irq_master_o => irq_to_gn4124);
 
-  gpio(0) <= irq_to_gn4124;
-  gpio(1) <= '0';
+  gn_gpio(0) <= irq_to_gn4124;
+  gn_gpio(1) <= '0';
 
 ---------------------------------------------------------------------------------------------------
 --                                    Carrier CSR information                                    --
