@@ -600,7 +600,7 @@ NET "sfp_rxp_i" LOC = D22;
 NET "sfp_rxn_i" LOC = C22;
 
 NET "sfp_los_i" LOC = W25;
-NET "sfp_mod_def0_b" LOC = Y26;
+NET "sfp_mod_def0_i" LOC = Y26;
 NET "sfp_mod_def1_b" LOC = Y27;
 NET "sfp_mod_def2_b" LOC = AA24;
 #NET "sfp_rate_select_o" LOC = W24;
@@ -608,7 +608,7 @@ NET "sfp_tx_disable_o" LOC = AA25;
 NET "sfp_tx_fault_i" LOC = AA27;
 
 NET "sfp_los_i" IOSTANDARD = LVCMOS33;
-NET "sfp_mod_def0_b" IOSTANDARD = LVCMOS33;
+NET "sfp_mod_def0_i" IOSTANDARD = LVCMOS33;
 NET "sfp_mod_def1_b" IOSTANDARD = LVCMOS33;
 NET "sfp_mod_def2_b" IOSTANDARD = LVCMOS33;
 #NET "sfp_rate_select_o" IOSTANDARD = "LVCMOS33";
@@ -649,7 +649,7 @@ NET "por_n_i" IOSTANDARD = LVCMOS33;
 NET "clk_20m_vcxo_i" TNM_NET = "clk_20m_vcxo_i";
 
 # 62.5MHz Xilinx PLL clock/reset
-NET "clk_62m5_sys" TNM_NET = "clk_62m5_sys";
+NET "clk_sys_62m5" TNM_NET = "clk_sys_62m5";
 
 # 125MHz PLL ref
 NET "clk_125m_pllref_n_i" LOC = AB30;
@@ -681,24 +681,23 @@ NET "tdc2_125m_clk_n_i" TNM_NET = "tdc2_125m_clk_n_i";
 TIMESPEC TS_tdc2_tdc_125m_clk_n_i = PERIOD "tdc2_125m_clk_n_i" 8 ns HIGH 50 %;
 
 # TS_IGNORE
+TIMESPEC ts_ignore_xclock1 = FROM "clk_sys_62m5" TO "tdc2_125m_clk" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock1 = FROM "clk_sys_62m5" TO "tdc2_125m_clk" 20 ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "tdc2_125m_clk" TO "clk_sys_62m5" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "tdc2_125m_clk" TO "clk_sys_62m5" 20 ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock3 = FROM "clk_sys_62m5" TO "tdc2_125m_clk" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock3 = FROM "clk_sys_62m5" TO "tdc2_125m_clk" 20 ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "tdc2_125m_clk" TO "clk_sys_62m5" 20ns DATAPATHONLY;
 
-TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_sys" TO "tdc2_125m_clk" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_sys" TO "tdc2_125m_clk" 20 ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock2 = FROM "tdc2_125m_clk" TO "clk_62m5_sys" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock2 = FROM "tdc2_125m_clk" TO "clk_62m5_sys" 20 ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock3 = FROM "clk_62m5_sys" TO "tdc2_125m_clk" 20ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock3 = FROM "clk_62m5_sys" TO "tdc2_125m_clk" 20 ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock4 = FROM "tdc2_125m_clk" TO "clk_62m5_sys" 20ns DATAPATHONLY;
-
-TIMESPEC ts_ignore_xclock4 = FROM "clk_20m_vcxo_i" TO "clk_62m5_sys" 200ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock4 = FROM "clk_62m5_sys" TO "clk_20m_vcxo_i" 200ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock4 = FROM "clk_62m5_sys" TO "clk_20m_vcxo_i" 200 ns DATAPATHONLY;
-#Created by Constraints Editor (xc6slx150t-fgg900-3) - 2015/03/31
-NET "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" TNM_NET = gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>;
-TIMESPEC TS_gen_with_wr_phy_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" 8 ns HIGH 50 %;
+TIMESPEC ts_ignore_xclock4 = FROM "clk_20m_vcxo_i" TO "clk_sys_62m5" 200ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "clk_sys_62m5" TO "clk_20m_vcxo_i" 200ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "clk_sys_62m5" TO "clk_20m_vcxo_i" 200 ns DATAPATHONLY;
+#TIMESPEC TS_gen_with_wr_phy_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" 8 ns HIGH 50 %;
+#Created by Constraints Editor (xc6slx150t-fgg900-3) - 2017/12/06
+NET "cmp_xwrc_board_svec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" TNM_NET = cmp_xwrc_board_svec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>;
+TIMESPEC TS_cmp_xwrc_board_svec_cmp_xwrc_platform_gen_phy_spartan6_cmp_gtp_ch1_gtp_clkout_int_1_ = PERIOD "cmp_xwrc_board_svec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
 
 # PlanAhead Generated miscellaneous constraints 
-
 NET "tdc1_address_o[3]" SLEW = FAST;
 NET "tdc1_address_o[2]" SLEW = FAST;
 NET "tdc1_address_o[1]" SLEW = FAST;
@@ -768,3 +767,9 @@ INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit
 INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
 
 TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 1 ns DATAPATHONLY;
+
+# Force PPS output to always be placed as IOB register
+INST "cmp_xwrc_board_svec/cmp_board_common/cmp_xwr_core/wrpc/pps_gen/wrapped_ppsgen/pps_out_o" IOB = FORCE;
+# External async reset
+NET "por_n_i" TIG;
+NET "vme_rst_n_i" TIG;
