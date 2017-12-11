@@ -131,150 +131,134 @@ use UNISIM.vcomponents.all;
 
 entity wr_spec_tdc is
   generic
-    (g_simulation  : boolean := false);    -- this generic is set to TRUE
-                                           -- when instantiated in a test-bench
-  port
-    (                                      -- SPEC carrier
-      clk_125m_pllref_p_i : in std_logic;  -- 125 MHz PLL reference
-      clk_125m_pllref_n_i : in std_logic;
+    (g_simulation  : boolean := false);  -- this generic is set to TRUE
+                                         -- when instantiated in a test-bench
+  port(
+    clk_125m_pllref_p_i : in std_logic;  -- 125 MHz PLL reference
+    clk_125m_pllref_n_i : in std_logic;
+    clk_125m_gtp_n_i    : in std_logic;  -- 125 MHz GTP reference
+    clk_125m_gtp_p_i    : in std_logic;
+    clk_20m_vcxo_i      : in std_logic;  -- 20 MHz VCXO
 
-      clk_125m_gtp_n_i : in std_logic;  -- 125 MHz GTP reference
-      clk_125m_gtp_p_i : in std_logic;
+    wr_dac_sclk_o   : out std_logic;     -- PLL VCXO DAC Drive
+    wr_dac_din_o    : out std_logic;
+    wr_25dac_cs_n_o : out std_logic;
+    wr_20dac_cs_n_o : out std_logic;
 
-      clk_20m_vcxo_i : in std_logic;    -- 20 MHz VCXO
+    sfp_txp_o         : out   std_logic;
+    sfp_txn_o         : out   std_logic;
+    sfp_rxp_i         : in    std_logic := '0';
+    sfp_rxn_i         : in    std_logic := '1';
+    sfp_mod_def0_i    : in    std_logic;  -- SFP detect pin
+    sfp_mod_def1_b    : inout std_logic;  -- SFP scl
+    sfp_mod_def2_b    : inout std_logic;  -- SFP sda
+    sfp_rate_select_o : out   std_logic;
+    sfp_tx_fault_i    : in    std_logic := '0';
+    sfp_tx_disable_o  : out   std_logic;
+    sfp_los_i         : in    std_logic := '0';
 
-      wr_dac_sclk_o   : out std_logic;      -- PLL VCXO DAC Drive
-      wr_dac_din_o    : out std_logic;
-      wr_25dac_cs_n_o : out std_logic;
-      wr_20dac_cs_n_o : out std_logic;
+    uart_rxd_i        : in    std_logic := '1';
+    uart_txd_o        : out   std_logic;
+    flash_sclk_o      : out   std_logic;
+    flash_ncs_o       : out   std_logic;
+    flash_mosi_o      : out   std_logic;
+    flash_miso_i      : in    std_logic;
+    carrier_onewire_b : inout std_logic;  -- SPEC 1-wire
+    button1_i         : in    std_logic := '1';
 
-      sfp_txp_o         : out   std_logic;  -- SFP
-      sfp_txn_o         : out   std_logic;
-      sfp_rxp_i         : in    std_logic := '0';
-      sfp_rxn_i         : in    std_logic := '1';
-      sfp_mod_def0_i    : in    std_logic;  -- SFP detect pin
-      sfp_mod_def1_b    : inout std_logic;  -- SFP scl
-      sfp_mod_def2_b    : inout std_logic;  -- SFP sda
-      sfp_rate_select_o : out   std_logic;
-      sfp_tx_fault_i    : in    std_logic := '0';
-      sfp_tx_disable_o  : out   std_logic;
-      sfp_los_i         : in    std_logic := '0';
+    ------------------------------------------------------------------------
+    -- GN4124 PCI bridge pins
+    ------------------------------------------------------------------------
 
-      uart_rxd_i : in  std_logic := '1';  -- UART
-      uart_txd_o : out std_logic;
+    gn_rst_n   : in std_logic;           -- reset from gn4124 (rstout18_n)
+    -- general purpose interface
+    gn_gpio    : inout std_logic_vector(1 downto 0);  -- gpio[0] -> gn4124 gpio8
+    -- pcie to local [inbound data] - rx
+    gn_p2l_rdy    : out   std_logic;     -- rx buffer full flag
+    gn_p2l_clkn   : in    std_logic;     -- receiver source synchronous clock-
+    gn_p2l_clkp   : in    std_logic;     -- receiver source synchronous clock+
+    gn_p2l_data   : in    std_logic_vector(15 downto 0);  -- parallel receive data
+    gn_p2l_dframe : in    std_logic;     -- receive frame
+    gn_p2l_valid  : in    std_logic;     -- receive data valid
+    -- inbound buffer request/status
+    gn_p_wr_req : in  std_logic_vector(1 downto 0);  -- pcie write request
+    gn_p_wr_rdy : out std_logic_vector(1 downto 0);  -- pcie write ready
+    gn_rx_error : out std_logic;                     -- receive error
+    -- local to parallel [outbound data] - tx
+    gn_l2p_data   : out std_logic_vector(15 downto 0);  -- parallel transmit data
+    gn_l2p_dframe : out std_logic;       -- transmit data frame
+    gn_l2p_valid  : out std_logic;       -- transmit data valid
+    gn_l2p_clkn   : out std_logic;  -- transmitter source synchronous clock-
+    gn_l2p_clkp   : out std_logic;  -- transmitter source synchronous clock+
+    gn_l2p_edb    : out std_logic;       -- packet termination and discard
+    -- outbound buffer status
+    gn_l2p_rdy    : in std_logic;        -- tx buffer full flag
+    gn_l_wr_rdy   : in std_logic_vector(1 downto 0);  -- local-to-pcie write
+    gn_p_rd_d_rdy : in std_logic_vector(1 downto 0);  -- pcie-to-local read response data ready
+    gn_tx_error   : in std_logic;        -- transmit error
+    gn_vc_rdy     : in std_logic_vector(1 downto 0);  -- channel ready
 
-      flash_sclk_o : out std_logic;
-      flash_ncs_o  : out std_logic;
-      flash_mosi_o : out std_logic;
-      flash_miso_i : in  std_logic;
+    ------------------------------------------------------------------------
+    -- Interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
+    ------------------------------------------------------------------------
+    pll_sclk_o       : out std_logic;  -- SPI clock
+    pll_sdi_o        : out std_logic;  -- data line for PLL and DAC
+    pll_cs_o         : out std_logic;  -- PLL chip select
+    pll_dac_sync_o   : out std_logic;  -- DAC chip select
+    pll_sdo_i        : in  std_logic;  -- not used for the moment
+    pll_status_i     : in  std_logic;  -- PLL Digital Lock Detect, active high
+    tdc_clk_125m_p_i : in  std_logic;  -- 125 MHz differential clock: system clock
+    tdc_clk_125m_n_i : in  std_logic;  -- 125 MHz differential clock: system clock
+    acam_refclk_p_i  : in  std_logic;  -- 31.25 MHz differential clock: ACAM ref clock
+    acam_refclk_n_i  : in  std_logic;  -- 31.25 MHz differential clock: ACAM ref clock
 
-      carrier_scl_b : inout std_logic;  -- SPEC EEPROM
-      carrier_sda_b : inout std_logic;
+    -- Timing interface with the ACAM on TDC mezzanine
+    start_from_fpga_o : out   std_logic;  -- start signal
+    err_flag_i        : in    std_logic;  -- error flag
+    int_flag_i        : in    std_logic;  -- interrupt flag
+    start_dis_o       : out   std_logic;  -- start disable, not used
+    stop_dis_o        : out   std_logic;  -- stop disable, not used
+    -- Data interface with the ACAM on TDC mezzanine
+    data_bus_io       : inout std_logic_vector(27 downto 0);
+    address_o         : out   std_logic_vector(3 downto 0);
+    cs_n_o            : out   std_logic;  -- chip select for ACAM
+    oe_n_o            : out   std_logic;  -- output enable for ACAM
+    rd_n_o            : out   std_logic;  -- read  signal for ACAM
+    wr_n_o            : out   std_logic;  -- write signal for ACAM
+    ef1_i             : in    std_logic;  -- empty flag iFIFO1
+    ef2_i             : in    std_logic;  -- empty flag iFIFO2
+    -- Enable of input Logic on TDC mezzanine
+    enable_inputs_o   : out std_logic;  -- enables all 5 inputs
+    term_en_1_o       : out std_logic;  -- Ch.1 termination enable of 50 Ohm termination
+    term_en_2_o       : out std_logic;  -- Ch.2 termination enable of 50 Ohm termination
+    term_en_3_o       : out std_logic;  -- Ch.3 termination enable of 50 Ohm termination
+    term_en_4_o       : out std_logic;  -- Ch.4 termination enable of 50 Ohm termination
+    term_en_5_o       : out std_logic;  -- Ch.5 termination enable of 50 Ohm termination
+    -- LEDs on TDC mezzanine
+    tdc_led_status_o  : out std_logic;  -- amber led on front pannel, division of 125 MHz tdc_clk
+    tdc_led_trig1_o   : out std_logic;  -- amber led on front pannel, Ch.1 enable
+    tdc_led_trig2_o   : out std_logic;  -- amber led on front pannel, Ch.2 enable
+    tdc_led_trig3_o   : out std_logic;  -- amber led on front pannel, Ch.3 enable
+    tdc_led_trig4_o   : out std_logic;  -- amber led on front pannel, Ch.4 enable
+    tdc_led_trig5_o   : out std_logic;  -- amber led on front pannel, Ch.5 enable
+    -- Input Logic on TDC mezzanine (not used currently)
+    tdc_in_fpga_1_i   : in std_logic;   -- Ch.1 for ACAM, also received by FPGA
+    tdc_in_fpga_2_i   : in std_logic;   -- Ch.2 for ACAM, also received by FPGA
+    tdc_in_fpga_3_i   : in std_logic;   -- Ch.3 for ACAM, also received by FPGA
+    tdc_in_fpga_4_i   : in std_logic;   -- Ch.4 for ACAM, also received by FPGA
+    tdc_in_fpga_5_i   : in std_logic;   -- Ch.5 for ACAM, also received by FPGA
+    -- I2C EEPROM interface on TDC mezzanine
+    mezz_sys_scl_b    : inout std_logic := '1';  -- Mezzanine system EEPROM I2C clock
+    mezz_sys_sda_b    : inout std_logic := '1';  -- Mezzanine system EEPROM I2C data
+    -- 1-wire interface on TDC mezzanine
+    mezz_onewire_b    : inout std_logic;
 
-      carrier_onewire_b : inout std_logic;  -- SPEC 1-wire
-
-      button1_i : in std_logic := '1';
-      button2_i : in std_logic := '1';
-
-      ------------------------------------------------------------------------
-      -- GN4124 PCI bridge pins
-      ------------------------------------------------------------------------
-
-      gn_rst_n   : in std_logic;           -- reset from gn4124 (rstout18_n)
-      -- general purpose interface
-      gn_gpio    : inout std_logic_vector(1 downto 0);  -- gpio[0] -> gn4124 gpio8
-      -- pcie to local [inbound data] - rx
-      gn_p2l_rdy    : out   std_logic;     -- rx buffer full flag
-      gn_p2l_clkn   : in    std_logic;     -- receiver source synchronous clock-
-      gn_p2l_clkp   : in    std_logic;     -- receiver source synchronous clock+
-      gn_p2l_data   : in    std_logic_vector(15 downto 0);  -- parallel receive data
-      gn_p2l_dframe : in    std_logic;     -- receive frame
-      gn_p2l_valid  : in    std_logic;     -- receive data valid
-      -- inbound buffer request/status
-      gn_p_wr_req : in  std_logic_vector(1 downto 0);  -- pcie write request
-      gn_p_wr_rdy : out std_logic_vector(1 downto 0);  -- pcie write ready
-      gn_rx_error : out std_logic;                     -- receive error
-      -- local to parallel [outbound data] - tx
-      gn_l2p_data   : out std_logic_vector(15 downto 0);  -- parallel transmit data
-      gn_l2p_dframe : out std_logic;       -- transmit data frame
-      gn_l2p_valid  : out std_logic;       -- transmit data valid
-      gn_l2p_clkn   : out std_logic;  -- transmitter source synchronous clock-
-      gn_l2p_clkp   : out std_logic;  -- transmitter source synchronous clock+
-      gn_l2p_edb    : out std_logic;       -- packet termination and discard
-      -- outbound buffer status
-      gn_l2p_rdy    : in std_logic;        -- tx buffer full flag
-      gn_l_wr_rdy   : in std_logic_vector(1 downto 0);  -- local-to-pcie write
-      gn_p_rd_d_rdy : in std_logic_vector(1 downto 0);  -- pcie-to-local read response data ready
-      gn_tx_error   : in std_logic;        -- transmit error
-      gn_vc_rdy     : in std_logic_vector(1 downto 0);  -- channel ready
-
-      ------------------------------------------------------------------------
-      -- Interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
-      ------------------------------------------------------------------------
-      pll_sclk_o       : out std_logic;  -- SPI clock
-      pll_sdi_o        : out std_logic;  -- data line for PLL and DAC
-      pll_cs_o         : out std_logic;  -- PLL chip select
-      pll_dac_sync_o   : out std_logic;  -- DAC chip select
-      pll_sdo_i        : in  std_logic;  -- not used for the moment
-      pll_status_i     : in  std_logic;  -- PLL Digital Lock Detect, active high
-      tdc_clk_125m_p_i : in  std_logic;  -- 125 MHz differential clock: system clock
-      tdc_clk_125m_n_i : in  std_logic;  -- 125 MHz differential clock: system clock
-      acam_refclk_p_i  : in  std_logic;  -- 31.25 MHz differential clock: ACAM ref clock
-      acam_refclk_n_i  : in  std_logic;  -- 31.25 MHz differential clock: ACAM ref clock
-
-      -- Timing interface with the ACAM on TDC mezzanine
-      start_from_fpga_o : out   std_logic;  -- start signal
-      err_flag_i        : in    std_logic;  -- error flag
-      int_flag_i        : in    std_logic;  -- interrupt flag
-      start_dis_o       : out   std_logic;  -- start disable, not used
-      stop_dis_o        : out   std_logic;  -- stop disable, not used
-      -- Data interface with the ACAM on TDC mezzanine
-      data_bus_io       : inout std_logic_vector(27 downto 0);
-      address_o         : out   std_logic_vector(3 downto 0);
-      cs_n_o            : out   std_logic;  -- chip select for ACAM
-      oe_n_o            : out   std_logic;  -- output enable for ACAM
-      rd_n_o            : out   std_logic;  -- read  signal for ACAM
-      wr_n_o            : out   std_logic;  -- write signal for ACAM
-      ef1_i             : in    std_logic;  -- empty flag iFIFO1
-      ef2_i             : in    std_logic;  -- empty flag iFIFO2
-
-      -- Enable of input Logic on TDC mezzanine
-      enable_inputs_o : out std_logic;  -- enables all 5 inputs
-      term_en_1_o     : out std_logic;  -- Ch.1 termination enable of 50 Ohm termination
-      term_en_2_o     : out std_logic;  -- Ch.2 termination enable of 50 Ohm termination
-      term_en_3_o     : out std_logic;  -- Ch.3 termination enable of 50 Ohm termination
-      term_en_4_o     : out std_logic;  -- Ch.4 termination enable of 50 Ohm termination
-      term_en_5_o     : out std_logic;  -- Ch.5 termination enable of 50 Ohm termination
-
-      -- LEDs on TDC mezzanine
-      tdc_led_status_o : out std_logic;  -- amber led on front pannel, division of 125 MHz tdc_clk
-      tdc_led_trig1_o  : out std_logic;  -- amber led on front pannel, Ch.1 enable
-      tdc_led_trig2_o  : out std_logic;  -- amber led on front pannel, Ch.2 enable
-      tdc_led_trig3_o  : out std_logic;  -- amber led on front pannel, Ch.3 enable
-      tdc_led_trig4_o  : out std_logic;  -- amber led on front pannel, Ch.4 enable
-      tdc_led_trig5_o  : out std_logic;  -- amber led on front pannel, Ch.5 enable
-
-      -- Input Logic on TDC mezzanine (not used currently)
-      tdc_in_fpga_1_i : in std_logic;   -- Ch.1 for ACAM, also received by FPGA
-      tdc_in_fpga_2_i : in std_logic;   -- Ch.2 for ACAM, also received by FPGA
-      tdc_in_fpga_3_i : in std_logic;   -- Ch.3 for ACAM, also received by FPGA
-      tdc_in_fpga_4_i : in std_logic;   -- Ch.4 for ACAM, also received by FPGA
-      tdc_in_fpga_5_i : in std_logic;   -- Ch.5 for ACAM, also received by FPGA
-
-      -- I2C EEPROM interface on TDC mezzanine
-      mezz_sys_scl_b : inout std_logic := '1';  -- Mezzanine system EEPROM I2C clock
-      mezz_sys_sda_b : inout std_logic := '1';  -- Mezzanine system EEPROM I2C data
-
-      -- 1-wire interface on TDC mezzanine
-      mezz_onewire_b : inout std_logic;
-
-      -- font panel leds
-      led_act_o   : out std_logic;
-      led_link_o  : out std_logic;
-
-      -- Carrier other signals
-      pcb_ver_i     : in std_logic_vector(3 downto 0);  -- PCB version
-      prsnt_m2c_n_i : in std_logic);    -- Mezzanine presence (active low)
+    -- font panel leds
+    led_act_o     : out std_logic;
+    led_link_o    : out std_logic;
+    -- Carrier other signals
+    pcb_ver_i     : in std_logic_vector(3 downto 0);  -- PCB version
+    prsnt_m2c_n_i : in std_logic);    -- Mezzanine presence (active low)
 
 end wr_spec_tdc;
 
@@ -340,60 +324,44 @@ architecture rtl of wr_spec_tdc is
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
-  -- WRabbit clocks
-  signal pllout_clk_sys, pllout_clk_dmtd                  : std_logic;
-  signal pllout_clk_fb_pllref, pllout_clk_fb_dmtd         : std_logic;
-  signal clk_125m_pllref, clk_125m_gtp                    : std_logic;
-  signal clk_dmtd                                         : std_logic;
-  attribute buffer_type                                   : string;  --" {bufgdll | ibufg | bufgp | ibuf | bufr | none}";
-  attribute buffer_type of clk_125m_pllref                : signal is "BUFG";
-  -- TDC core clocks and resets
-  signal clk_20m_vcxo, clk_20m_vcxo_buf                   : std_logic;
-  signal clk_sys_62m5, sys_locked                         : std_logic;
-  signal rst_sys_62m5_n                                        : std_logic;
+  -- Clocks and resets
+  signal clk_sys_62m5   : std_logic;
+  signal rst_sys_62m5_n : std_logic;
   -- DAC configuration through PCIe/VME
   -- WISHBONE from crossbar master port
-  signal cnx_master_out                                   : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
-  signal cnx_master_in                                    : t_wishbone_master_in_array(c_NUM_WB_MASTERS-1 downto 0);
+  signal cnx_master_out           : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
+  signal cnx_master_in            : t_wishbone_master_in_array(c_NUM_WB_MASTERS-1 downto 0);
   -- WISHBONE to crossbar slave port
-  signal cnx_slave_out                                    : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
-  signal cnx_slave_in                                     : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
-  signal gn_wb_adr                                        : std_logic_vector(31 downto 0);
+  signal cnx_slave_out            : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
+  signal cnx_slave_in             : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
+  signal gn_wb_adr                : std_logic_vector(31 downto 0);
   -- Carrier CSR info
-  signal gn4124_status                                    : std_logic_vector(31 downto 0);
-  -- Carrier 1-wire
-  signal carrier_owr_en, carrier_owr_i                    : std_logic_vector(c_FMC_ONEWIRE_NB - 1 downto 0);
+  signal gn4124_status            : std_logic_vector(31 downto 0);
   -- VIC
-  signal irq_to_gn4124                                    : std_logic;
+  signal irq_to_gn4124            : std_logic;
   -- WRabbit time
-  signal tm_link_up, tm_time_valid, tm_dac_wr_p           : std_logic;
-  signal tm_tai                                           : std_logic_vector(39 downto 0);
-  signal tm_cycles                                        : std_logic_vector(27 downto 0);
-  signal tm_dac_value, tm_dac_value_reg                   : std_logic_vector(23 downto 0);
-  signal tm_clk_aux_lock_en, tm_clk_aux_locked            : std_logic;
-  -- WRabbit PHY
-  signal phy_tx_data, phy_rx_data                         : std_logic_vector(7 downto 0);
-  signal phy_tx_k,  phy_rx_k             : std_logic_vector(0 downto 0);
-  signal phy_tx_enc_err, phy_rx_rbclk, phy_tx_disparity                     : std_logic;
-  signal phy_rx_enc_err, phy_rst, phy_loopen              : std_logic;
-  signal phy_rx_bitslide                                  : std_logic_vector(3 downto 0);
-  -- DAC configuration through WRabbit
-  signal dac_hpll_load_p1, dac_dpll_load_p1               : std_logic;
-  signal dac_hpll_data, dac_dpll_data                     : std_logic_vector(15 downto 0);
+  signal tm_link_up, tm_time_valid: std_logic;
+  signal tm_dac_wr_p              : std_logic;
+  signal tm_tai                   : std_logic_vector(39 downto 0);
+  signal tm_cycles                : std_logic_vector(27 downto 0);
+  signal tm_dac_value             : std_logic_vector(23 downto 0);
+  signal tm_clk_aux_lock_en       : std_logic;
+  signal tm_clk_aux_locked        : std_logic;
   -- EEPROM on mezzanine
-  signal wrc_scl_out, wrc_scl_in, wrc_sda_out, wrc_sda_in : std_logic;
-  signal tdc_scl_out, tdc_scl_in, tdc_sda_out, tdc_sda_in : std_logic;
-  signal tdc_scl_oen, tdc_sda_oen                         : std_logic;
+  signal wrc_scl_out, wrc_scl_in  : std_logic;
+  signal wrc_sda_out, wrc_sda_in  : std_logic;
+  signal tdc_scl_oen, tdc_scl_in  : std_logic;
+  signal tdc_sda_oen, tdc_sda_in  : std_logic;
   -- SFP EEPROM on mezzanine  
-  signal sfp_scl_out, sfp_scl_in, sfp_sda_out, sfp_sda_in : std_logic;
+  signal sfp_scl_out, sfp_scl_in  : std_logic;
+  signal sfp_sda_out, sfp_sda_in  : std_logic;
   -- Carrier 1-Wire
-  signal wrc_owr_oe, wrc_owr_data                         : std_logic;
+  signal wrc_owr_oe, wrc_owr_data : std_logic;
   -- aux
 
-  signal tdc0_irq        : std_logic;
-  signal tdc0_clk_125m   : std_logic;
-  signal tdc0_soft_rst_n : std_logic;
-
+  signal tdc0_irq             : std_logic;
+  signal tdc0_clk_125m        : std_logic;
+  signal tdc0_soft_rst_n      : std_logic;
   signal carrier_info_fmc_rst : std_logic_vector(30 downto 0);
 
 --=================================================================================================
@@ -467,6 +435,15 @@ begin
       tm_cycles_o         => tm_cycles,
       led_link_o          => led_link_o,
       led_act_o           => led_act_o);
+
+  -- Tristates for SFP EEPROM
+  sfp_mod_def1_b <= '0' when sfp_scl_out = '0' else 'Z';
+  sfp_mod_def2_b <= '0' when sfp_sda_out = '0' else 'Z';
+  sfp_scl_in     <= sfp_mod_def1_b;
+  sfp_sda_in     <= sfp_mod_def2_b;
+  -- Tristates for 1-wire thermometer
+  carrier_onewire_b <= '0' when wrc_owr_oe = '1' else 'Z';
+  wrc_owr_data      <= carrier_onewire_b;
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
@@ -686,7 +663,9 @@ begin
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
      carrier_info_stat_fmc_pres_i      => prsnt_m2c_n_i,
      carrier_info_stat_p2l_pll_lck_i   => gn4124_status(0),
-     carrier_info_stat_sys_pll_lck_i   => sys_locked,
+     -- SPEC board wrapper releases rst_sys_62m5_n only when system clock pll is
+     -- locked. Therefore we report here '1' - pll locked
+     carrier_info_stat_sys_pll_lck_i   => '1',
      carrier_info_stat_ddr3_cal_done_i => '0',
      carrier_info_stat_reserved_i      => x"0000000",
 
@@ -705,7 +684,6 @@ begin
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).rty <= '0';
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).int <= '0';
 
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for TDC mezzanine EEPROM
   mezz_sys_scl_b <= '0' when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
@@ -714,19 +692,6 @@ begin
   wrc_sda_in     <= mezz_sys_sda_b;
   tdc_scl_in     <= mezz_sys_scl_b;
   tdc_sda_in     <= mezz_sys_sda_b;
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Tristates for SFP EEPROM
-  sfp_mod_def1_b <= '0' when sfp_scl_out = '0' else 'Z';
-  sfp_mod_def2_b <= '0' when sfp_sda_out = '0' else 'Z';
-  sfp_scl_in     <= sfp_mod_def1_b;
-  sfp_sda_in     <= sfp_mod_def2_b;
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  carrier_onewire_b <= '0' when wrc_owr_oe = '1' else 'Z';
-  wrc_owr_data      <= carrier_onewire_b;
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

@@ -353,8 +353,6 @@ NET "wr_dac_sclk_o" LOC = A4;
 NET "wr_dac_sclk_o" IOSTANDARD = "LVCMOS25";
 NET "button1_i" LOC = C22;
 NET "button1_i" IOSTANDARD = "LVCMOS18";
-NET "button2_i" LOC = D21;
-NET "button2_i" IOSTANDARD = "LVCMOS18";
 
 
 #----------------------------------------
