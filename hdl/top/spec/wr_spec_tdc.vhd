@@ -348,8 +348,6 @@ architecture rtl of wr_spec_tdc is
   signal tm_clk_aux_lock_en       : std_logic;
   signal tm_clk_aux_locked        : std_logic;
   -- EEPROM on mezzanine
-  signal wrc_scl_out, wrc_scl_in  : std_logic;
-  signal wrc_sda_out, wrc_sda_in  : std_logic;
   signal tdc_scl_oen, tdc_scl_in  : std_logic;
   signal tdc_sda_oen, tdc_sda_in  : std_logic;
   -- SFP EEPROM on mezzanine  
@@ -411,10 +409,6 @@ begin
       sfp_tx_fault_i      => sfp_tx_fault_i,
       sfp_tx_disable_o    => sfp_tx_disable_o,
       sfp_los_i           => sfp_los_i,
-      eeprom_sda_i        => wrc_sda_in,
-      eeprom_sda_o        => wrc_sda_out,
-      eeprom_scl_i        => wrc_scl_in,
-      eeprom_scl_o        => wrc_scl_out,
       onewire_i           => wrc_owr_data,
       onewire_oen_o       => wrc_owr_oe,
       uart_rxd_i          => uart_rxd_i,
@@ -686,10 +680,8 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for TDC mezzanine EEPROM
-  mezz_sys_scl_b <= '0' when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
-  mezz_sys_sda_b <= '0' when (tdc_sda_oen = '0') else '0' when (wrc_sda_out = '0') else 'Z';
-  wrc_scl_in     <= mezz_sys_scl_b;
-  wrc_sda_in     <= mezz_sys_sda_b;
+  mezz_sys_scl_b <= '0' when (tdc_scl_oen = '0') else 'Z';
+  mezz_sys_sda_b <= '0' when (tdc_sda_oen = '0') else 'Z';
   tdc_scl_in     <= mezz_sys_scl_b;
   tdc_sda_in     <= mezz_sys_sda_b;
 
