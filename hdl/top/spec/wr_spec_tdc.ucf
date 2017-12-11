@@ -341,10 +341,10 @@ NET "led_act_o" LOC = D5;
 NET "led_act_o" IOSTANDARD = "LVCMOS25";
 NET "led_link_o" LOC = E5;
 NET "led_link_o" IOSTANDARD = "LVCMOS25";
-NET "wr_dac_cs1_n_o" LOC = A3;
-NET "wr_dac_cs1_n_o" IOSTANDARD = "LVCMOS25";
-NET "wr_dac_cs2_n_o" LOC = B3;
-NET "wr_dac_cs2_n_o" IOSTANDARD = "LVCMOS25";
+NET "wr_25dac_cs_n_o" LOC = A3;
+NET "wr_25dac_cs_n_o" IOSTANDARD = "LVCMOS25";
+NET "wr_20dac_cs_n_o" LOC = B3;
+NET "wr_20dac_cs_n_o" IOSTANDARD = "LVCMOS25";
 #NET "dac_clr_n_o" LOC = F7;
 #NET "dac_clr_n_o" IOSTANDARD = "LVCMOS25";
 NET "wr_dac_din_o" LOC = C4;
@@ -367,12 +367,12 @@ NET "sfp_txn_o" LOC= A16;
 
 NET "sfp_mod_def1_b" LOC = C17;
 NET "sfp_mod_def1_b" IOSTANDARD = "LVCMOS25";
-NET "sfp_mod_def0_b" LOC = G15;
-NET "sfp_mod_def0_b" IOSTANDARD = "LVCMOS25";
+NET "sfp_mod_def0_i" LOC = G15;
+NET "sfp_mod_def0_i" IOSTANDARD = "LVCMOS25";
 NET "sfp_mod_def2_b" LOC = G16;
 NET "sfp_mod_def2_b" IOSTANDARD = "LVCMOS25";
-NET "sfp_rate_select_b" LOC = H14;
-NET "sfp_rate_select_b" IOSTANDARD = "LVCMOS25";
+NET "sfp_rate_select_o" LOC = H14;
+NET "sfp_rate_select_o" IOSTANDARD = "LVCMOS25";
 NET "sfp_tx_fault_i" LOC = A17;
 NET "sfp_tx_fault_i" IOSTANDARD = "LVCMOS25";
 NET "sfp_tx_disable_o" LOC = F17;
@@ -388,6 +388,18 @@ NET "uart_rxd_i" IOSTANDARD=LVCMOS25;
 NET "uart_txd_o" LOC= B2;
 NET "uart_txd_o" IOSTANDARD=LVCMOS25;
 
+#----------------------------------------
+# Flash memory SPI interface
+#----------------------------------------
+NET "flash_ncs_o"  LOC = AA3;
+NET "flash_ncs_o"  IOSTANDARD = "LVCMOS25";
+NET "flash_sclk_o" LOC = Y20;
+NET "flash_sclk_o" IOSTANDARD = "LVCMOS25";
+NET "flash_mosi_o" LOC = AB20;
+NET "flash_mosi_o" IOSTANDARD = "LVCMOS25";
+NET "flash_miso_i" LOC = AA20;
+NET "flash_miso_i" IOSTANDARD = "LVCMOS25";
+
 
 #----------------------------------------
 # False Path
@@ -399,24 +411,19 @@ NET "cmp_gn4124_core/cmp_clk_in/P_clk" TNM_NET = cmp_gn4124_core/cmp_clk_in/P_cl
 TIMESPEC TS_cmp_gn4124_core_cmp_clk_in_P_clk = PERIOD "cmp_gn4124_core/cmp_clk_in/P_clk" 5 ns HIGH 50%;
 
 
-NET "clk_62m5_sys" TNM_NET = clk_62m5_sys;
-TIMESPEC ts_ignore_crossclock = FROM "clk_62m5_sys" TO "tdc_clk_125m_p_i" 10ns DATAPATHONLY;
-TIMESPEC ts_ignore_crossclock2 = FROM "tdc_clk_125m_p_i" TO "clk_62m5_sys" 10ns  DATAPATHONLY;
-TIMESPEC ts_ignore_xclock1 = FROM "clk_62m5_sys" TO "clk_125m_pllref_n_i" 10ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock2 = FROM "clk_125m_pllref_p_i" TO "clk_62m5_sys" 10ns DATAPATHONLY;
+NET "clk_sys_62m5" TNM_NET = clk_sys_62m5;
+TIMESPEC ts_ignore_crossclock = FROM "clk_sys_62m5" TO "tdc_clk_125m_p_i" 10ns DATAPATHONLY;
+TIMESPEC ts_ignore_crossclock2 = FROM "tdc_clk_125m_p_i" TO "clk_sys_62m5" 10ns  DATAPATHONLY;
+TIMESPEC ts_ignore_xclock1 = FROM "clk_sys_62m5" TO "clk_125m_pllref_n_i" 10ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "clk_125m_pllref_p_i" TO "clk_sys_62m5" 10ns DATAPATHONLY;
 
-TIMESPEC ts_x3 = FROM "clk_62m5_sys" TO "U_GTP_ch1_rx_divclk" 10ns DATAPATHONLY;
-TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_62m5_sys" 10ns DATAPATHONLY;
+TIMESPEC ts_x3 = FROM "clk_sys_62m5" TO "U_GTP_ch1_rx_divclk" 10ns DATAPATHONLY;
+TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_sys_62m5" 10ns DATAPATHONLY;
 
 
-##Created by Constraints Editor (xc6slx45t-fgg484-3) - 2012/08/07
-
-#Created by Constraints Editor (xc6slx45t-fgg484-3) - 2012/08/08
-INST "U_WR_CORE/WRPC/U_Endpoint/U_Wrapped_Endpoint/U_PCS_1000BASEX/gen_8bit.U_RX_PCS/timestamp_trigger_p_a_o" TNM = rx_ts_trig;
-TIMESPEC TS_RXTS = FROM "rx_ts_trig" TO "FFS" 2 ns DATAPATHONLY;
-#Created by Constraints Editor (xc6slx45t-fgg484-3) - 2015/05/19
-NET "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" TNM_NET = gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>;
-TIMESPEC TS_gen_with_wr_phy_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
+#Created by Constraints Editor (xc6slx150t-fgg900-3) - 2017/12/06
+NET "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" TNM_NET = cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>;
+TIMESPEC TS_cmp_xwrc_board_spec_cmp_xwrc_platform_gen_phy_spartan6_cmp_gtp_ch1_gtp_clkout_int_1_ = PERIOD "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
 NET "cmp_gn4124_core/cmp_clk_in/feedback" TNM_NET = cmp_gn4124_core/cmp_clk_in/feedback;
 TIMESPEC TS_cmp_gn4124_core_cmp_clk_in_feedback = PERIOD "cmp_gn4124_core/cmp_clk_in/feedback" 5 ns HIGH 50%;
 

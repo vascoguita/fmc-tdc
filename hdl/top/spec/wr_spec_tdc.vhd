@@ -74,6 +74,7 @@
 --                                                                                                |
 -- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
 --              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
+--              Grzegorz Daniluk  (Grzegorz.Daniluk@cern.ch)
 -- Date         06/2014                                                                           |
 -- Version      v6                                                                                |
 -- Depends on                                                                                     |
@@ -97,6 +98,7 @@
 --     04/2013  v4  EG  added SDB; fixed bugs in data_formatting; added carrier CSR information   |
 --     01/2014  v5  EG  added VIC and EIC in the TDC mezzanine                                    |
 --     06/2014  v6  EG  added White Rabbit support                                                |
+--     12/2017  v7  GD  Top file reorganized to benefit from WRPC Board wrapper.                  |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -113,9 +115,6 @@
 -- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
 ---------------------------------------------------------------------------------------------------
 
---=================================================================================================
---                                       Libraries & Packages
---=================================================================================================
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -124,21 +123,15 @@ use work.gn4124_core_pkg.all;
 use work.gencores_pkg.all;
 use work.synthesis_descriptor.all;
 use work.wishbone_pkg.all;
-use work.wrcore_pkg.all;
-use work.wr_fabric_pkg.all;
-use work.wr_xilinx_pkg.all;
+use work.wr_board_pkg.all;
+use work.wr_spec_pkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-
---=================================================================================================
---                            Entity declaration for wr_spec_tdc
---=================================================================================================
 entity wr_spec_tdc is
   generic
-    (g_with_wr_phy : boolean := true;
-     g_simulation  : boolean := false);    -- this generic is set to TRUE
+    (g_simulation  : boolean := false);    -- this generic is set to TRUE
                                            -- when instantiated in a test-bench
   port
     (                                      -- SPEC carrier
@@ -150,25 +143,30 @@ entity wr_spec_tdc is
 
       clk_20m_vcxo_i : in std_logic;    -- 20 MHz VCXO
 
-      wr_dac_sclk_o  : out std_logic;      -- PLL VCXO DAC Drive
-      wr_dac_din_o   : out std_logic;
-      wr_dac_cs1_n_o : out std_logic;
-      wr_dac_cs2_n_o : out std_logic;
+      wr_dac_sclk_o   : out std_logic;      -- PLL VCXO DAC Drive
+      wr_dac_din_o    : out std_logic;
+      wr_25dac_cs_n_o : out std_logic;
+      wr_20dac_cs_n_o : out std_logic;
 
       sfp_txp_o         : out   std_logic;  -- SFP
       sfp_txn_o         : out   std_logic;
       sfp_rxp_i         : in    std_logic := '0';
       sfp_rxn_i         : in    std_logic := '1';
-      sfp_mod_def0_b    : in    std_logic;  -- SFP detect pin
+      sfp_mod_def0_i    : in    std_logic;  -- SFP detect pin
       sfp_mod_def1_b    : inout std_logic;  -- SFP scl
       sfp_mod_def2_b    : inout std_logic;  -- SFP sda
-      sfp_rate_select_b : inout std_logic := '0';
+      sfp_rate_select_o : out   std_logic;
       sfp_tx_fault_i    : in    std_logic := '0';
       sfp_tx_disable_o  : out   std_logic;
       sfp_los_i         : in    std_logic := '0';
 
       uart_rxd_i : in  std_logic := '1';  -- UART
       uart_txd_o : out std_logic;
+
+      flash_sclk_o : out std_logic;
+      flash_ncs_o  : out std_logic;
+      flash_mosi_o : out std_logic;
+      flash_miso_i : in  std_logic;
 
       carrier_scl_b : inout std_logic;  -- SPEC EEPROM
       carrier_sda_b : inout std_logic;
@@ -285,17 +283,6 @@ end wr_spec_tdc;
 --=================================================================================================
 architecture rtl of wr_spec_tdc is
 
-
-  function f_bool2int (x : boolean) return integer is
-  begin
-    if(x) then
-      return 1;
-    else
-      return 0;
-    end if;
-  end f_bool2int;
-
-
 ---------------------------------------------------------------------------------------------------
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
@@ -323,7 +310,7 @@ architecture rtl of wr_spec_tdc is
   constant c_WB_SLAVE_SPEC_INFO : integer := 0;  -- Info on SPEC control and status registers
   constant c_WB_SLAVE_VIC       : integer := 1;  -- Interrupt controller
   constant c_WB_SLAVE_TDC       : integer := 2;  -- TDC core configuration
-  constant c_SLAVE_WRCORE       : integer := 3;  -- White Rabbit PTP core
+  constant c_WB_SLAVE_WRC       : integer := 3;  -- White Rabbit PTP core
 
   -- SDB header address
   constant c_SDB_ADDRESS : t_wishbone_address := x"00000000";
@@ -362,8 +349,8 @@ architecture rtl of wr_spec_tdc is
   attribute buffer_type of clk_125m_pllref                : signal is "BUFG";
   -- TDC core clocks and resets
   signal clk_20m_vcxo, clk_20m_vcxo_buf                   : std_logic;
-  signal clk_62m5_sys, sys_locked                         : std_logic;
-  signal rst_n_sys                                        : std_logic;
+  signal clk_sys_62m5, sys_locked                         : std_logic;
+  signal rst_sys_62m5_n                                        : std_logic;
   -- DAC configuration through PCIe/VME
   -- WISHBONE from crossbar master port
   signal cnx_master_out                                   : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
@@ -400,14 +387,13 @@ architecture rtl of wr_spec_tdc is
   -- SFP EEPROM on mezzanine  
   signal sfp_scl_out, sfp_scl_in, sfp_sda_out, sfp_sda_in : std_logic;
   -- Carrier 1-Wire
-  signal wrc_owr_en, wrc_owr_in                           : std_logic_vector(1 downto 0);
+  signal wrc_owr_oe, wrc_owr_data                         : std_logic;
   -- aux
 
   signal tdc0_irq        : std_logic;
   signal tdc0_clk_125m   : std_logic;
   signal tdc0_soft_rst_n : std_logic;
 
-  signal powerup_rst_cnt      : unsigned(7 downto 0) := "00000000";
   signal carrier_info_fmc_rst : std_logic_vector(30 downto 0);
 
 --=================================================================================================
@@ -415,300 +401,72 @@ architecture rtl of wr_spec_tdc is
 --=================================================================================================
 begin
 
----------------------------------------------------------------------------------------------------
---                                     62.5 MHz system clock                                     --
----------------------------------------------------------------------------------------------------
-
-  cmp_clk_vcxo_ibuf : IBUFG
-    port map
-    (O => clk_20m_vcxo_buf,
-     I => clk_20m_vcxo_i);
-
-  cmp_clk_vcxo_gbuf : BUFG
-    port map
-    (O => clk_20m_vcxo,
-     I => clk_20m_vcxo_buf);
-
-  cmp_sys_clk_pll : PLL_BASE
-    generic map
-    (BANDWIDTH          => "OPTIMIZED",
-     CLK_FEEDBACK       => "CLKFBOUT",
-     COMPENSATION       => "INTERNAL",
-     DIVCLK_DIVIDE      => 1,
-     CLKFBOUT_MULT      => 50,
-     CLKFBOUT_PHASE     => 0.000,
-     CLKOUT0_DIVIDE     => 16,          -- 62.5 MHz
-     CLKOUT0_PHASE      => 0.000,
-     CLKOUT0_DUTY_CYCLE => 0.500,
-     CLKOUT1_DIVIDE     => 16,          -- not used
-     CLKOUT1_PHASE      => 0.000,
-     CLKOUT1_DUTY_CYCLE => 0.500,
-     CLKOUT2_DIVIDE     => 16,
-     CLKOUT2_PHASE      => 0.000,
-     CLKOUT2_DUTY_CYCLE => 0.500,
-     CLKIN_PERIOD       => 50.0,
-     REF_JITTER         => 0.016)
-    port map
-    (CLKFBOUT => pllout_clk_fb_pllref,
-     CLKOUT0  => pllout_clk_sys,
-     CLKOUT1  => open,
-     CLKOUT2  => open,
-     CLKOUT3  => open,
-     CLKOUT4  => open,
-     CLKOUT5  => open,
-     LOCKED   => sys_locked,
-     RST      => '0',
-     CLKFBIN  => pllout_clk_fb_pllref,
-     CLKIN    => clk_20m_vcxo);
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  cmp_clk_sys_buf : BUFG
-    port map
-    (O => clk_62m5_sys,
-     I => pllout_clk_sys);      
+  tdc0_soft_rst_n <= carrier_info_fmc_rst(0) and rst_sys_62m5_n;
 
+-------------------------------------------------------------------------------
+--            SPEC Board Wrapper                                             --
+-------------------------------------------------------------------------------
 
----------------------------------------------------------------------------------------------------
---                                      62.5 MHz DMTD clock                                      --
----------------------------------------------------------------------------------------------------
-
-  cmp_dmtd_clk_pll : PLL_BASE
-    generic map
-    (BANDWIDTH          => "OPTIMIZED",
-     CLK_FEEDBACK       => "CLKFBOUT",
-     COMPENSATION       => "INTERNAL",
-     DIVCLK_DIVIDE      => 1,
-     CLKFBOUT_MULT      => 50,
-     CLKFBOUT_PHASE     => 0.000,
-     CLKOUT0_DIVIDE     => 16,          -- 62.5 MHz
-     CLKOUT0_PHASE      => 0.000,
-     CLKOUT0_DUTY_CYCLE => 0.500,
-     CLKOUT1_DIVIDE     => 16,          -- not used
-     CLKOUT1_PHASE      => 0.000,
-     CLKOUT1_DUTY_CYCLE => 0.500,
-     CLKOUT2_DIVIDE     => 8,
-     CLKOUT2_PHASE      => 0.000,
-     CLKOUT2_DUTY_CYCLE => 0.500,
-     CLKIN_PERIOD       => 50.0,
-     REF_JITTER         => 0.016)
-    port map
-    (CLKFBOUT => pllout_clk_fb_dmtd,
-     CLKOUT0  => pllout_clk_dmtd,
-     CLKOUT1  => open,
-     CLKOUT2  => open,
-     CLKOUT3  => open,
-     CLKOUT4  => open,
-     CLKOUT5  => open,
-     LOCKED   => open,
-     RST      => '0',
-     CLKFBIN  => pllout_clk_fb_dmtd,
-     CLKIN    => clk_20m_vcxo_buf);
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  cmp_clk_dmtd_buf : BUFG
-    port map
-    (O => clk_dmtd,
-     I => pllout_clk_dmtd);
-
----------------------------------------------------------------------------------------------------
---                               125 MHz clk for White Rabbit core                               --
----------------------------------------------------------------------------------------------------
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  U_Buf_CLK_PLL : IBUFGDS
-    generic map
-    (DIFF_TERM    => true,
-     IBUF_LOW_PWR => true)  -- Low power (TRUE) vs. performance (FALSE) setting for referenced
-    port map
-    (O  => clk_125m_pllref,             -- Buffer output
-     I  => clk_125m_pllref_p_i,  -- Diff_p buffer input (connect directly to top-level port)
-     IB => clk_125m_pllref_n_i);  -- Diff_n buffer input (connect directly to top-level port)
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  U_Buf_CLK_GTP : IBUFDS
-    generic map
-    (DIFF_TERM    => true,
-     IBUF_LOW_PWR => false)
-    port map
-    (O  => clk_125m_gtp,
-     I  => clk_125m_gtp_p_i,
-     IB => clk_125m_gtp_n_i);
-
----------------------------------------------------------------------------------------------------
---                                         62.5 MHz Reset                                        --
----------------------------------------------------------------------------------------------------
--- SPEC power-up reset in the clk_62m5_sys domain: rst_n_sys is asserted asynchronously upon VME
--- reset or SVEC AFPGA power-on reset. If none of these signals is asserted at startup, the process
--- waits for the system clock PLL to lock + additional 256 clk_62m5_sys cycles before de-asserting
--- the reset.
-
-  p_powerup_reset : process(clk_62m5_sys, gn_rst_n)
-  begin
-    if(gn_rst_n = '0') then
-      rst_n_sys <= '0';
-    elsif rising_edge(clk_62m5_sys) then
-      if sys_locked = '1' then
-        if(powerup_rst_cnt = "11111111") then
-          rst_n_sys <= '1';
-        else
-          rst_n_sys       <= '0';
-          powerup_rst_cnt <= powerup_rst_cnt + 1;
-        end if;
-      else
-        rst_n_sys       <= '0';
-        powerup_rst_cnt <= "00000000";
-      end if;
-    end if;
-  end process;
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  tdc0_soft_rst_n <= carrier_info_fmc_rst(0) and rst_n_sys;
-
----------------------------------------------------------------------------------------------------
---                                  White Rabbit Core + PHY                                      --
----------------------------------------------------------------------------------------------------
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  U_WR_CORE : xwr_core
-    generic map
-    (g_simulation                => f_bool2int(g_simulation),
-     g_phys_uart                 => true,
-     g_virtual_uart              => true,
-     g_with_external_clock_input => false,
-     g_board_name                => "SPEC",
-     g_aux_clks                  => 1,
-     g_ep_rxbuf_size             => 1024,
-     g_dpram_initf               => "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram",
-     g_dpram_size                => 131072/4,
-     g_interface_mode            => PIPELINED,
-     g_address_granularity       => BYTE,
-     g_softpll_enable_debugger   => false,
-     g_pcs_16bit                 => false,
-     g_records_for_phy           => false)
-    port map
-    (clk_sys_i               => clk_62m5_sys,
-     clk_dmtd_i              => clk_dmtd,
-     clk_ref_i               => clk_125m_pllref,
-     clk_aux_i(0)            => tdc0_clk_125m,
-     rst_n_i                 => rst_n_sys,
-     -- DAC
-     dac_hpll_load_p1_o      => dac_hpll_load_p1,
-     dac_hpll_data_o         => dac_hpll_data,
-     dac_dpll_load_p1_o      => dac_dpll_load_p1,
-     dac_dpll_data_o         => dac_dpll_data,
-     -- PHY
-     phy_ref_clk_i           => clk_125m_pllref,
-     phy_tx_data_o           => phy_tx_data,
-     phy_tx_k_o              => phy_tx_k,
-     phy_tx_disparity_i      => phy_tx_disparity,
-     phy_tx_enc_err_i        => phy_tx_enc_err,
-     phy_rx_data_i           => phy_rx_data,
-     phy_rx_rbclk_i          => phy_rx_rbclk,
-     phy_rx_k_i              => phy_rx_k,
-     phy_rx_enc_err_i        => phy_rx_enc_err,
-     phy_rx_bitslide_i       => phy_rx_bitslide,
-     phy_rst_o               => phy_rst,
-     phy_loopen_o            => phy_loopen,
-     -- SPEC LEDs
-     led_act_o               => led_act_o,
-     led_link_o              => led_link_o,
-     -- SFP
-     scl_o                   => wrc_scl_out,
-     scl_i                   => wrc_scl_in,
-     sda_o                   => wrc_sda_out,
-     sda_i                   => wrc_sda_in,
-     sfp_scl_o               => sfp_scl_out,
-     sfp_scl_i               => sfp_scl_in,
-     sfp_sda_o               => sfp_sda_out,
-     sfp_sda_i               => sfp_sda_in,
-     sfp_det_i               => sfp_mod_def0_b,
-     uart_rxd_i              => uart_rxd_i,
-     uart_txd_o              => uart_txd_o,
-     -- 1-wire
-     owr_en_o                => wrc_owr_en,
-     owr_i                   => wrc_owr_in,
-     -- WISHBONE
-     slave_i                 => cnx_master_out(c_SLAVE_WRCORE),
-     slave_o                 => cnx_master_in(c_SLAVE_WRCORE),
-     -- Timimg info for TDC core
-     tm_link_up_o            => tm_link_up,
-     tm_dac_value_o          => tm_dac_value,
-     tm_dac_wr_o(0)          => tm_dac_wr_p,
-     tm_clk_aux_lock_en_i(0) => tm_clk_aux_lock_en,
-     tm_clk_aux_locked_o(0)  => tm_clk_aux_locked,
-     tm_time_valid_o         => tm_time_valid,
-     tm_tai_o                => tm_tai,
-     tm_cycles_o             => tm_cycles,
-     -- not used
-     btn1_i                  => '1',
-     btn2_i                  => '1',
-     pps_p_o                 => open,
-     -- aux reset
-     rst_aux_n_o             => open);
-
-  gen_with_wr_phy : if g_with_wr_phy generate
-    --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-    U_GTP : wr_gtp_phy_spartan6
-      generic map
-      (g_simulation => 0,
-       g_enable_ch0 => 0,
-       g_enable_ch1 => 1)
-      port map
-      (gtp_clk_i          => clk_125m_gtp,
-       ch0_ref_clk_i      => clk_125m_pllref,
-       ch0_tx_data_i      => x"00",
-       ch0_tx_k_i         => '0',
-       ch0_tx_disparity_o => open,
-       ch0_tx_enc_err_o   => open,
-       ch0_rx_rbclk_o     => open,
-       ch0_rx_data_o      => open,
-       ch0_rx_k_o         => open,
-       ch0_rx_enc_err_o   => open,
-       ch0_rx_bitslide_o  => open,
-       ch0_rst_i          => '1',
-       ch0_loopen_i       => '0',
-       ch1_ref_clk_i      => clk_125m_pllref,
-       ch1_tx_data_i      => phy_tx_data,
-       ch1_tx_k_i         => phy_tx_k(0),
-       ch1_tx_disparity_o => phy_tx_disparity,
-       ch1_tx_enc_err_o   => phy_tx_enc_err,
-       ch1_rx_data_o      => phy_rx_data,
-       ch1_rx_rbclk_o     => phy_rx_rbclk,
-       ch1_rx_k_o         => phy_rx_k(0),
-       ch1_rx_enc_err_o   => phy_rx_enc_err,
-       ch1_rx_bitslide_o  => phy_rx_bitslide,
-       ch1_rst_i          => phy_rst,
-       ch1_loopen_i       => '0',       -- phy_loopen,
-       pad_txn0_o         => open,
-       pad_txp0_o         => open,
-       pad_rxn0_i         => '0',
-       pad_rxp0_i         => '0',
-       pad_txn1_o         => sfp_txn_o,
-       pad_txp1_o         => sfp_txp_o,
-       pad_rxn1_i         => sfp_rxn_i,
-       pad_rxp1_i         => sfp_rxp_i);
-
-
-  end generate gen_with_wr_phy;
-
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  U_DAC_ARB : spec_serial_dac_arb
-    generic map
-    (g_invert_sclk    => false,
-     g_num_extra_bits => 8)
-    port map
-    (clk_i         => clk_62m5_sys,
-     rst_n_i       => rst_n_sys,
-     val1_i        => dac_dpll_data,
-     load1_i       => dac_dpll_load_p1,
-     val2_i        => dac_hpll_data,
-     load2_i       => dac_hpll_load_p1,
-     dac_cs_n_o(0) => wr_dac_cs1_n_o,
-     dac_cs_n_o(1) => wr_dac_cs2_n_o,
-     -- dac_clr_n_o   => open,
-     dac_sclk_o    => wr_dac_sclk_o,
-     dac_din_o     => wr_dac_din_o);
-
+  cmp_xwrc_board_spec : xwrc_board_spec
+    generic map (
+      g_simulation                => f_bool2int(g_simulation),
+      g_with_external_clock_input => FALSE,
+      g_aux_clks                  => 1,
+      g_dpram_initf               => "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram",
+      g_fabric_iface              => PLAIN)
+    port map (
+      areset_n_i          => button1_i,
+      areset_edge_n_i     => gn_rst_n,
+      clk_20m_vcxo_i      => clk_20m_vcxo_i,
+      clk_125m_pllref_p_i => clk_125m_pllref_p_i,
+      clk_125m_pllref_n_i => clk_125m_pllref_n_i,
+      clk_125m_gtp_n_i    => clk_125m_gtp_n_i,
+      clk_125m_gtp_p_i    => clk_125m_gtp_p_i,
+      clk_sys_62m5_o      => clk_sys_62m5,
+      clk_aux_i(0)        => tdc0_clk_125m,
+      rst_sys_62m5_n_o    => rst_sys_62m5_n,
+      plldac_sclk_o       => wr_dac_sclk_o,
+      plldac_din_o        => wr_dac_din_o,
+      pll25dac_cs_n_o     => wr_25dac_cs_n_o,
+      pll20dac_cs_n_o     => wr_20dac_cs_n_o,
+      sfp_txp_o           => sfp_txp_o,
+      sfp_txn_o           => sfp_txn_o,
+      sfp_rxp_i           => sfp_rxp_i,
+      sfp_rxn_i           => sfp_rxn_i,
+      sfp_det_i           => sfp_mod_def0_i,
+      sfp_sda_i           => sfp_sda_in,
+      sfp_sda_o           => sfp_sda_out,
+      sfp_scl_i           => sfp_scl_in,
+      sfp_scl_o           => sfp_scl_out,
+      sfp_rate_select_o   => sfp_rate_select_o,
+      sfp_tx_fault_i      => sfp_tx_fault_i,
+      sfp_tx_disable_o    => sfp_tx_disable_o,
+      sfp_los_i           => sfp_los_i,
+      eeprom_sda_i        => wrc_sda_in,
+      eeprom_sda_o        => wrc_sda_out,
+      eeprom_scl_i        => wrc_scl_in,
+      eeprom_scl_o        => wrc_scl_out,
+      onewire_i           => wrc_owr_data,
+      onewire_oen_o       => wrc_owr_oe,
+      uart_rxd_i          => uart_rxd_i,
+      uart_txd_o          => uart_txd_o,
+      flash_sclk_o        => flash_sclk_o,
+      flash_ncs_o         => flash_ncs_o,
+      flash_mosi_o        => flash_mosi_o,
+      flash_miso_i        => flash_miso_i,
+      wb_slave_o          => cnx_master_in(c_WB_SLAVE_WRC),
+      wb_slave_i          => cnx_master_out(c_WB_SLAVE_WRC),
+      tm_link_up_o        => tm_link_up,
+      tm_dac_value_o      => tm_dac_value,
+      tm_dac_wr_o(0)          => tm_dac_wr_p,
+      tm_clk_aux_lock_en_i(0) => tm_clk_aux_lock_en,
+      tm_clk_aux_locked_o(0)  => tm_clk_aux_locked,
+      tm_time_valid_o     => tm_time_valid,
+      tm_tai_o            => tm_tai,
+      tm_cycles_o         => tm_cycles,
+      led_link_o          => led_link_o,
+      led_act_o           => led_act_o);
 
 ---------------------------------------------------------------------------------------------------
 --                                     CSR WISHBONE CROSSBAR                                     --
@@ -732,8 +490,8 @@ begin
      g_layout      => c_INTERCONNECT_LAYOUT,
      g_sdb_addr    => c_SDB_ADDRESS)
     port map
-    (clk_sys_i => clk_62m5_sys,
-     rst_n_i   => rst_n_sys,
+    (clk_sys_i => clk_sys_62m5,
+     rst_n_i   => rst_sys_62m5_n,
      slave_i   => cnx_slave_in,
      slave_o   => cnx_slave_out,
      master_i  => cnx_master_in,
@@ -784,7 +542,7 @@ begin
      irq_p_o   => open,
 
      -- CSR WISHBONE interface (master pipelined)
-     csr_clk_i       => clk_62m5_sys,
+     csr_clk_i       => clk_sys_62m5,
      csr_adr_o       => gn_wb_adr,
      csr_dat_o       => cnx_slave_in(c_MASTER_GENNUM).dat,
      csr_sel_o       => cnx_slave_in(c_MASTER_GENNUM).sel,
@@ -794,33 +552,24 @@ begin
      csr_dat_i       => cnx_slave_out(c_MASTER_GENNUM).dat,
      csr_ack_i       => cnx_slave_out(c_MASTER_GENNUM).ack,
      csr_stall_i     => cnx_slave_out(c_MASTER_GENNUM).stall,
-     csr_err_i       => '0',
-     csr_rty_i       => '0',
-     csr_int_i       => '0',
+     csr_err_i       => cnx_slave_out(c_MASTER_GENNUM).err,
+     csr_rty_i       => cnx_slave_out(c_MASTER_GENNUM).rty,
+     csr_int_i       => cnx_slave_out(c_MASTER_GENNUM).int,
      -- DMA: not used
-     dma_clk_i       => clk_62m5_sys,
-     dma_adr_o       => open,
-     dma_cyc_o       => open,
-     dma_dat_o       => open,
-     dma_sel_o       => open,
-     dma_stb_o       => open,
-     dma_we_o        => open,
+     dma_clk_i       => clk_sys_62m5,
      dma_ack_i       => '1',
      dma_dat_i       => (others => '0'),
      dma_stall_i     => '0',
      dma_err_i       => '0',
      dma_rty_i       => '0',
      dma_int_i       => '0',
-     dma_reg_clk_i   => clk_62m5_sys,
+     dma_reg_clk_i   => clk_sys_62m5,
      dma_reg_adr_i   => (others => '0'),
      dma_reg_dat_i   => (others => '0'),
      dma_reg_sel_i   => (others => '0'),
      dma_reg_stb_i   => '0',
      dma_reg_we_i    => '0',
-     dma_reg_cyc_i   => '0',
-     dma_reg_dat_o   => open,
-     dma_reg_ack_o   => open,
-     dma_reg_stall_o => open);
+     dma_reg_cyc_i   => '0');
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Convert 32-bit word address into byte address for crossbar
@@ -831,8 +580,8 @@ begin
       g_simulation          => g_simulation,
       g_with_direct_readout => false)
     port map (
-      clk_sys_i            => clk_62m5_sys,
-      rst_sys_n_i          => rst_n_sys,
+      clk_sys_i            => clk_sys_62m5,
+      rst_sys_n_i          => rst_sys_62m5_n,
       rst_n_a_i            => tdc0_soft_rst_n,
       pll_sclk_o           => pll_sclk_o,
       pll_sdi_o            => pll_sdi_o,
@@ -904,8 +653,8 @@ begin
      g_num_interrupts      => 1,
      g_init_vectors        => c_VIC_VECTOR_TABLE)
     port map
-    (clk_sys_i    => clk_62m5_sys,
-     rst_n_i      => rst_n_sys,
+    (clk_sys_i    => clk_sys_62m5,
+     rst_n_i      => rst_sys_62m5_n,
      slave_i      => cnx_master_out(c_WB_SLAVE_VIC),
      slave_o      => cnx_master_in(c_WB_SLAVE_VIC),
      irqs_i(0)    => tdc0_irq,
@@ -921,8 +670,8 @@ begin
 
   cmp_carrier_info : carrier_info
     port map
-    (rst_n_i                           => rst_n_sys,
-     clk_sys_i                         => clk_62m5_sys,
+    (rst_n_i                           => rst_sys_62m5_n,
+     clk_sys_i                         => clk_sys_62m5,
      wb_adr_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).adr(3 downto 2),
      wb_dat_i                          => cnx_master_out(c_WB_SLAVE_SPEC_INFO).dat,
      wb_dat_o                          => cnx_master_in(c_WB_SLAVE_SPEC_INFO).dat,
@@ -957,10 +706,6 @@ begin
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).int <= '0';
 
 
-  --  --  --  --  --  --
-  sfp_tx_disable_o <= '0';
-  -- dac_clr_n_o   <= '1';
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for TDC mezzanine EEPROM
   mezz_sys_scl_b <= '0' when (tdc_scl_oen = '0') else '0' when (wrc_scl_out = '0') else 'Z';
@@ -978,8 +723,8 @@ begin
   sfp_sda_in     <= sfp_mod_def2_b;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  carrier_onewire_b <= '0' when wrc_owr_en(0) = '1' else 'Z';
-  wrc_owr_in(0)     <= carrier_onewire_b;
+  carrier_onewire_b <= '0' when wrc_owr_oe = '1' else 'Z';
+  wrc_owr_data      <= carrier_onewire_b;
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
 
