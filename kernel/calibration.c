@@ -15,15 +15,30 @@
 #include <linux/time.h>
 #include <linux/firmware.h>
 #include <linux/jhash.h>
+#include <linux/slab.h>
+#include <linux/ipmi-fru.h>
 
 #include "libsdbfs.h"
 #include "fmc-tdc.h"
+
+static u32 wr_calibration_offset = 229460;
+module_param_named(wr_offset_fix, wr_calibration_offset, int, 0444);
+MODULE_PARM_DESC(wr_offset_fix,
+		 "Overwrite the White-Rabbit calibration offset for calibration value computer before 2018. (Default: 229460 [ps])");
+
+static u32 wr_calibration_offset_carrier = 0;
+module_param_named(wr_offset_carrier, wr_calibration_offset_carrier, int, 0444);
+MODULE_PARM_DESC(wr_offset_carrier,
+		 "White-Rabbit carrier calibration offset. (Default SPEC: 0 [ps])");
+
 
 /* dummy calibration data - used in case of empty/corrupted EEPROM */
 static struct ft_calibration default_calibration = {
 	{0, 86, 609, 572, 335},	/* zero_offset */
 	43343			/* vcxo_default_tune */
 };
+
+#define WR_OFFSET_FIX_YEAR (2018)
 
 /* sdbfs-related function */
 static int ft_read_calibration_eeprom(struct fmc_device *fmc, void *buf,
@@ -55,13 +70,50 @@ static int ft_read_calibration_eeprom(struct fmc_device *fmc, void *buf,
 	return ret;
 }
 
+/**
+ * HACK area to get the calibration year
+ */
+static u32 __get_ipmi_fru_id_year(struct fmctdc_dev *ft)
+{
+	struct fru_board_info_area *bia;
+	struct fru_type_length *tmp;
+	unsigned long year = 0;
+	char *buf = NULL;
+	int err, i;
+
+	bia = fru_get_board_area((const struct fru_common_header *)ft->fmc->eeprom);
+	tmp = bia->tl;
+	for (i = 0; i < 4; ++i) {
+		tmp = fru_next_tl(tmp);
+		if (!tmp)
+			goto out;
+	}
+	if (!fru_length(tmp))
+		goto out;
+	if (fru_type(tmp) != FRU_TYPE_ASCII)
+		goto out;
+	buf = kmalloc(fru_length(tmp), GFP_ATOMIC);
+	if (!buf)
+		goto out;
+	buf = fru_strcpy(buf, tmp);
+	buf[4] = '\0';
+	err = kstrtoul(buf, 10, &year);
+	if (err)
+		goto out;
+
+out:
+	kfree(buf);
+	return year;
+}
+
+
 /* This is the only thing called by outside */
 int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 {
 	struct ft_calibration *calib;
 	struct device *d = &ft->fmc->dev;
 	int i;
-	u32 raw_calib[7];
+	u32 raw_calib[7], year;
 
 	/* Retrieve and validate the calibration */
 	calib = &ft->calib;
@@ -87,6 +139,16 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 
 	calib->calibration_temp = le32_to_cpu(raw_calib[5]);
 	calib->wr_offset = le32_to_cpu(raw_calib[6]) / 100;
+
+	year = __get_ipmi_fru_id_year(ft);
+	if (year < WR_OFFSET_FIX_YEAR) {
+		calib->wr_offset = wr_calibration_offset;
+		dev_warn(d,
+			 "Apply default calibration correction to White-Rabbit offset if done before 2018 (%d)\n",
+			 year);
+	}
+
+	calib->wr_offset += wr_calibration_offset_carrier;
 
 	if (ft->verbose) {
 		/* Print verbose messages */
