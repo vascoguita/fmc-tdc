@@ -437,7 +437,6 @@ architecture rtl of wr_svec_tdc is
   -- WISHBONE to crossbar slave port
   signal cnx_slave_out                        : t_wishbone_slave_out_array (c_NUM_WB_SLAVES-1 downto 0);
   signal cnx_slave_in                         : t_wishbone_slave_in_array  (c_NUM_WB_SLAVES-1 downto 0);
-  signal vme_wb_out                           : t_wishbone_master_out;
   signal vme_wb_in                            : t_wishbone_master_in;
 
 ---------------------------------------------------------------------------------------------------
@@ -582,6 +581,7 @@ begin
     g_CLOCK_PERIOD    => 16,
     g_DECODE_AM       => True,
     g_USER_CSR_EXT    => False,
+    g_WB_GRANULARITY  => BYTE,
     g_MANUFACTURER_ID => c_CERN_ID,
     g_BOARD_ID        => c_SVEC_ID,
     g_REVISION_ID     => c_SVEC_REVISION_ID,
@@ -614,19 +614,11 @@ begin
      vme_o.data_oe_n  => vme_data_oe_n_o,
      vme_o.addr_dir   => vme_addr_dir_int,
      vme_o.addr_oe_n  => vme_addr_oe_n_o,
-     wb_o             => vme_wb_out,
+     wb_o             => cnx_slave_in(c_MASTER_VME),
      wb_i             => vme_wb_in);
  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   vme_berr_o <= not vme_berr_n;
   vme_irq_o  <= not vme_irq_n;
-
-  -- Shift address for byte addressing.
-  cnx_slave_in(c_MASTER_VME).cyc <= vme_wb_out.cyc;
-  cnx_slave_in(c_MASTER_VME).stb <= vme_wb_out.stb;
-  cnx_slave_in(c_MASTER_VME).adr <= vme_wb_out.adr(29 downto 0) & "00";
-  cnx_slave_in(c_MASTER_VME).sel <= vme_wb_out.sel;
-  cnx_slave_in(c_MASTER_VME).we  <= vme_wb_out.we;
-  cnx_slave_in(c_MASTER_VME).dat <= vme_wb_out.dat;
 
   -- Drive inject also IRQ to the WB interface.
   vme_wb_in.ack      <= cnx_slave_out(c_MASTER_VME).ack;
