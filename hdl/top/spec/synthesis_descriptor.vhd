@@ -6,7 +6,7 @@
 -- Author     : Evangelia Gousiou
 -- Company    : CERN
 -- Created    : 2013-04-16
--- Last update: 2013-04-16
+-- Last update: 2017-09-20
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -40,18 +40,18 @@ use work.wishbone_pkg.all;
 
 package synthesis_descriptor is
   
-constant c_sdb_synthesis_info : t_sdb_synthesis :=
-  (
-    syn_module_name => "wr_spec_tdc     ",
-    syn_commit_id => "5765c94d3f0b118adcc9bfea880aca75",
-    syn_tool_name => "ISE     ",
-    syn_tool_version => x"00000147",
-    syn_date => x"20150522",
-    syn_username => "twlostow       ");
+  constant c_sdb_synthesis_info : t_sdb_synthesis :=
+    (
+      syn_module_name  => "wr_spec_tdc     ",
+      syn_commit_id    => "5765c94d3f0b118adcc9bfea880aca75",
+      syn_tool_name    => "ISE     ",
+      syn_tool_version => x"00000147",
+      syn_date         => x"20170920",
+      syn_username     => "twlostow       ");
 
-constant c_sdb_repo_url : t_sdb_repo_url :=
-  (
-    repo_url => "http://svn.ohwr.org/fmc-tdc                                    " 
-  );
+  constant c_sdb_repo_url : t_sdb_repo_url :=
+    (
+      repo_url => "git://ohwr.org/fmc-projects/fmc-tdc/fmc-tdc-1ns-5cha-gw.git    "
+      );
 
 end package synthesis_descriptor;

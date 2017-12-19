@@ -7,5 +7,9 @@ modelsim.ini
 *.vstf
 work
 *.bak
-syn/*
+hdl/syn/*
 transcript
+work/
+NullFile
+*.orig
+*.html

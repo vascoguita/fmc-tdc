@@ -156,77 +156,77 @@ use work.genram_pkg.all;
 --=================================================================================================
 entity fmc_tdc_core is
   generic
-    (g_span                 : integer := 32;                              -- address span in bus interfaces
-     g_width                : integer := 32;                              -- data width in bus interfaces
-     g_simulation       : boolean := FALSE);                          -- this generic is set to TRUE
-                                                                          -- when instantiated in a test-bench
+    (g_span       : integer := 32;      -- address span in bus interfaces
+     g_width      : integer := 32;      -- data width in bus interfaces
+     g_simulation : boolean := false);  -- this generic is set to TRUE
+                                        -- when instantiated in a test-bench
   port
     (
-      clk_sys_i : in std_logic;
+      clk_sys_i   : in std_logic;
       rst_n_sys_i : in std_logic;
 
-      clk_tdc_i             : in    std_logic;                            -- 125 MHz reference from the PLL 
-      rst_tdc_i                           : in    std_logic;                            -- global reset, synched to clk_tdc_i
+      clk_tdc_i : in std_logic;         -- 125 MHz reference from the PLL 
+      rst_tdc_i : in std_logic;         -- global reset, synched to clk_tdc_i
 
-      acam_refclk_r_edge_p_i : in    std_logic;                            -- rising edge on 31.25MHz ACAM reference clock
-      send_dac_word_p_o      : out   std_logic;                            -- command from GN4124/VME to reconfigure the TDC mezz DAC with dac_word_o
-      dac_word_o             : out   std_logic_vector(23 downto 0);        -- new DAC configuration word from GN4124/VME
+      acam_refclk_r_edge_p_i : in    std_logic;  -- rising edge on 31.25MHz ACAM reference clock
+      send_dac_word_p_o      : out   std_logic;  -- command from GN4124/VME to reconfigure the TDC mezz DAC with dac_word_o
+      dac_word_o             : out   std_logic_vector(23 downto 0);  -- new DAC configuration word from GN4124/VME
       -- Signals for the timing interface with the ACAM on TDC mezzanine
-      start_from_fpga_o      : out   std_logic;                            -- start pulse
-      err_flag_i             : in    std_logic;                            -- error flag
-      int_flag_i             : in    std_logic;                            -- interrupt flag
-      start_dis_o            : out   std_logic;                            -- start disable, not used
-      stop_dis_o             : out   std_logic;                            -- disables all acam channels
+      start_from_fpga_o      : out   std_logic;  -- start pulse
+      err_flag_i             : in    std_logic;  -- error flag
+      int_flag_i             : in    std_logic;  -- interrupt flag
+      start_dis_o            : out   std_logic;  -- start disable, not used
+      stop_dis_o             : out   std_logic;  -- disables all acam channels
       -- Signals for the data interface with the ACAM on TDC mezzanine
       data_bus_io            : inout std_logic_vector(27 downto 0);
       address_o              : out   std_logic_vector(3 downto 0);
-      cs_n_o                 : out   std_logic;                            -- chip select   for ACAM
-      oe_n_o                 : out   std_logic;                            -- output enable for ACAM
-      rd_n_o                 : out   std_logic;                            -- read   signal for ACAM
-      wr_n_o                 : out   std_logic;                            -- write  signal for ACAM
-      ef1_i                  : in    std_logic;                            -- empty flag of ACAM iFIFO1
-      ef2_i                  : in    std_logic;                            -- empty flag of ACAM iFIFO2
+      cs_n_o                 : out   std_logic;  -- chip select   for ACAM
+      oe_n_o                 : out   std_logic;  -- output enable for ACAM
+      rd_n_o                 : out   std_logic;  -- read   signal for ACAM
+      wr_n_o                 : out   std_logic;  -- write  signal for ACAM
+      ef1_i                  : in    std_logic;  -- empty flag of ACAM iFIFO1
+      ef2_i                  : in    std_logic;  -- empty flag of ACAM iFIFO2
       -- Signals for the Input Logic on TDC mezzanine
-      enable_inputs_o        : out   std_logic;                            -- enables all 5 inputs
-      term_en_1_o            : out   std_logic;                            -- Ch.1 termination enable of 50 Ohm termination
-      term_en_2_o            : out   std_logic;                            -- Ch.2 termination enable of 50 Ohm termination
-      term_en_3_o            : out   std_logic;                            -- Ch.3 termination enable of 50 Ohm termination
-      term_en_4_o            : out   std_logic;                            -- Ch.4 termination enable of 50 Ohm termination
-      term_en_5_o            : out   std_logic;                            -- Ch.5 termination enable of 50 Ohm termination
+      enable_inputs_o        : out   std_logic;  -- enables all 5 inputs
+      term_en_1_o            : out   std_logic;  -- Ch.1 termination enable of 50 Ohm termination
+      term_en_2_o            : out   std_logic;  -- Ch.2 termination enable of 50 Ohm termination
+      term_en_3_o            : out   std_logic;  -- Ch.3 termination enable of 50 Ohm termination
+      term_en_4_o            : out   std_logic;  -- Ch.4 termination enable of 50 Ohm termination
+      term_en_5_o            : out   std_logic;  -- Ch.5 termination enable of 50 Ohm termination
       -- LEDs on TDC mezzanine
-      tdc_led_status_o       : out   std_logic;                            -- amber led on front pannel, division of clk_tdc_i
-      tdc_led_trig1_o        : out   std_logic;                            -- amber led on front pannel, Ch.1 termination
-      tdc_led_trig2_o        : out   std_logic;                            -- amber led on front pannel, Ch.2 termination
-      tdc_led_trig3_o        : out   std_logic;                            -- amber led on front pannel, Ch.3 termination
-      tdc_led_trig4_o        : out   std_logic;                            -- amber led on front pannel, Ch.4 termination
-      tdc_led_trig5_o        : out   std_logic;                            -- amber led on front pannel, Ch.5 termination
+      tdc_led_status_o       : out   std_logic;  -- amber led on front pannel, division of clk_tdc_i
+      tdc_led_trig1_o        : out   std_logic;  -- amber led on front pannel, Ch.1 termination
+      tdc_led_trig2_o        : out   std_logic;  -- amber led on front pannel, Ch.2 termination
+      tdc_led_trig3_o        : out   std_logic;  -- amber led on front pannel, Ch.3 termination
+      tdc_led_trig4_o        : out   std_logic;  -- amber led on front pannel, Ch.4 termination
+      tdc_led_trig5_o        : out   std_logic;  -- amber led on front pannel, Ch.5 termination
       -- TDC input signals, also arriving to the FPGA; not used currently
-      tdc_in_fpga_1_i        : in    std_logic;                            -- TDC input Ch.1, not used
-      tdc_in_fpga_2_i        : in    std_logic;                            -- TDC input Ch.2, not used
-      tdc_in_fpga_3_i        : in    std_logic;                            -- TDC input Ch.3, not used
-      tdc_in_fpga_4_i        : in    std_logic;                            -- TDC input Ch.4, not used
-      tdc_in_fpga_5_i        : in    std_logic;                            -- TDC input Ch.5, not used
+      tdc_in_fpga_1_i        : in    std_logic;  -- TDC input Ch.1, not used
+      tdc_in_fpga_2_i        : in    std_logic;  -- TDC input Ch.2, not used
+      tdc_in_fpga_3_i        : in    std_logic;  -- TDC input Ch.3, not used
+      tdc_in_fpga_4_i        : in    std_logic;  -- TDC input Ch.4, not used
+      tdc_in_fpga_5_i        : in    std_logic;  -- TDC input Ch.5, not used
 
 
 -- White Rabbit control and status registers
-      wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
-      wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
+      wrabbit_status_reg_i : in  std_logic_vector(g_width-1 downto 0);
+      wrabbit_ctrl_reg_o   : out std_logic_vector(g_width-1 downto 0);
       -- White Rabbit timing
-      wrabbit_synched_i      : in    std_logic;
-      wrabbit_tai_p_i        : in    std_logic;
-      wrabbit_tai_i          : in    std_logic_vector(31 downto 0);
+      wrabbit_synched_i    : in  std_logic;
+      wrabbit_tai_p_i      : in  std_logic;
+      wrabbit_tai_i        : in  std_logic_vector(31 downto 0);
 
       -- WISHBONE bus interface with the GN4124/VME core for the configuration
       -- of the TDC core (clk_sys)
-      cfg_slave_i: in t_wishbone_slave_in;
-      cfg_slave_o: out t_wishbone_slave_out;
-      
+      cfg_slave_i : in  t_wishbone_slave_in;
+      cfg_slave_o : out t_wishbone_slave_out;
+
       timestamp_o     : out std_logic_vector(127 downto 0);
-      timestamp_stb_o : out  std_logic;
+      timestamp_stb_o : out std_logic;
 
       channel_enable_o : out std_logic_vector(4 downto 0);
-      irq_threshold_o : out std_logic_vector(9 downto 0);
-      irq_timeout_o : out std_logic_vector(9 downto 0)
+      irq_threshold_o  : out std_logic_vector(9 downto 0);
+      irq_timeout_o    : out std_logic_vector(9 downto 0)
       );
 end fmc_tdc_core;
 
@@ -237,44 +237,44 @@ end fmc_tdc_core;
 architecture rtl of fmc_tdc_core is
 
   -- ACAM communication
-  signal acm_adr                                            : std_logic_vector(7 downto 0);
-  signal acm_cyc, acm_stb, acm_we, acm_ack                  : std_logic;
-  signal acm_dat_r, acm_dat_w                               : std_logic_vector(g_width-1 downto 0);
-  signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta   : std_logic;
-  signal acam_errflag_f_edge_p, acam_errflag_r_edge_p       : std_logic;
-  signal acam_intflag_f_edge_p                              : std_logic;
-  signal acam_tstamp1, acam_tstamp2                         : std_logic_vector(g_width-1 downto 0);
-  signal acam_tstamp1_ok_p, acam_tstamp2_ok_p               : std_logic;
+  signal acm_adr                                             : std_logic_vector(7 downto 0);
+  signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
+  signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_width-1 downto 0);
+  signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta    : std_logic;
+  signal acam_errflag_f_edge_p, acam_errflag_r_edge_p        : std_logic;
+  signal acam_intflag_f_edge_p                               : std_logic;
+  signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_width-1 downto 0);
+  signal acam_tstamp1_ok_p, acam_tstamp2_ok_p                : std_logic;
   -- control unit
-  signal activate_acq_p, deactivate_acq_p, load_acam_config : std_logic;
-  signal read_acam_config, read_acam_status, read_ififo1    : std_logic;
-  signal read_ififo2, read_start01, reset_acam, load_utc    : std_logic;
-  signal roll_over_incr_recent        : std_logic;
-  signal deactivate_chan                                    : std_logic_vector(4 downto 0);
-  signal pulse_delay, window_delay, clk_period              : std_logic_vector(g_width-1 downto 0);
-  signal starting_utc, acam_inputs_en                       : std_logic_vector(g_width-1 downto 0);
-  signal acam_ififo1, acam_ififo2, acam_start01             : std_logic_vector(g_width-1 downto 0);
-  signal irq_tstamp_threshold, irq_time_threshold           : std_logic_vector(g_width-1 downto 0);
-  signal local_utc                                : std_logic_vector(g_width-1 downto 0);
-  signal acam_config, acam_config_rdbk                      : config_vector;
-  signal start_from_fpga, state_active_p       : std_logic;
+  signal activate_acq_p, deactivate_acq_p, load_acam_config  : std_logic;
+  signal read_acam_config, read_acam_status, read_ififo1     : std_logic;
+  signal read_ififo2, read_start01, reset_acam, load_utc     : std_logic;
+  signal roll_over_incr_recent                               : std_logic;
+  signal deactivate_chan                                     : std_logic_vector(4 downto 0);
+  signal pulse_delay, window_delay, clk_period               : std_logic_vector(g_width-1 downto 0);
+  signal starting_utc, acam_inputs_en                        : std_logic_vector(g_width-1 downto 0);
+  signal acam_ififo1, acam_ififo2, acam_start01              : std_logic_vector(g_width-1 downto 0);
+  signal irq_tstamp_threshold, irq_time_threshold            : std_logic_vector(g_width-1 downto 0);
+  signal local_utc                                           : std_logic_vector(g_width-1 downto 0);
+  signal acam_config, acam_config_rdbk                       : config_vector;
+  signal start_from_fpga, state_active_p                     : std_logic;
   -- retrigger control
-  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset: std_logic_vector(g_width-1 downto 0);
-  signal local_utc_p                                        : std_logic;
-  signal current_retrig_nb                                  : std_logic_vector(g_width-1 downto 0);
+  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset : std_logic_vector(g_width-1 downto 0);
+  signal local_utc_p                                         : std_logic;
+  signal current_retrig_nb                                   : std_logic_vector(g_width-1 downto 0);
   -- UTC
-  signal utc_p                                              : std_logic;
-  signal utc, wrabbit_ctrl_reg                              : std_logic_vector(g_width-1 downto 0);
+  signal utc_p                                               : std_logic;
+  signal utc, wrabbit_ctrl_reg                               : std_logic_vector(g_width-1 downto 0);
 
   -- LEDs
-  signal acam_channel                                       : std_logic_vector(5 downto 0);
-  signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3        : std_logic_vector(1 downto 0);
-  signal tdc_in_fpga_4, tdc_in_fpga_5                       : std_logic_vector(1 downto 0);
-  signal acam_tstamp_channel                                : std_logic_vector(2 downto 0);
+  signal acam_channel                                : std_logic_vector(5 downto 0);
+  signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3 : std_logic_vector(1 downto 0);
+  signal tdc_in_fpga_4, tdc_in_fpga_5                : std_logic_vector(1 downto 0);
+  signal acam_tstamp_channel                         : std_logic_vector(2 downto 0);
 
-  signal rst_sys: std_logic;
+  signal rst_sys         : std_logic;
   signal timestamp_valid : std_logic;
-  signal timestamp : std_logic_vector(127 downto 0);
+  signal timestamp       : std_logic_vector(127 downto 0);
 
 
 --=================================================================================================
@@ -287,59 +287,65 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                   TDC REGISTERS CONTROLLER                                    --
 ---------------------------------------------------------------------------------------------------
-  reg_control_block: reg_ctrl
-  generic map
-    (g_span                => g_span,
-     g_width               => g_width)
-  port map
-    (clk_tdc_i                 => clk_tdc_i,
-     rst_tdc_i                 => rst_tdc_i,
-     clk_sys_i => clk_sys_i,
+  reg_control_block : reg_ctrl
+    generic map
+    (g_span  => g_span,
+     g_width => g_width)
+    port map
+    (clk_tdc_i   => clk_tdc_i,
+     rst_tdc_i   => rst_tdc_i,
+     clk_sys_i   => clk_sys_i,
      rst_n_sys_i => rst_n_sys_i,
 
 
      slave_i => cfg_slave_i,
      slave_o => cfg_slave_o,
-     
-     activate_acq_p_o      => activate_acq_p,
-     deactivate_acq_p_o    => deactivate_acq_p,
-     acam_wr_config_p_o    => load_acam_config,
-     acam_rdbk_config_p_o  => read_acam_config,
-     acam_rdbk_status_p_o  => read_acam_status,
-     acam_rdbk_ififo1_p_o  => read_ififo1,
-     acam_rdbk_ififo2_p_o  => read_ififo2,
-     acam_rdbk_start01_p_o => read_start01,
-     acam_rst_p_o          => reset_acam,
-     load_utc_p_o          => load_utc,
-     acam_config_rdbk_i    => acam_config_rdbk,
-     acam_ififo1_i         => acam_ififo1,
-     acam_ififo2_i         => acam_ififo2,
-     acam_start01_i        => acam_start01,
-     local_utc_i           => utc,
-     irq_code_i            => x"00000000",
-     core_status_i         => x"00000000",
-     wrabbit_status_reg_i  => wrabbit_status_reg_i,
-     wrabbit_ctrl_reg_o    => wrabbit_ctrl_reg,
-     acam_config_o         => acam_config,
-     starting_utc_o        => starting_utc,
-     acam_inputs_en_o      => acam_inputs_en,
-     start_phase_o         => window_delay,
-     irq_tstamp_threshold_o=> irq_tstamp_threshold,
-     irq_time_threshold_o  => irq_time_threshold,
-     send_dac_word_p_o     => send_dac_word_p_o,
-     dac_word_o            => dac_word_o,
-     one_hz_phase_o        => pulse_delay);
 
-  irq_threshold_o <=irq_tstamp_threshold(9 downto 0);
-  irq_timeout_o <= irq_time_threshold(9 downto 0);
-  
-  
+     activate_acq_p_o       => activate_acq_p,
+     deactivate_acq_p_o     => deactivate_acq_p,
+     acam_wr_config_p_o     => load_acam_config,
+     acam_rdbk_config_p_o   => read_acam_config,
+     acam_rdbk_status_p_o   => read_acam_status,
+     acam_rdbk_ififo1_p_o   => read_ififo1,
+     acam_rdbk_ififo2_p_o   => read_ififo2,
+     acam_rdbk_start01_p_o  => read_start01,
+     acam_rst_p_o           => reset_acam,
+     load_utc_p_o           => load_utc,
+     acam_config_rdbk_i     => acam_config_rdbk,
+     acam_ififo1_i          => acam_ififo1,
+     acam_ififo2_i          => acam_ififo2,
+     acam_start01_i         => acam_start01,
+     local_utc_i            => utc,
+     irq_code_i             => x"00000000",
+     core_status_i          => x"00000000",
+     wrabbit_status_reg_i   => wrabbit_status_reg_i,
+     wrabbit_ctrl_reg_o     => wrabbit_ctrl_reg,
+     acam_config_o          => acam_config,
+     starting_utc_o         => starting_utc,
+     acam_inputs_en_o       => acam_inputs_en,
+     start_phase_o          => window_delay,
+     irq_tstamp_threshold_o => irq_tstamp_threshold,
+     irq_time_threshold_o   => irq_time_threshold,
+     send_dac_word_p_o      => send_dac_word_p_o,
+     dac_word_o             => dac_word_o,
+     one_hz_phase_o         => pulse_delay);
+
+  process(clk_tdc_i)
+  begin
+    if rising_edge(clk_tdc_i) then
+      irq_threshold_o <= irq_tstamp_threshold(9 downto 0);
+      irq_timeout_o   <= irq_time_threshold(9 downto 0);
+    end if;
+  end process;
+
+
+
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  wrabbit_ctrl_reg_o  <= wrabbit_ctrl_reg;
+  wrabbit_ctrl_reg_o <= wrabbit_ctrl_reg;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- termination enable registers
-  term_enable_regs: process (clk_tdc_i)
+  term_enable_regs : process (clk_tdc_i)
   begin
     if rising_edge (clk_tdc_i) then
       if rst_tdc_i = '1' then
@@ -364,10 +370,10 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                   LOCAL ONE HZ GENERATOR                                      --
 ---------------------------------------------------------------------------------------------------
-  local_one_second_block: local_pps_gen
-  generic map
-    (g_width                => g_width)
-  port map
+  local_one_second_block : local_pps_gen
+    generic map
+    (g_width => g_width)
+    port map
     (acam_refclk_r_edge_p_i => acam_refclk_r_edge_p_i,
      clk_i                  => clk_tdc_i,
      clk_period_i           => clk_period,
@@ -378,11 +384,11 @@ begin
      local_utc_o            => local_utc,
      local_utc_p_o          => local_utc_p);
 
-clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
+  clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 ---------------------------------------------------------------------------------------------------
 --                                   ACAM TIMECONTROL INTERFACE                                  --
 ---------------------------------------------------------------------------------------------------
-  acam_timing_block: acam_timecontrol_interface
+  acam_timing_block : acam_timecontrol_interface
     port map
     (err_flag_i              => err_flag_i,
      int_flag_i              => int_flag_i,
@@ -405,43 +411,43 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 ---------------------------------------------------------------------------------------------------
 --                                     ACAM DATABUS INTERFACE                                    --
 ---------------------------------------------------------------------------------------------------
-  acam_data_block: acam_databus_interface
-  port map
-    (ef1_i        => ef1_i,
-     ef2_i        => ef2_i,
-     data_bus_io  => data_bus_io,
-     adr_o        => address_o,
-     cs_n_o       => cs_n_o,
-     oe_n_o       => oe_n_o,
-     rd_n_o       => rd_n_o,
-     wr_n_o       => wr_n_o,
-     ef1_o        => acam_ef1,
-     ef1_meta_o   => acam_ef1_meta,
-     ef2_o        => acam_ef2,
-     ef2_meta_o   => acam_ef2_meta,
-     clk_i        => clk_tdc_i,
-     rst_i        => rst_tdc_i,
-     adr_i        => acm_adr,
-     cyc_i        => acm_cyc,
-     dat_i        => acm_dat_w,
-     stb_i        => acm_stb,
-     we_i         => acm_we,
-     ack_o        => acm_ack,
-     dat_o        => acm_dat_r);
+  acam_data_block : acam_databus_interface
+    port map
+    (ef1_i       => ef1_i,
+     ef2_i       => ef2_i,
+     data_bus_io => data_bus_io,
+     adr_o       => address_o,
+     cs_n_o      => cs_n_o,
+     oe_n_o      => oe_n_o,
+     rd_n_o      => rd_n_o,
+     wr_n_o      => wr_n_o,
+     ef1_o       => acam_ef1,
+     ef1_meta_o  => acam_ef1_meta,
+     ef2_o       => acam_ef2,
+     ef2_meta_o  => acam_ef2_meta,
+     clk_i       => clk_tdc_i,
+     rst_i       => rst_tdc_i,
+     adr_i       => acm_adr,
+     cyc_i       => acm_cyc,
+     dat_i       => acm_dat_w,
+     stb_i       => acm_stb,
+     we_i        => acm_we,
+     ack_o       => acm_ack,
+     dat_o       => acm_dat_r);
 
 
 ---------------------------------------------------------------------------------------------------
 --                                ACAM START RETRIGGER CONTROLLER                                --
 ---------------------------------------------------------------------------------------------------
-  start_retrigger_block: start_retrig_ctrl
-  generic map
-    (g_width                 => g_width)
-  port map
+  start_retrigger_block : start_retrig_ctrl
+    generic map
+    (g_width => g_width)
+    port map
     (acam_intflag_f_edge_p_i => acam_intflag_f_edge_p,
      clk_i                   => clk_tdc_i,
      utc_p_i                 => utc_p,
      rst_i                   => rst_tdc_i,
-     current_retrig_nb_o     => current_retrig_nb, -- for debug
+     current_retrig_nb_o     => current_retrig_nb,  -- for debug
      roll_over_incr_recent_o => roll_over_incr_recent,
      clk_i_cycles_offset_o   => clk_i_cycles_offset,
      roll_over_nb_o          => roll_over_nb,
@@ -451,10 +457,10 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 ---------------------------------------------------------------------------------------------------
 --                                          DATA ENGINE                                          --
 ---------------------------------------------------------------------------------------------------
-  data_engine_block: data_engine
+  data_engine_block : data_engine
     generic map(
-      g_simulation => g_simulation )
-  port map
+      g_simulation => g_simulation)
+    port map
     (acam_ack_i            => acm_ack,
      acam_dat_i            => acm_dat_r,
      acam_adr_o            => acm_adr,
@@ -493,8 +499,8 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 ---------------------------------------------------------------------------------------------------
 --                                       DATA FORMATTING                                         --
 ---------------------------------------------------------------------------------------------------
-  data_formatting_block: data_formatting
-  port map
+  data_formatting_block : data_formatting
+    port map
     (clk_i                   => clk_tdc_i,
      rst_i                   => rst_tdc_i,
      acam_tstamp1_i          => acam_tstamp1,
@@ -507,8 +513,8 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
      retrig_nb_offset_i      => retrig_nb_offset,
      utc_p_i                 => utc_p,
      utc_i                   => utc,
-     timestamp_o => timestamp,
-     timestamp_valid_o => timestamp_valid
+     timestamp_o             => timestamp,
+     timestamp_valid_o       => timestamp_valid
      );
 
 
@@ -519,16 +525,16 @@ clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
   utc_p <= wrabbit_tai_p_i when wrabbit_synched_i = '1' else local_utc_p;
 
   timestamp_stb_o <= timestamp_valid;
-  timestamp_o <= timestamp;
+  timestamp_o     <= timestamp;
 
 ---------------------------------------------------------------------------------------------------
 --                                              TDC LEDs                                         --
 ---------------------------------------------------------------------------------------------------  
-  TDCboard_leds: leds_manager
-  generic map
-    (g_width          => 32,
+  TDCboard_leds : leds_manager
+    generic map
+    (g_width      => 32,
      g_simulation => g_simulation)
-  port map
+    port map
     (clk_i            => clk_tdc_i,
      rst_i            => rst_tdc_i,
      utc_p_i          => local_utc_p,

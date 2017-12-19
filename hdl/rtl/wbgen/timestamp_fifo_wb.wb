@@ -9,7 +9,7 @@ peripheral {
 	 -- TXTSU shared FIFO
 
 	 fifo_reg {
-			size = 1024; -- or more. We'll see :)
+			size = 512; -- or more. We'll see :)
 			direction = CORE_TO_BUS;
 			prefix = "fifo";
 			name = "Timestamp FIFO";
