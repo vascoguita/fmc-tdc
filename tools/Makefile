@@ -17,7 +17,7 @@ TESTS = fmc-tdc-list \
 	fmc-tdc-tstamp \
 	fmc-tdc-offset
 
-CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall $(EXTRACFLAGS)
+CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall -Werror $(EXTRACFLAGS)
 GIT_VERSION := $(shell git describe --dirty --long --tags)
 CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
 
