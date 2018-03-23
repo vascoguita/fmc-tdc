@@ -13,6 +13,11 @@
 #ifndef __FMCTDC_LIB_H__
 #define __FMCTDC_LIB_H__
 
+#ifdef __cplusplus
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /**
@@ -188,5 +193,9 @@ extern const char * const libfmctdc_version_s;
  * zio version string used during compilation of libfmctdc
  */
 extern const char * const libfmctdc_zio_version_s;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __FMCTDC_LIB_H__ */
