@@ -525,7 +525,6 @@ begin
      csr_stall_i     => cnx_slave_out(c_MASTER_GENNUM).stall,
      csr_err_i       => cnx_slave_out(c_MASTER_GENNUM).err,
      csr_rty_i       => cnx_slave_out(c_MASTER_GENNUM).rty,
-     csr_int_i       => cnx_slave_out(c_MASTER_GENNUM).int,
      -- DMA: not used
      dma_clk_i       => clk_sys_62m5,
      dma_ack_i       => '1',
@@ -533,7 +532,6 @@ begin
      dma_stall_i     => '0',
      dma_err_i       => '0',
      dma_rty_i       => '0',
-     dma_int_i       => '0',
      dma_reg_clk_i   => clk_sys_62m5,
      dma_reg_adr_i   => (others => '0'),
      dma_reg_dat_i   => (others => '0'),
@@ -676,7 +674,6 @@ begin
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).err <= '0';
   cnx_master_in(c_WB_SLAVE_SPEC_INFO).rty <= '0';
-  cnx_master_in(c_WB_SLAVE_SPEC_INFO).int <= '0';
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Tristates for TDC mezzanine EEPROM

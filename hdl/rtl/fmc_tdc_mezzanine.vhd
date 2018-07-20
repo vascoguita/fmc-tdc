@@ -534,7 +534,6 @@ begin
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).rty <= '0';
-  cnx_master_in(c_WB_SLAVE_TDC_EIC).int <= '0';
 
 
 ---------------------------------------------------------------------------------------------------

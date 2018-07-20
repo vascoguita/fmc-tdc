@@ -76,6 +76,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.gencores_pkg.all;
 
 
 --=================================================================================================

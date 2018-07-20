@@ -937,29 +937,8 @@ package tdc_core_pkg is
       clk_125m_tdc_o       : out   std_logic);
   end component fmc_tdc_wrapper;
 
-  function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector;
-  
-  
 end tdc_core_pkg;
---=================================================================================================
---                                        package body
---=================================================================================================
-package body tdc_core_pkg is
 
-  function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector is
-    begin
-      if(cond) then
-        return if_true;
-        else
-          return if_false;
-          end if;
-      end f_pick;
-  
-end tdc_core_pkg;
---=================================================================================================
---                                         package end
---=================================================================================================
 ---------------------------------------------------------------------------------------------------
 --                                      E N D   O F   F I L E
 ---------------------------------------------------------------------------------------------------
-
