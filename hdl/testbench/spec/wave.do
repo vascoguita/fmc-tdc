@@ -1,259 +1,43 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/rst_n_a_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/status_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_clk_p_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_clk_n_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_data_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dframe_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_valid_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_rdy_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_wr_req_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_wr_rdy_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/rx_error_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/vc_rdy_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_clk_p_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_clk_n_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_data_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dframe_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_valid_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_edb_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_rdy_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l_wr_rdy_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_rd_d_rdy_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/tx_error_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_irq_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/irq_p_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/irq_p_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_clk_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_adr_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_dat_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_sel_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_stb_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_we_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_cyc_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_dat_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_ack_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_reg_stall_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_clk_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_adr_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_dat_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_sel_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_stb_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_we_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_cyc_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_dat_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_ack_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_stall_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_err_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_rty_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_int_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_clk_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_adr_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_dat_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_sel_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_stb_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_we_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_cyc_o
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_dat_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ack_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_stall_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_err_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_rty_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_int_i
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/sys_clk
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/io_clk
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/serdes_strobe
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_pll_locked
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/rst_reg
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/rst_n
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/rst
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/des_pd_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/des_pd_dframe
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/des_pd_data
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_wr_rdy
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_rdy_wbm
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_rdy_pdm
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_hdr_start
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_hdr_length
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_hdr_cid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_hdr_last
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_hdr_stat
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_target_mrd
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_target_mwr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_master_cpld
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_master_cpln
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_d_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_d_last
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_d
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_be
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_addr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_addr_start
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/arb_ser_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/arb_ser_dframe
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/arb_ser_data
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l_wr_rdy_t
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l_wr_rdy_t2
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l_wr_rdy
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_rd_d_rdy_t
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_rd_d_rdy_t2
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p_rd_d_rdy
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_rdy_t
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_rdy_t2
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_rdy
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_edb
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_edb_t
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_edb_t2
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/tx_error_t2
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/tx_error_t
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/tx_error
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/wbm_arb_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/wbm_arb_dframe
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/wbm_arb_data
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/wbm_arb_req
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/arb_wbm_gnt
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/ldm_arb_req
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/arb_ldm_gnt
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/ldm_arb_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/ldm_arb_dframe
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/ldm_arb_data
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/pdm_arb_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/pdm_arb_dframe
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/pdm_arb_data
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/pdm_arb_req
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/arb_pdm_gnt
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_carrier_addr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_host_addr_h
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_host_addr_l
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_len
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_start_l2p
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_start_p2l
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_start_next
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_done
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_error
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_l2p_done
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_l2p_error
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_p2l_done
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_p2l_error
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_byte_swap
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_ctrl_abort
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_carrier_addr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_host_addr_h
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_host_addr_l
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_len
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_next_l
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_next_h
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_attrib
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/next_item_valid
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/dma_irq
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/csr_adr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_adr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_dat_s2m
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_dat_m2s
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_sel
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_cyc
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_stb
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_we
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_ack
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/l2p_dma_stall
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_adr
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_dat_s2m
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_dat_m2s
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_sel
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_cyc
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_stb
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_we
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_ack
-add wave -noupdate -expand -group Gennum /main/DUT/cmp_gn4124_core/p2l_dma_stall
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/clk_sys_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/rst_sys_n_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/clk_tdc_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/rst_tdc_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/acam_refclk_r_edge_p_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/send_dac_word_p_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/dac_word_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/start_from_fpga_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/err_flag_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/int_flag_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/start_dis_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/stop_dis_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/data_bus_io
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/address_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cs_n_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/oe_n_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/rd_n_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wr_n_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/ef1_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/ef2_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/enable_inputs_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/term_en_1_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/term_en_2_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/term_en_3_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/term_en_4_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/term_en_5_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_led_status_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_led_trig1_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_led_trig2_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_led_trig3_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_led_trig4_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_led_trig5_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_in_fpga_1_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_in_fpga_2_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_in_fpga_3_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_in_fpga_4_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_in_fpga_5_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_link_up_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_time_valid_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_cycles_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_utc_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_clk_aux_lock_en_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_clk_aux_locked_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_clk_dmtd_locked_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_dac_value_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_dac_wr_p_i
-add wave -noupdate -expand -group Mezz -expand /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/slave_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/slave_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wb_irq_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/i2c_scl_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/i2c_scl_oen_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/i2c_scl_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/i2c_sda_oen_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/i2c_sda_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/i2c_sda_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/onewire_b
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/direct_timestamp_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/direct_timestamp_stb_o
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/general_rst_n
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/rst_ref_0_n
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cnx_master_out
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cnx_master_in
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_core_wb_adr
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tdc_mem_wb_adr
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/mezz_owr_en
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/mezz_owr_i
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/sys_scl_in
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/sys_scl_out
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/sys_scl_oe_n
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/sys_sda_in
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/sys_sda_out
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/sys_sda_oe_n
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/irq_tstamp
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/reg_to_wr
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/reg_from_wr
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_utc_p
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/wrabbit_synched
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/irq_channel
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/timestamp
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/timestamp_stb
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/channel_enable
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/irq_threshold
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/irq_timeout
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/tick_1ms
-add wave -noupdate -expand -group Mezz /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/counter_1ms
+add wave -noupdate /main/DUT/cnx_master_out
+add wave -noupdate -group Acam /main/ACAM/PuResN
+add wave -noupdate -group Acam /main/ACAM/Alutrigger
+add wave -noupdate -group Acam /main/ACAM/RefClk
+add wave -noupdate -group Acam /main/ACAM/WRN
+add wave -noupdate -group Acam /main/ACAM/RDN
+add wave -noupdate -group Acam /main/ACAM/CSN
+add wave -noupdate -group Acam /main/ACAM/OEN
+add wave -noupdate -group Acam /main/ACAM/Adr
+add wave -noupdate -group Acam /main/ACAM/TStart
+add wave -noupdate -group Acam /main/ACAM/TStop
+add wave -noupdate -group Acam /main/ACAM/StartDis
+add wave -noupdate -group Acam /main/ACAM/StopDis
+add wave -noupdate -group Acam /main/ACAM/IrFlag
+add wave -noupdate -group Acam /main/ACAM/ErrFlag
+add wave -noupdate -group Acam /main/ACAM/EF1
+add wave -noupdate -group Acam /main/ACAM/EF2
+add wave -noupdate -group Acam /main/ACAM/LF1
+add wave -noupdate -group Acam /main/ACAM/LF2
+add wave -noupdate -group Acam /main/ACAM/D
+add wave -noupdate -group Acam /main/ACAM/c_empty_flag_delay
+add wave -noupdate -group Acam /main/ACAM/start_masked
+add wave -noupdate -group Acam /main/ACAM/stop1_masked
+add wave -noupdate -group Acam /main/ACAM/r_MasterAluTrig
+add wave -noupdate -group Acam /main/ACAM/r_StartDisStart
+add wave -noupdate -group Acam /main/ACAM/DQ
+add wave -noupdate -group Acam /main/ACAM/EF1_int
+add wave -noupdate -group Acam /main/ACAM/EF2_int
+add wave -noupdate -group Acam /main/ACAM/start_disabled_int
+add wave -noupdate -group Acam /main/ACAM/imode_start_offset
+add wave -noupdate -group Acam /main/ACAM/t
+add wave -noupdate -group Acam /main/ACAM/t_prev
+add wave -noupdate -group Acam /main/ACAM/fifo_empty
+add wave -noupdate -group Acam /main/ACAM/fifo_notempty
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/clk_sys_i
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/rst_n_sys_i
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/rst_sys_n_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/clk_tdc_i
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/rst_tdc_i
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/rst_tdc_n_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_refclk_r_edge_p_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/send_dac_word_p_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/dac_word_o
@@ -282,11 +66,6 @@ add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_led_trig3_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_led_trig4_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_led_trig5_o
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_1_i
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_2_i
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_3_i
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_4_i
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_5_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/wrabbit_status_reg_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/wrabbit_ctrl_reg_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/wrabbit_synched_i
@@ -295,7 +74,8 @@ add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/cfg_slave_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/cfg_slave_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/timestamp_o
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/timestamp_stb_o
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/timestamp_valid_o
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/timestamp_ready_i
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/channel_enable_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/irq_threshold_o
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/irq_timeout_o
@@ -353,201 +133,277 @@ add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/utc
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/wrabbit_ctrl_reg
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_channel
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_1
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_2
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_3
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_4
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/tdc_in_fpga_5
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_tstamp_channel
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/raw_timestamp_valid
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/raw_timestamp
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/final_timestamp_valid
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/final_timestamp_ready
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/final_timestamp
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/channel_enable_int
 add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/rst_sys
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/timestamp_valid
-add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/timestamp
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/clk_sys_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/clk_tdc_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/rst_n_sys_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/rst_tdc_i
-add wave -noupdate -expand -group FIFO0 -expand /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/slave_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/slave_o
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/irq_o
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/enable_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/tick_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/irq_threshold_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/irq_timeout_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/timestamp_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/timestamp_valid_i
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/tmr_timeout
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/buf_irq_int
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/buf_count
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/last_ts
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/regs_in
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/regs_out
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/channel_id
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/ts_match
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/seq_counter
-add wave -noupdate -expand -group FIFO0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_fifos(0)/U_TheFifo/timestamp_with_seq
-add wave -noupdate /main/DUT/clk_125m_pllref_p_i
-add wave -noupdate /main/DUT/clk_125m_pllref_n_i
-add wave -noupdate /main/DUT/clk_125m_gtp_n_i
-add wave -noupdate /main/DUT/clk_125m_gtp_p_i
-add wave -noupdate /main/DUT/clk_20m_vcxo_i
-add wave -noupdate /main/DUT/dac_sclk_o
-add wave -noupdate /main/DUT/dac_din_o
-add wave -noupdate /main/DUT/dac_cs1_n_o
-add wave -noupdate /main/DUT/dac_cs2_n_o
-add wave -noupdate /main/DUT/sfp_txp_o
-add wave -noupdate /main/DUT/sfp_txn_o
-add wave -noupdate /main/DUT/sfp_rxp_i
-add wave -noupdate /main/DUT/sfp_rxn_i
-add wave -noupdate /main/DUT/sfp_mod_def0_b
-add wave -noupdate /main/DUT/sfp_mod_def1_b
-add wave -noupdate /main/DUT/sfp_mod_def2_b
-add wave -noupdate /main/DUT/sfp_rate_select_b
-add wave -noupdate /main/DUT/sfp_tx_fault_i
-add wave -noupdate /main/DUT/sfp_tx_disable_o
-add wave -noupdate /main/DUT/sfp_los_i
-add wave -noupdate /main/DUT/uart_rxd_i
-add wave -noupdate /main/DUT/uart_txd_o
-add wave -noupdate /main/DUT/carrier_scl_b
-add wave -noupdate /main/DUT/carrier_sda_b
-add wave -noupdate /main/DUT/carrier_onewire_b
-add wave -noupdate /main/DUT/button1_i
-add wave -noupdate /main/DUT/button2_i
-add wave -noupdate /main/DUT/l_rst_n
-add wave -noupdate /main/DUT/gpio
-add wave -noupdate /main/DUT/p2l_rdy
-add wave -noupdate /main/DUT/p2l_clkn
-add wave -noupdate /main/DUT/p2l_clkp
-add wave -noupdate /main/DUT/p2l_data
-add wave -noupdate /main/DUT/p2l_dframe
-add wave -noupdate /main/DUT/p2l_valid
-add wave -noupdate /main/DUT/p_wr_req
-add wave -noupdate /main/DUT/p_wr_rdy
-add wave -noupdate /main/DUT/rx_error
-add wave -noupdate /main/DUT/l2p_data
-add wave -noupdate /main/DUT/l2p_dframe
-add wave -noupdate /main/DUT/l2p_valid
-add wave -noupdate /main/DUT/l2p_clkn
-add wave -noupdate /main/DUT/l2p_clkp
-add wave -noupdate /main/DUT/l2p_edb
-add wave -noupdate /main/DUT/l2p_rdy
-add wave -noupdate /main/DUT/l_wr_rdy
-add wave -noupdate /main/DUT/p_rd_d_rdy
-add wave -noupdate /main/DUT/tx_error
-add wave -noupdate /main/DUT/vc_rdy
-add wave -noupdate /main/DUT/pll_sclk_o
-add wave -noupdate /main/DUT/pll_sdi_o
-add wave -noupdate /main/DUT/pll_cs_o
-add wave -noupdate /main/DUT/pll_dac_sync_o
-add wave -noupdate /main/DUT/pll_sdo_i
-add wave -noupdate /main/DUT/pll_status_i
-add wave -noupdate /main/DUT/tdc_clk_125m_p_i
-add wave -noupdate /main/DUT/tdc_clk_125m_n_i
-add wave -noupdate /main/DUT/acam_refclk_p_i
-add wave -noupdate /main/DUT/acam_refclk_n_i
-add wave -noupdate /main/DUT/start_from_fpga_o
-add wave -noupdate /main/DUT/err_flag_i
-add wave -noupdate /main/DUT/int_flag_i
-add wave -noupdate /main/DUT/start_dis_o
-add wave -noupdate /main/DUT/stop_dis_o
-add wave -noupdate /main/DUT/data_bus_io
-add wave -noupdate /main/DUT/address_o
-add wave -noupdate /main/DUT/cs_n_o
-add wave -noupdate /main/DUT/oe_n_o
-add wave -noupdate /main/DUT/rd_n_o
-add wave -noupdate /main/DUT/wr_n_o
-add wave -noupdate /main/DUT/ef1_i
-add wave -noupdate /main/DUT/ef2_i
-add wave -noupdate /main/DUT/enable_inputs_o
-add wave -noupdate /main/DUT/term_en_2_o
-add wave -noupdate /main/DUT/term_en_3_o
-add wave -noupdate /main/DUT/term_en_4_o
-add wave -noupdate /main/DUT/term_en_5_o
-add wave -noupdate /main/DUT/tdc_led_status_o
-add wave -noupdate /main/DUT/tdc_led_trig1_o
-add wave -noupdate /main/DUT/tdc_led_trig2_o
-add wave -noupdate /main/DUT/tdc_led_trig3_o
-add wave -noupdate /main/DUT/tdc_led_trig4_o
-add wave -noupdate /main/DUT/tdc_led_trig5_o
-add wave -noupdate /main/DUT/tdc_in_fpga_1_i
-add wave -noupdate /main/DUT/tdc_in_fpga_2_i
-add wave -noupdate /main/DUT/tdc_in_fpga_3_i
-add wave -noupdate /main/DUT/tdc_in_fpga_4_i
-add wave -noupdate /main/DUT/tdc_in_fpga_5_i
-add wave -noupdate /main/DUT/mezz_sys_scl_b
-add wave -noupdate /main/DUT/mezz_sys_sda_b
-add wave -noupdate /main/DUT/mezz_onewire_b
-add wave -noupdate /main/DUT/led_red
-add wave -noupdate /main/DUT/led_green
-add wave -noupdate /main/DUT/pcb_ver_i
-add wave -noupdate /main/DUT/prsnt_m2c_n_i
-add wave -noupdate /main/DUT/pllout_clk_sys
-add wave -noupdate /main/DUT/pllout_clk_dmtd
-add wave -noupdate /main/DUT/pllout_clk_fb_pllref
-add wave -noupdate /main/DUT/pllout_clk_fb_dmtd
-add wave -noupdate /main/DUT/clk_125m_pllref
-add wave -noupdate /main/DUT/clk_125m_gtp
-add wave -noupdate /main/DUT/clk_dmtd
-add wave -noupdate /main/DUT/clk_20m_vcxo
-add wave -noupdate /main/DUT/clk_20m_vcxo_buf
-add wave -noupdate /main/DUT/clk_62m5_sys
-add wave -noupdate /main/DUT/sys_locked
-add wave -noupdate /main/DUT/rst_n_sys
-add wave -noupdate /main/DUT/cnx_master_out
-add wave -noupdate /main/DUT/cnx_master_in
-add wave -noupdate /main/DUT/cnx_slave_out
-add wave -noupdate /main/DUT/cnx_slave_in
-add wave -noupdate /main/DUT/gn_wb_adr
-add wave -noupdate /main/DUT/gn4124_status
-add wave -noupdate /main/DUT/carrier_owr_en
-add wave -noupdate /main/DUT/carrier_owr_i
-add wave -noupdate /main/DUT/irq_to_gn4124
-add wave -noupdate /main/DUT/tm_link_up
-add wave -noupdate /main/DUT/tm_time_valid
-add wave -noupdate /main/DUT/tm_dac_wr_p
-add wave -noupdate /main/DUT/tm_tai
-add wave -noupdate /main/DUT/tm_cycles
-add wave -noupdate /main/DUT/tm_dac_value
-add wave -noupdate /main/DUT/tm_dac_value_reg
-add wave -noupdate /main/DUT/tm_clk_aux_lock_en
-add wave -noupdate /main/DUT/tm_clk_aux_locked
-add wave -noupdate /main/DUT/phy_tx_data
-add wave -noupdate /main/DUT/phy_rx_data
-add wave -noupdate /main/DUT/phy_tx_k
-add wave -noupdate /main/DUT/phy_tx_disparity
-add wave -noupdate /main/DUT/phy_rx_k
-add wave -noupdate /main/DUT/phy_tx_enc_err
-add wave -noupdate /main/DUT/phy_rx_rbclk
-add wave -noupdate /main/DUT/phy_rx_enc_err
-add wave -noupdate /main/DUT/phy_rst
-add wave -noupdate /main/DUT/phy_loopen
-add wave -noupdate /main/DUT/phy_rx_bitslide
-add wave -noupdate /main/DUT/dac_hpll_load_p1
-add wave -noupdate /main/DUT/dac_dpll_load_p1
-add wave -noupdate /main/DUT/dac_hpll_data
-add wave -noupdate /main/DUT/dac_dpll_data
-add wave -noupdate /main/DUT/wrc_scl_out
-add wave -noupdate /main/DUT/wrc_scl_in
-add wave -noupdate /main/DUT/wrc_sda_out
-add wave -noupdate /main/DUT/wrc_sda_in
-add wave -noupdate /main/DUT/tdc_scl_out
-add wave -noupdate /main/DUT/tdc_scl_in
-add wave -noupdate /main/DUT/tdc_sda_out
-add wave -noupdate /main/DUT/tdc_sda_in
-add wave -noupdate /main/DUT/tdc_scl_oen
-add wave -noupdate /main/DUT/tdc_sda_oen
-add wave -noupdate /main/DUT/sfp_scl_out
-add wave -noupdate /main/DUT/sfp_scl_in
-add wave -noupdate /main/DUT/sfp_sda_out
-add wave -noupdate /main/DUT/sfp_sda_in
-add wave -noupdate /main/DUT/wrc_owr_en
-add wave -noupdate /main/DUT/wrc_owr_in
-add wave -noupdate /main/DUT/tdc0_irq
-add wave -noupdate /main/DUT/tdc0_clk_125m
-add wave -noupdate /main/DUT/tdc0_soft_rst_n
-add wave -noupdate /main/DUT/powerup_rst_cnt
-add wave -noupdate /main/DUT/carrier_info_fmc_rst
+add wave -noupdate -group Core /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/rst_tdc
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/clk_sys_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/rst_sys_n_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/clk_tdc_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/rst_tdc_n_i
+add wave -noupdate -group Regs -expand /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/slave_i
+add wave -noupdate -group Regs -expand /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/slave_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_config_rdbk_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_ififo1_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_ififo2_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_start01_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/local_utc_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/core_status_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/irq_code_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/wrabbit_status_reg_i
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_config_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/activate_acq_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/deactivate_acq_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_wr_config_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_rdbk_config_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_rst_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_rdbk_status_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_rdbk_ififo1_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_rdbk_ififo2_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_rdbk_start01_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/send_dac_word_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dac_word_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/load_utc_p_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/starting_utc_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/irq_tstamp_threshold_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/irq_time_threshold_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/one_hz_phase_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_inputs_en_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/wrabbit_ctrl_reg_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/start_phase_o
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_config
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/reg_adr
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/reg_adr_pipe0
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/starting_utc
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/acam_inputs_en
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/start_phase
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/ctrl_reg
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/one_hz_phase
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/irq_tstamp_threshold
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/irq_time_threshold
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/clear_ctrl_reg
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/send_dac_word_p
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dac_word
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/pulse_extender_en
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/pulse_extender_c
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/wrabbit_ctrl_reg
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/ack_out_pipe0
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/ack_out_pipe1
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_comb0
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_comb1
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_comb2
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_comb3
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_pipe0
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_pipe1
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_pipe2
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/dat_out_pipe3
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/cyc_in_progress
+add wave -noupdate -group Regs -expand /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/wb_in
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/wb_out
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/cc_rst_n
+add wave -noupdate -group Regs /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/reg_control_block/cc_rst_n_or_sys
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/clk_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/rst_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/acam_refclk_r_edge_p_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/utc_p_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/state_active_p_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/activate_acq_p_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/deactivate_acq_p_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/err_flag_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/int_flag_i
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/start_from_fpga_o
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/stop_dis_o
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/acam_errflag_r_edge_p_o
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/acam_errflag_f_edge_p_o
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/acam_intflag_f_edge_p_o
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/int_flag_synch
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/err_flag_synch
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/acam_intflag_f_edge_p
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/start_pulse
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/wait_for_utc
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/rst_n
+add wave -noupdate -group Timecontrol /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_timing_block/wait_for_state_active
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/clk_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/rst_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef1_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef2_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/data_bus_io
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/cyc_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/stb_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/we_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/adr_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/dat_i
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef1_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef1_meta_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef2_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef2_meta_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/adr_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/cs_n_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/oe_n_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/rd_n_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/wr_n_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ack_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/dat_o
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/acam_data_st
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/nxt_acam_data_st
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef1_synch
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ef2_synch
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/ack
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/rd
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/rd_extend
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/wr
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/wr_extend
+add wave -noupdate -group Datablk /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/acam_data_block/wr_remove
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/clk_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/rst_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/activate_acq_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/deactivate_acq_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_wr_config_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_rst_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_rdbk_config_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_rdbk_status_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_rdbk_ififo1_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_rdbk_ififo2_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_rdbk_start01_p_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_config_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ef1_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ef1_meta_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ef2_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ef2_meta_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ack_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_dat_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/start_from_fpga_i
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/state_active_p_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_adr_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_cyc_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_stb_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_dat_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_we_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_config_rdbk_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ififo1_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_ififo2_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_start01_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_tstamp1_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_tstamp2_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_tstamp1_ok_p_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_tstamp2_ok_p_o
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/engine_st
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/nxt_engine_st
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_cyc
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_stb
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_we
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_adr
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/config_adr_c
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_config_rdbk
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/reset_word
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/acam_config_reg4
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/time_c_full_p
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/time_c_en
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/time_c_rst
+add wave -noupdate -group DataEng /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_engine_block/time_c
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/clk_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/rst_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_tstamp1_ok_p_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_tstamp1_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_tstamp2_ok_p_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_tstamp2_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/utc_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/roll_over_incr_recent_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/clk_i_cycles_offset_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/roll_over_nb_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/retrig_nb_offset_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/utc_p_i
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/timestamp_o
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/timestamp_valid_o
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_channel
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_slope
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_fine_timestamp
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_start_nb
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_acam_start_nb
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_clk_i_cycles_offset
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_roll_over
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_nb_of_retrig
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_retrig_nb_offset
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_nb_of_cycles
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_retrig_from_roll_over
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/acam_start_nb_32
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/full_timestamp
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/metadata
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/utc
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/coarse_time
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/fine_time
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/tstamp_on_first_retrig_case1
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/tstamp_on_first_retrig_case2
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/coarse_zero
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_previous_clk_i_cycles_offset
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_previous_retrig_nb_offset
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_previous_roll_over_nb
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_current_retrig_nb_offset
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_current_roll_over_nb
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_current_retrig_from_roll_over
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/un_acam_fine_time
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/previous_utc
+add wave -noupdate -group DataFmt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/data_formatting_block/timestamp_valid_int
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/clk_tdc_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/rst_tdc_n_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/clk_sys_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/rst_sys_n_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/enable_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/ts_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/ts_valid_i
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/ts_o
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/ts_valid_o
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/ts_ready_i
+add wave -noupdate -group FilterAndCvt -expand -subitemconfig {/main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/channels(0) -expand} /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/channels
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s1_frac_scaled
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s1_tai
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s2_tai
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_tai
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s1_valid
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s2_valid
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_valid
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s1_coarse
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s2_coarse
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_coarse
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s2_frac
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_frac
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/coarse_adj
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s1_channel
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s2_channel
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_channel
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s1_edge
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s2_edge
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_edge
+add wave -noupdate -group FilterAndCvt -expand /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/s3_ts
+add wave -noupdate -group FilterAndCvt /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/cmp_tdc_core/U_FilterAndConvert/ts_valid_sys
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/clk_sys_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/rst_sys_n_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/slave_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/slave_o
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/irq_o
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/enable_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/tick_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/irq_threshold_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/irq_timeout_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/timestamp_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/timestamp_valid_i
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/tmr_timeout
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/buf_irq_int
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/buf_count
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/last_ts
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/regs_in
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/regs_out
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/channel_id
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/ts_match
+add wave -noupdate -expand -group fifo0 /main/DUT/cmp_tdc_mezzanine/cmp_tdc_mezz/gen_without_dma_readout/gen_fifos(0)/U_TheFifo/timestamp_with_seq
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {916212143 ps} 0}
+WaveRestoreCursors {{Cursor 1} {648894565 ps} 0}
 configure wave -namecolwidth 177
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -562,4 +418,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {3698688 ns}
+WaveRestoreZoom {0 ps} {2097152 ns}

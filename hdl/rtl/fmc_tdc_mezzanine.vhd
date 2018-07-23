@@ -109,7 +109,9 @@ entity fmc_tdc_mezzanine is
     (g_with_wrabbit_core : boolean := false;
      g_span              : integer := 32;
      g_width             : integer := 32;
-     g_simulation        : boolean := false);
+     g_simulation        : boolean := false;
+     g_use_dma_readout   : boolean := true;
+     g_use_fake_timestamps_for_sim : boolean := false);
   port
     -- TDC core
     (
@@ -119,8 +121,8 @@ entity fmc_tdc_mezzanine is
       rst_sys_n_i : in std_logic;       -- reset for 62.5 MHz logic
 
       -- TDC 125 MHz reference & Reset (FMC)
-      clk_tdc_i : in std_logic;         -- 125 MHz clock
-      rst_tdc_i : in std_logic;         -- reset for 125 MHz logic
+      clk_tdc_i   : in std_logic;       -- 125 MHz clock
+      rst_tdc_n_i : in std_logic;       -- reset for 125 MHz logic
 
       acam_refclk_r_edge_p_i    : in    std_logic;
       send_dac_word_p_o         : out   std_logic;
@@ -153,12 +155,6 @@ entity fmc_tdc_mezzanine is
       tdc_led_trig3_o           : out   std_logic;
       tdc_led_trig4_o           : out   std_logic;
       tdc_led_trig5_o           : out   std_logic;
-      -- Input pulses arriving also to the FPGA, currently not treated
-      tdc_in_fpga_1_i           : in    std_logic;
-      tdc_in_fpga_2_i           : in    std_logic;
-      tdc_in_fpga_3_i           : in    std_logic;
-      tdc_in_fpga_4_i           : in    std_logic;
-      tdc_in_fpga_5_i           : in    std_logic;
       -- White Rabbit core
       wrabbit_link_up_i         : in    std_logic;
       wrabbit_time_valid_i      : in    std_logic;
@@ -176,6 +172,9 @@ entity fmc_tdc_mezzanine is
       slave_i : in  t_wishbone_slave_in;
       slave_o : out t_wishbone_slave_out;
 
+      dma_wb_o : out t_wishbone_master_out;
+      dma_wb_i : in  t_wishbone_master_in;
+
       wb_irq_o : out std_logic;
 
       -- I2C EEPROM interface
@@ -188,7 +187,12 @@ entity fmc_tdc_mezzanine is
       -- 1-Wire interface
       onewire_b              : inout std_logic;
       direct_timestamp_o     : out   std_logic_vector(127 downto 0);
-      direct_timestamp_stb_o : out   std_logic
+      direct_timestamp_stb_o : out   std_logic;
+
+      sim_timestamp_i : in t_tdc_timestamp := c_dummy_timestamp;
+      sim_timestamp_valid_i : in std_logic := '0';
+      sim_timestamp_ready_o : out std_logic
+
       );
 end fmc_tdc_mezzanine;
 
@@ -198,37 +202,18 @@ end fmc_tdc_mezzanine;
 --=================================================================================================
 architecture rtl of fmc_tdc_mezzanine is
 
-  component timestamp_fifo is
-    generic (
-      g_channel : integer);
-    port (
-      clk_sys_i         : in  std_logic;
-      clk_tdc_i         : in  std_logic;
-      rst_n_sys_i       : in  std_logic;
-      rst_tdc_i         : in  std_logic;
-      slave_i           : in  t_wishbone_slave_in;
-      slave_o           : out t_wishbone_slave_out;
-      irq_o             : out std_logic;
-      enable_i          : in  std_logic;
-      tick_i            : in  std_logic;
-      irq_threshold_i   : in  std_logic_vector(9 downto 0);
-      irq_timeout_i     : in  std_logic_vector(9 downto 0);
-      timestamp_i       : in  std_logic_vector(127 downto 0);
-      timestamp_valid_i : in  std_logic);
-  end component timestamp_fifo;
-
 ---------------------------------------------------------------------------------------------------
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
   -- Note: All address in sdb and crossbar are BYTE addresses!
 
   -- Master ports on the wishbone crossbar
-  constant c_NUM_WB_MASTERS           : integer := 9;
   constant c_WB_SLAVE_TDC_ONEWIRE     : integer := 0;  -- TDC mezzanine board UnidueID&Thermometer 1-wire
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 1;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_EIC         : integer := 2;  -- TDC interrupts
   constant c_WB_SLAVE_TDC_I2C         : integer := 3;  -- TDC mezzanine board system EEPROM I2C
   constant c_WB_SLAVE_TDC_FIFO0       : integer := 4;  -- Access to TDC core FIFO for timestamps retrieval
+  constant c_WB_SLAVE_TDC_DMA         : integer := 9;  -- Access to TDC core DMA controller
 
   -- Slave port on the wishbone crossbar
   constant c_NUM_WB_SLAVES : integer := 1;
@@ -239,8 +224,10 @@ architecture rtl of fmc_tdc_mezzanine is
   -- sdb header address
   constant c_SDB_ADDRESS : t_wishbone_address := x"00000000";
 
+  constant c_NUM_WB_MASTERS : integer := 10;
+
   -- WISHBONE crossbar layout
-  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(8 downto 0) :=
+  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(c_NUM_WB_MASTERS-1 downto 0) :=
     (0 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE, x"00001000"),
      1 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00002000"),
      2 => f_sdb_embed_device(c_TDC_EIC_DEVICE, x"00003000"),
@@ -249,9 +236,9 @@ architecture rtl of fmc_tdc_mezzanine is
      5 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005100"),
      6 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005200"),
      7 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005300"),
-     8 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005400")
+     8 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005400"),
+     9 => f_sdb_embed_device(c_TDC_DMA_SDB_DEVICE, x"00006000")
      );
-
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
@@ -278,14 +265,17 @@ architecture rtl of fmc_tdc_mezzanine is
   signal wrabbit_utc_p          : std_logic;
   signal wrabbit_synched        : std_logic;
 
-  signal irq_channel : std_logic_vector(4 downto 0);
+  signal irq_fifo, irq_dma : std_logic_vector(4 downto 0);
 
-  signal timestamp                  : std_logic_vector(127 downto 0);
-  signal timestamp_stb              : std_logic;
-  signal channel_enable             : std_logic_vector(4 downto 0);
-  signal irq_threshold, irq_timeout : std_logic_vector(9 downto 0);
-  signal tick_1ms                   : std_logic;
-  signal counter_1ms                : unsigned(17 downto 0);
+  signal timestamp                                       : t_tdc_timestamp_array(4 downto 0);
+  signal timestamp_valid, timestamp_ready, timestamp_stb : std_logic_vector(4 downto 0);
+  signal tdc_timestamp                                       : t_tdc_timestamp_array(4 downto 0);
+  signal tdc_timestamp_valid, tdc_timestamp_ready : std_logic_vector(4 downto 0);
+  signal channel_enable                                  : std_logic_vector(4 downto 0);
+  signal irq_threshold, irq_timeout                      : std_logic_vector(9 downto 0);
+  signal tick_1ms                                        : std_logic;
+  signal counter_1ms                                     : unsigned(17 downto 0);
+
 
   function f_wb_shift_address_word (w : t_wishbone_master_out) return t_wishbone_master_out is
     variable r : t_wishbone_master_out;
@@ -303,8 +293,6 @@ architecture rtl of fmc_tdc_mezzanine is
 --                                       architecture begin
 --=================================================================================================
 begin
-
-  rst_ref_0_n <= not(rst_tdc_i);
 
   cmp_sdb_crossbar : xwb_sdb_crossbar
     generic map
@@ -326,17 +314,20 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                             TDC CORE                                          --
 ---------------------------------------------------------------------------------------------------
-  cmp_tdc_core : fmc_tdc_core
+  cmp_tdc_core : entity work.fmc_tdc_core
     generic map
-    (g_span       => g_span,
-     g_width      => g_width,
-     g_simulation => g_simulation)
+    (g_span              => g_span,
+     g_width             => g_width,
+     g_simulation        => g_simulation,
+     g_with_dma_readout  => g_use_dma_readout,
+     g_with_fifo_readout => true)
     port map
     (                                   -- clks, rst
-      clk_tdc_i              => clk_tdc_i,
-      rst_tdc_i              => rst_tdc_i,
-      clk_sys_i              => clk_sys_i,
-      rst_n_sys_i            => rst_sys_n_i,
+      clk_tdc_i   => clk_tdc_i,
+      rst_tdc_n_i => rst_tdc_n_i,
+      clk_sys_i   => clk_sys_i,
+      rst_sys_n_i => rst_sys_n_i,
+
       acam_refclk_r_edge_p_i => acam_refclk_r_edge_p_i,
       -- DAC configuration
       send_dac_word_p_o      => send_dac_word_p_o,
@@ -362,12 +353,6 @@ begin
       term_en_3_o            => term_en_3_o,
       term_en_4_o            => term_en_4_o,
       term_en_5_o            => term_en_5_o,
-      -- Input channels to FPGA (not used currently)
-      tdc_in_fpga_1_i        => tdc_in_fpga_1_i,
-      tdc_in_fpga_2_i        => tdc_in_fpga_2_i,
-      tdc_in_fpga_3_i        => tdc_in_fpga_3_i,
-      tdc_in_fpga_4_i        => tdc_in_fpga_4_i,
-      tdc_in_fpga_5_i        => tdc_in_fpga_5_i,
       -- TDC board LEDs
       tdc_led_status_o       => tdc_led_status_o,
       tdc_led_trig1_o        => tdc_led_trig1_o,
@@ -387,26 +372,57 @@ begin
       cfg_slave_i => f_wb_shift_address_word(cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG)),
       cfg_slave_o => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG),
 
-      timestamp_o     => timestamp,
-      timestamp_stb_o => timestamp_stb,
+      timestamp_o       => tdc_timestamp,
+      timestamp_valid_o => tdc_timestamp_valid,
+      timestamp_ready_i => tdc_timestamp_ready,
 
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
       channel_enable_o => channel_enable
       );
 
+
+
+  gen_use_fake_timestamps: if g_use_fake_timestamps_for_sim generate
+
+    process(sim_timestamp_i, sim_timestamp_valid_i)
+    begin
+
+      timestamp_valid <=(others => '0');
+
+      for i in 0 to 4 loop
+        if unsigned(sim_timestamp_i.channel) = i then
+          timestamp(i) <= sim_timestamp_i;
+          timestamp_valid(i) <=  sim_timestamp_valid_i;
+        end if;
+      end loop;
+
+    end process;
+    timestamp_ready <= (others => '1');
+    
+  end generate gen_use_fake_timestamps;
+
+  gen_use_real_timestamps: if not g_use_fake_timestamps_for_sim generate
+    timestamp <= tdc_timestamp;
+    timestamp_valid <= tdc_timestamp_valid;
+    tdc_timestamp_ready <= timestamp_ready;
+  end generate gen_use_real_timestamps;
+  
+
+                             
+  
+
   gen_fifos : for i in 0 to 4 generate
-    U_TheFifo : timestamp_fifo
+
+    U_TheFifo : entity work.timestamp_fifo
       generic map (
         g_channel => i)
       port map (
         clk_sys_i         => clk_sys_i,
-        clk_tdc_i         => clk_tdc_i,
-        rst_n_sys_i       => rst_sys_n_i,
-        rst_tdc_i         => rst_tdc_i,
+        rst_sys_n_i       => rst_sys_n_i,
         slave_i           => cnx_master_out(c_WB_SLAVE_TDC_FIFO0 + i),
         slave_o           => cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i),
-        irq_o             => irq_channel(i),
+        irq_o             => irq_fifo(i),
         enable_i          => channel_enable(i),
         tick_i            => tick_1ms,
         irq_threshold_i   => irq_threshold,
@@ -414,12 +430,41 @@ begin
         timestamp_i       => timestamp,
         timestamp_valid_i => timestamp_stb);
 
+    timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
   end generate gen_fifos;
+
+  gen_with_dma_readout : if g_use_dma_readout generate
+    U_DMA_Engine : entity work.tdc_dma_engine
+      generic map (
+        g_CLOCK_FREQ => 62500000)
+      port map (
+        clk_i      => clk_sys_i,
+        rst_n_i    => rst_sys_n_i,
+        ts_i       => timestamp,
+        ts_valid_i => timestamp_valid,
+        ts_ready_o => timestamp_ready,
+        slave_i    => cnx_master_out(c_WB_SLAVE_TDC_DMA),
+        slave_o    => cnx_master_in(c_WB_SLAVE_TDC_DMA),
+        irq_o      => irq_dma,
+        dma_wb_o   => dma_wb_o,
+        dma_wb_i   => dma_wb_i);
+
+  end generate gen_with_dma_readout;
+
+  gen_without_dma : if not g_use_dma_readout generate
+    irq_dma                                 <= (others => '0');
+    cnx_master_in(c_WB_SLAVE_TDC_DMA).stall <= '0';
+    cnx_master_in(c_WB_SLAVE_TDC_DMA).err   <= '0';
+    cnx_master_in(c_WB_SLAVE_TDC_DMA).rty   <= '0';
+    cnx_master_in(c_WB_SLAVE_TDC_DMA).ack   <= '1';
+    timestamp_ready                         <= (others => '1');
+  end generate gen_without_dma;
+
 
   p_gen_1ms_tick : process(clk_tdc_i)
   begin
     if rising_edge(clk_tdc_i) then
-      if rst_tdc_i = '1' then
+      if rst_tdc_n_i = '0' then
         tick_1ms    <= '0';
         counter_1ms <= (others => '0');
       else
@@ -445,7 +490,7 @@ begin
     (clk_sys_i                 => clk_sys_i,
      rst_n_sys_i               => rst_sys_n_i,
      clk_ref_i                 => clk_tdc_i,
-     rst_n_ref_i               => rst_ref_0_n,
+     rst_n_ref_i               => rst_tdc_n_i,
      wrabbit_dac_value_i       => wrabbit_dac_value_i,
      wrabbit_dac_wr_p_i        => wrabbit_dac_wr_p_i,
      wrabbit_link_up_i         => wrabbit_link_up_i,
@@ -461,7 +506,7 @@ begin
   wrabbit_one_hz_pulse : process(clk_tdc_i)
   begin
     if rising_edge(clk_tdc_i) then
-      if rst_ref_0_n = '0' then
+      if rst_tdc_n_i = '0' then
         wrabbit_utc_p <= '0';
       else
         if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
@@ -510,11 +555,11 @@ begin
 -- 0 -> number of accumulated timestamps reached threshold
 -- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
 -- 2 -> ACAM error
-  cmp_tdc_eic : tdc_eic
+  cmp_tdc_eic : entity work.tdc_eic
     port map
     (clk_sys_i       => clk_sys_i,
      rst_n_i         => rst_sys_n_i,
-     wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(3 downto 2),
+     wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(5 downto 2),
      wb_dat_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
      wb_dat_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
      wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
@@ -524,17 +569,22 @@ begin
      wb_ack_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
      wb_stall_o      => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
      wb_int_o        => wb_irq_o,
-     irq_tdc_fifo1_i => irq_channel(0),
-     irq_tdc_fifo2_i => irq_channel(1),
-     irq_tdc_fifo3_i => irq_channel(2),
-     irq_tdc_fifo4_i => irq_channel(3),
-     irq_tdc_fifo5_i => irq_channel(4));
+     irq_tdc_fifo1_i => irq_fifo(0),
+     irq_tdc_fifo2_i => irq_fifo(1),
+     irq_tdc_fifo3_i => irq_fifo(2),
+     irq_tdc_fifo4_i => irq_fifo(3),
+     irq_tdc_fifo5_i => irq_fifo(4),
+     irq_tdc_dma1_i  => irq_dma(0),
+     irq_tdc_dma2_i  => irq_dma(1),
+     irq_tdc_dma3_i  => irq_dma(2),
+     irq_tdc_dma4_i  => irq_dma(3),
+     irq_tdc_dma5_i  => irq_dma(4)
+     );
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
   cnx_master_in(c_WB_SLAVE_TDC_EIC).err <= '0';
   cnx_master_in(c_WB_SLAVE_TDC_EIC).rty <= '0';
-  cnx_master_in(c_WB_SLAVE_TDC_EIC).int <= '0';
 
 
 ---------------------------------------------------------------------------------------------------

@@ -9,11 +9,10 @@ peripheral {
 	 -- TXTSU shared FIFO
 
 	 fifo_reg {
-			size = 512; -- or more. We'll see :)
+			size = 64; -- or more. We'll see :)
 			direction = CORE_TO_BUS;
 			prefix = "fifo";
 			name = "Timestamp FIFO";
-			clock = "clk_tdc_i";
 
 			flags_bus = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT, FIFO_CLEAR};
 			flags_dev = {FIFO_FULL, FIFO_EMPTY, FIFO_COUNT};
@@ -40,7 +39,7 @@ peripheral {
 			};		
 
 			field {
-				 name = "The timestamp (word 4)";
+				 name = "The timestamp (word 3)";
 				 prefix = "ts3";
 				 type = SLV;
 				 size = 32;
@@ -49,12 +48,11 @@ peripheral {
 
 
 	 reg {
-			name = "Last Timestamp Word 0";
-			prefix = "LTS0";
+			name = "Delta Timestamp word 0";
+			prefix = "DELTA0";
 			
 			field {
-				 name = "Last Timestamp Word 0";
-				 clock = "clk_tdc_i";
+				 name = "Delta Timestamp Word 0";
 				 type = SLV;
 				 size = 32;
 				 access_bus = READ_ONLY;
@@ -63,12 +61,11 @@ peripheral {
 			};
 	 };
 	 reg {
-			name = "Last Timestamp Word 1";
-			prefix = "LTS1";
+			name = "Delta Timestamp Word 1";
+			prefix = "DELTA1";
 			
 			field {
-				 name = "Last Timestamp Word 1";
-				 clock = "clk_tdc_i";
+				 name = "Delta Timestamp Word 1";
 				 type = SLV;
 				 size = 32;
 				 access_bus = READ_ONLY;
@@ -77,12 +74,11 @@ peripheral {
 	 };
 
 	 reg {
-			name = "Last Timestamp Word 2";
-			prefix = "LTS2";
+			name = "Delta Timestamp Word 2";
+			prefix = "DELTA2";
 			
 			field {
-				 name = "Last Timestamp Word 2";
-				 clock = "clk_tdc_i";
+				 name = "Delta Timestamp Word 2";
 				 type = SLV;
 				 size = 32;
 				 access_bus = READ_ONLY;
@@ -92,12 +88,11 @@ peripheral {
 	 };
 
 	 reg {
-			name = "Last Timestamp Word 3";
-			prefix = "LTS3";
+			name = "Delta Timestamp Word 3";
+			prefix = "DELTA3";
 			
 			field {
-				 name = "Last Timestamp Word 3";
-				 clock = "clk_tdc_i";
+				 name = "Delta Timestamp Word 3";
 				 type = SLV;
 				 size = 32;
 				 access_bus = READ_ONLY;
@@ -113,9 +108,8 @@ peripheral {
 			prefix = "CSR";
 			
 			field {
-				 name = "Last Timestamp Valid";
-				 clock = "clk_tdc_i";
-				 prefix = "LAST_VALID";
+				 name = "Delta Timestamp Valid";
+				 prefix = "DELTA_VALID";
 				 type = BIT;
 				 access_bus = READ_WRITE;
 				 access_dev = READ_WRITE;
@@ -124,9 +118,18 @@ peripheral {
 
 			field {
 				 name = "Reset Sequence Counter";
-				 clock = "clk_tdc_i";
 				 prefix = "RST_SEQ";
 				 type = MONOSTABLE;
+			};
+
+			field {
+				 name = "Delta Timestamp Reference Channel";
+				 description = "Channel (0-4) to take as the reference for the delta timestamps";
+				 prefix = "DELTA_REF";
+				 type = SLV;
+				 size = 3;
+				 access_bus = READ_WRITE;
+				 access_dev = READ_ONLY;
 			};
 
 

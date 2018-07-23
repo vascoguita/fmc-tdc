@@ -40,6 +40,41 @@ peripheral {
             trigger = LEVEL_1;
         };
 
+
+     irq {
+     name = "FMC TDC timestamps interrupt (DMA1)";
+            description = "FMC TDC DMA1 acquisition ready.";
+            prefix = "tdc_dma1";
+            trigger = LEVEL_1;
+        };
+
+    irq {
+            name = "FMC TDC timestamps interrupt (DMA2)";
+            description = "FMC TDC DMA1 acquisition ready.";
+            prefix = "tdc_dma2";
+            trigger = LEVEL_1;
+        };
+
+    irq {
+            name = "FMC TDC timestamps interrupt (DMA3)";
+            description = "FMC TDC DMA3 acquisition ready.";
+            prefix = "tdc_dma3";
+            trigger = LEVEL_1;
+        };
+
+    irq {
+            name = "FMC TDC timestamps interrupt (DMA4)";
+            description = "FMC TDC DMA4 acquisition ready.";
+            prefix = "tdc_dma4";
+            trigger = LEVEL_1;
+        };
+
+    irq {
+            name = "FMC TDC timestamps interrupt (DMA5)";
+            description = "FMC TDC DMA5 acquisition ready.";
+            prefix = "tdc_dma5";
+            trigger = LEVEL_1;
+        };
     
 
 };

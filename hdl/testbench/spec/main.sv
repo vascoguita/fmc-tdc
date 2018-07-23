@@ -1,77 +1,12 @@
+import wishbone_pkg::*;
+import tdc_core_pkg::*;
+
+
 `include "simdrv_defs.svh"
-`include "gn4124_bfm.svh"
 `include "timestamp_fifo_regs.vh"
-
-module fake_acam(
-		 input [3:0] addr,
-		 output reg [27:0] data,
-		 input 	      wr,
-		 input 	      rd,
-		 output       reg ef1,
-		 output       reg ef2
-		 );
-
-   typedef struct {
-      int 	  channel;
-      time 	  ts;
-   } acam_fifo_entry;
-
-   acam_fifo_entry fifo1[$], fifo2[$];
-
-   task pulse(int channel, time ts);
-      
-     acam_fifo_entry ent;
-
-      ent.channel = channel % 4;
-      ent.ts = ts;
-      
-      if (channel >= 0 && channel <= 3) 
-	 fifo1.push_back(ent);
-      else
-	fifo2.push_back(ent);
-
-      #100ns;
-      if(fifo1.size())
-	ef1 = 0;
-      if(fifo2.size())
-	ef2 = 0;
-      
-      endtask // pulse
-
-   initial begin
-      ef1 = 1;
-      ef2 = 1;
-      data = 28'bz;
-      
-   end
-   
-   
-   always@(negedge rd) begin
-      if (addr == 8) begin
-	 acam_fifo_entry ent;
-	 ent=fifo1.pop_front();
-	 data <= ent.ts | (ent.channel << 26) | (1<<17);
-	 
-      end else if (addr == 9) begin
-	 acam_fifo_entry ent;
-	 ent=fifo2.pop_front();
-	 data <= ent.ts | (ent.channel << 26) | (1<<17);
-
-      end else
-	data <= 28'bz;
-
-      #10ns;
-
-      	ef1 <= (fifo1.size() ? 0 : 1);
-      	ef2 <= (fifo2.size() ? 0 : 1);
-      
-	
-   end
-   
-   
-   
-endmodule
-   
+`include "if_wb_master.svh"
+`include "vhd_wishbone_master.svh"
+`include "acam_model.svh"
 
 module main;
 
@@ -87,7 +22,7 @@ module main;
    end
 
 
-   reg clk_acam = 0;
+   reg clk_acam = 0; // 31.25 MHz
    reg clk_62m5 = 0;
 
    always@(posedge clk_125m)
@@ -95,18 +30,58 @@ module main;
 
    always@(posedge clk_62m5)
      clk_acam <= ~clk_acam;
+
    
    wire [3:0] tdc_addr;
-
    wire [27:0] tdc_data;
+   reg [8:1]  tdc_stop = 0;
+   wire        tdc_start, tdc_start_dis, tdc_stop_dis;
+   wire        tdc_alutrigger = 0;
+   wire        tdc_cs_n, tdc_oe_n, tdc_rd_n, tdc_wr_n;
+   wire        tdc_err_flag, tdc_int_flag;
+   wire        tdc_ef1, tdc_ef2;
+   
    
 
-    IGN4124PCIMaster I_Gennum ();
+
+   tdc_gpx_model ACAM
+     (
+      .PuResN(1'b1),
+      .Alutrigger(tdc_alutrigger),
+      .RefClk(clk_acam),
+
+      .WRN(tdc_wr_n),
+      .RDN(tdc_rd_n),
+      .CSN(tdc_cs_n),
+      .OEN(tdc_oe_n),
+
+      .Adr(tdc_addr),
+
+      .TStart(tdc_start),
+      .TStop(tdc_stop),
+
+      .StartDis(tdc_start_dis),
+      .StopDis(tdc_stop_dis),
+
+      .IrFlag(tdc_int_flag),
+      .ErrFlag(tdc_err_flag),
+
+      .EF1(tdc_ef1),
+      .EF2(tdc_ef2),
+   
+      .LF1(),
+      .LF2(),
+
+      .D(tdc_data)
+      );
+   
 
    
    wr_spec_tdc #(
               .g_with_wr_phy(0),	
-              .g_simulation(1)
+              .g_simulation(1),
+	      .g_calib_soft_ip(0),
+	      .g_sim_bypass_gennum(1)
               ) DUT (
 		     .clk_125m_pllref_p_i(clk_125m),
 		     .clk_125m_pllref_n_i(~clk_125m),
@@ -122,29 +97,36 @@ module main;
 
 		     .clk_20m_vcxo_i(clk_20m),
                      .pll_status_i(1'b1),
+
+		     
 		     .ef1_i(tdc_ef1),
 		     .ef2_i(tdc_ef2),
-		     .err_flag_i(1'b0),
-		     .int_flag_i(1'b0),
+		     .err_flag_i(tdc_err_flag),
+		     .int_flag_i(tdc_int_flag),
 		     .rd_n_o(tdc_rd_n),
+		     .wr_n_o(tdc_wr_n),
+		     .oe_n_o(tdc_oe_n),
+		     .cs_n_o(tdc_cs_n),
 		     .data_bus_io(tdc_data),
 		     .address_o(tdc_addr),
-
-	              `GENNUM_WIRE_SPEC_PINS(I_Gennum)
-
+		     .start_from_fpga_o(tdc_start),
+//		     .start_dis_o(tdc_start_dis),
+//		     .stop_dis_o(tdc_stop_dis),
+		     
+		     .sim_wb_i(Host.out),
+		     .sim_wb_o(Host.in)
 		     
 		     );
 
-   fake_acam ACAM(
-		 .addr(tdc_addr),
-		 .data(tdc_data),
-		 .wr(1'b0),
-		 .rd(tdc_rd_n),
-		 .ef1(tdc_ef1),
-		 .ef2(tdc_ef2)
-		 );
-   
+  
+      IVHDWishboneMaster Host
+     (
+      .clk_i   (DUT.clk_62m5_sys),
+      .rst_n_i (DUT.rst_n_sys));
 
+		     
+   assign tdc_start_dis = 0;
+   assign tdc_stop_dis = 0;
    
    
    
@@ -157,10 +139,10 @@ module main;
       CBusAccessor acc;
       const uint64_t tdc1_base = 'h40000;
       uint64_t d;
-      acc = I_Gennum.get_accessor();
+      acc = Host.get_accessor();
       
       
-      #100us;
+      #10us;
 
       $display("Accessor: %x", acc);
       
@@ -168,10 +150,17 @@ module main;
       
       acc.write('h02000c, 'h3); 
 
-      #500us;
+      #5us;
       
       acc.read('h040000, d); 
       $display("TDC SDB ID : %x", d);
+
+      acc.read('h050000, d); 
+      $display("TDC DMA R0 : %x", d);
+
+      acc.write('h045000, 'hdeadbeef); 
+      acc.read('h045000, d); 
+      $display("TDC Buf CSR : %x", d);
 
 
       acc.write('h420a0, 1234);  // set UTC
@@ -186,14 +175,14 @@ module main;
       acc.write('h42090, 2); // thr = 2 ts
       acc.write('h42094, 10); // thr = 10 ms
       
+      $display("Start operation");
       
       
-      #300us;
       fork
 	 forever begin
 	    acc.read('h45000 + `ADDR_TSF_CSR, d); 
 	    
-	    $display("TSF CSR %x", d);
+//	    $display("TSF CSR %x", d);
 	    
 	    if(d&1)  begin
 	       uint64_t t0,t1,t2,t3;
@@ -209,7 +198,7 @@ module main;
 	    end
 	    
 
-	    acc.read('h45000 + `ADDR_TSF_FIFO_CSR, d);
+//	    acc.read('h45000 + `ADDR_TSF_FIFO_CSR, d);
 //	    $display("FIFO CSR %x", d);
 	    
 /* -----\/----- EXCLUDED -----\/-----
@@ -229,11 +218,13 @@ module main;
 	 
       
 	 forever begin
-	    $display("Pulse!");
-	 
-	    ACAM.pulse(0, 0);
-	    ACAM.pulse(1, 0);
-	    ACAM.pulse(2, 0);
+	    #10us;
+	    
+	    $display("pulse @ %t", $time);
+	    
+	    tdc_stop[1] <= 1;
+	    #110ns;
+	    tdc_stop[1] <= 0;
 	    #10us;
 	 end
       join

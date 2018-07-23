@@ -131,7 +131,10 @@ entity fmc_tdc_wrapper is
       -- reduces some timeouts to speed up simulation
       g_simulation          : boolean := false;
       -- implement direct TDC timestamp readout FIFO, used in the WR Node projects
-      g_with_direct_readout : boolean := false
+      g_with_direct_readout : boolean := false;
+
+      g_use_dma_readout : boolean := false;
+      g_use_fake_timestamps_for_sim : boolean := false
    
       ); 
   port
@@ -184,12 +187,6 @@ entity fmc_tdc_wrapper is
       tdc_led_trig4_o  : out std_logic;  -- amber led on front pannel, Ch.4 enable
       tdc_led_trig5_o  : out std_logic;  -- amber led on front pannel, Ch.5 enable
 
-      -- Input Logic on TDC mezzanine (not used currently)
-      tdc_in_fpga_1_i : in std_logic;   -- Ch.1 for ACAM, also received by FPGA
-      tdc_in_fpga_2_i : in std_logic;   -- Ch.2 for ACAM, also received by FPGA
-      tdc_in_fpga_3_i : in std_logic;   -- Ch.3 for ACAM, also received by FPGA
-      tdc_in_fpga_4_i : in std_logic;   -- Ch.4 for ACAM, also received by FPGA
-      tdc_in_fpga_5_i : in std_logic;   -- Ch.5 for ACAM, also received by FPGA
 
       -- I2C EEPROM interface on TDC mezzanine
       mezz_scl_o : out std_logic;
@@ -220,13 +217,21 @@ entity fmc_tdc_wrapper is
       slave_i : in  t_wishbone_slave_in;
       slave_o : out t_wishbone_slave_out;
 
-      direct_slave_i : in  t_wishbone_slave_in;
+      direct_slave_i : in  t_wishbone_slave_in := cc_dummy_slave_in;
       direct_slave_o : out t_wishbone_slave_out;
 
+      dma_wb_o : out t_wishbone_master_out;
+      dma_wb_i : in  t_wishbone_master_in := cc_dummy_master_in;
+      
       irq_o : out std_logic;
 
       -- local PLL clock output (for WR PTP Core clock disciplining)
-      clk_125m_tdc_o : out std_logic
+      clk_125m_tdc_o : out std_logic;
+
+      
+      sim_timestamp_i : in t_tdc_timestamp := c_dummy_timestamp;
+      sim_timestamp_valid_i : in std_logic := '0';
+      sim_timestamp_ready_o : out std_logic
       );                              
 
 end fmc_tdc_wrapper;
@@ -366,22 +371,27 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                            TDC BOARD                                          --
 ---------------------------------------------------------------------------------------------------
-  cmp_tdc_mezz : fmc_tdc_mezzanine
+  cmp_tdc_mezz : entity work.fmc_tdc_mezzanine
     generic map
     (g_span           => 32,
      g_width          => 32,
-     g_simulation => g_simulation)
+     g_simulation => g_simulation,
+     g_use_dma_readout => g_use_dma_readout,
+     g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
     port map
     -- 62M5 clk and reset
     (clk_sys_i   => clk_sys_i,
      rst_sys_n_i => rst_sys_n_i,
      -- 125M clk and reset
      clk_tdc_i   => clk_125m_mezz,
-     rst_tdc_i   => rst_125m_mezz,
+     rst_tdc_n_i   => rst_125m_mezz_n,
 
      -- Wishbone
      slave_i => cnx_master_out(c_slave_regs),
      slave_o => cnx_master_in(c_slave_regs),
+
+     dma_wb_i => dma_wb_i,
+     dma_wb_o => dma_wb_o,
 
      -- Interrupt line from EIC
      wb_irq_o => irq_o,
@@ -418,12 +428,6 @@ begin
      tdc_led_trig3_o        => tdc_led_trig3_o,
      tdc_led_trig4_o        => tdc_led_trig4_o,
      tdc_led_trig5_o        => tdc_led_trig5_o,
-     -- Input channels to FPGA (not used)
-     tdc_in_fpga_1_i        => tdc_in_fpga_1_i,
-     tdc_in_fpga_2_i        => tdc_in_fpga_2_i,
-     tdc_in_fpga_3_i        => tdc_in_fpga_3_i,
-     tdc_in_fpga_4_i        => tdc_in_fpga_4_i,
-     tdc_in_fpga_5_i        => tdc_in_fpga_5_i,
      -- WISHBONE interface with the GN4124 core
 
      -- White Rabbit
@@ -447,7 +451,11 @@ begin
      -- 1-Wire on TDC mezzanine
      onewire_b              => mezz_one_wire_b,
      direct_timestamp_o     => direct_timestamp,
-     direct_timestamp_stb_o => direct_timestamp_wr);
+     direct_timestamp_stb_o => direct_timestamp_wr,
+
+     sim_timestamp_ready_o => sim_timestamp_ready_o,
+     sim_timestamp_valid_i => sim_timestamp_valid_i,
+     sim_timestamp_i => sim_timestamp_i);
 
 
   mezz_scl_o <= '0' when tdc_scl_out ='0' and tdc_scl_oen = '0' else '1';

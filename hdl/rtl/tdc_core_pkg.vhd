@@ -60,6 +60,29 @@ use work.gencores_pkg.all;
 --=================================================================================================
 package tdc_core_pkg is
 
+
+  type t_raw_acam_timestamp is record
+    slope : std_logic;
+    channel : std_logic_vector(2 downto 0);
+    n_bins : std_logic_vector(16 downto 0);
+    coarse : std_logic_vector(31 downto 0);
+    tai : std_logic_vector(31 downto 0);
+  end record;
+
+  type t_tdc_timestamp is record
+    slope : std_logic;
+    channel : std_logic_vector(2 downto 0);
+    frac : std_logic_vector(11 downto 0);
+    coarse : std_logic_vector(31 downto 0);
+    tai : std_logic_vector(31 downto 0);
+    seq : std_logic_vector(31 downto 0);
+  end record;
+
+  constant c_dummy_timestamp : t_tdc_timestamp :=
+    ( '0', "000", x"000", x"00000000", x"00000000", x"00000000" );
+  
+  type t_tdc_timestamp_array is array(integer range<>) of t_tdc_timestamp;
+  
 ---------------------------------------------------------------------------------------------------
 --                      Constant regarding the Mezzanine DAC configuration                       --
 ---------------------------------------------------------------------------------------------------
@@ -185,6 +208,23 @@ package tdc_core_pkg is
            version   => x"00000001",
            date      => x"20150415",
            name      => "WB-TDC-TsFIFO      ")));
+
+
+    constant c_TDC_DMA_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"00000000000001FF",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000623",         -- "WB-TDC-Mem         " | md5sum | cut -c1-8
+           version   => x"00000001",
+           date      => x"20150415",
+           name      => "WB-TDC-TsDMAEngine ")));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -396,12 +436,6 @@ package tdc_core_pkg is
      tdc_led_trig3_o           : out   std_logic;
      tdc_led_trig4_o           : out   std_logic;
      tdc_led_trig5_o           : out   std_logic;
-     -- Input pulses arriving also to the FPGA, currently not treated
-     tdc_in_fpga_1_i           : in    std_logic;
-     tdc_in_fpga_2_i           : in    std_logic;
-     tdc_in_fpga_3_i           : in    std_logic;
-     tdc_in_fpga_4_i           : in    std_logic;
-     tdc_in_fpga_5_i           : in    std_logic;
      -- White Rabbit core
      wrabbit_link_up_i         : in    std_logic;
      wrabbit_time_valid_i      : in    std_logic;
@@ -470,11 +504,6 @@ package tdc_core_pkg is
       tdc_led_trig3_o        : out   std_logic;
       tdc_led_trig4_o        : out   std_logic;
       tdc_led_trig5_o        : out   std_logic;
-      tdc_in_fpga_1_i        : in    std_logic;
-      tdc_in_fpga_2_i        : in    std_logic;
-      tdc_in_fpga_3_i        : in    std_logic;
-      tdc_in_fpga_4_i        : in    std_logic;
-      tdc_in_fpga_5_i        : in    std_logic;
       wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
       wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
       wrabbit_synched_i      : in    std_logic;
@@ -482,7 +511,7 @@ package tdc_core_pkg is
       wrabbit_tai_i          : in    std_logic_vector(31 downto 0);
       cfg_slave_i            : in    t_wishbone_slave_in;
       cfg_slave_o            : out   t_wishbone_slave_out;
-      timestamp_o            : out   std_logic_vector(127 downto 0);
+      timestamp_o            : out   t_tdc_timestamp;
       timestamp_stb_o        : out   std_logic;
       channel_enable_o       : out   std_logic_vector(4 downto 0);
       irq_threshold_o        : out   std_logic_vector(9 downto 0);
@@ -910,11 +939,6 @@ package tdc_core_pkg is
       tdc_led_trig3_o      : out   std_logic;
       tdc_led_trig4_o      : out   std_logic;
       tdc_led_trig5_o      : out   std_logic;
-      tdc_in_fpga_1_i      : in    std_logic;
-      tdc_in_fpga_2_i      : in    std_logic;
-      tdc_in_fpga_3_i      : in    std_logic;
-      tdc_in_fpga_4_i      : in    std_logic;
-      tdc_in_fpga_5_i      : in    std_logic;
       mezz_scl_o           : out std_logic;
       mezz_sda_o           : out std_logic;
       mezz_scl_i           : in std_logic;
@@ -936,6 +960,7 @@ package tdc_core_pkg is
       irq_o                : out   std_logic;
       clk_125m_tdc_o       : out   std_logic);
   end component fmc_tdc_wrapper;
+  
 
   function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector;
   

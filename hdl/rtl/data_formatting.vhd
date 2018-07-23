@@ -62,7 +62,7 @@
 -- Standard library
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;            -- std_logic definitions
-use IEEE.NUMERIC_STD.all;  -- conversion functions-- Specific library
+use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
@@ -101,7 +101,7 @@ entity data_formatting is
 
      -- OUTPUTS
 
-     timestamp_o       : out std_logic_vector(127 downto 0);
+     timestamp_o       : out t_raw_acam_timestamp;
      timestamp_valid_o : out std_logic
 
      );
@@ -137,7 +137,7 @@ architecture rtl of data_formatting is
   signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
   signal un_acam_fine_time                                    : unsigned(31 downto 0);
   signal previous_utc                                         : std_logic_vector(31 downto 0);
-  signal timestamp_valid_int : std_logic;
+  signal timestamp_valid_int                                  : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
@@ -335,14 +335,24 @@ begin
   full_timestamp(127 downto 96) <= metadata;
 
 
+
+
   process(clk_i)
   begin
     if rising_edge(clk_i) then
-      timestamp_o <= full_timestamp;
-      timestamp_valid_o <= timestamp_valid_int;
+      if(timestamp_valid_int = '1') then
+        timestamp_o.slope   <= acam_slope;
+        timestamp_o.channel <= acam_channel;
+        timestamp_o.n_bins  <= fine_time(16 downto 0);
+        timestamp_o.coarse  <= coarse_time;
+        timestamp_o.tai     <= utc;
+        timestamp_valid_o   <= '1';
+      else
+        timestamp_valid_o <= '0';
       end if;
+    end if;
   end process;
-  
+
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends
