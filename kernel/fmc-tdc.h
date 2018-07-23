@@ -73,6 +73,8 @@ enum ft_command {
 #include <linux/version.h>
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
+#define TDC_BYTES_PER_TIMESTAMP       16
+#define TDC_CHANNEL_BUFFER_SIZE_BYTES 0x1000000 // 16MB
 
 enum ft_channel_flags {
 	FT_FLAG_CH_TERMINATED = 0,
@@ -100,9 +102,9 @@ struct ft_calibration {		/* All of these are big endian in the EEPROM */
 
 /* Hardware TDC timestamp */
 struct ft_hw_timestamp {
-	uint32_t bins;		/* In ACAM bins (81 ps) */
-	uint32_t coarse;	/* 8 ns resolution */
 	uint32_t utc;		/* 1 second resolution */
+	uint32_t coarse;	/* 8 ns resolution */
+	uint32_t frac;		/* In ACAM bins (81 ps) */
 	uint32_t metadata;	/* channel, polarity, etc. */
 } __packed;
 
@@ -119,16 +121,18 @@ struct ft_wr_timestamp {
 
 struct ft_channel_state {
 	unsigned long flags;
-	int expected_edge;
 	int cur_seq_id;
 	int delay_reference;
 
 	int32_t user_offset;
 
-	struct ft_wr_timestamp prev_ts; /**< used to validate time-stamps
-					   from HW */
 	struct ft_wr_timestamp last_ts; /**< used to compute delay
 					   between pulses */
+					   
+		
+	int active_buffer;			   
+	uint32_t buf_addr[2];
+	uint32_t buf_size; // in timestamps
 };
 
 /* Main TDC device context */
@@ -160,6 +164,8 @@ struct fmctdc_dev {
 	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
+	void *dmabuf_virt;
+	uint64_t dmabuf_phys;
 
 	uint64_t sequence; /**< Board time-stamp sequence number */
 };
@@ -235,6 +241,9 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
 signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
 				     uint32_t did, int *ordinal,
 				     uint32_t *size );
+
+void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
+
 
 #endif // __KERNEL__
 

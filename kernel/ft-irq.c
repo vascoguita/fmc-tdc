@@ -30,6 +30,116 @@
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
+static void start_readout( struct fmctdc_dev *ft, int channel )
+{
+    struct ft_channel_state *st = &ft->channels[channel - 1];
+
+    uint32_t base = ft->ft_buffer_base + (channel - 1) * 0x40;
+
+    // we have two buffers in the hardware: the current one and the 'next' one. From the point of view
+    // of this interrupt handler, the current one is to be read out and switched to the 'next' buffer.,
+    uint32_t base_cur = st->buf_addr[st->active_buffer];
+    uint32_t base_next = st->buf_addr[1 - st->active_buffer];
+    
+    // ugly hack to check if readout is correct
+    struct ft_hw_timestamp *dma_buf = kmalloc(4096, GFP_ATOMIC);
+
+    // after the readout, the next buffer will be the one we've just read
+    st->active_buffer = 1 - st->active_buffer;
+
+
+    // stop acquisition to the 'current' buffer and switch to the 'next' buffer. Note that
+    // this handler assumes the TDC_BUF_REG_NEXT contain valid buffer address/size.
+    uint32_t csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
+    fmc_writel(ft->fmc, csr | TDC_BUF_CSR_SWITCH_BUFFERS, base + TDC_BUF_REG_CSR);
+
+    csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
+    
+    // wait until all pending DDR memory transactions from the active buffer are committed to the memory.
+    // this is almost instant (e.g. < 1us), but we never know with the PCs going ever faster
+    while (! (csr & TDC_BUF_CSR_DONE) )
+    {
+	csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
+    }
+
+    // clear CSR.DONE flag (write 1)
+    fmc_writel(ft->fmc, csr | TDC_BUF_CSR_DONE, base + TDC_BUF_REG_CSR);
+
+    // read the number of the timetamps in the current buffer
+    uint32_t count = fmc_readl(ft->fmc,  base + TDC_BUF_REG_CUR_COUNT);
+
+    // update the pointer to the next buffer
+    fmc_writel(ft->fmc, base_cur, base + TDC_BUF_REG_NEXT_BASE );
+    fmc_writel(ft->fmc, st->buf_size | TDC_BUF_NEXT_SIZE_VALID, base + TDC_BUF_REG_NEXT_SIZE );
+
+    // now we DMA the data. use a workqueue or something, the DMA call below is blocking and is there just to validate
+    // the bitstream
+    const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
+
+    while(count > 0)
+    {
+	int i, n = (count > ts_per_page ? ts_per_page : count);
+
+	printk("dma_read: %x %p %d\n", base_cur, dma_buf, n * TDC_BYTES_PER_TIMESTAMP );
+
+	gn4124_dma_read(ft, base_cur, dma_buf, n * TDC_BYTES_PER_TIMESTAMP );
+
+//	gn4124_dma_read(ft->fmc, 0, dma_buf, 16 );
+
+	for(i=0;i<n;i++)
+	    printk("Ts %x %x %x %x\n", dma_buf[i].utc, dma_buf[i].coarse, dma_buf[i].frac, dma_buf[i].metadata);
+
+	base_cur += n * TDC_BYTES_PER_TIMESTAMP;
+        count-=n;
+    }
+    kfree(dma_buf);
+}
+
+static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
+{
+
+    return IRQ_HANDLED;
+}
+
+
+// Interrupt handler called when the active buffer has some timestamps (at least one) and the IRQ timeout has expired (default= 10ms, set 
+// in the TDC_BUF_CSR register).
+
+static irqreturn_t ft_irq_handler_dma(int irq, void *dev_id)
+{
+	struct fmc_device *fmc = dev_id;
+	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
+	struct zio_cset *cset;
+	int i;
+
+	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
+
+	if (!irq_stat)
+		return IRQ_NONE;
+
+	printk( "pending IRQ 0x%x\n", irq_stat);
+
+        for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
+    	    if( ! (irq_stat & (1<<(i-1))) )
+    		continue;
+
+	    // trigger readout from the channel that has some data
+      	    start_readout(ft, i);
+
+	    // clear the interrupt
+	    fmc_writel(ft->fmc, 1 << (i-1),
+	    ft->ft_irq_base + TDC_REG_EIC_ISR);
+
+        }
+
+
+	/* Ack the FMC signal, we have finished */
+	fmc_irq_ack(fmc);
+	
+	return IRQ_HANDLED;
+}
+
 
 static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 {
@@ -106,8 +216,7 @@ static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
  */
 static inline int process_timestamp(struct zio_cset *cset,
 				    struct ft_hw_timestamp *hwts,
-				    struct ft_wr_timestamp *wrts,
-				    int dacapo_flag)
+				    struct ft_wr_timestamp *wrts)
 {
 	struct zio_device *zdev = cset->zdev;
 	struct fmctdc_dev *ft = zdev->priv_d;
@@ -118,8 +227,8 @@ static inline int process_timestamp(struct zio_cset *cset,
 
 	st = &ft->channels[cset->index];
 
-	dev_vdbg(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
-		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->bins);
+	printk( "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
+		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->frac);
 	channel = (hwts->metadata & 0x7);
 	/* channel from 1 to 5, cset is from 0 to 4 */
 	if (channel != cset->index) {
@@ -128,89 +237,23 @@ static inline int process_timestamp(struct zio_cset *cset,
 			channel, cset->index);
 		return 0;
 	}
-	edge = hwts->metadata & (1 << 4) ? 1 : 0;
 
-	/* first, convert the timestamp from the HDL units (81 ps bins)
-	   to the WR format (where fractional part is 8 ns rescaled to
-	   4096 units) */
 	ts.channel = channel + 1; /* We want to see channels starting from 1*/
 	ts.seconds = hwts->utc;
-	/* 64/125 = 4096/8000: reduce fraction to avoid 64-bit division */
-	frac = hwts->bins * 81 * 64 / 125;
+	ts.coarse = hwts->coarse;
+	ts.frac = hwts->frac;
 
-	ts.coarse = hwts->coarse + frac / 4096;
-	ts.frac = frac % 4096;
+	ft_ts_apply_offset(&ts, ft->calib.zero_offset[channel - 1]);
 
-	/* the addition above may result with the coarse counter going
-	   out of range: */
-	if (unlikely(ts.coarse >= 125000000)) {
-		ts.coarse -= 125000000;
-		ts.seconds++;
-	}
+	ft_ts_apply_offset(&ts, -ft->calib.wr_offset);
+	if (st->user_offset)
+		ft_ts_apply_offset(&ts, st->user_offset);
 
-	/* A trivial state machine to remove glitches, react on rising edge only
-	   and drop pulses that are narrower than 100 ns.
+	ts.gseq_id = ft->sequence++;
+	ts.hseq_id = hwts->metadata >> 5;
 
-	   We are waiting for a falling edge,
-	   but a rising one occurs - ignore it.
-	 */
-	if (unlikely(edge != st->expected_edge)) {
-		/* wait unconditionally for next rising edge */
-		st->expected_edge = 1;
-		return 0;
-	}
-
-
-	/* From this point we are working with the expected EDGE */
-
-	if (st->expected_edge == 1) {
-		/* We received a raising edge, save the time stamp and
-		   wait for the falling edge */
-		st->prev_ts = ts;
-		st->expected_edge = 0;
-		return 0;
-	}
-
-
-	/* got a falling edge after a rising one */
-	diff = ts;
-	ft_ts_sub(&diff, &st->prev_ts);
-
-	/* Check timestamp width. Must be at least 100 ns
-	   (coarse = 12, frac = 2048) */
-	if (likely(diff.seconds || diff.coarse > 12
-	     || (diff.coarse == 12 && diff.frac >= 2048))) {
-		ts = st->prev_ts;
-		ft_ts_apply_offset(&ts, ft->calib.zero_offset[channel - 1]);
-
-		ft_ts_apply_offset(&ts, -ft->calib.wr_offset);
-		if (st->user_offset)
-			ft_ts_apply_offset(&ts, st->user_offset);
-
-		ts.gseq_id = ft->sequence++;
-		/* Got a dacapo flag? make a gap in the sequence ID to indicate
-		   an unknown loss of timestamps */
-
-		ts.dseq_id = st->cur_seq_id++;
-		if (dacapo_flag) {
-			ts.dseq_id++;
-			st->cur_seq_id++;
-		}
-
-		ts.hseq_id = hwts->metadata >> 5;
-
-		/* Return a valid timestamp */
-		*wrts = ts;
-		ret = 1;
-	}
-
-	/* Wait for the next raising edge */
-	st->expected_edge = 1;
-
-	dev_vdbg(&cset->head.dev,
-		 "processed TS: ch %d: hseq_id %u:  dseq %u: gseq %llu %llu %u %u\n",
-		 wrts->channel, wrts->hseq_id, wrts->dseq_id, wrts->gseq_id,
-		 wrts->seconds, wrts->coarse, wrts->frac);
+	*wrts = ts;
+	ret = 1;
 
 	return ret;
 }
@@ -250,11 +293,11 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 {
 	struct ft_hw_timestamp hwts;
 	struct ft_wr_timestamp wrts;
-	int ret, dacapo = 0; 	/* FIXME dacapo flag */
+	int ret;
 
 	ft_timestap_get(cset, &hwts, 0);
 
-	ret = process_timestamp(cset, &hwts, &wrts, dacapo);
+	ret = process_timestamp(cset, &hwts, &wrts);
 	if (!ret)
 		return; /* Nothing to do, is not the right pulse */
 
@@ -272,7 +315,7 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 /**
  * An interrupt is ready, get time stamps from the FIFOs
  */
-static irqreturn_t ft_irq_handler(int irq, void *dev_id)
+static irqreturn_t ft_irq_handler_fifo(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
@@ -327,11 +370,13 @@ irq:
 }
 
 
+
 int ft_irq_init(struct fmctdc_dev *ft)
 {
 	int ret;
 
 	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
+	// fixme : only applicable to FIFO readout
 	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
 	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
 
@@ -342,7 +387,16 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	/* fixme: vector table points to the bridge instead of
 	   the core's base address */
 	ft->fmc->irq = ft->ft_irq_base;
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler, "fmc-tdc", 0);
+
+// fixme: FIFO irq handler for FIFO mode readout, DMA for DMA...
+//	ret = fmc_irq_request(ft->fmc, ft_irq_handler_fifo, "fmc-tdc", 0);
+
+	// buffer full interrupt
+	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma, "fmc-tdc", 0);
+
+	// DMA completion interrupt (from the GN4124 core), like in the FMCAdc design
+	/* ft->fmc->irq = ft->ft_irq_base + 1; */
+	/* ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete, "fmc-tdc-dma", 0); */
 
 	if (ret < 0) {
 		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);

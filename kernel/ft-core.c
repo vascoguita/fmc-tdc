@@ -73,9 +73,6 @@ static int ft_reset_core(struct fmctdc_dev *ft)
 
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
-	struct ft_channel_state *st = &ft->channels[channel - 1];
-
-	st->expected_edge = 1;
 	return 0;
 }
 
@@ -107,12 +104,58 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 	return 0;
 }
 
+
+static void configure_buffer(struct fmctdc_dev *ft, int channel)
+{
+	const int ddr_burst_size = 16;
+	const int irq_timeout_ms = 10;
+	const uint32_t base = ft->ft_buffer_base + (0x40 * (channel-1) );
+	
+	struct ft_channel_state *st;
+	st = &ft->channels[channel - 1];
+	
+	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * (channel - 1));
+	st->buf_addr[1] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * (channel - 1) + 1);
+	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / TDC_BYTES_PER_TIMESTAMP;
+	st->active_buffer = 0;
+		
+	printk("Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n", channel, base, st->buf_addr[0], st->buf_addr[1], st->buf_size );	
+
+	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_CSR);
+	
+	fmc_writel(ft->fmc, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE );
+	fmc_writel(ft->fmc, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE );
+	fmc_writel(ft->fmc, (st->buf_size << TDC_BUF_CUR_SIZE_SIZE_SHIFT) | TDC_BUF_CUR_SIZE_VALID, base + TDC_BUF_REG_CUR_SIZE );
+	fmc_writel(ft->fmc, (st->buf_size << TDC_BUF_NEXT_SIZE_SIZE_SHIFT) | TDC_BUF_NEXT_SIZE_VALID, base + TDC_BUF_REG_NEXT_SIZE );
+	fmc_writel(ft->fmc, TDC_BUF_CSR_ENABLE | (ddr_burst_size << TDC_BUF_CSR_BURST_SIZE_SHIFT) | (irq_timeout_ms << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT), base + TDC_BUF_REG_CSR);
+	      
+
+	printk("CSR: %08x\n", fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR));
+}
+
+static void unconfigure_buffer(struct fmctdc_dev *ft, int channel)
+{
+	const uint32_t base = ft->ft_buffer_base + (0x40 * (channel-1) );
+
+	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_CUR_SIZE );
+	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_NEXT_SIZE );
+	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_CSR);
+}
+
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 {
 	uint32_t ien;
+	int i;
+
 
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (enable) {
+		for(i=FT_CH_1;i<=FT_NUM_CHANNELS;i++)
+		{
+		    configure_buffer( ft, i);
+		}
+		
+		
 		/* Enable TDC acquisition */
 		ft_writel(ft, ien | TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG,
 			  TDC_REG_INPUT_ENABLE);
@@ -124,6 +167,12 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 		/* Disable TDC acquisition */
 		ft_writel(ft, ien & ~(TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG),
 			  TDC_REG_INPUT_ENABLE);
+
+		for(i=FT_CH_1;i<=FT_NUM_CHANNELS;i++)
+		{
+		    unconfigure_buffer( ft, i);
+		}
+
 	}
 }
 
@@ -161,6 +210,73 @@ static struct ft_modlist init_subsystems[] = {
 	{"channels", ft_channels_init, ft_channels_exit},
 	{"zio", ft_zio_init, ft_zio_exit}
 };
+
+
+static uint32_t dma_readl(struct fmc_device *fmc, uint32_t reg)
+{
+    return fmc_readl(fmc, TDC_SPEC_DMA_BASE + reg);
+    return 0;
+}
+
+static void dma_writel(struct fmc_device *fmc, uint32_t data, uint32_t reg)
+{
+//    printk("dma_writel %x %x\n", data, TDC_SPEC_DMA_BASE + reg );
+    fmc_writel(fmc, data, TDC_SPEC_DMA_BASE + reg);
+}
+
+void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
+{
+    memcpy(ft->dmabuf_virt, src, len);    
+
+    dma_writel(ft->fmc, dst, GENNUM_DMA_ADDR);
+    dma_writel(ft->fmc, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
+    dma_writel(ft->fmc, ft->dmabuf_phys & 0xffffffffULL, GENNUM_DMA_ADDR_L);
+    dma_writel(ft->fmc, len,  GENNUM_DMA_LEN);
+    dma_writel(ft->fmc, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR,  GENNUM_DMA_ATTR);
+    dma_writel(ft->fmc, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+    
+    while ( ! (dma_readl(ft->fmc, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE ) );
+}
+
+void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
+{
+    dma_writel(ft->fmc, src, GENNUM_DMA_ADDR);
+    dma_writel(ft->fmc, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
+    dma_writel(ft->fmc, ft->dmabuf_phys & 0xffffffffULL, GENNUM_DMA_ADDR_L);
+    dma_writel(ft->fmc, len,  GENNUM_DMA_LEN);
+    dma_writel(ft->fmc, GENNUM_DMA_ATTR_LAST,  GENNUM_DMA_ATTR);
+    dma_writel(ft->fmc, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+
+    while ( ! (dma_readl(ft->fmc, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE ) );
+
+    memcpy(dst, ft->dmabuf_virt, len);
+}
+
+#if 1
+void test_dma(struct fmctdc_dev *ft)
+{
+    printk("Test DMA\n");
+    printk("R0 = %08x R4 = %08x\n", dma_readl(ft->fmc, 0), dma_readl(ft->fmc, 4));
+    const int buf_size = 16;
+    uint8_t buf1[buf_size], buf2[buf_size];
+    int i;
+
+//    mdelay(5000);
+    
+    for(i=0;i<buf_size;i++)
+    {
+	buf1[i] = i * 31011 + 12312;
+	buf2[i] = 0xff;
+    }
+
+    gn4124_dma_write(ft, 0, buf1, 16);
+    gn4124_dma_read(ft, 0, buf2, 16);
+
+    for(i=0;i<buf_size;i++)
+	printk("%02x %02x ", buf1[i], buf2[i]);
+    printk("\n");
+}
+#endif
 
 /* probe and remove are called by the FMC bus core */
 int ft_probe(struct fmc_device *fmc)
@@ -280,10 +396,18 @@ int ft_probe(struct fmc_device *fmc)
 	ft->initialized = 1;
 	ft->sequence = 0;
 
+	ft->dmabuf_virt = __vmalloc(PAGE_SIZE, GFP_KERNEL | __GFP_ZERO, PAGE_KERNEL);
+    	ft->dmabuf_phys = page_to_pfn(vmalloc_to_page(ft->dmabuf_virt)) * PAGE_SIZE;
+
+	test_dma(ft);
+
 	/* Pin the carrier */
 	if (!try_module_get(fmc->owner))
 		goto out_mod;
 
+
+
+	
 	return 0;
 
 out_mod:
@@ -304,6 +428,8 @@ int ft_remove(struct fmc_device *fmc)
 
 	if (!ft->initialized)
 		return 0;	/* No init, no exit */
+
+	vfree(ft->dmabuf_virt);
 
 	ft_enable_acquisition(ft, 0);
 	ft_irq_exit(ft);

@@ -11,6 +11,10 @@
 
 #ifndef __TDC_REGISTERS_H
 #define __TDC_REGISTERS_H
+
+#include <hw/gennum-dma.h>
+#include <hw/tdc_buffer_control_regs.h>
+
 /* Gennum chip register */
 
 #define TDC_REG_ACAM_READBACK(index)  (0x0040 + (index * 4))
@@ -105,24 +109,9 @@
 #define TDC_CARRIER_CTL1_RSTN_FMC0 	 BIT(3)
 #define TDC_CARRIER_CTL1_RSTN_FMC1 	 BIT(4)
 
-/* Gennum DMA registers (not defined in the SPEC driver headers) */
-#define TDC_REG_DMA_CTRL 0x0
-#define TDC_REG_DMA_STAT 0x4
-#define TDC_REG_DMA_C_START 0x8
-#define TDC_REG_DMA_H_START_L 0x0c
-#define TDC_REG_DMA_H_START_H 0x10
-#define TDC_REG_DMA_NEXT_L 0x18
-#define TDC_REG_DMA_NEXT_H 0x1c
-#define TDC_REG_DMA_LEN 0x14
-#define TDC_REG_DMA_ATTRIB 0x20
-
-/* TDC_REG_DMA_STAT bits */
-#define TDC_DMA_STAT_MASK 0x7
-#define TDC_DMA_STAT_DONE 0x1
-#define TDC_DMA_STAT_ERROR 0x3
-
 #define TDC_SVEC_CARRIER_BASE           0x1000
 #define TDC_SPEC_CARRIER_BASE           0x20000
+#define TDC_SPEC_DMA_BASE           0x50000
 
 /* TDC core submodule offsets (wrs to the TDC control registers block) */
 
@@ -130,6 +119,7 @@
 #define TDC_MEZZ_EIC_OFFSET	(0x1000)
 #define TDC_MEZZ_I2C_OFFSET	(0x2000)
 #define TDC_MEZZ_MEM_OFFSET	(0x3000)
+#define TDC_MEZZ_BUFFER_CTL_OFFSET	(0x3000)
 
 
 #endif /* __TDC_REGISTERS_H */
