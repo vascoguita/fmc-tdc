@@ -1,3 +1,5 @@
-modules = {"local": [
-	    "hdl/rtl",
-	    "hdl/top/spec"] };
+modules = {
+    "local" : [
+        "hdl/rtl",
+    ],
+}
