@@ -30,81 +30,99 @@
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
-static void start_readout( struct fmctdc_dev *ft, int channel )
+static void start_readout(struct fmctdc_dev *ft, int channel)
 {
-    struct ft_channel_state *st = &ft->channels[channel - 1];
+	struct ft_channel_state *st = &ft->channels[channel - 1];
+	uint32_t base_cur, base_next, csr, count;
+	uint32_t base = ft->ft_buffer_base + (channel - 1) * 0x40;
+	struct ft_hw_timestamp *dma_buf;
+	const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
 
-    uint32_t base = ft->ft_buffer_base + (channel - 1) * 0x40;
+	/*
+	 * we have two buffers in the hardware: the current one and the 'next'
+	 * one. From the point of view of this interrupt handler, the current
+	 * one is to be read out and switched to the 'next' buffer.,
+	 */
+	base_cur = st->buf_addr[st->active_buffer];
+	base_next = st->buf_addr[1 - st->active_buffer];
 
-    // we have two buffers in the hardware: the current one and the 'next' one. From the point of view
-    // of this interrupt handler, the current one is to be read out and switched to the 'next' buffer.,
-    uint32_t base_cur = st->buf_addr[st->active_buffer];
-    uint32_t base_next = st->buf_addr[1 - st->active_buffer];
-    
-    // ugly hack to check if readout is correct
-    struct ft_hw_timestamp *dma_buf = kmalloc(4096, GFP_ATOMIC);
+	/* ugly hack to check if readout is correct */
+	dma_buf = kmalloc(4096, GFP_ATOMIC);
 
-    // after the readout, the next buffer will be the one we've just read
-    st->active_buffer = 1 - st->active_buffer;
+	// after the readout, the next buffer will be the one we've just read
+	st->active_buffer = 1 - st->active_buffer;
 
 
-    // stop acquisition to the 'current' buffer and switch to the 'next' buffer. Note that
-    // this handler assumes the TDC_BUF_REG_NEXT contain valid buffer address/size.
-    uint32_t csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
-    fmc_writel(ft->fmc, csr | TDC_BUF_CSR_SWITCH_BUFFERS, base + TDC_BUF_REG_CSR);
-
-    csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
-    
-    // wait until all pending DDR memory transactions from the active buffer are committed to the memory.
-    // this is almost instant (e.g. < 1us), but we never know with the PCs going ever faster
-    while (! (csr & TDC_BUF_CSR_DONE) )
-    {
+	/*
+	 * stop acquisition to the 'current' buffer and switch to the 'next'
+	 * buffer. Note that this handler assumes the TDC_BUF_REG_NEXT contain
+	 * valid buffer address/size.
+	 */
 	csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
-    }
+	fmc_writel(ft->fmc, csr | TDC_BUF_CSR_SWITCH_BUFFERS,
+		   base + TDC_BUF_REG_CSR);
 
-    // clear CSR.DONE flag (write 1)
-    fmc_writel(ft->fmc, csr | TDC_BUF_CSR_DONE, base + TDC_BUF_REG_CSR);
+	csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
 
-    // read the number of the timetamps in the current buffer
-    uint32_t count = fmc_readl(ft->fmc,  base + TDC_BUF_REG_CUR_COUNT);
+	/*
+	 * wait until all pending DDR memory transactions from the active
+	 * buffer are committed to the memory.
+	 * this is almost instant (e.g. < 1us), but we never know with
+	 * the PCs going ever faster
+	 */
+	while (!(csr & TDC_BUF_CSR_DONE))
+		csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
 
-    // update the pointer to the next buffer
-    fmc_writel(ft->fmc, base_cur, base + TDC_BUF_REG_NEXT_BASE );
-    fmc_writel(ft->fmc, st->buf_size | TDC_BUF_NEXT_SIZE_VALID, base + TDC_BUF_REG_NEXT_SIZE );
+	/* clear CSR.DONE flag (write 1) */
+	fmc_writel(ft->fmc, csr | TDC_BUF_CSR_DONE, base + TDC_BUF_REG_CSR);
 
-    // now we DMA the data. use a workqueue or something, the DMA call below is blocking and is there just to validate
-    // the bitstream
-    const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
+	/* read the number of the timetamps in the current buffer */
+	count = fmc_readl(ft->fmc,  base + TDC_BUF_REG_CUR_COUNT);
 
-    while(count > 0)
-    {
-	int i, n = (count > ts_per_page ? ts_per_page : count);
+	/* update the pointer to the next buffer */
+	fmc_writel(ft->fmc, base_cur, base + TDC_BUF_REG_NEXT_BASE);
+	fmc_writel(ft->fmc, st->buf_size | TDC_BUF_NEXT_SIZE_VALID,
+		   base + TDC_BUF_REG_NEXT_SIZE);
 
-	printk("dma_read: %x %p %d\n", base_cur, dma_buf, n * TDC_BYTES_PER_TIMESTAMP );
+	/*
+	 * now we DMA the data. use a workqueue or something, the DMA call
+	 * below is blocking and is there just to validate the bitstream
+	 */
+	while (count > 0) {
+		int i, n = (count > ts_per_page ? ts_per_page : count);
 
-	gn4124_dma_read(ft, base_cur, dma_buf, n * TDC_BYTES_PER_TIMESTAMP );
+		dev_info(&ft->fmc->dev, "dma_read: %x %p %d\n",
+			 base_cur, dma_buf,
+			 n * TDC_BYTES_PER_TIMESTAMP);
 
-//	gn4124_dma_read(ft->fmc, 0, dma_buf, 16 );
+		gn4124_dma_read(ft, base_cur, dma_buf,
+				n * TDC_BYTES_PER_TIMESTAMP);
 
-	for(i=0;i<n;i++)
-	    printk("Ts %x %x %x %x\n", dma_buf[i].utc, dma_buf[i].coarse, dma_buf[i].frac, dma_buf[i].metadata);
+		/* gn4124_dma_read(ft->fmc, 0, dma_buf, 16); */
 
-	base_cur += n * TDC_BYTES_PER_TIMESTAMP;
-        count-=n;
-    }
-    kfree(dma_buf);
+		for (i = 0; i < n; i++)
+			dev_info(&ft->fmc->dev, "Ts %x %x %x %x\n",
+			       dma_buf[i].utc, dma_buf[i].coarse,
+				 dma_buf[i].frac, dma_buf[i].metadata);
+
+		base_cur += n * TDC_BYTES_PER_TIMESTAMP;
+		count -= n;
+	}
+	kfree(dma_buf);
 }
 
 static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 {
 
-    return IRQ_HANDLED;
+	return IRQ_HANDLED;
 }
 
 
-// Interrupt handler called when the active buffer has some timestamps (at least one) and the IRQ timeout has expired (default= 10ms, set 
-// in the TDC_BUF_CSR register).
-
+/*
+ * Interrupt handler called when the active buffer has some timestamps
+ * (at least one) and the IRQ timeout has expired (default= 10ms, set
+ * in the TDC_BUF_CSR register).
+ */
 static irqreturn_t ft_irq_handler_dma(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
@@ -118,25 +136,24 @@ static irqreturn_t ft_irq_handler_dma(int irq, void *dev_id)
 	if (!irq_stat)
 		return IRQ_NONE;
 
-	printk( "pending IRQ 0x%x\n", irq_stat);
+	dev_info(&fmc->dev, "pending IRQ 0x%x\n", irq_stat);
 
-        for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
-    	    if( ! (irq_stat & (1<<(i-1))) )
-    		continue;
+	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
+		if (!(irq_stat & (1 << (i - 1))))
+			continue;
 
-	    // trigger readout from the channel that has some data
-      	    start_readout(ft, i);
+		/* trigger readout from the channel that has some data */
+		start_readout(ft, i);
 
-	    // clear the interrupt
-	    fmc_writel(ft->fmc, 1 << (i-1),
-	    ft->ft_irq_base + TDC_REG_EIC_ISR);
+		/* clear the interrupt */
+		fmc_writel(ft->fmc, 1 << (i-1),
+			   ft->ft_irq_base + TDC_REG_EIC_ISR);
 
-        }
-
+	}
 
 	/* Ack the FMC signal, we have finished */
 	fmc_irq_ack(fmc);
-	
+
 	return IRQ_HANDLED;
 }
 
@@ -161,8 +178,10 @@ static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 	ctrl = cset->chan->current_ctrl;
 	v = ctrl->attr_channel.ext_val;
 
-	/* Update last time stamp of the current channel,
-	   with the current time-stamp */
+	/*
+	 * Update last time stamp of the current channel, with the current
+	 * time-stamp
+	 */
 	memcpy(&st->last_ts, &ts, sizeof(struct ft_wr_timestamp));
 
 	/*
@@ -179,7 +198,7 @@ static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 			 * It seems that we are not able to compute the delay.
 			 * Inform the user by setting the time stamp to 0
 			 */
-			memset(&ts, 0 , sizeof(struct ft_wr_timestamp));
+			memset(&ts, 0, sizeof(struct ft_wr_timestamp));
 		}
 	} else {
 		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.gseq_id;
@@ -227,7 +246,7 @@ static inline int process_timestamp(struct zio_cset *cset,
 
 	st = &ft->channels[cset->index];
 
-	printk( "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
+	dev_info(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
 		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->frac);
 	channel = (hwts->metadata & 0x7);
 	/* channel from 1 to 5, cset is from 0 to 4 */
@@ -330,11 +349,12 @@ static irqreturn_t ft_irq_handler_fifo(int irq, void *dev_id)
 irq:
 	dev_vdbg(&ft->fmc->dev, "pending IRQ 0x%x\n", irq_stat);
 	/*
-	 * Go through all FIFOs and read data. Democracy is a complicated thing,
-	 * the following loops is a democratic loop, so it goes trough all
-	 * channels without any priority. This avoid to be late to read the last
-	 * channel on high frequency where the risk is to have an oligarchy
-	 * where the first and second channel are read, but not the others.
+	 * Go through all FIFOs and read data. Democracy is a complicated
+	 * thing, the following loops is a democratic loop, so it goes trough
+	 * all channels without any priority. This avoid to be late to read
+	 * the last channel on high frequency where the risk is to have an
+	 * oligarchy where the first and second channel are read, but not the
+	 * others.
 	 */
 	tmp_irq_stat = 0xFF;
 	do {
@@ -376,28 +396,34 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	int ret;
 
 	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
-	// fixme : only applicable to FIFO readout
+	/* fixme : only applicable to FIFO readout */
 	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
 	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
 
 	/* disable timestamp readout IRQ, user will enable it manually */
 	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
 
-	/* pass the core's base addr as the VIC IRQ vector. */
-	/* fixme: vector table points to the bridge instead of
-	   the core's base address */
+	/*
+	 * pass the core's base addr as the VIC IRQ vector.
+	 * fixme: vector table points to the bridge instead of the core's
+	 * base address
+	 */
 	ft->fmc->irq = ft->ft_irq_base;
 
 // fixme: FIFO irq handler for FIFO mode readout, DMA for DMA...
 //	ret = fmc_irq_request(ft->fmc, ft_irq_handler_fifo, "fmc-tdc", 0);
 
-	// buffer full interrupt
+	/* buffer full interrupt */
 	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma, "fmc-tdc", 0);
-
-	// DMA completion interrupt (from the GN4124 core), like in the FMCAdc design
-	/* ft->fmc->irq = ft->ft_irq_base + 1; */
-	/* ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete, "fmc-tdc-dma", 0); */
-
+#if 0
+	/*
+	 * DMA completion interrupt (from the GN4124 core), like in
+	 * the FMCAdc design
+	 */
+	ft->fmc->irq = ft->ft_irq_base + 1;
+	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
+			      "fmc-tdc-dma", 0);
+#endif
 	if (ret < 0) {
 		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);
 		return ret;
