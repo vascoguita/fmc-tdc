@@ -400,31 +400,44 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	/* disable timestamp readout IRQ, user will enable it manually */
 	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
 
-	/*
-	 * pass the core's base addr as the VIC IRQ vector.
-	 * fixme: vector table points to the bridge instead of the core's
-	 * base address
-	 */
-	ft->fmc->irq = ft->ft_irq_base;
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		ft->fmc->irq = ft->ft_irq_base;
+		ret = fmc_irq_request(ft->fmc, ft_irq_handler_fifo,
+				      "fmc-tdc", 0);
+		if (ret < 0) {
+			dev_err(&ft->fmc->dev,
+				"Request interrupt failed: %d\n",
+				ret);
+			return ret;
+		}
 
-// fixme: FIFO irq handler for FIFO mode readout, DMA for DMA...
-//	ret = fmc_irq_request(ft->fmc, ft_irq_handler_fifo, "fmc-tdc", 0);
+		break;
 
-	/* buffer full interrupt */
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma, "fmc-tdc", 0);
+	case FT_ACQ_TYPE_DMA:
+		ft->fmc->irq = ft->ft_irq_base;
+		ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma, "fmc-tdc", 0);
+		if (ret < 0) {
+			dev_err(&ft->fmc->dev,
+				"Request interrupt failed: %d\n",
+				ret);
+			return ret;
+		}
 #if 0
-	/*
-	 * DMA completion interrupt (from the GN4124 core), like in
-	 * the FMCAdc design
-	 */
-	ft->fmc->irq = ft->ft_irq_base + 1;
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
-			      "fmc-tdc-dma", 0);
+		/*
+		 * DMA completion interrupt (from the GN4124 core), like in
+		 * the FMCAdc design
+		 */
+		ft->fmc->irq = ft->ft_irq_base + 1;
+		ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
+				      "fmc-tdc-dma", 0);
 #endif
-	if (ret < 0) {
-		dev_err(&ft->fmc->dev, "Request interrupt failed: %d\n", ret);
-		return ret;
+		break;
+	default:
+		WARN(1, "Uknonw acquisition type\n");
+		break;
 	}
+
 
 	/* kick off the interrupts (fixme: possible issue with the HDL) */
 	fmc_irq_ack(ft->fmc);
@@ -435,5 +448,20 @@ int ft_irq_init(struct fmctdc_dev *ft)
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
-	fmc_irq_free(ft->fmc);
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		ft->fmc->irq = ft->ft_irq_base;
+		fmc_irq_free(ft->fmc);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		ft->fmc->irq = ft->ft_irq_base;
+		fmc_irq_free(ft->fmc);
+
+		ft->fmc->irq = ft->ft_irq_base + 1;
+		fmc_irq_free(ft->fmc);
+		break;
+	default:
+		WARN(1, "Uknonw acquisition type\n");
+		break;
+	}
 }

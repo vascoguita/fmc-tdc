@@ -131,8 +131,15 @@ struct ft_channel_state {
 	uint32_t buf_size; // in timestamps
 };
 
+enum ft_acquisition_type {
+	FT_ACQ_TYPE_FIFO = 0,
+	FT_ACQ_TYPE_DMA,
+};
+
+
 /* Main TDC device context */
 struct fmctdc_dev {
+	enum ft_acquisition_type mode;
 	/* HW buffer/FIFO access lock */
 	spinlock_t lock;
 	/* base addresses, taken from SDB */

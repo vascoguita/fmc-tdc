@@ -125,6 +125,9 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 	uint32_t val;
 	struct ft_channel_state *st;
 
+	if (ft->mode != FT_ACQ_TYPE_DMA)
+		return;
+
 	st = &ft->channels[channel];
 
 	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / TDC_BYTES_PER_TIMESTAMP;
@@ -169,6 +172,9 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
 {
 	const uint32_t base = ft->ft_buffer_base + (0x40 * channel);
+
+	if (ft->mode != FT_ACQ_TYPE_DMA)
+		return;
 
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
@@ -318,6 +324,7 @@ int ft_probe(struct fmc_device *fmc)
 	struct device *dev = &fmc->dev;
 	char *fwname;
 	int i, index, ret, ord;
+	uint32_t stat;
 
 	ft = kzalloc(sizeof(struct fmctdc_dev), GFP_KERNEL);
 	if (!ft)
@@ -401,6 +408,22 @@ int ft_probe(struct fmc_device *fmc)
 			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/DMA 0x%X\n",
 			 ft->ft_core_base, ft->ft_irq_base,
 			 ft->ft_owregs_base, ft->ft_buffer_base);
+	}
+
+	/*
+	 * Even if the HDL supports both acquisition mechanism at the same
+	 * time, here for the time being we don't.
+	 */
+	stat = ft_ioread(ft, ft->ft_core_base + TDC_REG_STAT);
+	if (stat & TDC_STAT_DMA) {
+		ft->mode = FT_ACQ_TYPE_DMA;
+	} else if (stat & TDC_STAT_FIFO) {
+		ft->mode = FT_ACQ_TYPE_FIFO;
+	} else {
+		dev_err(dev,
+			"Unsupported acquisition type, tdc_reg_stat 0x%x\n",
+			stat);
+		return -ENODEV;
 	}
 
 	spin_lock_init(&ft->lock);

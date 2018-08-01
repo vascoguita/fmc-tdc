@@ -28,9 +28,15 @@
 #define TDC_REG_DAC_TUNE 0x0098
 #define TDC_REG_CURRENT_UTC 0x00a0
 #define TDC_REG_BUFFER_PTR 0x00a8
+#define TDC_REG_STAT 0x00ac
 #define TDC_REG_CTRL 0x00fc
 #define TDC_REG_WR_CTRL 0x00b4
 #define TDC_REG_WR_STAT 0x00b0
+
+/* TDC_REG_STAT bits */
+#define TDC_STAT_DMA BIT(0)
+#define TDC_STAT_FIFO BIT(1)
+
 
 #define TDC_WR_CTRL_ENABLE		BIT(0)
 
