@@ -102,51 +102,63 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 }
 
 
-static void configure_buffer(struct fmctdc_dev *ft, int channel)
+/**
+ * It configure the double buffers for a given channel
+ * @param[in] ft FmcTdc device instance
+ * @param[in] channel range [0, N-1]
+ */
+static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 {
 	const int ddr_burst_size = 16;
 	const int irq_timeout_ms = 10;
-	const uint32_t base = ft->ft_buffer_base + (0x40 * (channel-1));
+	const uint32_t base = ft->ft_buffer_base + (0x40 * channel);
 	uint32_t val;
 	struct ft_channel_state *st;
 
-	st = &ft->channels[channel - 1];
+	st = &ft->channels[channel];
 
-	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * (channel - 1));
-	st->buf_addr[1] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * (channel - 1) + 1);
 	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / TDC_BYTES_PER_TIMESTAMP;
 	st->active_buffer = 0;
 
-	dev_info(&ft->fmc->dev,
-		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
-		 channel, base, st->buf_addr[0], st->buf_addr[1],
-		 st->buf_size);
-
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
 
+	/* Buffer 1 */
+	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel);
 	ft_iowrite(ft, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE);
-	ft_iowrite(ft, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
-
 	val = (st->buf_size << TDC_BUF_CUR_SIZE_SIZE_SHIFT);
 	val |= TDC_BUF_CUR_SIZE_VALID;
 	ft_iowrite(ft, val, base + TDC_BUF_REG_CUR_SIZE);
 
+	/* Buffer 2 */
+	st->buf_addr[1] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel + 1);
+	ft_iowrite(ft, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
 	val = (st->buf_size << TDC_BUF_NEXT_SIZE_SIZE_SHIFT);
 	val |= TDC_BUF_NEXT_SIZE_VALID;
 	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
 
+	/* Ready to run */
 	val = TDC_BUF_CSR_ENABLE;
 	val |= (ddr_burst_size << TDC_BUF_CSR_BURST_SIZE_SHIFT);
 	val |= (irq_timeout_ms << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
 	ft_iowrite(ft, val, base + TDC_BUF_REG_CSR);
 
+	dev_info(&ft->fmc->dev,
+		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
+		 channel, base, st->buf_addr[0], st->buf_addr[1],
+		 st->buf_size);
 	dev_info(&ft->fmc->dev, "CSR: %08x\n",
 		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
 }
 
-static void unconfigure_buffer(struct fmctdc_dev *ft, int channel)
+
+/**
+ * It clears the double buffers configuration for a given channel
+ * @param[in] ft FmcTdc device instance
+ * @param[in] channel range [0, N-1]
+ */
+static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
 {
-	const uint32_t base = ft->ft_buffer_base + (0x40 * (channel-1));
+	const uint32_t base = ft->ft_buffer_base + (0x40 * channel);
 
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
@@ -161,8 +173,8 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (enable) {
-		for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
-			configure_buffer(ft, i);
+		for (i = 0; i < FT_NUM_CHANNELS; i++)
+			ft_buffer_init(ft, i);
 		/* Enable TDC acquisition */
 		ft_writel(ft, ien | TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG,
 			  TDC_REG_INPUT_ENABLE);
@@ -175,8 +187,8 @@ void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
 		ft_writel(ft, ien & ~(TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG),
 			  TDC_REG_INPUT_ENABLE);
 
-		for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++)
-			unconfigure_buffer(ft, i);
+		for (i = 0; i < FT_NUM_CHANNELS; i++)
+			ft_buffer_exit(ft, i);
 	}
 }
 
