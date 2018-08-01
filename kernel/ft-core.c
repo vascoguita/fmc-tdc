@@ -30,6 +30,11 @@
 #include "hw/tdc_regs.h"
 
 /* Module parameters */
+static int irq_timeout_ms_default = 10;
+module_param_named(irq_timeout_ms, irq_timeout_ms_default, int, 0444);
+MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
+
+
 static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
@@ -110,7 +115,6 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 {
 	const int ddr_burst_size = 16;
-	const int irq_timeout_ms = 10;
 	const uint32_t base = ft->ft_buffer_base + (0x40 * channel);
 	uint32_t val;
 	struct ft_channel_state *st;
@@ -139,7 +143,7 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 	/* Ready to run */
 	val = TDC_BUF_CSR_ENABLE;
 	val |= (ddr_burst_size << TDC_BUF_CSR_BURST_SIZE_SHIFT);
-	val |= (irq_timeout_ms << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
+	val |= (irq_timeout_ms_default << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
 	ft_iowrite(ft, val, base + TDC_BUF_REG_CSR);
 
 	dev_info(&ft->fmc->dev,

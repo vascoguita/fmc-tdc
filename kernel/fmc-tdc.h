@@ -125,9 +125,8 @@ struct ft_channel_state {
 
 	struct ft_wr_timestamp last_ts; /**< used to compute delay
 					   between pulses */
-					   
-		
-	int active_buffer;			   
+
+	int active_buffer;
 	uint32_t buf_addr[2];
 	uint32_t buf_size; // in timestamps
 };
