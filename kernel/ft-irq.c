@@ -198,8 +198,7 @@ static inline int process_timestamp(struct zio_cset *cset,
 	struct fmctdc_dev *ft = zdev->priv_d;
 	struct ft_channel_state *st;
 	struct ft_wr_timestamp ts;
-	struct ft_wr_timestamp diff;
-	int channel, edge, frac, ret = 0;
+	int channel, ret = 0;
 
 	st = &ft->channels[cset->index];
 
