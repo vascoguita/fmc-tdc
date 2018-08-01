@@ -55,11 +55,11 @@ static void start_readout(struct fmctdc_dev *ft, int channel)
 	 * buffer. Note that this handler assumes the TDC_BUF_REG_NEXT contain
 	 * valid buffer address/size.
 	 */
-	csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
-	fmc_writel(ft->fmc, csr | TDC_BUF_CSR_SWITCH_BUFFERS,
+	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	ft_iowrite(ft, csr | TDC_BUF_CSR_SWITCH_BUFFERS,
 		   base + TDC_BUF_REG_CSR);
 
-	csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
+	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
 
 	/*
 	 * wait until all pending DDR memory transactions from the active
@@ -68,17 +68,17 @@ static void start_readout(struct fmctdc_dev *ft, int channel)
 	 * the PCs going ever faster
 	 */
 	while (!(csr & TDC_BUF_CSR_DONE))
-		csr = fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR);
+		csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
 
 	/* clear CSR.DONE flag (write 1) */
-	fmc_writel(ft->fmc, csr | TDC_BUF_CSR_DONE, base + TDC_BUF_REG_CSR);
+	ft_iowrite(ft, csr | TDC_BUF_CSR_DONE, base + TDC_BUF_REG_CSR);
 
 	/* read the number of the timetamps in the current buffer */
-	count = fmc_readl(ft->fmc,  base + TDC_BUF_REG_CUR_COUNT);
+	count = ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 
 	/* update the pointer to the next buffer */
-	fmc_writel(ft->fmc, base_cur, base + TDC_BUF_REG_NEXT_BASE);
-	fmc_writel(ft->fmc, st->buf_size | TDC_BUF_NEXT_SIZE_VALID,
+	ft_iowrite(ft, base_cur, base + TDC_BUF_REG_NEXT_BASE);
+	ft_iowrite(ft, st->buf_size | TDC_BUF_NEXT_SIZE_VALID,
 		   base + TDC_BUF_REG_NEXT_SIZE);
 
 	/*
@@ -128,7 +128,7 @@ static irqreturn_t ft_irq_handler_dma(int irq, void *dev_id)
 	struct zio_cset *cset;
 	int i;
 
-	irq_stat = fmc_readl(ft->fmc, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
 
 	if (!irq_stat)
 		return IRQ_NONE;
@@ -143,7 +143,7 @@ static irqreturn_t ft_irq_handler_dma(int irq, void *dev_id)
 		start_readout(ft, i);
 
 		/* clear the interrupt */
-		fmc_writel(ft->fmc, 1 << (i-1),
+		ft_iowrite(ft, 1 << (i-1),
 			   ft->ft_irq_base + TDC_REG_EIC_ISR);
 
 	}

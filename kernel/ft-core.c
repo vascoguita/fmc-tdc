@@ -122,35 +122,35 @@ static void configure_buffer(struct fmctdc_dev *ft, int channel)
 		 channel, base, st->buf_addr[0], st->buf_addr[1],
 		 st->buf_size);
 
-	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_CSR);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
 
-	fmc_writel(ft->fmc, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE);
-	fmc_writel(ft->fmc, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
+	ft_iowrite(ft, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE);
+	ft_iowrite(ft, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
 
 	val = (st->buf_size << TDC_BUF_CUR_SIZE_SIZE_SHIFT);
 	val |= TDC_BUF_CUR_SIZE_VALID;
-	fmc_writel(ft->fmc, val, base + TDC_BUF_REG_CUR_SIZE);
+	ft_iowrite(ft, val, base + TDC_BUF_REG_CUR_SIZE);
 
 	val = (st->buf_size << TDC_BUF_NEXT_SIZE_SIZE_SHIFT);
 	val |= TDC_BUF_NEXT_SIZE_VALID;
-	fmc_writel(ft->fmc, val, base + TDC_BUF_REG_NEXT_SIZE);
+	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
 
 	val = TDC_BUF_CSR_ENABLE;
 	val |= (ddr_burst_size << TDC_BUF_CSR_BURST_SIZE_SHIFT);
 	val |= (irq_timeout_ms << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
-	fmc_writel(ft->fmc, val, base + TDC_BUF_REG_CSR);
+	ft_iowrite(ft, val, base + TDC_BUF_REG_CSR);
 
 	dev_info(&ft->fmc->dev, "CSR: %08x\n",
-		 fmc_readl(ft->fmc, base + TDC_BUF_REG_CSR));
+		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
 }
 
 static void unconfigure_buffer(struct fmctdc_dev *ft, int channel)
 {
 	const uint32_t base = ft->ft_buffer_base + (0x40 * (channel-1));
 
-	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_CUR_SIZE);
-	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_NEXT_SIZE);
-	fmc_writel(ft->fmc, 0, base + TDC_BUF_REG_CSR);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
 }
 
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
@@ -216,47 +216,46 @@ static struct ft_modlist init_subsystems[] = {
 };
 
 
-static uint32_t dma_readl(struct fmc_device *fmc, uint32_t reg)
+static uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
 {
-	return fmc_readl(fmc, TDC_SPEC_DMA_BASE + reg);
-	return 0;
+	return ft_ioread(ft, TDC_SPEC_DMA_BASE + reg);
 }
 
-static void dma_writel(struct fmc_device *fmc, uint32_t data, uint32_t reg)
+static void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
 {
-	dev_vdbg(&fmc->dev, "%s %x %x\n",
+	dev_vdbg(&ft->fmc->dev, "%s %x %x\n",
 		 __func__, data, TDC_SPEC_DMA_BASE + reg);
-	fmc_writel(fmc, data, TDC_SPEC_DMA_BASE + reg);
+	ft_iowrite(ft, data, TDC_SPEC_DMA_BASE + reg);
 }
 
 void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 {
 	memcpy(ft->dmabuf_virt, src, len);
 
-	dma_writel(ft->fmc, dst, GENNUM_DMA_ADDR);
-	dma_writel(ft->fmc, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft->fmc, ft->dmabuf_phys & 0xffffffffULL,
+	dma_writel(ft, dst, GENNUM_DMA_ADDR);
+	dma_writel(ft, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, ft->dmabuf_phys & 0xffffffffULL,
 		   GENNUM_DMA_ADDR_L);
-	dma_writel(ft->fmc, len,  GENNUM_DMA_LEN);
-	dma_writel(ft->fmc, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR,
+	dma_writel(ft, len,  GENNUM_DMA_LEN);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR,
 		   GENNUM_DMA_ATTR);
-	dma_writel(ft->fmc, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
 
-	while (!(dma_readl(ft->fmc, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
+	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
 		;
 }
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
 {
-	dma_writel(ft->fmc, src, GENNUM_DMA_ADDR);
-	dma_writel(ft->fmc, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft->fmc, ft->dmabuf_phys & 0xffffffffULL,
+	dma_writel(ft, src, GENNUM_DMA_ADDR);
+	dma_writel(ft, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, ft->dmabuf_phys & 0xffffffffULL,
 		   GENNUM_DMA_ADDR_L);
-	dma_writel(ft->fmc, len,  GENNUM_DMA_LEN);
-	dma_writel(ft->fmc, GENNUM_DMA_ATTR_LAST,  GENNUM_DMA_ATTR);
-	dma_writel(ft->fmc, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+	dma_writel(ft, len,  GENNUM_DMA_LEN);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST,  GENNUM_DMA_ATTR);
+	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
 
-	while (!(dma_readl(ft->fmc, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
+	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
 		;
 
 	memcpy(dst, ft->dmabuf_virt, len);
@@ -271,7 +270,7 @@ void test_dma(struct fmctdc_dev *ft)
 
 	dev_info(&ft->fmc->dev, "Test DMA\n");
 	dev_info(&ft->fmc->dev, "R0 = %08x R4 = %08x\n",
-	       dma_readl(ft->fmc, 0), dma_readl(ft->fmc, 4));
+	       dma_readl(ft, 0), dma_readl(ft, 4));
 
 	/* mdelay(5000); */
 

@@ -6,7 +6,7 @@
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ */
 
 #include <linux/fmc.h>
 #include <linux/fmc-sdb.h>
