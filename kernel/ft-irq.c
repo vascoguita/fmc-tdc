@@ -27,64 +27,102 @@
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
-static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
+
+/**
+ * It changes the current acquisition buffer
+ * @ft FmcTdc instance
+ * @chan channel number [0, N-1]
+ *
+ * Return: it returns buffer index that needs to be transfered
+ *
+ * It stops acquisition to the 'current' buffer and switch to the 'next'
+ * buffer. This works with the assumption that buffers are properly configured
+ * with valid address and size.
+ */
+static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
 {
-	struct ft_channel_state *st = &ft->channels[channel - 1];
-	uint32_t base_cur, base_next, csr, count;
-	uint32_t base = ft->ft_buffer_base + (channel - 1) * 0x40;
-	struct ft_hw_timestamp *dma_buf;
-	const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
+	struct ft_channel_state *st = &ft->channels[chan];
+	uint32_t base = ft->ft_buffer_base + chan * 0x40;
+	uint32_t csr, base_cur, base_next;
+	unsigned int transfer_buffer;
+
+	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	csr |= TDC_BUF_CSR_SWITCH_BUFFERS;
+	ft_iowrite(ft, csr, base + TDC_BUF_REG_CSR);
+
+	/*
+	 * It waits until all pending DDR memory transactions from the active
+	 * buffer are committed to the memory.
+	 * This is almost instant (e.g. < 1us), but we never know with
+	 * the PCs going ever faster
+	 */
+	while (!(ft_ioread(ft, base + TDC_BUF_REG_CSR) & TDC_BUF_CSR_DONE))
+		;
+
+	/* clear CSR.DONE flag (write 1) */
+	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	csr |= TDC_BUF_CSR_DONE;
+	ft_iowrite(ft, csr, base + TDC_BUF_REG_CSR);
 
 	/*
 	 * we have two buffers in the hardware: the current one and the 'next'
 	 * one. From the point of view of this interrupt handler, the current
 	 * one is to be read out and switched to the 'next' buffer.,
 	 */
+	transfer_buffer = st->active_buffer;
 	base_cur = st->buf_addr[st->active_buffer];
-	base_next = st->buf_addr[1 - st->active_buffer];
 
-	/* ugly hack to check if readout is correct */
-	dma_buf = kmalloc(4096, GFP_ATOMIC);
-
-	// after the readout, the next buffer will be the one we've just read
 	st->active_buffer = 1 - st->active_buffer;
+	base_next = st->buf_addr[st->active_buffer];
 
-
-	/*
-	 * stop acquisition to the 'current' buffer and switch to the 'next'
-	 * buffer. Note that this handler assumes the TDC_BUF_REG_NEXT contain
-	 * valid buffer address/size.
-	 */
-	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	ft_iowrite(ft, csr | TDC_BUF_CSR_SWITCH_BUFFERS,
-		   base + TDC_BUF_REG_CSR);
-
-	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-
-	/*
-	 * wait until all pending DDR memory transactions from the active
-	 * buffer are committed to the memory.
-	 * this is almost instant (e.g. < 1us), but we never know with
-	 * the PCs going ever faster
-	 */
-	while (!(csr & TDC_BUF_CSR_DONE))
-		csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-
-	/* clear CSR.DONE flag (write 1) */
-	ft_iowrite(ft, csr | TDC_BUF_CSR_DONE, base + TDC_BUF_REG_CSR);
-
-	/* read the number of the timetamps in the current buffer */
-	count = ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 
 	/* update the pointer to the next buffer */
 	ft_iowrite(ft, base_cur, base + TDC_BUF_REG_NEXT_BASE);
 	ft_iowrite(ft, st->buf_size | TDC_BUF_NEXT_SIZE_VALID,
 		   base + TDC_BUF_REG_NEXT_SIZE);
 
+	return transfer_buffer;
+}
+
+/**
+ * It gets the current number of timestamps in the buffer
+ * @ft FmcTdc instance
+ * @chan channel number [0, N -1]
+ *
+ * Please note that the returned value refers to the last 'acquired'
+ * buffer. In other words, after ft_buffer_switch() the acquisition will
+ * continue on the next buffer and we get the sample counter from the current
+ * buffer
+ */
+static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
+{
+	uint32_t base = ft->ft_buffer_base + chan * 0x40;
+
+	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
+}
+
+/**
+ * @ft FmcTdc instance
+ * @chan channel number [0, N -1]
+ */
+static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
+{
+	struct ft_channel_state *st = &ft->channels[channel];
+	uint32_t base_cur;
+	struct ft_hw_timestamp *dma_buf;
+	const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
+	unsigned int count, transfer;
+
+	transfer = ft_buffer_switch(ft, channel);
+	count = ft_buffer_count(ft, channel);
+
 	/*
 	 * now we DMA the data. use a workqueue or something, the DMA call
 	 * below is blocking and is there just to validate the bitstream
 	 */
+	/* ugly hack to check if readout is correct */
+	dma_buf = kmalloc(4096, GFP_ATOMIC);
+	base_cur = st->buf_addr[transfer];
 	while (count > 0) {
 		int i, n = (count > ts_per_page ? ts_per_page : count);
 
@@ -306,7 +344,7 @@ static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
 			ft_readout_fifo_one(&ft->zdev->cset[i]);
 			break;
 		case FT_ACQ_TYPE_DMA:
-			ft_readout_dma_start(ft, i + 1);
+			ft_readout_dma_start(ft, i);
 			break;
 		}
 
