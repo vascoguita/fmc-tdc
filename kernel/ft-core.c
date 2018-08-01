@@ -30,13 +30,15 @@
 #include "hw/tdc_regs.h"
 
 /* Module parameters */
-static int irq_timeout_ms_default = 10;
-module_param_named(irq_timeout_ms, irq_timeout_ms_default, int, 0444);
-MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
+static int dma_buf_irq_timeout_ms_default = 10;
+module_param_named(dma_buf_irq_timeout_ms, dma_buf_irq_timeout_ms_default,
+		   int, 0444);
+MODULE_PARM_DESC(dma_buf_irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
 
-static int ddr_burst_size_default = 16;
-module_param_named(ddr_burst_size, ddr_burst_size_default, int, 0444);
-MODULE_PARM_DESC(ddr_burst_size,
+static int dma_buf_ddr_burst_size_default = 16;
+module_param_named(dma_buf_ddr_burst_size, dma_buf_ddr_burst_size_default,
+		   int, 0444);
+MODULE_PARM_DESC(dma_buf_ddr_burst_size,
 		 "DDR size coalesing timeout (default: 16 timestamps).");
 
 
@@ -146,8 +148,8 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 
 	/* Ready to run */
 	val = TDC_BUF_CSR_ENABLE;
-	val |= (ddr_burst_size_default << TDC_BUF_CSR_BURST_SIZE_SHIFT);
-	val |= (irq_timeout_ms_default << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
+	val |= (dma_buf_ddr_burst_size_default << TDC_BUF_CSR_BURST_SIZE_SHIFT);
+	val |= (dma_buf_irq_timeout_ms_default << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
 	ft_iowrite(ft, val, base + TDC_BUF_REG_CSR);
 
 	dev_info(&ft->fmc->dev,
