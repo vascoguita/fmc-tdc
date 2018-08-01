@@ -8,10 +8,7 @@
  * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
  * Author: Miguel Angel Gomez Sexto <magomez@igalia.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #include <linux/kernel.h>

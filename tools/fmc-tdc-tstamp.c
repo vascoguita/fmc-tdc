@@ -1,14 +1,9 @@
 /*
- * Copyright (c) 2014 CERN
+ * Copyright (c) 2014-2018 CERN
  * Author: Federico Vaga <federico.vaga@cern.ch>
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
- *
- * fmctdc-tstamp: read timestamps from a given FmcTdc card.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include <stdio.h>

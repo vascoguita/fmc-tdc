@@ -1,15 +1,12 @@
 /*
  * The fmc-tdc (a.k.a. FmcTdc1ns5cha) library.
  *
- * Copyright (C) 2012-2015 CERN (www.cern.ch)
+ * Copyright (C) 2012-2018 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 #include <stdio.h>
 #include <stdint.h>

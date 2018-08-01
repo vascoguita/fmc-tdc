@@ -4,9 +4,7 @@
  * Copyright (C) 2013 CERN (http://www.cern.ch)
  * Author: Tomasz Wlostowski <tomasz.wlostowski@cern.ch>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #include <linux/kernel.h>
