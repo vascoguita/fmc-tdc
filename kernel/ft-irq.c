@@ -196,12 +196,6 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	kfree(dma_buf);
 }
 
-static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
-{
-
-	return IRQ_HANDLED;
-}
-
 /**
  * It transfers timestamps from the DDR
  */
@@ -448,6 +442,17 @@ irq:
 	return;
 }
 
+
+
+static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
+{
+	struct fmc_device *fmc = dev_id;
+	struct fmctdc_dev *ft = fmc->mezzanine_data;
+
+	dev_info(&ft->fmc->dev, "DMA complete\n");
+	fmc_irq_ack(fmc);
+
+	return IRQ_HANDLED;
 }
 
 
@@ -506,7 +511,6 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	}
 
 	if (ft->mode == FT_ACQ_TYPE_DMA) {
-#if 0
 		/*
 		 * DMA completion interrupt (from the GN4124 core), like in
 		 * the FMCAdc design
@@ -514,7 +518,6 @@ int ft_irq_init(struct fmctdc_dev *ft)
 		ft->fmc->irq = ft->ft_irq_base + 1;
 		ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
 				      "fmc-tdc-dma", 0);
-#endif
 	}
 
 	/* kick off the interrupts (fixme: possible issue with the HDL) */
@@ -531,9 +534,7 @@ void ft_irq_exit(struct fmctdc_dev *ft)
 	fmc_irq_free(ft->fmc);
 
 	if (ft->mode == FT_ACQ_TYPE_DMA) {
-#if 0
 		ft->fmc->irq = ft->ft_irq_base + 1;
 		fmc_irq_free(ft->fmc);
-#endif
 	}
 }
