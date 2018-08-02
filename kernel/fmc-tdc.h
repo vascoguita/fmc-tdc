@@ -127,7 +127,8 @@ struct ft_channel_state {
 					   between pulses */
 
 	int active_buffer;
-	uint32_t buf_addr[2];
+#define __FT_BUF_MAX 2
+	uint32_t buf_addr[__FT_BUF_MAX];
 	uint32_t buf_size; // in timestamps
 };
 
