@@ -68,6 +68,9 @@ enum ft_command {
 #include <linux/timer.h>
 #include <linux/fmc.h>
 #include <linux/version.h>
+#include <linux/workqueue.h>
+
+extern struct workqueue_struct *ft_workqueue;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 #define TDC_BYTES_PER_TIMESTAMP       16
@@ -179,6 +182,7 @@ struct fmctdc_dev {
 	uint64_t sequence; /**< Board time-stamp sequence number */
 
 	uint32_t irq_imr;
+	struct work_struct ts_work;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)

@@ -51,6 +51,8 @@ FMC_PARAM_BUSID(ft_drv);
 FMC_PARAM_GATEWARE(ft_drv);
 
 static char bitstream_name[32];
+struct workqueue_struct *ft_workqueue;
+
 
 static int ft_reset_core(struct fmctdc_dev *ft)
 {
@@ -519,22 +521,40 @@ static int ft_init(void)
 {
 	int ret;
 
+	#if LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0)
+	ft_workqueue = alloc_workqueue(ft_drv.driver.name,
+					WQ_NON_REENTRANT | WQ_UNBOUND |
+					WQ_MEM_RECLAIM, 1);
+	#else
+	ft_workqueue = alloc_workqueue(ft_drv.driver.name,
+				       WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
+	#endif
+	if (ft_workqueue == NULL)
+		return -ENOMEM;
+
 	ret = ft_zio_register();
 	if (ret < 0)
-		return ret;
+		goto err_zio;
 
 	ret = fmc_driver_register(&ft_drv);
-	if (ret < 0) {
-		ft_zio_unregister();
-		return ret;
-	}
+	if (ret < 0)
+		goto err_fmc;
+
 	return 0;
+
+err_fmc:
+	ft_zio_unregister();
+err_zio:
+	destroy_workqueue(ft_workqueue);
+
+	return ret;
 }
 
 static void ft_exit(void)
 {
 	fmc_driver_unregister(&ft_drv);
 	ft_zio_unregister();
+	destroy_workqueue(ft_workqueue);
 }
 
 module_init(ft_init);

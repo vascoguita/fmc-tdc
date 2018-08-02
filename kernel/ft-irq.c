@@ -62,6 +62,22 @@ void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask)
 
 }
 
+
+/**
+ * It restores the previous known IRQ status
+ * @ft FmcTdc device instance
+ */
+static void ft_irq_restore(struct fmctdc_dev *ft)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&ft->lock, flags);
+	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_REG_EIC_IER);
+	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_IMR);
+	spin_unlock_irqrestore(&ft->lock, flags);
+
+}
+
 /**
  * It changes the current acquisition buffer
  * @ft FmcTdc instance
@@ -186,6 +202,29 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
+/**
+ * It transfers timestamps from the DDR
+ */
+static void ft_dma_work(struct work_struct *work)
+{
+	struct fmctdc_dev *ft = container_of(work, struct fmctdc_dev,
+					     ts_work);
+	uint32_t irq_stat;
+	int i;
+	unsigned long *loop;
+
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
+
+	if (!irq_stat)
+		return;
+
+	loop = (unsigned long *) &irq_stat;
+	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
+		ft_readout_dma_start(ft, i);
+
+	/* Re-Enable interrupts that where disabled in the IRQ handler */
+	ft_irq_restore(ft);
+}
 
 static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 {
@@ -358,34 +397,74 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 	zio_trigger_data_done(cset);
 }
 
+static void ft_fifo_work(struct work_struct *work)
+{
+	struct fmctdc_dev *ft = container_of(work, struct fmctdc_dev,
+					     ts_work);
+	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
+	unsigned long *loop;
+	struct zio_cset *cset;
+	int i;
+
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	if (!irq_stat)
+		return;
+
+irq:
+	/*
+	 * Go through all FIFOs and read data. Democracy is a complicated thing,
+	 * the following loops is a democratic loop, so it goes trough all
+	 * channels without any priority. This avoid to be late to read the last
+	 * channel on high frequency where the risk is to have an oligarchy
+	 * where the first and second channel are read, but not the others.
+	 */
+	tmp_irq_stat = 0xFF;
+	do {
+		tmp_irq_stat &= irq_stat;
+		loop = (unsigned long *) &tmp_irq_stat;
+		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
+			cset = &ft->zdev->cset[i];
+			ft_readout_fifo_one(cset);
+			fifo_csr_addr = ft->ft_buffer_base +
+				TDC_FIFO_OFFSET * cset->index + TDC_FIFO_CSR;
+			fifo_stat = ft_ioread(ft, fifo_csr_addr);
+			if (!(fifo_stat & TDC_FIFO_CSR_EMPTY))
+				continue; /* Still something to read */
+
+			/* Ack the interrupt, nothing to read anymore */
+			ft_iowrite(ft, 1 << i,
+				   ft->ft_irq_base + TDC_REG_EIC_ISR);
+			tmp_irq_stat &= (~(1 << i));
+		}
+	} while (tmp_irq_stat);
+
+	/* Meanwhile we got another interrupt? then repeat */
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	if (irq_stat)
+		goto irq;
+
+	/* Re-Enable interrupts that where disabled in the IRQ handler */
+	ft_irq_restore(ft);
+	return;
+}
+
+}
+
 
 static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	uint32_t irq_stat;
-	int i;
-	unsigned long *loop;
 
 	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
 	if (!irq_stat)
 		return IRQ_NONE;
 
-	loop = (unsigned long *) &irq_stat;
-	for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
-		switch (ft->mode) {
-		case FT_ACQ_TYPE_FIFO:
-			ft_readout_fifo_one(&ft->zdev->cset[i]);
-			break;
-		case FT_ACQ_TYPE_DMA:
-			ft_readout_dma_start(ft, i);
-			break;
-		}
+	/* Disable interrupts until we fetch all stored samples */
+	ft_irq_disable(ft, 0x1F);
 
-		/* clear the interrupt */
-		ft_iowrite(ft, 1 << i,
-			   ft->ft_irq_base + TDC_REG_EIC_ISR);
-	}
+	queue_work(ft_workqueue, &ft->ts_work);
 
 	/* Ack the FMC signal, we have finished */
 	fmc_irq_ack(fmc);
@@ -405,6 +484,16 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 	/* disable timestamp readout IRQ, user will enable it manually */
 	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
+
+
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		INIT_WORK(&ft->ts_work, ft_fifo_work);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		INIT_WORK(&ft->ts_work, ft_dma_work);
+		break;
+	}
 
 	ft->fmc->irq = ft->ft_irq_base;
 	ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts,
