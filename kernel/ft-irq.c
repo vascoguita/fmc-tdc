@@ -269,7 +269,9 @@ static void ft_dma_work(struct work_struct *work)
 	ft_irq_restore(ft);
 }
 
-static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
+
+
+static void ft_timestap_wr_to_zio(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 {
 	struct zio_device *zdev = cset->zdev;
 	struct fmctdc_dev *ft = zdev->priv_d;
@@ -385,7 +387,7 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 		return; /* Nothing to do, ZIO was not ready */
 	}
 	/* there is an active block, store data there */
-	ft_read_sw_fifo(cset, &wrts);
+	ft_timestap_wr_to_zio(cset, &wrts);
 	zio_trigger_data_done(cset);
 }
 
