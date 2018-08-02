@@ -128,6 +128,82 @@ static void ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
 }
 
 /**
+ * It puts the given timestamp in the ZIO control
+ * @cset ZIO cset instant
+ * @wrts the timestamp to convert
+ */
+static void ft_timestap_wr_to_zio(struct zio_cset *cset,
+				  struct ft_wr_timestamp *wrts)
+{
+	struct zio_device *zdev = cset->zdev;
+	struct fmctdc_dev *ft = zdev->priv_d;
+	struct zio_control *ctrl;
+	struct zio_ti *ti = cset->ti;
+	uint32_t *v;
+	struct ft_wr_timestamp ts = *wrts, *reflast;
+	struct ft_channel_state *st;
+
+	dev_dbg(&ft->fmc->dev,
+		"Set in ZIO block ch %d: hseq %u: dseq %u: gseq %llu %llu %u %u\n",
+		ts.channel, ts.hseq_id, ts.dseq_id, ts.gseq_id,
+		ts.seconds, ts.coarse, ts.frac);
+
+	st = &ft->channels[cset->index];
+
+	ctrl = cset->chan->current_ctrl;
+	v = ctrl->attr_channel.ext_val;
+
+	/*
+	 * Update last time stamp of the current channel, with the current
+	 * time-stamp
+	 */
+	memcpy(&st->last_ts, &ts, sizeof(struct ft_wr_timestamp));
+
+	/*
+	 * If we are in delay mode, replace the time stamp with the delay from
+	 * the reference
+	 */
+	if (st->delay_reference) {
+		reflast = &ft->channels[st->delay_reference - 1].last_ts;
+		if (likely(ts.gseq_id > reflast->gseq_id)) {
+			ft_ts_sub(&ts, reflast);
+			v[FT_ATTR_TDC_DELAY_REF_SEQ] = reflast->gseq_id;
+		} else {
+			/*
+			 * It seems that we are not able to compute the delay.
+			 * Inform the user by setting the time stamp to 0
+			 */
+			memset(&ts, 0, sizeof(struct ft_wr_timestamp));
+		}
+	} else {
+		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.gseq_id;
+	}
+
+	/* Write the timestamp in the trigger, it will reach the control */
+	ti->tstamp.tv_sec = ts.seconds;
+	ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
+	ti->tstamp_extra = ts.frac;
+
+	/*
+	 * This is different than it was. We used to fill the active block,
+	 * but now zio copies chan->current_ctrl at a later time, so we
+	 * must fill _those_ attributes instead
+	 */
+	ctrl->nsamples = 1;
+
+	/*
+	 * In order to propagate the "dacapo" flag, we have to force our
+	 * sequence number insted of using the ZIO one. decrement because
+	 * zio will increment it.
+	 */
+	ctrl->seq_num = ts.dseq_id--;
+
+	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
+	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
+	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
+}
+
+/**
  * It changes the current acquisition buffer
  * @ft FmcTdc instance
  * @chan channel number [0, N-1]
@@ -209,11 +285,15 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	struct ft_channel_state *st = &ft->channels[channel];
 	uint32_t base_cur;
 	struct ft_hw_timestamp *dma_buf;
+	struct ft_wr_timestamp wrts;
 	const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
 	unsigned int count, transfer;
+	struct zio_cset *cset;
 
 	transfer = ft_buffer_switch(ft, channel);
 	count = ft_buffer_count(ft, channel);
+
+	cset = &ft->zdev->cset[channel];
 
 	/*
 	 * now we DMA the data. use a workqueue or something, the DMA call
@@ -234,10 +314,22 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 
 		/* gn4124_dma_read(ft->fmc, 0, dma_buf, 16); */
 
-		for (i = 0; i < n; i++)
-			dev_info(&ft->fmc->dev, "Ts %x %x %x %x\n",
-			       dma_buf[i].utc, dma_buf[i].coarse,
-				 dma_buf[i].frac, dma_buf[i].metadata);
+		for (i = 0; i < n; i++) {
+			ft_timestamp_hw_to_wr(ft, &wrts, &dma_buf[i]);
+			dev_info(&ft->fmc->dev, "Ts %x %x %x %x - %llx %x %x\n",
+				 dma_buf[i].utc, dma_buf[i].coarse,
+				 dma_buf[i].frac, dma_buf[i].metadata,
+				 wrts.seconds, wrts.coarse, wrts.frac);
+			if (!(ZIO_TI_ARMED & cset->ti->flags)) {
+				dev_warn(&cset->head.dev,
+					 "Time stamp lost, trigger was not armed\n");
+				break;
+			}
+			/* there is an active block, store data there */
+			ft_timestap_wr_to_zio(cset, &wrts);
+
+			zio_trigger_data_done(cset);
+		}
 
 		base_cur += n * TDC_BYTES_PER_TIMESTAMP;
 		count -= n;
@@ -267,78 +359,6 @@ static void ft_dma_work(struct work_struct *work)
 
 	/* Re-Enable interrupts that where disabled in the IRQ handler */
 	ft_irq_restore(ft);
-}
-
-
-
-static void ft_timestap_wr_to_zio(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
-{
-	struct zio_device *zdev = cset->zdev;
-	struct fmctdc_dev *ft = zdev->priv_d;
-	struct zio_control *ctrl;
-	struct zio_ti *ti = cset->ti;
-	uint32_t *v;
-	struct ft_wr_timestamp ts = *wrts, *reflast;
-	struct ft_channel_state *st;
-
-	dev_dbg(&ft->fmc->dev,
-		"Set in ZIO block ch %d: hseq %u: dseq %u: gseq %llu %llu %u %u\n",
-		ts.channel, ts.hseq_id, ts.dseq_id, ts.gseq_id,
-		ts.seconds, ts.coarse, ts.frac);
-
-	st = &ft->channels[cset->index];
-
-	ctrl = cset->chan->current_ctrl;
-	v = ctrl->attr_channel.ext_val;
-
-	/*
-	 * Update last time stamp of the current channel, with the current
-	 * time-stamp
-	 */
-	memcpy(&st->last_ts, &ts, sizeof(struct ft_wr_timestamp));
-
-	/*
-	 * If we are in delay mode, replace the time stamp with the delay from
-	 * the reference
-	 */
-	if (st->delay_reference) {
-		reflast = &ft->channels[st->delay_reference - 1].last_ts;
-		if (likely(ts.gseq_id > reflast->gseq_id)) {
-			ft_ts_sub(&ts, reflast);
-			v[FT_ATTR_TDC_DELAY_REF_SEQ] = reflast->gseq_id;
-		} else {
-			/*
-			 * It seems that we are not able to compute the delay.
-			 * Inform the user by setting the time stamp to 0
-			 */
-			memset(&ts, 0, sizeof(struct ft_wr_timestamp));
-		}
-	} else {
-		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.gseq_id;
-	}
-
-	/* Write the timestamp in the trigger, it will reach the control */
-	ti->tstamp.tv_sec = ts.seconds;
-	ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
-	ti->tstamp_extra = ts.frac;
-
-	/*
-	 * This is different than it was. We used to fill the active block,
-	 * but now zio copies chan->current_ctrl at a later time, so we
-	 * must fill _those_ attributes instead
-	 */
-	ctrl->nsamples = 1;
-
-	/*
-	 * In order to propagate the "dacapo" flag, we have to force our
-	 * sequence number insted of using the ZIO one. decrement because
-	 * zio will increment it.
-	 */
-	ctrl->seq_num = ts.dseq_id--;
-
-	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
-	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
-	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 }
 
 /**
