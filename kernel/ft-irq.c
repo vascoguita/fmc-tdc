@@ -29,6 +29,40 @@
 
 
 /**
+ * It enables interrupts on specific channels according to the given mask
+ * @ft FmcTdc device instance
+ * @chan_mask channel bitmask, a bit to one will enable the corresponding
+ *            IRQ channel line
+ */
+void ft_irq_enable(struct fmctdc_dev *ft, uint32_t chan_mask)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&ft->lock, flags);
+	ft_iowrite(ft, chan_mask, ft->ft_irq_base + TDC_REG_EIC_IER);
+	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_IMR);
+	spin_unlock_irqrestore(&ft->lock, flags);
+
+}
+
+/**
+ * It disbles interrupts on specific channels according to the given mask
+ * @ft FmcTdc device instance
+ * @chan_mask channel bitmask, a bit to one will disable the corresponding
+ *            IRQ channel line
+ */
+void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&ft->lock, flags);
+	ft_iowrite(ft, chan_mask, ft->ft_irq_base + TDC_REG_EIC_IDR);
+	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_IMR);
+	spin_unlock_irqrestore(&ft->lock, flags);
+
+}
+
+/**
  * It changes the current acquisition buffer
  * @ft FmcTdc instance
  * @chan channel number [0, N-1]

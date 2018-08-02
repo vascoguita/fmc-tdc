@@ -138,7 +138,12 @@ enum ft_acquisition_type {
 };
 
 
-/* Main TDC device context */
+/*
+ * Main TDC device context
+ * @lock it protects: irq_imr (irq vs user), offset (user vs user),
+ *       wr_mode (user vs user)
+ * @irq_imr it holds the IMR value since our last modification
+ */
 struct fmctdc_dev {
 	enum ft_acquisition_type mode;
 	/* HW buffer/FIFO access lock */
@@ -172,6 +177,8 @@ struct fmctdc_dev {
 	uint64_t dmabuf_phys;
 
 	uint64_t sequence; /**< Board time-stamp sequence number */
+
+	uint32_t irq_imr;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)
@@ -225,6 +232,8 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft);
 
 int ft_irq_init(struct fmctdc_dev *ft);
 void ft_irq_exit(struct fmctdc_dev *ft);
+void ft_irq_enable(struct fmctdc_dev *ft, uint32_t chan_mask);
+void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask);
 
 int ft_time_init(struct fmctdc_dev *ft);
 void ft_time_exit(struct fmctdc_dev *ft);
