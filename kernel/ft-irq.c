@@ -79,6 +79,55 @@ static void ft_irq_restore(struct fmctdc_dev *ft)
 }
 
 /**
+ * It applies all calibration offsets to the givne timestamp
+ * @ft FmcTdc device instance
+ * @ts timestamp
+ */
+static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
+				       struct ft_wr_timestamp *ts)
+{
+	struct ft_channel_state *st = &ft->channels[ts->channel];
+
+	ft_ts_apply_offset(ts, ft->calib.zero_offset[ts->channel]);
+	ft_ts_apply_offset(ts, -ft->calib.wr_offset);
+	if (st->user_offset)
+		ft_ts_apply_offset(ts, st->user_offset);
+}
+
+/**
+ * It converts an hardware timestamp into our local representation
+ * @ft FmcTdc device instance
+ * @hwts timestamp
+ * @wrts timestamp
+ */
+static void __ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
+				    struct ft_wr_timestamp *wrts,
+				    struct ft_hw_timestamp *hwts)
+{
+	wrts->channel = hwts->metadata & 0x7;
+	wrts->seconds = hwts->utc;
+	wrts->coarse = hwts->coarse;
+	wrts->frac = hwts->frac;
+	wrts->hseq_id = hwts->metadata >> 5;
+
+	dev_info(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
+		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->frac);
+}
+
+/**
+ * It proccess a given timestamp and when it correspond to a pulse it
+ * converts the timestamp from the hardware format to the white rabbit format
+ */
+static void ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
+				  struct ft_wr_timestamp *wrts,
+				  struct ft_hw_timestamp *hwts)
+{
+	__ft_timestamp_hw_to_wr(ft, wrts, hwts);
+	ft_timestamp_apply_offsets(ft, wrts);
+	wrts->gseq_id = ft->sequence++;
+}
+
+/**
  * It changes the current acquisition buffer
  * @ft FmcTdc instance
  * @chan channel number [0, N-1]
@@ -290,54 +339,6 @@ static void ft_read_sw_fifo(struct zio_cset *cset, struct ft_wr_timestamp *wrts)
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 }
 
-
-/**
- * It proccess a given timestamp and when it correspond to a pulse it
- * converts the timestamp from the hardware format to the white rabbit format
- */
-static inline int process_timestamp(struct zio_cset *cset,
-				    struct ft_hw_timestamp *hwts,
-				    struct ft_wr_timestamp *wrts)
-{
-	struct zio_device *zdev = cset->zdev;
-	struct fmctdc_dev *ft = zdev->priv_d;
-	struct ft_channel_state *st;
-	struct ft_wr_timestamp ts;
-	int channel, ret = 0;
-
-	st = &ft->channels[cset->index];
-
-	dev_info(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
-		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->frac);
-	channel = (hwts->metadata & 0x7);
-	/* channel from 1 to 5, cset is from 0 to 4 */
-	if (channel != cset->index) {
-		dev_err(&ft->fmc->dev,
-			"reading from the wrong channel (expected %d, given %d)\n",
-			channel, cset->index);
-		return 0;
-	}
-
-	ts.channel = channel + 1; /* We want to see channels starting from 1*/
-	ts.seconds = hwts->utc;
-	ts.coarse = hwts->coarse;
-	ts.frac = hwts->frac;
-
-	ft_ts_apply_offset(&ts, ft->calib.zero_offset[channel - 1]);
-
-	ft_ts_apply_offset(&ts, -ft->calib.wr_offset);
-	if (st->user_offset)
-		ft_ts_apply_offset(&ts, st->user_offset);
-
-	ts.gseq_id = ft->sequence++;
-	ts.hseq_id = hwts->metadata >> 5;
-
-	*wrts = ts;
-	ret = 1;
-
-	return ret;
-}
-
 /**
  * Get a time stamp from the fifo, if you set the 'last' flag it takes the last
  * recorded time-stamp
@@ -371,15 +372,12 @@ static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
  */
 static void ft_readout_fifo_one(struct zio_cset *cset)
 {
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct ft_hw_timestamp hwts;
 	struct ft_wr_timestamp wrts;
-	int ret;
 
 	ft_timestap_get(cset, &hwts, 0);
-
-	ret = process_timestamp(cset, &hwts, &wrts);
-	if (!ret)
-		return; /* Nothing to do, is not the right pulse */
+	ft_timestamp_hw_to_wr(ft, &wrts, &hwts);
 
 	if (!(ZIO_TI_ARMED & cset->ti->flags)) {
 		dev_warn(&cset->head.dev,
