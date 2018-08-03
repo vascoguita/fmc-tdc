@@ -121,6 +121,8 @@ static void ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
 {
 	__ft_timestamp_hw_to_wr(ft, wrts, hwts);
 	ft_timestamp_apply_offsets(ft, wrts);
+
+	wrts->dseq_id = ft->channels[wrts->channel].cur_seq_id++;
 	wrts->gseq_id = ft->sequence++;
 }
 
@@ -193,7 +195,7 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	 * sequence number insted of using the ZIO one. decrement because
 	 * zio will increment it.
 	 */
-	ctrl->seq_num = ts.dseq_id--;
+	ctrl->seq_num = ts.dseq_id;
 
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
