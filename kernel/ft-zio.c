@@ -324,9 +324,9 @@ static struct zio_channel ft_chan_tmpl = {
 		.raw_io =	ft_zio_input,\
 		.chan_template = &ft_chan_tmpl,\
 		.n_chan =	1,\
-		.ssize =	4, /* FIXME: 0? */\
+		.ssize =	sizeof(struct ft_wr_timestamp), \
 		.flags =	ZIO_DISABLED | \
-				ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |	\
+				ZIO_DIR_INPUT | \
 				ZIO_CSET_SELF_TIMED, \
 		.zattr_set = {\
 			.ext_zattr = ft_zattr_input,\

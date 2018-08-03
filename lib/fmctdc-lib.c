@@ -633,9 +633,10 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 {
 	__define_board(b, userb);
 	struct zio_control ctrl;
-	uint32_t *attrs, data[NSAMPLE]; /* ssize is 4 => uint32_t for data */
+	uint32_t *attrs;
 	int i, j;
 	fd_set set;
+	struct ft_wr_timestamp data;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
@@ -657,18 +658,17 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 			t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 			i++;
 
-			/* Consume also the data even if it is empty,
-			   so it will keep clear the ZIO buffer */
-			j = read(b->fdd[channel], data,
-				 ctrl.nsamples * ctrl.ssize);
-			if (j == ctrl.nsamples * ctrl.ssize)
-				continue; /* Everything is fine */
+			assert(sizeof(data) == ctrl.nsamples * ctrl.ssize);
+			if (sizeof(data) == ctrl.nsamples * ctrl.ssize) {
+				j = read(b->fdd[channel], &data,
+					 ctrl.nsamples * ctrl.ssize);
+				if (j == ctrl.nsamples * ctrl.ssize)
+					continue; /* Everything is fine */
+			}
+
+			errno = EIO;
 			/* We are not ok here because the data side has
 			   something wrong */
-		}
-		if (j > 0) {
-			errno = EIO;
-			return -1;
 		}
 		/* so, it's EAGAIN: if we already got something, we are done */
 		if (i)

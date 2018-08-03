@@ -62,6 +62,17 @@ enum ft_command {
 	FT_CMD_IDENTIFY_OFF
 };
 
+/* White Rabbit timestamp */
+struct ft_wr_timestamp {
+	uint64_t seconds;
+	uint32_t coarse;
+	uint32_t frac;
+	uint32_t channel;
+	uint32_t hseq_id; /* hardware channel sequence id */
+	uint32_t dseq_id; /* channel sequence id */
+	uint64_t gseq_id; /* global sequence id */
+};
+
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
 
@@ -120,17 +131,6 @@ struct ft_hw_timestamp {
 #define FT_HW_TS_META_SEQ_MASK 0xFFFFFFF0
 #define FT_HW_TS_META_SEQ_SHIFT 4
 #define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
-
-/* White Rabbit timestamp */
-struct ft_wr_timestamp {
-	uint64_t seconds;
-	uint32_t coarse;
-	uint32_t frac;
-	uint32_t channel;
-	uint32_t hseq_id; /* hardware channel sequence id */
-	uint32_t dseq_id; /* channel sequence id */
-	uint64_t gseq_id; /* global sequence id */
-};
 
 struct ft_channel_state {
 	unsigned long flags;
