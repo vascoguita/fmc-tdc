@@ -108,6 +108,18 @@ struct ft_hw_timestamp {
 	uint32_t metadata;	/* channel, polarity, etc. */
 } __packed;
 
+#define FT_HW_TS_META_CHN_MASK 0x7
+#define FT_HW_TS_META_CHN_SHIFT 0
+#define FT_HW_TS_META_CHN(_meta) ((_meta & FT_HW_TS_META_CHN_MASK) >> FT_HW_TS_META_CHN_SHIFT)
+
+#define FT_HW_TS_META_POL_MASK 0x8
+#define FT_HW_TS_META_POL_SHIFT 3
+#define FT_HW_TS_META_POL(_meta) ((_meta & FT_HW_TS_META_POL_MASK) >> FT_HW_TS_META_POL_SHIFT)
+
+#define FT_HW_TS_META_SEQ_MASK 0xFFFFFFF0
+#define FT_HW_TS_META_SEQ_SHIFT 4
+#define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
+
 /* White Rabbit timestamp */
 struct ft_wr_timestamp {
 	uint64_t seconds;

@@ -104,14 +104,11 @@ static void __ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
 				    struct ft_wr_timestamp *wrts,
 				    struct ft_hw_timestamp *hwts)
 {
-	wrts->channel = hwts->metadata & 0x7;
+	wrts->channel = FT_HW_TS_META_CHN(hwts->metadata);
 	wrts->seconds = hwts->utc;
 	wrts->coarse = hwts->coarse;
 	wrts->frac = hwts->frac;
-	wrts->hseq_id = hwts->metadata >> 5;
-
-	dev_info(&ft->fmc->dev, "process TS(%p): 0x%x 0x%x 0x%x 0x%x\n",
-		hwts, hwts->metadata, hwts->utc, hwts->coarse, hwts->frac);
+	wrts->hseq_id = FT_HW_TS_META_SEQ(hwts->metadata);
 }
 
 /**
