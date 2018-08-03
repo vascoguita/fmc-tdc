@@ -148,11 +148,10 @@ struct ft_channel_state {
 	uint32_t buf_size; // in timestamps
 };
 
-enum ft_acquisition_type {
+enum ft_transfer_mode {
 	FT_ACQ_TYPE_FIFO = 0,
 	FT_ACQ_TYPE_DMA,
 };
-
 
 /*
  * Main TDC device context
@@ -161,7 +160,7 @@ enum ft_acquisition_type {
  * @irq_imr it holds the IMR value since our last modification
  */
 struct fmctdc_dev {
-	enum ft_acquisition_type mode;
+	enum ft_transfer_mode mode;
 	/* HW buffer/FIFO access lock */
 	spinlock_t lock;
 	/* base addresses, taken from SDB */
