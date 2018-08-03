@@ -829,9 +829,20 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 	struct __fmctdc_board *b = (void *)(userb);
 	uint32_t ch_ref = ch_reference;
 	char path[64];
+	int err;
+	enum ft_transfer_mode mode;
 
 	if (ch_target >= FMCTDC_NUM_CHANNELS || ch_reference >= FMCTDC_NUM_CHANNELS ) {
 		errno = EINVAL;
+		return -1;
+	}
+
+	err = fmctdc_buffer_mode(userb, ch_target, &mode);
+	if (err)
+		return err;
+
+	if (mode != FT_ACQ_TYPE_FIFO && ch_reference != -1) {
+		errno = EPERM;
 		return -1;
 	}
 
