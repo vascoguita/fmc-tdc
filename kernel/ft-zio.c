@@ -50,6 +50,7 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
+	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -91,6 +92,9 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
 		*usr_val = st->delay_reference;
+		break;
+	case FT_ATTR_TDC_TRANSFER_MODE:
+		*usr_val = ft->mode;
 		break;
 	}
 

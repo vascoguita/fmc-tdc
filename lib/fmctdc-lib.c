@@ -971,3 +971,30 @@ int fmctdc_get_offset_user(struct fmctdc_board *userb,
 	*offset = (int32_t)val;
 	return 0;
 }
+
+/**
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[out] mode transfer mode
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_buffer_mode(struct fmctdc_board *userb,
+		       unsigned int channel, enum ft_transfer_mode *mode)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	uint32_t val;
+	char path[64];
+	int err;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+	snprintf(path, sizeof(path), "ft-ch%d/transfer-mode", channel + 1);
+	err = fmctdc_sysfs_get(b, path, &val);
+	if (err)
+		return -1;
+
+	*mode = val;
+	return 0;
+}

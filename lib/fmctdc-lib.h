@@ -51,6 +51,14 @@ enum fmctdc_channel_status {
 };
 
 /**
+ *
+ */
+enum ft_transfer_mode {
+	FT_ACQ_TYPE_FIFO = 0,
+	FT_ACQ_TYPE_DMA,
+};
+
+/**
  * Opaque data type used as token. Do not try to access.
  */
 struct fmctdc_board;
@@ -142,6 +150,10 @@ extern int fmctdc_set_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t offset);
 extern int fmctdc_get_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t *offset);
+extern int fmctdc_buffer_mode(struct fmctdc_board *userb,
+			      unsigned int channel,
+			      enum ft_transfer_mode *mode);
+
 /**@}*/
 
 
