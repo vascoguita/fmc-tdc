@@ -294,7 +294,6 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 		/* DISABLED */
 		ft_disable(ft, chan->cset->index);
 
-		st->cur_seq_id = 0;
 		zio_trigger_abort_disable(chan->cset, 0);
 		/* Reset last time-stamp (seq number and valid)*/
 		//ft_iowrite(ft, TDC_FIFO_LAST_CSR_VALID | TDC_FIFO_LAST_CSR_RST_SEQ,

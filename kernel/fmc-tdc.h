@@ -69,7 +69,6 @@ struct ft_wr_timestamp {
 	uint32_t frac;
 	uint32_t channel;
 	uint32_t hseq_id; /* hardware channel sequence id */
-	uint32_t dseq_id; /* channel sequence id */
 	uint64_t gseq_id; /* global sequence id */
 };
 
@@ -138,7 +137,6 @@ struct ft_hw_timestamp {
 
 struct ft_channel_state {
 	unsigned long flags;
-	int cur_seq_id;
 	int delay_reference;
 
 	int32_t user_offset;

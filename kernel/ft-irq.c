@@ -130,7 +130,6 @@ static void ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
 	__ft_timestamp_hw_to_wr(ft, wrts, hwts);
 	ft_timestamp_apply_offsets(ft, wrts);
 
-	wrts->dseq_id = ft->channels[wrts->channel].cur_seq_id++;
 	wrts->gseq_id = ft->sequence++;
 }
 
@@ -151,8 +150,8 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	struct ft_channel_state *st;
 
 	dev_dbg(&ft->fmc->dev,
-		"Set in ZIO block ch %d: hseq %u: dseq %u: gseq %llu %llu %u %u\n",
-		ts.channel, ts.hseq_id, ts.dseq_id, ts.gseq_id,
+		"Set in ZIO block ch %d: hseq %u: gseq %llu %llu %u %u\n",
+		ts.channel, ts.hseq_id, ts.gseq_id,
 		ts.seconds, ts.coarse, ts.frac);
 
 	st = &ft->channels[cset->index];
@@ -193,7 +192,7 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 
 
 	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
-	ctrl->seq_num = ts.dseq_id - 1;
+	ctrl->seq_num = ts.hseq_id - 1;
 
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
