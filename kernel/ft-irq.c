@@ -202,6 +202,11 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
+
+	if (cset->chan->active_block) {
+		memcpy(cset->chan->active_block->data, wrts,
+		       ctrl->nsamples * ctrl->ssize);
+	}
 }
 
 /**
