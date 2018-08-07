@@ -191,12 +191,6 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
 	ti->tstamp_extra = ts.frac;
 
-	/*
-	 * This is different than it was. We used to fill the active block,
-	 * but now zio copies chan->current_ctrl at a later time, so we
-	 * must fill _those_ attributes instead
-	 */
-	ctrl->nsamples = 1;
 
 	/*
 	 * In order to propagate the "dacapo" flag, we have to force our
