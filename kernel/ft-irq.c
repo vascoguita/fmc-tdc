@@ -257,7 +257,7 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
 {
 	struct ft_channel_state *st = &ft->channels[chan];
-	uint32_t base = ft->ft_buffer_base + chan * 0x40;
+	uint32_t base = ft->ft_dma_base + chan * 0x40;
 	uint32_t csr, base_cur, base_next;
 	unsigned int transfer_buffer;
 
@@ -311,7 +311,7 @@ static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
  */
 static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
 {
-	uint32_t base = ft->ft_buffer_base + chan * 0x40;
+	uint32_t base = ft->ft_dma_base + chan * 0x40;
 
 	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 }
@@ -411,7 +411,7 @@ static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
 			   unsigned int last)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
-	uint32_t fifo_addr = ft->ft_buffer_base + TDC_FIFO_OFFSET * cset->index;
+	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * cset->index;
 	uint32_t data[TDC_FIFO_OUT_N];
 	int i, valid = 1;
 
@@ -484,7 +484,7 @@ irq:
 		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
 			cset = &ft->zdev->cset[i];
 			ft_readout_fifo_one(cset);
-			fifo_csr_addr = ft->ft_buffer_base +
+			fifo_csr_addr = ft->ft_fifo_base +
 				TDC_FIFO_OFFSET * cset->index + TDC_FIFO_CSR;
 			fifo_stat = ft_ioread(ft, fifo_csr_addr);
 			if (!(fifo_stat & TDC_FIFO_CSR_EMPTY))

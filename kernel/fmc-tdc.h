@@ -168,7 +168,8 @@ struct fmctdc_dev {
 	int ft_i2c_base;
 	int ft_owregs_base;
 	int ft_irq_base;
-	int ft_buffer_base;
+	int ft_fifo_base;
+	int ft_dma_base;
 	/* IRQ base index (for SVEC) */
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;

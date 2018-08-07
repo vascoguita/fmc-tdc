@@ -116,10 +116,10 @@
 /* TDC core submodule offsets (wrs to the TDC control registers block) */
 
 #define TDC_MEZZ_ONEWIRE_OFFSET	(-0x1000)
-#define TDC_MEZZ_EIC_OFFSET	(0x1000)
-#define TDC_MEZZ_I2C_OFFSET	(0x2000)
-#define TDC_MEZZ_MEM_OFFSET	(0x3000)
-#define TDC_MEZZ_BUFFER_CTL_OFFSET	(0x3000)
+#define TDC_MEZZ_EIC_OFFSET		(0x1000)
+#define TDC_MEZZ_I2C_OFFSET		(0x2000)
+#define TDC_MEZZ_MEM_FIFO_OFFSET	(0x3000)
+#define TDC_MEZZ_MEM_DMA_OFFSET	(0x4000)
 
 
 #endif /* __TDC_REGISTERS_H */

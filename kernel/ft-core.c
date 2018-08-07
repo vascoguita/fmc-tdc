@@ -123,7 +123,7 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
  */
 static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 {
-	const uint32_t base = ft->ft_buffer_base + (0x40 * channel);
+	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
 	uint32_t val;
 	struct ft_channel_state *st;
 
@@ -173,7 +173,7 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
  */
 static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
 {
-	const uint32_t base = ft->ft_buffer_base + (0x40 * channel);
+	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
 
 	if (ft->mode != FT_ACQ_TYPE_DMA)
 		return;
@@ -403,13 +403,14 @@ int ft_probe(struct fmc_device *fmc)
 
 	ft->ft_irq_base = ft->ft_core_base + TDC_MEZZ_EIC_OFFSET;
 	ft->ft_owregs_base = ft->ft_core_base + TDC_MEZZ_ONEWIRE_OFFSET;
-	ft->ft_buffer_base = ft->ft_core_base + TDC_MEZZ_MEM_OFFSET;
+	ft->ft_fifo_base = ft->ft_core_base + TDC_MEZZ_MEM_FIFO_OFFSET;
+	ft->ft_dma_base = ft->ft_core_base + TDC_MEZZ_MEM_DMA_OFFSET;
 
 	if (ft_verbose) {
 		dev_info(dev,
-			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/DMA 0x%X\n",
-			 ft->ft_core_base, ft->ft_irq_base,
-			 ft->ft_owregs_base, ft->ft_buffer_base);
+			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/FIFO 0x%X, buffer/DMA 0x%x\n",
+			 ft->ft_core_base, ft->ft_irq_base, ft->ft_owregs_base,
+			 ft->ft_fifo_base, ft->ft_dma_base);
 	}
 
 	/*
