@@ -183,34 +183,6 @@ static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
 }
 
-void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
-{
-	uint32_t ien;
-	int i;
-
-
-	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
-	if (enable) {
-		for (i = 0; i < FT_NUM_CHANNELS; i++)
-			ft_buffer_init(ft, i);
-		/* Enable TDC acquisition */
-		ft_writel(ft, ien | TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG,
-			  TDC_REG_INPUT_ENABLE);
-		/* Enable ACAM acquisition */
-		ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
-	} else {
-		/* Disable ACAM acquisition */
-		ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
-		/* Disable TDC acquisition */
-		ft_writel(ft, ien & ~(TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG),
-			  TDC_REG_INPUT_ENABLE);
-
-		for (i = 0; i < FT_NUM_CHANNELS; i++)
-			ft_buffer_exit(ft, i);
-	}
-}
-
-
 static int ft_channels_init(struct fmctdc_dev *ft)
 {
 	int i, ret;
@@ -448,7 +420,11 @@ int ft_probe(struct fmc_device *fmc)
 	if (ret < 0)
 		goto err;
 
-	ft_enable_acquisition(ft, 1);
+	for (i = 0; i < FT_NUM_CHANNELS; i++)
+		ft_buffer_init(ft, i);
+	ft_writel(ft, TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
+	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
+
 	ft->initialized = 1;
 	ft->sequence = 0;
 
@@ -478,17 +454,21 @@ int ft_remove(struct fmc_device *fmc)
 {
 	struct ft_modlist *m;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
-
-	int i = ARRAY_SIZE(init_subsystems);
+	int i;
 
 	if (!ft->initialized)
 		return 0;	/* No init, no exit */
 
 	vfree(ft->dmabuf_virt);
 
-	ft_enable_acquisition(ft, 0);
+	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
+	ft_writel(ft, 0, TDC_REG_INPUT_ENABLE);
+	for (i = 0; i < FT_NUM_CHANNELS; i++)
+		ft_buffer_exit(ft, i);
+
 	ft_irq_exit(ft);
 
+	i = ARRAY_SIZE(init_subsystems);
 	while (--i >= 0) {
 		m = init_subsystems + i;
 		if (m->exit)

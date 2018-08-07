@@ -82,6 +82,10 @@ struct ft_wr_timestamp {
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
+#include "hw/tdc_regs.h"
+#include "hw/tdc_eic.h"
+
+
 extern struct workqueue_struct *ft_workqueue;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
@@ -273,6 +277,36 @@ signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
 				     uint32_t *size );
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
+
+
+/**
+ * It enables the acquisition on a give channel
+ * @ft FmcTdc FMC TDC device instance
+ * @chan channel number [0, N]
+ */
+static inline void ft_enable(struct fmctdc_dev *ft, unsigned int chan)
+{
+	uint32_t ien;
+
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	ien |= (TDC_INPUT_ENABLE_CH1 << chan);
+	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
+}
+
+/**
+ * It disables the acquisition on a give channel
+ * @ft FmcTdc FMC TDC device instance
+ * @chan channel number [0, N]
+ */
+static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
+{
+	uint32_t ien;
+
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	ien &= ~(TDC_INPUT_ENABLE_CH1 << chan);
+	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
+}
+
 
 
 #endif // __KERNEL__

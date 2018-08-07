@@ -24,7 +24,6 @@
 #include <linux/fmc.h>
 
 #include "fmc-tdc.h"
-#include "hw/tdc_regs.h"
 
 
 /* The sample size. Mandatory, device-wide */
@@ -293,7 +292,8 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (chan->flags & ZIO_STATUS) {
 		/* DISABLED */
-		ft_irq_disable(ft, 1 << chan->cset->index);
+		ft_disable(ft, chan->cset->index);
+
 		st->cur_seq_id = 0;
 		zio_trigger_abort_disable(chan->cset, 0);
 		/* Reset last time-stamp (seq number and valid)*/
@@ -301,8 +301,9 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 		//	  TDC_FIFO_LAST_CSR);
 	} else {
 		/* ENABLED */
-		ft_irq_enable(ft, 1 << chan->cset->index);
 		zio_arm_trigger(chan->cset->ti);
+
+		ft_enable(ft, chan->cset->index);
 	}
 	/*
 	 * NOTE: above we have a little HACK. According to ZIO v1.1, ZIO invokes

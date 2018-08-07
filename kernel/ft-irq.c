@@ -25,8 +25,6 @@
 #include <linux/zio-buffer.h>
 
 #include "fmc-tdc.h"
-#include "hw/tdc_regs.h"
-#include "hw/tdc_eic.h"
 
 #define TDC_EIC_EIC_IMR_TDC_DMA_MASK (TDC_EIC_EIC_ISR_TDC_DMA1 | \
 				      TDC_EIC_EIC_ISR_TDC_DMA2 |  \
@@ -68,55 +66,24 @@ static inline uint32_t ft_chan_to_irq_mask(struct fmctdc_dev *ft, uint32_t chan_
 }
 
 /**
- * It enables interrupts on specific channels according to the given mask
- * @ft FmcTdc device instance
- * @chan_mask channel bitmask, a bit to one will enable the corresponding
- *            IRQ channel line
- */
-void ft_irq_enable(struct fmctdc_dev *ft, uint32_t chan_mask)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&ft->lock, flags);
-	ft_iowrite(ft, ft_chan_to_irq_mask(ft, chan_mask),
-		   ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
-	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
-	spin_unlock_irqrestore(&ft->lock, flags);
-
-}
-
-/**
  * It disbles interrupts on specific channels according to the given mask
  * @ft FmcTdc device instance
  * @chan_mask channel bitmask, a bit to one will disable the corresponding
  *            IRQ channel line
  */
-void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask)
+static void ft_irq_disable_save(struct fmctdc_dev *ft)
 {
-	unsigned long flags;
-
-	spin_lock_irqsave(&ft->lock, flags);
-	ft_iowrite(ft, ft_chan_to_irq_mask(ft, chan_mask),
-		   ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
-	spin_unlock_irqrestore(&ft->lock, flags);
-
+	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 }
-
 
 /**
  * It restores the previous known IRQ status
  * @ft FmcTdc device instance
  */
-static void ft_irq_restore(struct fmctdc_dev *ft)
+static void ft_irq_enable_restore(struct fmctdc_dev *ft)
 {
-	unsigned long flags;
-
-	spin_lock_irqsave(&ft->lock, flags);
 	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
-	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
-	spin_unlock_irqrestore(&ft->lock, flags);
-
 }
 
 /**
@@ -400,7 +367,7 @@ static void ft_dma_work(struct work_struct *work)
 		ft_readout_dma_start(ft, i);
 
 	/* Re-Enable interrupts that where disabled in the IRQ handler */
-	ft_irq_restore(ft);
+	ft_irq_enable_restore(ft);
 }
 
 /**
@@ -503,7 +470,7 @@ irq:
 		goto irq;
 
 	/* Re-Enable interrupts that where disabled in the IRQ handler */
-	ft_irq_restore(ft);
+	ft_irq_enable_restore(ft);
 	return;
 }
 
@@ -532,7 +499,7 @@ static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	/* Disable interrupts until we fetch all stored samples */
-	ft_irq_disable(ft, 0x1F);
+	ft_irq_disable_save(ft);
 
 	queue_work(ft_workqueue, &ft->ts_work);
 
@@ -551,10 +518,6 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	/* fixme : only applicable to FIFO readout */
 	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
 	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
-
-	/* disable timestamp readout IRQ, user will enable it manually */
-	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
-
 
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
@@ -587,6 +550,15 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 	/* kick off the interrupts (fixme: possible issue with the HDL) */
 	fmc_irq_ack(ft->fmc);
+
+	/*
+	 * We enable interrupts on all channel. but if we do not enable
+	 * the channel, we should not receive anything. So, even if ZIO is
+	 * not ready to receive data at this time we should not see any trouble.
+	 * If we have problems here, the HDL is broken!
+	 */
+	ft_iowrite(ft, ft_chan_to_irq_mask(ft, 0x1F),
+		   ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
 
 	return 0;
 }

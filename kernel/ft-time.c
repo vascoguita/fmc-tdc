@@ -83,8 +83,12 @@ void ft_ts_apply_offset(struct ft_wr_timestamp *ts, int32_t offset_picos)
 
 void ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 {
+	uint32_t ien;
+
 	/* can't change time when inputs are enabled */
-	ft_enable_acquisition(ft, 0);
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	ft_writel(ft, ien & ~TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
+
 
 	if (ft->verbose)
 		dev_info(&ft->fmc->dev, "Setting TAI time to %lld:%d\n",
@@ -98,7 +102,7 @@ void ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse)
 	ft_writel(ft, seconds & 0xffffffff, TDC_REG_START_UTC);
 	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
 
-	ft_enable_acquisition(ft, 1);
+	ft_writel(ft, ien | TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
 }
 
 void ft_get_tai_time(struct fmctdc_dev *ft, uint64_t *seconds,
@@ -111,16 +115,19 @@ void ft_get_tai_time(struct fmctdc_dev *ft, uint64_t *seconds,
 void ft_set_host_time(struct fmctdc_dev *ft)
 {
 	struct timespec local_ts;
+	uint32_t ien;
 
 	/* can't change time when inputs are enabled */
-	ft_enable_acquisition(ft, 0);
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	ft_writel(ft, ien & ~TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
 
 	getnstimeofday(&local_ts);
 
 	ft_writel(ft, local_ts.tv_sec & 0xffffffff, TDC_REG_START_UTC);
 	ft_writel(ft, TDC_CTRL_LOAD_UTC, TDC_REG_CTRL);
 
-	ft_enable_acquisition(ft, 1);
+	ft_writel(ft, ien | TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
+
 }
 
 void ft_set_vcxo_tune(struct fmctdc_dev *ft, int value)
