@@ -307,10 +307,6 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	while (count > 0) {
 		int i, n = (count > ts_per_page ? ts_per_page : count);
 
-		dev_info(&ft->fmc->dev, "dma_read: %x %p %d\n",
-			 base_cur, dma_buf,
-			 n * TDC_BYTES_PER_TIMESTAMP);
-
 		gn4124_dma_read(ft, base_cur, dma_buf,
 				n * TDC_BYTES_PER_TIMESTAMP);
 
