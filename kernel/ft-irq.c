@@ -192,12 +192,8 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	ti->tstamp_extra = ts.frac;
 
 
-	/*
-	 * In order to propagate the "dacapo" flag, we have to force our
-	 * sequence number insted of using the ZIO one. decrement because
-	 * zio will increment it.
-	 */
-	ctrl->seq_num = ts.dseq_id;
+	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
+	ctrl->seq_num = ts.dseq_id - 1;
 
 	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
