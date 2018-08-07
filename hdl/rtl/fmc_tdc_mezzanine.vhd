@@ -478,6 +478,15 @@ begin
     end if;
   end process;
 
+  process(clk_tdc_i)
+  begin
+    if rising_edge(clk_tdc_i) then
+      direct_timestamp_stb_o <= timestamp_stb;
+      direct_timestamp_o <= timestamp;
+    end if;
+  end process;
+  
+                     
 
 ---------------------------------------------------------------------------------------------------
 --                        TDC Mezzanine Board UniqueID&Thermometer OneWire                       --
