@@ -26,7 +26,46 @@
 
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
+#include "hw/tdc_eic.h"
 
+#define TDC_EIC_EIC_IMR_TDC_DMA_MASK (TDC_EIC_EIC_ISR_TDC_DMA1 | \
+				      TDC_EIC_EIC_ISR_TDC_DMA2 |  \
+				      TDC_EIC_EIC_ISR_TDC_DMA3 |  \
+				      TDC_EIC_EIC_ISR_TDC_DMA4 |  \
+				      TDC_EIC_EIC_ISR_TDC_DMA5)
+
+#define TDC_EIC_EIC_IMR_TDC_FIFO_MASK (TDC_EIC_EIC_ISR_TDC_FIFO1 | \
+				       TDC_EIC_EIC_ISR_TDC_FIFO2 | \
+				       TDC_EIC_EIC_ISR_TDC_FIFO3 | \
+				       TDC_EIC_EIC_ISR_TDC_FIFO4 | \
+				       TDC_EIC_EIC_ISR_TDC_FIFO5)
+
+
+/**
+ * It converts a channel bitmask into an IRQ bitmask according to
+ * the acquisition mode
+ * @ft FmcTdc device instance
+ * @chan_mask channel bitmask, a bit to one will enable the corresponding
+ *            IRQ channel line
+ *
+ * Return: an IRQ bitmask
+ */
+static inline uint32_t ft_chan_to_irq_mask(struct fmctdc_dev *ft, uint32_t chan_mask)
+{
+	uint32_t mask = 0;
+
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		mask = (chan_mask << 0) & TDC_EIC_EIC_IMR_TDC_FIFO_MASK;
+		break;
+	case FT_ACQ_TYPE_DMA:
+		mask = (chan_mask << 5) & TDC_EIC_EIC_IMR_TDC_DMA_MASK;
+		break;
+	default:
+		break;
+	}
+	return mask;
+}
 
 /**
  * It enables interrupts on specific channels according to the given mask
@@ -39,8 +78,9 @@ void ft_irq_enable(struct fmctdc_dev *ft, uint32_t chan_mask)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ft->lock, flags);
-	ft_iowrite(ft, chan_mask, ft->ft_irq_base + TDC_REG_EIC_IER);
-	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_IMR);
+	ft_iowrite(ft, ft_chan_to_irq_mask(ft, chan_mask),
+		   ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
+	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
 	spin_unlock_irqrestore(&ft->lock, flags);
 
 }
@@ -56,8 +96,9 @@ void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ft->lock, flags);
-	ft_iowrite(ft, chan_mask, ft->ft_irq_base + TDC_REG_EIC_IDR);
-	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_IMR);
+	ft_iowrite(ft, ft_chan_to_irq_mask(ft, chan_mask),
+		   ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
+	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
 	spin_unlock_irqrestore(&ft->lock, flags);
 
 }
@@ -72,8 +113,8 @@ static void ft_irq_restore(struct fmctdc_dev *ft)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ft->lock, flags);
-	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_REG_EIC_IER);
-	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_IMR);
+	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
+	ft->irq_imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
 	spin_unlock_irqrestore(&ft->lock, flags);
 
 }
@@ -347,10 +388,12 @@ static void ft_dma_work(struct work_struct *work)
 	int i;
 	unsigned long *loop;
 
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
-
-	if (!irq_stat)
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+	if (!(irq_stat & TDC_EIC_EIC_IMR_TDC_DMA_MASK)) {
+		dev_warn(&ft->fmc->dev,
+			 "Expected DMA interrupt but got 0x%x\n", irq_stat);
 		return;
+	}
 
 	loop = (unsigned long *) &irq_stat;
 	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
@@ -419,9 +462,12 @@ static void ft_fifo_work(struct work_struct *work)
 	struct zio_cset *cset;
 	int i;
 
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
-	if (!irq_stat)
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+	if (!(irq_stat & TDC_EIC_EIC_IMR_TDC_FIFO_MASK)) {
+		dev_warn(&ft->fmc->dev,
+			 "Expected FIFO interrupt but got 0x%x\n", irq_stat);
 		return;
+	}
 
 irq:
 	/*
@@ -446,13 +492,13 @@ irq:
 
 			/* Ack the interrupt, nothing to read anymore */
 			ft_iowrite(ft, 1 << i,
-				   ft->ft_irq_base + TDC_REG_EIC_ISR);
+				   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 			tmp_irq_stat &= (~(1 << i));
 		}
 	} while (tmp_irq_stat);
 
 	/* Meanwhile we got another interrupt? then repeat */
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 	if (irq_stat)
 		goto irq;
 
@@ -481,7 +527,7 @@ static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	uint32_t irq_stat;
 
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_REG_EIC_ISR);
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 	if (!irq_stat)
 		return IRQ_NONE;
 
@@ -507,7 +553,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
 
 	/* disable timestamp readout IRQ, user will enable it manually */
-	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_REG_EIC_IDR);
+	ft_iowrite(ft, 0x1F, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 
 
 	switch (ft->mode) {
@@ -547,7 +593,7 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
-	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_REG_EIC_IDR);
+	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 
 	ft->fmc->irq = ft->ft_irq_base;
 	fmc_irq_free(ft->fmc);

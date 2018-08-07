@@ -72,12 +72,6 @@
 				 TDC_INPUT_ENABLE_CH4 | \
 				 TDC_INPUT_ENABLE_CH5)
 
-/* IRQ controler registers */
-#define TDC_REG_EIC_IDR 		0x0
-#define TDC_REG_EIC_IER 		0x4
-#define TDC_REG_EIC_IMR 		0x8
-#define TDC_REG_EIC_ISR 		0xc
-
 /* IRQ status/enable bits */
 #define TDC_IRQ_TDC_TSTAMP		BIT(0)
 #define TDC_IRQ_TDC_TIME		BIT(1)
