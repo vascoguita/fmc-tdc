@@ -291,28 +291,30 @@ void gn4124_dma_wait_done(struct fmctdc_dev *ft)
 
 void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 {
+	dma_addr_t dma_handle = page_to_pfn(virt_to_page(ft->dmabuf_virt)) * PAGE_SIZE;
+
 	memcpy(ft->dmabuf_virt, src, len);
 
 	dma_writel(ft, dst, GENNUM_DMA_ADDR);
-	dma_writel(ft, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft, ft->dmabuf_phys & 0xffffffffULL,
-		   GENNUM_DMA_ADDR_L);
+	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR,
-		   GENNUM_DMA_ATTR);
-	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR, GENNUM_DMA_ATTR);
+	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
 
 }
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
 {
+	dma_addr_t dma_handle = page_to_pfn(virt_to_page(ft->dmabuf_virt)) * PAGE_SIZE;
+
 	dma_writel(ft, src, GENNUM_DMA_ADDR);
-	dma_writel(ft, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft, ft->dmabuf_phys & 0xffffffffULL,
-		   GENNUM_DMA_ADDR_L);
+	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, GENNUM_DMA_ATTR_LAST,  GENNUM_DMA_ATTR);
-	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST, GENNUM_DMA_ATTR);
+	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
+
 
 	memcpy(dst, ft->dmabuf_virt, len);
 }
@@ -483,10 +485,7 @@ int ft_probe(struct fmc_device *fmc)
 
 	ft->initialized = 1;
 
-	ft->dmabuf_virt = __vmalloc(PAGE_SIZE, GFP_KERNEL | __GFP_ZERO,
-				    PAGE_KERNEL);
-	ft->dmabuf_phys = page_to_pfn(vmalloc_to_page(ft->dmabuf_virt));
-	ft->dmabuf_phys *= PAGE_SIZE;
+	ft->dmabuf_virt = kzalloc(PAGE_SIZE, GFP_KERNEL);
 
 	test_dma(ft);
 
@@ -514,7 +513,7 @@ int ft_remove(struct fmc_device *fmc)
 	if (!ft->initialized)
 		return 0;	/* No init, no exit */
 
-	vfree(ft->dmabuf_virt);
+	kfree(ft->dmabuf_virt);
 
 	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
 	ft_writel(ft, 0, TDC_REG_INPUT_ENABLE);

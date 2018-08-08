@@ -191,7 +191,6 @@ struct fmctdc_dev {
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
 	void *dmabuf_virt;
-	uint64_t dmabuf_phys;
 
 	uint32_t irq_imr;
 	struct work_struct ts_work;
