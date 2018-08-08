@@ -654,7 +654,6 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 			t[i].coarse = ctrl.tstamp.ticks;
 			t[i].frac = ctrl.tstamp.bins;
 			t[i].seq_id = ctrl.seq_num;
-			t[i].gseq_id = attrs[FT_ATTR_DEV_SEQUENCE];
 			t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 			i++;
 

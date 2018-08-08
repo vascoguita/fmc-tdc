@@ -78,7 +78,6 @@ struct fmctdc_time {
 			  to (0..4095) range - i.e. 0 = 0 ns, and
 			  4095 = 7.999 ns. */
 	uint32_t seq_id; /**< channel sequence number*/
-	uint32_t gseq_id; /**< board sequence number */
 	uint32_t ref_gseq_id; /**< board sequence number of the reference
 				 channel time-stamp */
 };

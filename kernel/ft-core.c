@@ -426,7 +426,6 @@ int ft_probe(struct fmc_device *fmc)
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
 	ft->initialized = 1;
-	ft->sequence = 0;
 
 	ft->dmabuf_virt = __vmalloc(PAGE_SIZE, GFP_KERNEL | __GFP_ZERO,
 				    PAGE_KERNEL);

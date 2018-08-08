@@ -69,7 +69,6 @@ struct ft_wr_timestamp {
 	uint32_t frac;
 	uint32_t channel;
 	uint32_t hseq_id; /* hardware channel sequence id */
-	uint64_t gseq_id; /* global sequence id */
 };
 
 /* rest of the file is kernel-only */
@@ -193,8 +192,6 @@ struct fmctdc_dev {
 	int wr_mode;
 	void *dmabuf_virt;
 	uint64_t dmabuf_phys;
-
-	uint64_t sequence; /**< Board time-stamp sequence number */
 
 	uint32_t irq_imr;
 	struct work_struct ts_work;

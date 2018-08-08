@@ -129,8 +129,6 @@ static void ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
 {
 	__ft_timestamp_hw_to_wr(ft, wrts, hwts);
 	ft_timestamp_apply_offsets(ft, wrts);
-
-	wrts->gseq_id = ft->sequence++;
 }
 
 /**
@@ -150,9 +148,8 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	struct ft_channel_state *st;
 
 	dev_dbg(&ft->fmc->dev,
-		"Set in ZIO block ch %d: hseq %u: gseq %llu %llu %u %u\n",
-		ts.channel, ts.hseq_id, ts.gseq_id,
-		ts.seconds, ts.coarse, ts.frac);
+		"Set in ZIO block ch %d: hseq %u: %llu %u %u\n",
+		ts.channel, ts.hseq_id, ts.seconds, ts.coarse, ts.frac);
 
 	st = &ft->channels[cset->index];
 
@@ -171,9 +168,9 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	 */
 	if (st->delay_reference) {
 		reflast = &ft->channels[st->delay_reference - 1].last_ts;
-		if (likely(ts.gseq_id > reflast->gseq_id)) {
+		if (likely(ts.hseq_id > reflast->hseq_id)) {
 			ft_ts_sub(&ts, reflast);
-			v[FT_ATTR_TDC_DELAY_REF_SEQ] = reflast->gseq_id;
+			v[FT_ATTR_TDC_DELAY_REF_SEQ] = reflast->hseq_id;
 		} else {
 			/*
 			 * It seems that we are not able to compute the delay.
@@ -182,7 +179,7 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 			memset(&ts, 0, sizeof(struct ft_wr_timestamp));
 		}
 	} else {
-		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.gseq_id;
+		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.hseq_id;
 	}
 
 	/* Write the timestamp in the trigger, it will reach the control */
@@ -194,7 +191,6 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
 	ctrl->seq_num = ts.hseq_id - 1;
 
-	v[FT_ATTR_DEV_SEQUENCE] = ts.gseq_id;
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 
