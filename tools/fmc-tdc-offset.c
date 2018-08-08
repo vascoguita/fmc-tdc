@@ -1,12 +1,8 @@
 /*
+ * Copyright (C) 2014-2018 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
- *
- * fmctdc-term: get/set the user offset
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include <inttypes.h>
 #include "test-common.h"

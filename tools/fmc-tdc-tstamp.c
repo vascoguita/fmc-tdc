@@ -1,14 +1,9 @@
 /*
- * Copyright (c) 2014 CERN
+ * Copyright (c) 2014-2018 CERN
  * Author: Federico Vaga <federico.vaga@cern.ch>
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
- *
- * fmctdc-tstamp: read timestamps from a given FmcTdc card.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include <stdio.h>
@@ -111,6 +106,7 @@ static void help(char *name)
 	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
 	fprintf(stderr, "  -l:           maximum buffer lenght\n");
 	fprintf(stderr, "  -L:\tkeep reading from the last hardware timestamp instead than from the proper buffer\n");
+	fprintf(stderr, "  -S n_samples: output decimation, number of samples to skip\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, "  -V:           print version info\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
@@ -135,6 +131,7 @@ int main(int argc, char **argv)
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
+	unsigned int n_show = 1;
 	int flush = 0, read = 0, last = 0;
 	char opt;
 	struct sigaction new_action, old_action;
@@ -163,7 +160,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:V")) != -1) {
+	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:VS:")) != -1) {
 		switch (opt) {
 		case 'h':
 		case '?':
@@ -230,6 +227,15 @@ int main(int argc, char **argv)
 				break;
 			}
 			sscanf(optarg, "%i", &ch_valid[chan_count++]);
+			break;
+		case 'S':
+			sscanf(optarg, "%i", &n_show);
+			if (n_show == 0) {
+				fprintf(stderr, "%s: invalid 'n_show', min 1\n", argv[0]);
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+
 			break;
 		}
 	}
@@ -333,8 +339,8 @@ int main(int argc, char **argv)
 							nblock ? O_NONBLOCK : 0);
 			}
 			if (byte_read > 0) {
-				dump(i, &ts, ref[i] < 0 ? 0 : 1);
-
+				if ((n % n_show) == 0)
+					dump(i, &ts, ref[i] < 0 ? 0 : 1);
 				ts_prev[i] = ts;
 				n++;
 			}

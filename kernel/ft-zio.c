@@ -5,10 +5,7 @@
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #include <linux/kernel.h>
@@ -27,7 +24,6 @@
 #include <linux/fmc.h>
 
 #include "fmc-tdc.h"
-#include "hw/tdc_regs.h"
 
 
 /* The sample size. Mandatory, device-wide */
@@ -53,6 +49,7 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
+	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -94,6 +91,9 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
 		*usr_val = st->delay_reference;
+		break;
+	case FT_ATTR_TDC_TRANSFER_MODE:
+		*usr_val = ft->mode;
 		break;
 	}
 
@@ -173,6 +173,11 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 		spin_unlock(&ft->lock);
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
+		if (ft->mode != FT_ACQ_TYPE_DMA) {
+			dev_err(dev,
+				"Delay timestamp not supported with DMA acquisition\n");
+			return -EPERM;
+		}
 		if (usr_val > FT_NUM_CHANNELS)
 			return -EINVAL;
 		st->delay_reference = usr_val;
@@ -287,20 +292,18 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (chan->flags & ZIO_STATUS) {
 		/* DISABLED */
-		ft_iowrite(ft, 1 << chan->cset->index,
-			   ft->ft_irq_base + TDC_REG_EIC_IDR);
+		ft_disable(ft, chan->cset->index);
 
 		st->cur_seq_id = 0;
-		st->expected_edge = 1;
 		zio_trigger_abort_disable(chan->cset, 0);
 		/* Reset last time-stamp (seq number and valid)*/
 		//ft_iowrite(ft, TDC_FIFO_LAST_CSR_VALID | TDC_FIFO_LAST_CSR_RST_SEQ,
 		//	  TDC_FIFO_LAST_CSR);
 	} else {
 		/* ENABLED */
-		ft_iowrite(ft, 1 << chan->cset->index,
-			   ft->ft_irq_base + TDC_REG_EIC_IER);
 		zio_arm_trigger(chan->cset->ti);
+
+		ft_enable(ft, chan->cset->index);
 	}
 	/*
 	 * NOTE: above we have a little HACK. According to ZIO v1.1, ZIO invokes
@@ -322,9 +325,9 @@ static struct zio_channel ft_chan_tmpl = {
 		.raw_io =	ft_zio_input,\
 		.chan_template = &ft_chan_tmpl,\
 		.n_chan =	1,\
-		.ssize =	4, /* FIXME: 0? */\
+		.ssize =	sizeof(struct ft_wr_timestamp), \
 		.flags =	ZIO_DISABLED | \
-				ZIO_DIR_INPUT | ZIO_CSET_TYPE_TIME |	\
+				ZIO_DIR_INPUT | \
 				ZIO_CSET_SELF_TIMED, \
 		.zattr_set = {\
 			.ext_zattr = ft_zattr_input,\

@@ -5,10 +5,7 @@
  * Author: Tomasz Wlostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #include <linux/kernel.h>
@@ -33,6 +30,18 @@
 #include "hw/tdc_regs.h"
 
 /* Module parameters */
+static int dma_buf_irq_timeout_ms_default = 10;
+module_param_named(dma_buf_irq_timeout_ms, dma_buf_irq_timeout_ms_default,
+		   int, 0444);
+MODULE_PARM_DESC(dma_buf_irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
+
+static int dma_buf_ddr_burst_size_default = 16;
+module_param_named(dma_buf_ddr_burst_size, dma_buf_ddr_burst_size_default,
+		   int, 0444);
+MODULE_PARM_DESC(dma_buf_ddr_burst_size,
+		 "DDR size coalesing timeout (default: 16 timestamps).");
+
+
 static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
@@ -42,6 +51,8 @@ FMC_PARAM_BUSID(ft_drv);
 FMC_PARAM_GATEWARE(ft_drv);
 
 static char bitstream_name[32];
+struct workqueue_struct *ft_workqueue;
+
 
 static int ft_reset_core(struct fmctdc_dev *ft)
 {
@@ -73,9 +84,6 @@ static int ft_reset_core(struct fmctdc_dev *ft)
 
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
-	struct ft_channel_state *st = &ft->channels[channel - 1];
-
-	st->expected_edge = 1;
 	return 0;
 }
 
@@ -107,26 +115,73 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 	return 0;
 }
 
-void ft_enable_acquisition(struct fmctdc_dev *ft, int enable)
-{
-	uint32_t ien;
 
-	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
-	if (enable) {
-		/* Enable TDC acquisition */
-		ft_writel(ft, ien | TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG,
-			  TDC_REG_INPUT_ENABLE);
-		/* Enable ACAM acquisition */
-		ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
-	} else {
-		/* Disable ACAM acquisition */
-		ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
-		/* Disable TDC acquisition */
-		ft_writel(ft, ien & ~(TDC_INPUT_ENABLE_CH_ALL | TDC_INPUT_ENABLE_FLAG),
-			  TDC_REG_INPUT_ENABLE);
-	}
+/**
+ * It configure the double buffers for a given channel
+ * @param[in] ft FmcTdc device instance
+ * @param[in] channel range [0, N-1]
+ */
+static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
+	uint32_t val;
+	struct ft_channel_state *st;
+
+	if (ft->mode != FT_ACQ_TYPE_DMA)
+		return;
+
+	st = &ft->channels[channel];
+
+	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / TDC_BYTES_PER_TIMESTAMP;
+	st->active_buffer = 0;
+
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
+
+	/* Buffer 1 */
+	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel);
+	ft_iowrite(ft, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE);
+	val = (st->buf_size << TDC_BUF_CUR_SIZE_SIZE_SHIFT);
+	val |= TDC_BUF_CUR_SIZE_VALID;
+	ft_iowrite(ft, val, base + TDC_BUF_REG_CUR_SIZE);
+
+	/* Buffer 2 */
+	st->buf_addr[1] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel + 1);
+	ft_iowrite(ft, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
+	val = (st->buf_size << TDC_BUF_NEXT_SIZE_SIZE_SHIFT);
+	val |= TDC_BUF_NEXT_SIZE_VALID;
+	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
+
+	/* Ready to run */
+	val = TDC_BUF_CSR_ENABLE;
+	val |= (dma_buf_ddr_burst_size_default << TDC_BUF_CSR_BURST_SIZE_SHIFT);
+	val |= (dma_buf_irq_timeout_ms_default << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
+	ft_iowrite(ft, val, base + TDC_BUF_REG_CSR);
+
+	dev_info(&ft->fmc->dev,
+		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
+		 channel, base, st->buf_addr[0], st->buf_addr[1],
+		 st->buf_size);
+	dev_info(&ft->fmc->dev, "CSR: %08x\n",
+		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
 }
 
+
+/**
+ * It clears the double buffers configuration for a given channel
+ * @param[in] ft FmcTdc device instance
+ * @param[in] channel range [0, N-1]
+ */
+static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
+
+	if (ft->mode != FT_ACQ_TYPE_DMA)
+		return;
+
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
+}
 
 static int ft_channels_init(struct fmctdc_dev *ft)
 {
@@ -144,14 +199,14 @@ static int ft_channels_init(struct fmctdc_dev *ft)
 
 static void ft_channels_exit(struct fmctdc_dev *ft)
 {
-	return;
+
 }
 
 struct ft_modlist {
 	char *name;
 
-	int (*init)(struct fmctdc_dev *);
-	void (*exit)(struct fmctdc_dev *);
+	int (*init)(struct fmctdc_dev *ft);
+	void (*exit)(struct fmctdc_dev *ft);
 };
 
 static struct ft_modlist init_subsystems[] = {
@@ -162,6 +217,79 @@ static struct ft_modlist init_subsystems[] = {
 	{"zio", ft_zio_init, ft_zio_exit}
 };
 
+
+static uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
+{
+	return ft_ioread(ft, TDC_SPEC_DMA_BASE + reg);
+}
+
+static void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
+{
+	dev_vdbg(&ft->fmc->dev, "%s %x %x\n",
+		 __func__, data, TDC_SPEC_DMA_BASE + reg);
+	ft_iowrite(ft, data, TDC_SPEC_DMA_BASE + reg);
+}
+
+void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
+{
+	memcpy(ft->dmabuf_virt, src, len);
+
+	dma_writel(ft, dst, GENNUM_DMA_ADDR);
+	dma_writel(ft, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, ft->dmabuf_phys & 0xffffffffULL,
+		   GENNUM_DMA_ADDR_L);
+	dma_writel(ft, len,  GENNUM_DMA_LEN);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR,
+		   GENNUM_DMA_ATTR);
+	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+
+	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
+		;
+}
+
+void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
+{
+	dma_writel(ft, src, GENNUM_DMA_ADDR);
+	dma_writel(ft, ft->dmabuf_phys >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, ft->dmabuf_phys & 0xffffffffULL,
+		   GENNUM_DMA_ADDR_L);
+	dma_writel(ft, len,  GENNUM_DMA_LEN);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST,  GENNUM_DMA_ATTR);
+	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
+
+	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
+		;
+
+	memcpy(dst, ft->dmabuf_virt, len);
+}
+
+#if 1
+void test_dma(struct fmctdc_dev *ft)
+{
+	const int buf_size = 16;
+	uint8_t buf1[buf_size], buf2[buf_size];
+	int i;
+
+	dev_info(&ft->fmc->dev, "Test DMA\n");
+	dev_info(&ft->fmc->dev, "R0 = %08x R4 = %08x\n",
+	       dma_readl(ft, 0), dma_readl(ft, 4));
+
+	/* mdelay(5000); */
+
+	for (i = 0; i < buf_size; i++) {
+		buf1[i] = i * 31011 + 12312;
+		buf2[i] = 0xff;
+	}
+
+	gn4124_dma_write(ft, 0, buf1, 16);
+	gn4124_dma_read(ft, 0, buf2, 16);
+
+	for (i = 0; i < buf_size; i++)
+		dev_info(&ft->fmc->dev, "%02x %02x ", buf1[i], buf2[i]);
+	dev_info(&ft->fmc->dev, "\n");
+}
+#endif
+
 /* probe and remove are called by the FMC bus core */
 int ft_probe(struct fmc_device *fmc)
 {
@@ -170,12 +298,11 @@ int ft_probe(struct fmc_device *fmc)
 	struct device *dev = &fmc->dev;
 	char *fwname;
 	int i, index, ret, ord;
+	uint32_t stat;
 
 	ft = kzalloc(sizeof(struct fmctdc_dev), GFP_KERNEL);
-	if (!ft) {
-		dev_err(dev, "can't allocate device\n");
+	if (!ft)
 		return -ENOMEM;
-	}
 
 	index = fmc_validate(fmc, &ft_drv);
 	if (index < 0) {
@@ -190,7 +317,7 @@ int ft_probe(struct fmc_device *fmc)
 
 	/* apply carrier-specific hacks and workarounds */
 	if (!strcmp(ft->fmc->carrier_name, "SVEC")) {
-	        sprintf(bitstream_name, FT_GATEWARE_SVEC);
+		sprintf(bitstream_name, FT_GATEWARE_SVEC);
 	} else if (!strcmp(fmc->carrier_name, "SPEC")) {
 		sprintf(bitstream_name, FT_GATEWARE_SPEC);
 	} else {
@@ -248,13 +375,30 @@ int ft_probe(struct fmc_device *fmc)
 
 	ft->ft_irq_base = ft->ft_core_base + TDC_MEZZ_EIC_OFFSET;
 	ft->ft_owregs_base = ft->ft_core_base + TDC_MEZZ_ONEWIRE_OFFSET;
-	ft->ft_buffer_base = ft->ft_core_base + TDC_MEZZ_MEM_OFFSET;
+	ft->ft_fifo_base = ft->ft_core_base + TDC_MEZZ_MEM_FIFO_OFFSET;
+	ft->ft_dma_base = ft->ft_core_base + TDC_MEZZ_MEM_DMA_OFFSET;
 
 	if (ft_verbose) {
 		dev_info(dev,
-			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/DMA 0x%X\n",
-			 ft->ft_core_base, ft->ft_irq_base,
-			 ft->ft_owregs_base, ft->ft_buffer_base);
+			 "Base addrs: core 0x%x, irq 0x%x, 1wire 0x%x, buffer/FIFO 0x%X, buffer/DMA 0x%x\n",
+			 ft->ft_core_base, ft->ft_irq_base, ft->ft_owregs_base,
+			 ft->ft_fifo_base, ft->ft_dma_base);
+	}
+
+	/*
+	 * Even if the HDL supports both acquisition mechanism at the same
+	 * time, here for the time being we don't.
+	 */
+	stat = ft_ioread(ft, ft->ft_core_base + TDC_REG_STAT);
+	if (stat & TDC_STAT_DMA) {
+		ft->mode = FT_ACQ_TYPE_DMA;
+	} else if (stat & TDC_STAT_FIFO) {
+		ft->mode = FT_ACQ_TYPE_FIFO;
+	} else {
+		dev_err(dev,
+			"Unsupported acquisition type, tdc_reg_stat 0x%x\n",
+			stat);
+		return -ENODEV;
 	}
 
 	spin_lock_init(&ft->lock);
@@ -276,9 +420,20 @@ int ft_probe(struct fmc_device *fmc)
 	if (ret < 0)
 		goto err;
 
-	ft_enable_acquisition(ft, 1);
+	for (i = 0; i < FT_NUM_CHANNELS; i++)
+		ft_buffer_init(ft, i);
+	ft_writel(ft, TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
+	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
+
 	ft->initialized = 1;
 	ft->sequence = 0;
+
+	ft->dmabuf_virt = __vmalloc(PAGE_SIZE, GFP_KERNEL | __GFP_ZERO,
+				    PAGE_KERNEL);
+	ft->dmabuf_phys = page_to_pfn(vmalloc_to_page(ft->dmabuf_virt));
+	ft->dmabuf_phys *= PAGE_SIZE;
+
+	test_dma(ft);
 
 	/* Pin the carrier */
 	if (!try_module_get(fmc->owner))
@@ -299,15 +454,21 @@ int ft_remove(struct fmc_device *fmc)
 {
 	struct ft_modlist *m;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
-
-	int i = ARRAY_SIZE(init_subsystems);
+	int i;
 
 	if (!ft->initialized)
 		return 0;	/* No init, no exit */
 
-	ft_enable_acquisition(ft, 0);
+	vfree(ft->dmabuf_virt);
+
+	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
+	ft_writel(ft, 0, TDC_REG_INPUT_ENABLE);
+	for (i = 0; i < FT_NUM_CHANNELS; i++)
+		ft_buffer_exit(ft, i);
+
 	ft_irq_exit(ft);
 
+	i = ARRAY_SIZE(init_subsystems);
 	while (--i >= 0) {
 		m = init_subsystems + i;
 		if (m->exit)
@@ -341,22 +502,40 @@ static int ft_init(void)
 {
 	int ret;
 
+	#if LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0)
+	ft_workqueue = alloc_workqueue(ft_drv.driver.name,
+					WQ_NON_REENTRANT | WQ_UNBOUND |
+					WQ_MEM_RECLAIM, 1);
+	#else
+	ft_workqueue = alloc_workqueue(ft_drv.driver.name,
+				       WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
+	#endif
+	if (ft_workqueue == NULL)
+		return -ENOMEM;
+
 	ret = ft_zio_register();
 	if (ret < 0)
-		return ret;
+		goto err_zio;
 
 	ret = fmc_driver_register(&ft_drv);
-	if (ret < 0) {
-		ft_zio_unregister();
-		return ret;
-	}
+	if (ret < 0)
+		goto err_fmc;
+
 	return 0;
+
+err_fmc:
+	ft_zio_unregister();
+err_zio:
+	destroy_workqueue(ft_workqueue);
+
+	return ret;
 }
 
 static void ft_exit(void)
 {
 	fmc_driver_unregister(&ft_drv);
 	ft_zio_unregister();
+	destroy_workqueue(ft_workqueue);
 }
 
 module_init(ft_init);

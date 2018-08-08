@@ -1,14 +1,11 @@
 /*
  * The "official" fmc-tdc API
  *
- * Copyright (C) 2012-2013 CERN (www.cern.ch)
+ * Copyright (C) 2012-2018 CERN (www.cern.ch)
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 #ifndef __FMCTDC_LIB_H__
 #define __FMCTDC_LIB_H__
@@ -51,6 +48,14 @@ enum fmctdc_buffer_mode {
 enum fmctdc_channel_status {
 	FMCTDC_STATUS_DISABLE = 0, /**< The cannel is disable */
 	FMCTDC_STATUS_ENABLE, /**< the channel is enable */
+};
+
+/**
+ *
+ */
+enum ft_transfer_mode {
+	FT_ACQ_TYPE_FIFO = 0,
+	FT_ACQ_TYPE_DMA,
 };
 
 /**
@@ -145,6 +150,10 @@ extern int fmctdc_set_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t offset);
 extern int fmctdc_get_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t *offset);
+extern int fmctdc_buffer_mode(struct fmctdc_board *userb,
+			      unsigned int channel,
+			      enum ft_transfer_mode *mode);
+
 /**@}*/
 
 

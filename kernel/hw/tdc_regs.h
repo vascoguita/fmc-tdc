@@ -11,6 +11,10 @@
 
 #ifndef __TDC_REGISTERS_H
 #define __TDC_REGISTERS_H
+
+#include <hw/gennum-dma.h>
+#include <hw/tdc_buffer_control_regs.h>
+
 /* Gennum chip register */
 
 #define TDC_REG_ACAM_READBACK(index)  (0x0040 + (index * 4))
@@ -24,9 +28,15 @@
 #define TDC_REG_DAC_TUNE 0x0098
 #define TDC_REG_CURRENT_UTC 0x00a0
 #define TDC_REG_BUFFER_PTR 0x00a8
+#define TDC_REG_STAT 0x00ac
 #define TDC_REG_CTRL 0x00fc
 #define TDC_REG_WR_CTRL 0x00b4
 #define TDC_REG_WR_STAT 0x00b0
+
+/* TDC_REG_STAT bits */
+#define TDC_STAT_DMA BIT(0)
+#define TDC_STAT_FIFO BIT(1)
+
 
 #define TDC_WR_CTRL_ENABLE		BIT(0)
 
@@ -61,12 +71,6 @@
 				 TDC_INPUT_ENABLE_CH3 | \
 				 TDC_INPUT_ENABLE_CH4 | \
 				 TDC_INPUT_ENABLE_CH5)
-
-/* IRQ controler registers */
-#define TDC_REG_EIC_IDR 		0x0
-#define TDC_REG_EIC_IER 		0x4
-#define TDC_REG_EIC_IMR 		0x8
-#define TDC_REG_EIC_ISR 		0xc
 
 /* IRQ status/enable bits */
 #define TDC_IRQ_TDC_TSTAMP		BIT(0)
@@ -105,31 +109,17 @@
 #define TDC_CARRIER_CTL1_RSTN_FMC0 	 BIT(3)
 #define TDC_CARRIER_CTL1_RSTN_FMC1 	 BIT(4)
 
-/* Gennum DMA registers (not defined in the SPEC driver headers) */
-#define TDC_REG_DMA_CTRL 0x0
-#define TDC_REG_DMA_STAT 0x4
-#define TDC_REG_DMA_C_START 0x8
-#define TDC_REG_DMA_H_START_L 0x0c
-#define TDC_REG_DMA_H_START_H 0x10
-#define TDC_REG_DMA_NEXT_L 0x18
-#define TDC_REG_DMA_NEXT_H 0x1c
-#define TDC_REG_DMA_LEN 0x14
-#define TDC_REG_DMA_ATTRIB 0x20
-
-/* TDC_REG_DMA_STAT bits */
-#define TDC_DMA_STAT_MASK 0x7
-#define TDC_DMA_STAT_DONE 0x1
-#define TDC_DMA_STAT_ERROR 0x3
-
 #define TDC_SVEC_CARRIER_BASE           0x1000
 #define TDC_SPEC_CARRIER_BASE           0x20000
+#define TDC_SPEC_DMA_BASE           0x50000
 
 /* TDC core submodule offsets (wrs to the TDC control registers block) */
 
 #define TDC_MEZZ_ONEWIRE_OFFSET	(-0x1000)
-#define TDC_MEZZ_EIC_OFFSET	(0x1000)
-#define TDC_MEZZ_I2C_OFFSET	(0x2000)
-#define TDC_MEZZ_MEM_OFFSET	(0x3000)
+#define TDC_MEZZ_EIC_OFFSET		(0x1000)
+#define TDC_MEZZ_I2C_OFFSET		(0x2000)
+#define TDC_MEZZ_MEM_FIFO_OFFSET	(0x3000)
+#define TDC_MEZZ_MEM_DMA_OFFSET	(0x4000)
 
 
 #endif /* __TDC_REGISTERS_H */

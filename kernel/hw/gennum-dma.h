@@ -1,0 +1,21 @@
+
+#define GENNUM_DMA_CTL 0x0
+
+#define GENNUM_DMA_CTL_SWP        0xc
+#define GENNUM_DMA_CTL_ABORT      0x2
+#define GENNUM_DMA_CTL_START	0x1
+
+#define GENNUM_DMA_STA		(0x4*1)
+#define GENNUM_DMA_STA_DONE    (1<<1)
+
+#define GENNUM_DMA_ADDR (0x08*1)
+#define GENNUM_DMA_ADDR_L (0x0C*1)
+#define GENNUM_DMA_ADDR_H (0x10*1)
+
+#define GENNUM_DMA_LEN  (0x14*1)
+#define GENNUM_DMA_NEXT_L (0x18*1)
+#define GENNUM_DMA_NEXT_H (0x1C*1)
+
+#define GENNUM_DMA_ATTR     (0x20*1)
+#define GENNUM_DMA_ATTR_DIR   0x00000002
+#define GENNUM_DMA_ATTR_LAST  0x00000001

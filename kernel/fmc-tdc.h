@@ -5,10 +5,7 @@
  * Author: Tomasz Wlostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #ifndef __FMC_TDC_H__
@@ -48,6 +45,7 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_DELAY_REF,
 	FT_ATTR_TDC_DELAY_REF_SEQ,
 	FT_ATTR_TDC_WR_OFFSET,
+	FT_ATTR_TDC_TRANSFER_MODE,
 	FT_ATTR_TDC__LAST,
 };
 
@@ -64,6 +62,17 @@ enum ft_command {
 	FT_CMD_IDENTIFY_OFF
 };
 
+/* White Rabbit timestamp */
+struct ft_wr_timestamp {
+	uint64_t seconds;
+	uint32_t coarse;
+	uint32_t frac;
+	uint32_t channel;
+	uint32_t hseq_id; /* hardware channel sequence id */
+	uint32_t dseq_id; /* channel sequence id */
+	uint64_t gseq_id; /* global sequence id */
+};
+
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
 
@@ -71,8 +80,17 @@ enum ft_command {
 #include <linux/timer.h>
 #include <linux/fmc.h>
 #include <linux/version.h>
+#include <linux/workqueue.h>
+
+#include "hw/tdc_regs.h"
+#include "hw/tdc_eic.h"
+
+
+extern struct workqueue_struct *ft_workqueue;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
+#define TDC_BYTES_PER_TIMESTAMP       16
+#define TDC_CHANNEL_BUFFER_SIZE_BYTES 0x1000000 // 16MB
 
 enum ft_channel_flags {
 	FT_FLAG_CH_TERMINATED = 0,
@@ -100,39 +118,53 @@ struct ft_calibration {		/* All of these are big endian in the EEPROM */
 
 /* Hardware TDC timestamp */
 struct ft_hw_timestamp {
-	uint32_t bins;		/* In ACAM bins (81 ps) */
-	uint32_t coarse;	/* 8 ns resolution */
 	uint32_t utc;		/* 1 second resolution */
+	uint32_t coarse;	/* 8 ns resolution */
+	uint32_t frac;		/* In ACAM bins (81 ps) */
 	uint32_t metadata;	/* channel, polarity, etc. */
 } __packed;
 
-/* White Rabbit timestamp */
-struct ft_wr_timestamp {
-	uint64_t seconds;
-	uint32_t coarse;
-	uint32_t frac;
-	uint32_t channel;
-	uint32_t hseq_id; /* hardware channel sequence id */
-	uint32_t dseq_id; /* channel sequence id */
-	uint64_t gseq_id; /* global sequence id */
-};
+#define FT_HW_TS_META_CHN_MASK 0x7
+#define FT_HW_TS_META_CHN_SHIFT 0
+#define FT_HW_TS_META_CHN(_meta) ((_meta & FT_HW_TS_META_CHN_MASK) >> FT_HW_TS_META_CHN_SHIFT)
+
+#define FT_HW_TS_META_POL_MASK 0x8
+#define FT_HW_TS_META_POL_SHIFT 3
+#define FT_HW_TS_META_POL(_meta) ((_meta & FT_HW_TS_META_POL_MASK) >> FT_HW_TS_META_POL_SHIFT)
+
+#define FT_HW_TS_META_SEQ_MASK 0xFFFFFFF0
+#define FT_HW_TS_META_SEQ_SHIFT 4
+#define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
 
 struct ft_channel_state {
 	unsigned long flags;
-	int expected_edge;
 	int cur_seq_id;
 	int delay_reference;
 
 	int32_t user_offset;
 
-	struct ft_wr_timestamp prev_ts; /**< used to validate time-stamps
-					   from HW */
 	struct ft_wr_timestamp last_ts; /**< used to compute delay
 					   between pulses */
+
+	int active_buffer;
+#define __FT_BUF_MAX 2
+	uint32_t buf_addr[__FT_BUF_MAX];
+	uint32_t buf_size; // in timestamps
 };
 
-/* Main TDC device context */
+enum ft_transfer_mode {
+	FT_ACQ_TYPE_FIFO = 0,
+	FT_ACQ_TYPE_DMA,
+};
+
+/*
+ * Main TDC device context
+ * @lock it protects: irq_imr (irq vs user), offset (user vs user),
+ *       wr_mode (user vs user)
+ * @irq_imr it holds the IMR value since our last modification
+ */
 struct fmctdc_dev {
+	enum ft_transfer_mode mode;
 	/* HW buffer/FIFO access lock */
 	spinlock_t lock;
 	/* base addresses, taken from SDB */
@@ -140,7 +172,8 @@ struct fmctdc_dev {
 	int ft_i2c_base;
 	int ft_owregs_base;
 	int ft_irq_base;
-	int ft_buffer_base;
+	int ft_fifo_base;
+	int ft_dma_base;
 	/* IRQ base index (for SVEC) */
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;
@@ -160,8 +193,13 @@ struct fmctdc_dev {
 	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
+	void *dmabuf_virt;
+	uint64_t dmabuf_phys;
 
 	uint64_t sequence; /**< Board time-stamp sequence number */
+
+	uint32_t irq_imr;
+	struct work_struct ts_work;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)
@@ -215,6 +253,8 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft);
 
 int ft_irq_init(struct fmctdc_dev *ft);
 void ft_irq_exit(struct fmctdc_dev *ft);
+void ft_irq_enable(struct fmctdc_dev *ft, uint32_t chan_mask);
+void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask);
 
 int ft_time_init(struct fmctdc_dev *ft);
 void ft_time_exit(struct fmctdc_dev *ft);
@@ -235,6 +275,39 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
 signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
 				     uint32_t did, int *ordinal,
 				     uint32_t *size );
+
+void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
+
+
+/**
+ * It enables the acquisition on a give channel
+ * @ft FmcTdc FMC TDC device instance
+ * @chan channel number [0, N]
+ */
+static inline void ft_enable(struct fmctdc_dev *ft, unsigned int chan)
+{
+	uint32_t ien;
+
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	ien |= (TDC_INPUT_ENABLE_CH1 << chan);
+	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
+}
+
+/**
+ * It disables the acquisition on a give channel
+ * @ft FmcTdc FMC TDC device instance
+ * @chan channel number [0, N]
+ */
+static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
+{
+	uint32_t ien;
+
+	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	ien &= ~(TDC_INPUT_ENABLE_CH1 << chan);
+	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
+}
+
+
 
 #endif // __KERNEL__
 

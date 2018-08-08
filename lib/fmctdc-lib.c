@@ -1,15 +1,12 @@
 /*
  * The fmc-tdc (a.k.a. FmcTdc1ns5cha) library.
  *
- * Copyright (C) 2012-2015 CERN (www.cern.ch)
+ * Copyright (C) 2012-2018 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2 as published by the Free Software Foundation or, at your
- * option, any later version.
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 #include <stdio.h>
 #include <stdint.h>
@@ -636,9 +633,10 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 {
 	__define_board(b, userb);
 	struct zio_control ctrl;
-	uint32_t *attrs, data[NSAMPLE]; /* ssize is 4 => uint32_t for data */
+	uint32_t *attrs;
 	int i, j;
 	fd_set set;
+	struct ft_wr_timestamp data;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
@@ -660,18 +658,17 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 			t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 			i++;
 
-			/* Consume also the data even if it is empty,
-			   so it will keep clear the ZIO buffer */
-			j = read(b->fdd[channel], data,
-				 ctrl.nsamples * ctrl.ssize);
-			if (j == ctrl.nsamples * ctrl.ssize)
-				continue; /* Everything is fine */
+			assert(sizeof(data) == ctrl.nsamples * ctrl.ssize);
+			if (sizeof(data) == ctrl.nsamples * ctrl.ssize) {
+				j = read(b->fdd[channel], &data,
+					 ctrl.nsamples * ctrl.ssize);
+				if (j == ctrl.nsamples * ctrl.ssize)
+					continue; /* Everything is fine */
+			}
+
+			errno = EIO;
 			/* We are not ok here because the data side has
 			   something wrong */
-		}
-		if (j > 0) {
-			errno = EIO;
-			return -1;
 		}
 		/* so, it's EAGAIN: if we already got something, we are done */
 		if (i)
@@ -785,7 +782,8 @@ int fmctdc_set_host_time(struct fmctdc_board *userb)
  * It enables/disables the WhiteRabbit timing system on a TDC device
  * @param[in] userb TDC board instance token
  * @param[in] on white-rabbit status to set
- * @return 0 on success, otherwise an error code
+ * @return 0 on successful ON, -ENOLINK on successful OFF, otherwise other
+ *         erro codes
  */
 int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 {
@@ -831,9 +829,20 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 	struct __fmctdc_board *b = (void *)(userb);
 	uint32_t ch_ref = ch_reference;
 	char path[64];
+	int err;
+	enum ft_transfer_mode mode;
 
 	if (ch_target >= FMCTDC_NUM_CHANNELS || ch_reference >= FMCTDC_NUM_CHANNELS ) {
 		errno = EINVAL;
+		return -1;
+	}
+
+	err = fmctdc_buffer_mode(userb, ch_target, &mode);
+	if (err)
+		return err;
+
+	if (mode != FT_ACQ_TYPE_FIFO && ch_reference != -1) {
+		errno = EPERM;
 		return -1;
 	}
 
@@ -971,5 +980,32 @@ int fmctdc_get_offset_user(struct fmctdc_board *userb,
 		return -1;
 
 	*offset = (int32_t)val;
+	return 0;
+}
+
+/**
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[out] mode transfer mode
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_buffer_mode(struct fmctdc_board *userb,
+		       unsigned int channel, enum ft_transfer_mode *mode)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	uint32_t val;
+	char path[64];
+	int err;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+	snprintf(path, sizeof(path), "ft-ch%d/transfer-mode", channel + 1);
+	err = fmctdc_sysfs_get(b, path, &val);
+	if (err)
+		return -1;
+
+	*mode = val;
 	return 0;
 }
