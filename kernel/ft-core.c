@@ -115,6 +115,56 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 	return 0;
 }
 
+static void ft_buffer_burst_enable(struct fmctdc_dev *ft,
+				   unsigned int chan)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp |= TDC_BUF_CSR_ENABLE;
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+
+}
+
+static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
+				    unsigned int chan)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp &= ~TDC_BUF_CSR_ENABLE;
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+
+}
+
+static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
+				     unsigned int chan,
+				     uint32_t size)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp &= ~TDC_BUF_CSR_BURST_SIZE_MASK;
+	tmp |= TDC_BUF_CSR_BURST_SIZE_W(size);
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+}
+
+static void ft_buffer_burst_timeout_set(struct fmctdc_dev *ft,
+					unsigned int chan,
+					uint32_t timeout)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
+	tmp |= TDC_BUF_CSR_IRQ_TIMEOUT_W(timeout);
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+}
+
 
 /**
  * It configure the double buffers for a given channel
@@ -151,11 +201,10 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 	val |= TDC_BUF_NEXT_SIZE_VALID;
 	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
 
-	/* Ready to run */
-	val = TDC_BUF_CSR_ENABLE;
-	val |= (dma_buf_ddr_burst_size_default << TDC_BUF_CSR_BURST_SIZE_SHIFT);
-	val |= (dma_buf_irq_timeout_ms_default << TDC_BUF_CSR_IRQ_TIMEOUT_SHIFT);
-	ft_iowrite(ft, val, base + TDC_BUF_REG_CSR);
+	ft_buffer_burst_size_set(ft, channel, dma_buf_ddr_burst_size_default);
+	ft_buffer_burst_timeout_set(ft, channel,
+				    dma_buf_irq_timeout_ms_default);
+	ft_buffer_burst_enable(ft, channel);
 
 	dev_info(&ft->fmc->dev,
 		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
@@ -180,7 +229,7 @@ static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
 
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
-	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
+	ft_buffer_burst_disable(ft, channel);
 }
 
 static int ft_channels_init(struct fmctdc_dev *ft)
