@@ -304,6 +304,7 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 
 		gn4124_dma_read(ft, base_cur, dma_buf,
 				n * TDC_BYTES_PER_TIMESTAMP);
+		gn4124_dma_wait_done(ft);
 
 		/* gn4124_dma_read(ft->fmc, 0, dma_buf, 16); */
 

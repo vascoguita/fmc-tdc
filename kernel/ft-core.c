@@ -279,6 +279,16 @@ static void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
 	ft_iowrite(ft, data, TDC_SPEC_DMA_BASE + reg);
 }
 
+/**
+ * It does an active wait until the DMA transfer is over
+ * @ft FmcTdc device instance
+ */
+void gn4124_dma_wait_done(struct fmctdc_dev *ft)
+{
+	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
+		;
+}
+
 void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 {
 	memcpy(ft->dmabuf_virt, src, len);
@@ -292,8 +302,6 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 		   GENNUM_DMA_ATTR);
 	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
 
-	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
-		;
 }
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
@@ -305,9 +313,6 @@ void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
 	dma_writel(ft, GENNUM_DMA_ATTR_LAST,  GENNUM_DMA_ATTR);
 	dma_writel(ft, GENNUM_DMA_CTL_START,  GENNUM_DMA_CTL);
-
-	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
-		;
 
 	memcpy(dst, ft->dmabuf_virt, len);
 }
@@ -331,7 +336,9 @@ void test_dma(struct fmctdc_dev *ft)
 	}
 
 	gn4124_dma_write(ft, 0, buf1, 16);
+	gn4124_dma_wait_done(ft);
 	gn4124_dma_read(ft, 0, buf2, 16);
+	gn4124_dma_wait_done(ft);
 
 	for (i = 0; i < buf_size; i++)
 		dev_info(&ft->fmc->dev, "%02x %02x ", buf1[i], buf2[i]);

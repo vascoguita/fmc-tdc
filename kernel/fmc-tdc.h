@@ -272,6 +272,7 @@ signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
 				     uint32_t *size );
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
+void gn4124_dma_wait_done(struct fmctdc_dev *ft);
 
 
 /**
