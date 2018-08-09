@@ -43,7 +43,6 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_ZERO_OFFSET,
 	FT_ATTR_TDC_USER_OFFSET,
 	FT_ATTR_TDC_DELAY_REF,
-	FT_ATTR_TDC_DELAY_REF_SEQ,
 	FT_ATTR_TDC_WR_OFFSET,
 	FT_ATTR_TDC_TRANSFER_MODE,
 	FT_ATTR_TDC__LAST,
@@ -129,12 +128,7 @@ struct ft_calibration {		/* All of these are big endian in the EEPROM */
 
 struct ft_channel_state {
 	unsigned long flags;
-	int delay_reference;
-
 	int32_t user_offset;
-
-	struct ft_hw_timestamp last_ts; /**< used to compute delay
-					   between pulses */
 
 	int active_buffer;
 #define __FT_BUF_MAX 2

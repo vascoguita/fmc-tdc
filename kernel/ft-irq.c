@@ -111,50 +111,20 @@ static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
 static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 				  struct ft_hw_timestamp *hwts)
 {
-	struct zio_device *zdev = cset->zdev;
-	struct fmctdc_dev *ft = zdev->priv_d;
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct zio_control *ctrl;
-	struct zio_ti *ti = cset->ti;
 	uint32_t *v;
-	struct ft_hw_timestamp ts = *hwts, *reflast;
+	struct ft_hw_timestamp ts = *hwts;
 	struct ft_channel_state *st;
 
 	st = &ft->channels[cset->index];
-
 	ctrl = cset->chan->current_ctrl;
 	v = ctrl->attr_channel.ext_val;
 
-	/*
-	 * Update last time stamp of the current channel, with the current
-	 * time-stamp
-	 */
-	memcpy(&st->last_ts, &ts, sizeof(struct ft_hw_timestamp));
-
-	/*
-	 * If we are in delay mode, replace the time stamp with the delay from
-	 * the reference
-	 */
-	if (st->delay_reference) {
-		reflast = &ft->channels[st->delay_reference - 1].last_ts;
-		if (likely(FT_HW_TS_META_SEQ(ts.metadata) > FT_HW_TS_META_SEQ(reflast->metadata))) {
-			ft_ts_sub(&ts, reflast);
-			v[FT_ATTR_TDC_DELAY_REF_SEQ] = FT_HW_TS_META_SEQ(reflast->metadata);
-		} else {
-			/*
-			 * It seems that we are not able to compute the delay.
-			 * Inform the user by setting the time stamp to 0
-			 */
-			memset(&ts, 0, sizeof(struct ft_hw_timestamp));
-		}
-	} else {
-		v[FT_ATTR_TDC_DELAY_REF_SEQ] = FT_HW_TS_META_SEQ(ts.metadata);
-	}
-
 	/* Write the timestamp in the trigger, it will reach the control */
-	ti->tstamp.tv_sec = ts.seconds;
-	ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
-	ti->tstamp_extra = ts.frac;
-
+	cset->ti->tstamp.tv_sec = ts.seconds;
+	cset->ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
+	cset->ti->tstamp_extra = ts.frac;
 
 	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
 	ctrl->seq_num = FT_HW_TS_META_SEQ(ts.metadata) - 1;

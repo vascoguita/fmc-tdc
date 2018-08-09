@@ -47,7 +47,6 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("zero-offset", ZIO_RO_PERM, FT_ATTR_TDC_ZERO_OFFSET, 0),
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
-	ZIO_ATTR_EXT("diff-reference-seq", ZIO_RO_PERM, FT_ATTR_TDC_DELAY_REF_SEQ, 0),
 	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
 };
 
@@ -89,7 +88,7 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		*usr_val = test_bit(FT_FLAG_CH_TERMINATED, &st->flags);
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
-		*usr_val = st->delay_reference;
+		/* FIXME read from HW */
 		break;
 	case FT_ATTR_TDC_TRANSFER_MODE:
 		*usr_val = ft->mode;
@@ -169,14 +168,9 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 		spin_unlock(&ft->lock);
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
-		if (ft->mode != FT_ACQ_TYPE_DMA) {
-			dev_err(dev,
-				"Delay timestamp not supported with DMA acquisition\n");
-			return -EPERM;
-		}
 		if (usr_val > FT_NUM_CHANNELS)
 			return -EINVAL;
-		st->delay_reference = usr_val;
+		/* FIXME write on HW */
 		break;
 	default:
 		return -EINVAL;
