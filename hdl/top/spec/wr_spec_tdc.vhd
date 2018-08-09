@@ -442,12 +442,13 @@ architecture rtl of wr_spec_tdc is
 -- Note: All address in sdb and crossbar are BYTE addresses!
 
   -- Master ports on the wishbone crossbar
-  constant c_NUM_WB_MASTERS     : integer := 5;
+  constant c_NUM_WB_MASTERS     : integer := 6;
   constant c_WB_SLAVE_SPEC_INFO : integer := 0;  -- Info on SPEC control and status registers
   constant c_WB_SLAVE_VIC       : integer := 1;  -- Interrupt controller
   constant c_WB_SLAVE_TDC       : integer := 2;  -- TDC core configuration
   constant c_WB_SLAVE_DMA       : integer := 3;
-  constant c_WB_SLAVE_WRC       : integer := 4;  -- White Rabbit PTP core
+  constant c_WB_SLAVE_DMA_EIC   : integer := 4;
+  constant c_WB_SLAVE_WRC       : integer := 5;  -- White Rabbit PTP core
 
   -- SDB header address
   constant c_SDB_ADDRESS : t_wishbone_address := x"00000000";
@@ -475,15 +476,32 @@ architecture rtl of wr_spec_tdc is
         date      => x"20121116",
         name      => "WB-DMA.Control     ")));
 
+    constant c_wb_dma_eic_sdb : t_sdb_device := (
+    abi_class     => x"0000",              -- undocumented device
+    abi_ver_major => x"01",
+    abi_ver_minor => x"01",
+    wbd_endian    => c_sdb_endian_big,
+    wbd_width     => x"4",                 -- 32-bit port granularity
+    sdb_component => (
+      addr_first  => x"0000000000000000",
+      addr_last   => x"000000000000003F",
+      product     => (
+        vendor_id => x"000000000000CE42",  -- CERN
+        device_id => x"12000661",
+        version   => x"00000001",
+        date      => x"20121116",
+        name      => "WB-DMA.InterruptCtr")));
 
-  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(6 downto 0) :=
+
+  constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(7 downto 0) :=
     (0 => f_sdb_embed_device (c_SPEC_INFO_SDB_DEVICE, x"00020000"),
      1 => f_sdb_embed_device (c_xwb_vic_sdb, x"00030000"),  -- c_xwb_vic_sdb described in the wishbone_pkg
      2 => f_sdb_embed_bridge (c_FMC_TDC_SDB_BRIDGE, x"00040000"),
      3 => f_sdb_embed_device(c_wb_dma_ctrl_sdb, x"00050000"),
-     4 => f_sdb_embed_bridge (c_WRCORE_BRIDGE_SDB, x"00080000"),
-     5 => f_sdb_embed_repo_url (c_SDB_REPO_URL),
-     6 => f_sdb_embed_synthesis (c_sdb_synthesis_info));
+     4 => f_sdb_embed_device(c_wb_dma_eic_sdb,  x"00060000"),
+     5 => f_sdb_embed_bridge (c_WRCORE_BRIDGE_SDB, x"00080000"),
+     6 => f_sdb_embed_repo_url (c_SDB_REPO_URL),
+     7 => f_sdb_embed_synthesis (c_sdb_synthesis_info));
 
 
 ---------------------------------------------------------------------------------------------------
@@ -559,7 +577,7 @@ architecture rtl of wr_spec_tdc is
   signal ddr3_calib_done      : std_logic;
   signal dma_irq              : std_logic_vector(1 downto 0);
   signal ddr_wr_fifo_empty    : std_logic;
-
+  signal dma_eic_irq : std_logic;
   
   component chipscope_icon
     port (
@@ -898,12 +916,33 @@ begin
      slave_i      => cnx_master_out(c_WB_SLAVE_VIC),
      slave_o      => cnx_master_in(c_WB_SLAVE_VIC),
      irqs_i(0)    => tdc0_irq,
-     irqs_i(1) => dma_irq(0),
+     irqs_i(1) => dma_eic_irq,
      irq_master_o => irq_to_gn4124);
 
   gn_gpio(0) <= irq_to_gn4124;
   gn_gpio(1) <= irq_to_gn4124;
 
+------------------------------------------------------------------------------
+  -- GN4124 DMA interrupt controller
+  ------------------------------------------------------------------------------
+  cmp_dma_eic : entity work.dma_eic
+    port map(
+      rst_n_i         => rst_sys_62m5_n,
+      clk_sys_i       => clk_sys_62m5,
+      wb_adr_i        => cnx_master_out(c_WB_SLAVE_DMA_EIC).adr(3 downto 2),  -- cnx_master_out.adr is byte address
+      wb_dat_i        => cnx_master_out(c_WB_SLAVE_DMA_EIC).dat,
+      wb_dat_o        => cnx_master_in(c_WB_SLAVE_DMA_EIC).dat,
+      wb_cyc_i        => cnx_master_out(c_WB_SLAVE_DMA_EIC).cyc,
+      wb_sel_i        => cnx_master_out(c_WB_SLAVE_DMA_EIC).sel,
+      wb_stb_i        => cnx_master_out(c_WB_SLAVE_DMA_EIC).stb,
+      wb_we_i         => cnx_master_out(c_WB_SLAVE_DMA_EIC).we,
+      wb_ack_o        => cnx_master_in(c_WB_SLAVE_DMA_EIC).ack,
+      wb_stall_o      => cnx_master_in(c_WB_SLAVE_DMA_EIC).stall,
+      wb_int_o        => dma_eic_irq,
+      irq_dma_done_i  => dma_irq(0),
+      irq_dma_error_i => dma_irq(1)
+      );
+  
 ---------------------------------------------------------------------------------------------------
 --                                    Carrier CSR information                                    --
 ---------------------------------------------------------------------------------------------------
