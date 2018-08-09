@@ -139,19 +139,6 @@ static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
 
 }
 
-static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
-				     unsigned int chan,
-				     uint32_t size)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
-
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	tmp &= ~TDC_BUF_CSR_BURST_SIZE_MASK;
-	tmp |= TDC_BUF_CSR_BURST_SIZE_W(size);
-	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-}
-
 static void ft_buffer_burst_timeout_set(struct fmctdc_dev *ft,
 					unsigned int chan,
 					uint32_t timeout)
@@ -201,7 +188,6 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 	val |= TDC_BUF_NEXT_SIZE_VALID;
 	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
 
-	ft_buffer_burst_size_set(ft, channel, dma_buf_ddr_burst_size_default);
 	ft_buffer_burst_timeout_set(ft, channel,
 				    dma_buf_irq_timeout_ms_default);
 	ft_buffer_burst_enable(ft, channel);

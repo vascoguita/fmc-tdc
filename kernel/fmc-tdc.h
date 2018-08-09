@@ -14,6 +14,8 @@
 #define FT_VERSION_MAJ   2		/* version of the driver */
 #define FT_VERSION_MIN   1
 
+#define FT_ZIO_TRIG_TYPE_NAME "tdc1n5c-trig"
+
 /* default gatewares */
 #define FT_GATEWARE_SVEC  "fmc/svec-fmc-tdc.bin"
 #define FT_GATEWARE_SPEC  "fmc/spec-fmc-tdc.bin"
@@ -92,6 +94,8 @@ struct ft_hw_timestamp {
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
+#include <linux/zio-trigger.h>
+
 #include "hw/tdc_regs.h"
 #include "hw/tdc_eic.h"
 #include "hw/tdc_dma_eic.h"
@@ -140,6 +144,15 @@ enum ft_transfer_mode {
 	FT_ACQ_TYPE_FIFO = 0,
 	FT_ACQ_TYPE_DMA,
 };
+
+
+struct fmctdc_trig {
+	struct zio_ti ti;
+};
+static inline struct fmctdc_trig *to_fmctdc_trig(struct zio_ti *ti_ptr)
+{
+	return container_of(ti_ptr, struct fmctdc_trig, ti);
+}
 
 /*
  * Main TDC device context

@@ -336,7 +336,7 @@ static struct zio_cset ft_cset[] = {
 
 static struct zio_device ft_tmpl = {
 	.owner = THIS_MODULE,
-	.preferred_trigger = "user",
+	.preferred_trigger = FT_ZIO_TRIG_TYPE_NAME,
 	.s_op = &ft_zio_sysfs_ops,
 	.cset = ft_cset,
 	.n_cset = ARRAY_SIZE(ft_cset),
@@ -366,6 +366,137 @@ static struct zio_driver ft_zdrv = {
 					  a specific patch */
 };
 
+#define FT_TRIG_POST_DEFAULT 1
+enum ft_trig_options {
+	FT_TRIG_POST = 0,
+};
+
+
+static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
+				     unsigned int chan,
+				     uint32_t size)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp &= ~TDC_BUF_CSR_BURST_SIZE_MASK;
+	tmp |= TDC_BUF_CSR_BURST_SIZE_W(size);
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+}
+
+
+static ZIO_ATTR_DEFINE_STD(ZIO_TRG, ft_trig_std_zattr) = {
+	/* Number of shots */
+	ZIO_ATTR(trig, ZIO_ATTR_TRIG_POST_SAMP, ZIO_RW_PERM, FT_TRIG_POST,
+		 FT_TRIG_POST_DEFAULT),
+};
+
+static int ft_trig_conf_set(struct device *dev, struct zio_attribute *zattr,
+			 uint32_t usr_val)
+{
+	struct zio_ti *ti = to_zio_ti(dev);
+	struct fmctdc_dev *ft = ti->cset->zdev->priv_d;
+
+	switch (zattr->id) {
+	case FT_TRIG_POST:
+		switch (ft->mode) {
+		case FT_ACQ_TYPE_FIFO:
+			break;
+		case FT_ACQ_TYPE_DMA:
+			ft_buffer_burst_size_set(ft, ti->cset->index, usr_val);
+			break;
+		default:
+			return -EINVAL;
+		}
+		break;
+	default:
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static int ft_trig_info_get(struct device *dev, struct zio_attribute *zattr,
+			 uint32_t *usr_val)
+{
+	switch (zattr->id) {
+	case FT_TRIG_POST:
+		break;
+	default:
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static const struct zio_sysfs_operations ft_trig_s_op = {
+	.conf_set = ft_trig_conf_set,
+	.info_get = ft_trig_info_get,
+};
+
+static struct zio_ti *ft_trig_create(struct zio_trigger_type *trig,
+				 struct zio_cset *cset,
+				 struct zio_control *ctrl, fmode_t flags)
+{
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
+	struct fmctdc_trig *tti;
+
+	tti = kzalloc(sizeof(*tti), GFP_KERNEL);
+	if (!tti)
+		return ERR_PTR(-ENOMEM);
+
+	tti->ti.flags = ZIO_DISABLED;
+	tti->ti.cset = cset;
+
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		break;
+	case FT_ACQ_TYPE_DMA:
+		ft_buffer_burst_size_set(ft, cset->index, FT_TRIG_POST_DEFAULT);
+		break;
+	default:
+		return ERR_PTR(-EINVAL);
+	}
+
+	return &tti->ti;
+}
+
+static void ft_trig_destroy(struct zio_ti *ti)
+{
+	struct fmctdc_trig *tti = to_fmctdc_trig(ti);
+
+	kfree(tti);
+}
+
+static int ft_trig_push(struct zio_ti *ti, struct zio_channel *chan,
+		     struct zio_block *block)
+{
+	dev_err(&ti->head.dev, "output not supported\n");
+	return -EIO;
+}
+
+static const struct zio_trigger_operations ft_trig_ops = {
+	.create = ft_trig_create,
+	.destroy = ft_trig_destroy,
+	.change_status = NULL,
+	.data_done = NULL,
+	.arm = NULL,
+	.abort = NULL,
+	.push_block = ft_trig_push,
+};
+
+/* Definition of the trigger type -- can't be static */
+struct zio_trigger_type ft_trig_type = {
+	.owner = THIS_MODULE,
+	.zattr_set = {
+		.std_zattr = ft_trig_std_zattr,
+		.ext_zattr = NULL,
+		.n_ext_attr = 0,
+	},
+	.s_op = &ft_trig_s_op,
+	.t_op = &ft_trig_ops,
+};
+
+
 /* Register and unregister are used to set up the template driver */
 int ft_zio_register(void)
 {
@@ -390,9 +521,19 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	int err = 0;
 	int dev_id;
 
+	err = zio_register_trig(&ft_trig_type, FT_ZIO_TRIG_TYPE_NAME);
+	if (err) {
+		dev_err(&ft->fmc->dev,
+			"Cannot register ZIO trigger type \"%s\" (error %i)\n",
+			FT_ZIO_TRIG_TYPE_NAME, err);
+		return err;
+	}
+
 	ft->hwzdev = zio_allocate_device();
-	if (IS_ERR(ft->hwzdev))
-		return PTR_ERR(ft->hwzdev);
+	if (IS_ERR(ft->hwzdev)) {
+		err = PTR_ERR(ft->hwzdev);
+		goto err_dev_alloc;
+	}
 
 	/* Mandatory fields */
 	ft->hwzdev->owner = THIS_MODULE;
@@ -401,16 +542,21 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	dev_id = ft->fmc->device_id;
 
 	err = zio_register_device(ft->hwzdev, "tdc-1n5c", dev_id);
-	if (err) {
-		zio_free_device(ft->hwzdev);
-		return err;
-	}
+	if (err)
+		goto err_dev_reg;
 
 	return 0;
+
+err_dev_reg:
+	zio_free_device(ft->hwzdev);
+err_dev_alloc:
+	zio_unregister_trig(&ft_trig_type);
+	return err;
 }
 
 void ft_zio_exit(struct fmctdc_dev *ft)
 {
 	zio_unregister_device(ft->hwzdev);
 	zio_free_device(ft->hwzdev);
+	zio_unregister_trig(&ft_trig_type);
 }
