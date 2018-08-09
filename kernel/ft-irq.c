@@ -250,10 +250,6 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 
 		for (i = 0; i < n; i++) {
 			ft_timestamp_apply_offsets(ft, &dma_buf[i]);
-
-			dev_info(&ft->fmc->dev, "Ts %x %x %x %x\n",
-				 dma_buf[i].seconds, dma_buf[i].coarse,
-				 dma_buf[i].frac, dma_buf[i].metadata);
 			zio_arm_trigger(cset->ti);
 			ft_timestap_wr_to_zio(cset, &dma_buf[i]);
 			zio_trigger_data_done(cset);
