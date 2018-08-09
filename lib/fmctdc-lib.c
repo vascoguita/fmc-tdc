@@ -602,6 +602,14 @@ int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
 }
 
 
+static void fmctdc_ts_convert(struct fmctdc_time *t, struct ft_hw_timestamp *o)
+{
+	t->seconds = o->seconds;
+	t->coarse = o->coarse;
+	t->frac = o->frac;
+	t->seq_id = FT_HW_TS_META_SEQ(o->metadata);
+}
+
 /**
  * It reads a given number of time-stamps from the driver. It will wait at
  * most once and return the number of samples that it received from a given
@@ -636,7 +644,7 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 	uint32_t *attrs;
 	int i, j;
 	fd_set set;
-	struct ft_wr_timestamp data;
+	struct ft_hw_timestamp data;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
@@ -649,20 +657,16 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 			return -1;
 		if (j == sizeof(ctrl)) {
 			/* one sample: pick it */
-			attrs = ctrl.attr_channel.ext_val;
-			t[i].seconds = ctrl.tstamp.secs;
-			t[i].coarse = ctrl.tstamp.ticks;
-			t[i].frac = ctrl.tstamp.bins;
-			t[i].seq_id = ctrl.seq_num;
-			t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
-			i++;
-
 			assert(sizeof(data) == ctrl.nsamples * ctrl.ssize);
 			if (sizeof(data) == ctrl.nsamples * ctrl.ssize) {
 				j = read(b->fdd[channel], &data,
 					 ctrl.nsamples * ctrl.ssize);
-				if (j == ctrl.nsamples * ctrl.ssize)
+				if (j == ctrl.nsamples * ctrl.ssize) {
+					fmctdc_ts_convert(&t[i], &data);
+					attrs = ctrl.attr_channel.ext_val;
+					t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
 					continue; /* Everything is fine */
+				}
 			}
 
 			errno = EIO;

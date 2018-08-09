@@ -92,64 +92,32 @@ static void ft_irq_enable_restore(struct fmctdc_dev *ft)
  * @ts timestamp
  */
 static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
-				       struct ft_wr_timestamp *ts)
+				       struct ft_hw_timestamp *hwts)
 {
-	struct ft_channel_state *st = &ft->channels[ts->channel];
+	unsigned int chan = FT_HW_TS_META_CHN(hwts->metadata);
+	struct ft_channel_state *st = &ft->channels[chan];
 
-	ft_ts_apply_offset(ts, ft->calib.zero_offset[ts->channel]);
-	ft_ts_apply_offset(ts, -ft->calib.wr_offset);
+	ft_ts_apply_offset(hwts, ft->calib.zero_offset[chan]);
+	ft_ts_apply_offset(hwts, -ft->calib.wr_offset);
 	if (st->user_offset)
-		ft_ts_apply_offset(ts, st->user_offset);
-}
-
-/**
- * It converts an hardware timestamp into our local representation
- * @ft FmcTdc device instance
- * @hwts timestamp
- * @wrts timestamp
- */
-static void __ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
-				    struct ft_wr_timestamp *wrts,
-				    struct ft_hw_timestamp *hwts)
-{
-	wrts->channel = FT_HW_TS_META_CHN(hwts->metadata);
-	wrts->seconds = hwts->utc;
-	wrts->coarse = hwts->coarse;
-	wrts->frac = hwts->frac;
-	wrts->hseq_id = FT_HW_TS_META_SEQ(hwts->metadata);
-}
-
-/**
- * It proccess a given timestamp and when it correspond to a pulse it
- * converts the timestamp from the hardware format to the white rabbit format
- */
-static void ft_timestamp_hw_to_wr(struct fmctdc_dev *ft,
-				  struct ft_wr_timestamp *wrts,
-				  struct ft_hw_timestamp *hwts)
-{
-	__ft_timestamp_hw_to_wr(ft, wrts, hwts);
-	ft_timestamp_apply_offsets(ft, wrts);
+		ft_ts_apply_offset(hwts, st->user_offset);
 }
 
 /**
  * It puts the given timestamp in the ZIO control
  * @cset ZIO cset instant
- * @wrts the timestamp to convert
+ * @hwts the timestamp to convert
  */
 static void ft_timestap_wr_to_zio(struct zio_cset *cset,
-				  struct ft_wr_timestamp *wrts)
+				  struct ft_hw_timestamp *hwts)
 {
 	struct zio_device *zdev = cset->zdev;
 	struct fmctdc_dev *ft = zdev->priv_d;
 	struct zio_control *ctrl;
 	struct zio_ti *ti = cset->ti;
 	uint32_t *v;
-	struct ft_wr_timestamp ts = *wrts, *reflast;
+	struct ft_hw_timestamp ts = *hwts, *reflast;
 	struct ft_channel_state *st;
-
-	dev_dbg(&ft->fmc->dev,
-		"Set in ZIO block ch %d: hseq %u: %llu %u %u\n",
-		ts.channel, ts.hseq_id, ts.seconds, ts.coarse, ts.frac);
 
 	st = &ft->channels[cset->index];
 
@@ -160,7 +128,7 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	 * Update last time stamp of the current channel, with the current
 	 * time-stamp
 	 */
-	memcpy(&st->last_ts, &ts, sizeof(struct ft_wr_timestamp));
+	memcpy(&st->last_ts, &ts, sizeof(struct ft_hw_timestamp));
 
 	/*
 	 * If we are in delay mode, replace the time stamp with the delay from
@@ -168,18 +136,18 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	 */
 	if (st->delay_reference) {
 		reflast = &ft->channels[st->delay_reference - 1].last_ts;
-		if (likely(ts.hseq_id > reflast->hseq_id)) {
+		if (likely(FT_HW_TS_META_SEQ(ts.metadata) > FT_HW_TS_META_SEQ(reflast->metadata))) {
 			ft_ts_sub(&ts, reflast);
-			v[FT_ATTR_TDC_DELAY_REF_SEQ] = reflast->hseq_id;
+			v[FT_ATTR_TDC_DELAY_REF_SEQ] = FT_HW_TS_META_SEQ(reflast->metadata);
 		} else {
 			/*
 			 * It seems that we are not able to compute the delay.
 			 * Inform the user by setting the time stamp to 0
 			 */
-			memset(&ts, 0, sizeof(struct ft_wr_timestamp));
+			memset(&ts, 0, sizeof(struct ft_hw_timestamp));
 		}
 	} else {
-		v[FT_ATTR_TDC_DELAY_REF_SEQ] = ts.hseq_id;
+		v[FT_ATTR_TDC_DELAY_REF_SEQ] = FT_HW_TS_META_SEQ(ts.metadata);
 	}
 
 	/* Write the timestamp in the trigger, it will reach the control */
@@ -189,13 +157,13 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 
 
 	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
-	ctrl->seq_num = ts.hseq_id - 1;
+	ctrl->seq_num = FT_HW_TS_META_SEQ(ts.metadata) - 1;
 
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 
 	if (cset->chan->active_block) {
-		memcpy(cset->chan->active_block->data, wrts,
+		memcpy(cset->chan->active_block->data, hwts,
 		       ctrl->nsamples * ctrl->ssize);
 	}
 }
@@ -282,7 +250,6 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	struct ft_channel_state *st = &ft->channels[channel];
 	uint32_t base_cur;
 	struct ft_hw_timestamp *dma_buf;
-	struct ft_wr_timestamp wrts;
 	const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
 	unsigned int count, transfer;
 	struct zio_cset *cset;
@@ -309,18 +276,18 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 		/* gn4124_dma_read(ft->fmc, 0, dma_buf, 16); */
 
 		for (i = 0; i < n; i++) {
-			ft_timestamp_hw_to_wr(ft, &wrts, &dma_buf[i]);
-			dev_info(&ft->fmc->dev, "Ts %x %x %x %x - %llx %x %x\n",
-				 dma_buf[i].utc, dma_buf[i].coarse,
-				 dma_buf[i].frac, dma_buf[i].metadata,
-				 wrts.seconds, wrts.coarse, wrts.frac);
+			ft_timestamp_apply_offsets(ft, &dma_buf[i]);
+
+			dev_info(&ft->fmc->dev, "Ts %x %x %x %x\n",
+				 dma_buf[i].seconds, dma_buf[i].coarse,
+				 dma_buf[i].frac, dma_buf[i].metadata);
 			if (!(ZIO_TI_ARMED & cset->ti->flags)) {
 				dev_warn(&cset->head.dev,
 					 "Time stamp lost, trigger was not armed\n");
 				break;
 			}
 			/* there is an active block, store data there */
-			ft_timestap_wr_to_zio(cset, &wrts);
+			ft_timestap_wr_to_zio(cset, &dma_buf[i]);
 
 			zio_trigger_data_done(cset);
 		}
@@ -392,10 +359,9 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct ft_hw_timestamp hwts;
-	struct ft_wr_timestamp wrts;
 
 	ft_timestap_get(cset, &hwts, 0);
-	ft_timestamp_hw_to_wr(ft, &wrts, &hwts);
+	ft_timestamp_apply_offsets(ft, &hwts);
 
 	if (!(ZIO_TI_ARMED & cset->ti->flags)) {
 		dev_warn(&cset->head.dev,
@@ -403,7 +369,7 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 		return; /* Nothing to do, ZIO was not ready */
 	}
 	/* there is an active block, store data there */
-	ft_timestap_wr_to_zio(cset, &wrts);
+	ft_timestap_wr_to_zio(cset, &hwts);
 	zio_trigger_data_done(cset);
 }
 

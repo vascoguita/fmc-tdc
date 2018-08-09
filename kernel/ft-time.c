@@ -19,14 +19,14 @@
 /* WARNING: the seconds register name is a bit misleading - it is not UTC time
    as the core is not aware of leap seconds, making it TAI time. */
 
-void ft_ts_from_picos(uint32_t picos, struct ft_wr_timestamp *result)
+void ft_ts_from_picos(uint32_t picos, struct ft_hw_timestamp *result)
 {
 	result->frac = (picos % 8000) * 4096 / 8000;
 	result->coarse = (picos / 8000);
 	result->seconds = 0;
 }
 
-void ft_ts_add(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b)
+void ft_ts_add(struct ft_hw_timestamp *a, struct ft_hw_timestamp *b)
 {
 	a->frac += b->frac;
 
@@ -45,7 +45,7 @@ void ft_ts_add(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b)
 	a->seconds += b->seconds;
 }
 
-void ft_ts_sub(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b)
+void ft_ts_sub(struct ft_hw_timestamp *a, struct ft_hw_timestamp *b)
 {
 	int32_t d_frac, d_coarse = 0;
 
@@ -68,9 +68,9 @@ void ft_ts_sub(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b)
 	a->seconds -= b->seconds;
 }
 
-void ft_ts_apply_offset(struct ft_wr_timestamp *ts, int32_t offset_picos)
+void ft_ts_apply_offset(struct ft_hw_timestamp *ts, int32_t offset_picos)
 {
-	struct ft_wr_timestamp offset_ts;
+	struct ft_hw_timestamp offset_ts;
 
 	ft_ts_from_picos(offset_picos < 0 ? -offset_picos : offset_picos,
 			 &offset_ts);

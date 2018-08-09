@@ -62,14 +62,26 @@ enum ft_command {
 	FT_CMD_IDENTIFY_OFF
 };
 
-/* White Rabbit timestamp */
-struct ft_wr_timestamp {
-	uint64_t seconds;
-	uint32_t coarse;
-	uint32_t frac;
-	uint32_t channel;
-	uint32_t hseq_id; /* hardware channel sequence id */
-};
+/* Hardware TDC timestamp */
+struct ft_hw_timestamp {
+	uint32_t seconds;	/* 1 second resolution */
+	uint32_t coarse;	/* 8 ns resolution */
+	uint32_t frac;		/* In ACAM bins (81 ps) */
+	uint32_t metadata;	/* channel, polarity, etc. */
+} __packed;
+
+#define FT_HW_TS_META_CHN_MASK 0x7
+#define FT_HW_TS_META_CHN_SHIFT 0
+#define FT_HW_TS_META_CHN(_meta) ((_meta & FT_HW_TS_META_CHN_MASK) >> FT_HW_TS_META_CHN_SHIFT)
+
+#define FT_HW_TS_META_POL_MASK 0x8
+#define FT_HW_TS_META_POL_SHIFT 3
+#define FT_HW_TS_META_POL(_meta) ((_meta & FT_HW_TS_META_POL_MASK) >> FT_HW_TS_META_POL_SHIFT)
+
+#define FT_HW_TS_META_SEQ_MASK 0xFFFFFFF0
+#define FT_HW_TS_META_SEQ_SHIFT 4
+#define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
+
 
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
@@ -115,33 +127,13 @@ struct ft_calibration {		/* All of these are big endian in the EEPROM */
 	int32_t wr_offset;
 };
 
-/* Hardware TDC timestamp */
-struct ft_hw_timestamp {
-	uint32_t utc;		/* 1 second resolution */
-	uint32_t coarse;	/* 8 ns resolution */
-	uint32_t frac;		/* In ACAM bins (81 ps) */
-	uint32_t metadata;	/* channel, polarity, etc. */
-} __packed;
-
-#define FT_HW_TS_META_CHN_MASK 0x7
-#define FT_HW_TS_META_CHN_SHIFT 0
-#define FT_HW_TS_META_CHN(_meta) ((_meta & FT_HW_TS_META_CHN_MASK) >> FT_HW_TS_META_CHN_SHIFT)
-
-#define FT_HW_TS_META_POL_MASK 0x8
-#define FT_HW_TS_META_POL_SHIFT 3
-#define FT_HW_TS_META_POL(_meta) ((_meta & FT_HW_TS_META_POL_MASK) >> FT_HW_TS_META_POL_SHIFT)
-
-#define FT_HW_TS_META_SEQ_MASK 0xFFFFFFF0
-#define FT_HW_TS_META_SEQ_SHIFT 4
-#define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
-
 struct ft_channel_state {
 	unsigned long flags;
 	int delay_reference;
 
 	int32_t user_offset;
 
-	struct ft_wr_timestamp last_ts; /**< used to compute delay
+	struct ft_hw_timestamp last_ts; /**< used to compute delay
 					   between pulses */
 
 	int active_buffer;
@@ -232,8 +224,8 @@ int ft_read_temp(struct fmctdc_dev *ft, int verbose);
 int ft_pll_init(struct fmctdc_dev *ft);
 void ft_pll_exit(struct fmctdc_dev *ft);
 
-void ft_ts_apply_offset(struct ft_wr_timestamp *ts, int32_t offset_picos);
-void ft_ts_sub(struct ft_wr_timestamp *a, struct ft_wr_timestamp *b);
+void ft_ts_apply_offset(struct ft_hw_timestamp *ts, int32_t offset_picos);
+void ft_ts_sub(struct ft_hw_timestamp *a, struct ft_hw_timestamp *b);
 
 void ft_set_tai_time(struct fmctdc_dev *ft, uint64_t seconds, uint32_t coarse);
 void ft_get_tai_time(struct fmctdc_dev *ft, uint64_t * seconds,

@@ -320,7 +320,7 @@ static struct zio_channel ft_chan_tmpl = {
 		.raw_io =	ft_zio_input,\
 		.chan_template = &ft_chan_tmpl,\
 		.n_chan =	1,\
-		.ssize =	sizeof(struct ft_wr_timestamp), \
+		.ssize =	sizeof(struct ft_hw_timestamp), \
 		.flags =	ZIO_DISABLED | \
 				ZIO_DIR_INPUT | \
 				ZIO_CSET_SELF_TIMED, \
