@@ -99,7 +99,6 @@ struct ft_hw_timestamp {
 extern struct workqueue_struct *ft_workqueue;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
-#define TDC_BYTES_PER_TIMESTAMP       16
 #define TDC_CHANNEL_BUFFER_SIZE_BYTES 0x1000000 // 16MB
 
 enum ft_channel_flags {

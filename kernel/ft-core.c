@@ -182,7 +182,7 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 
 	st = &ft->channels[channel];
 
-	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / TDC_BYTES_PER_TIMESTAMP;
+	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / sizeof(struct ft_hw_timestamp);
 	st->active_buffer = 0;
 
 	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);

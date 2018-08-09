@@ -640,8 +640,6 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 		struct fmctdc_time *t, int n, int flags)
 {
 	__define_board(b, userb);
-	struct zio_control ctrl;
-	uint32_t *attrs;
 	int i, j;
 	fd_set set;
 	struct ft_hw_timestamp data;
@@ -652,27 +650,16 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 	}
 
 	for (i = 0; i < n;) {
-		j = read(b->fdc[channel], &ctrl, sizeof(ctrl));
+		j = read(b->fdd[channel], &data, sizeof(data));
+		if (j == sizeof(data)) {
+			fmctdc_ts_convert(&t[i], &data);
+			++i;
+			continue;
+		}
+
 		if (j < 0 && errno != EAGAIN)
 			return -1;
-		if (j == sizeof(ctrl)) {
-			/* one sample: pick it */
-			assert(sizeof(data) == ctrl.nsamples * ctrl.ssize);
-			if (sizeof(data) == ctrl.nsamples * ctrl.ssize) {
-				j = read(b->fdd[channel], &data,
-					 ctrl.nsamples * ctrl.ssize);
-				if (j == ctrl.nsamples * ctrl.ssize) {
-					fmctdc_ts_convert(&t[i], &data);
-					attrs = ctrl.attr_channel.ext_val;
-					t[i].ref_gseq_id = attrs[FT_ATTR_TDC_DELAY_REF_SEQ];
-					continue; /* Everything is fine */
-				}
-			}
 
-			errno = EIO;
-			/* We are not ok here because the data side has
-			   something wrong */
-		}
 		/* so, it's EAGAIN: if we already got something, we are done */
 		if (i)
 			return i;

@@ -108,13 +108,12 @@ static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
  * @cset ZIO cset instant
  * @hwts the timestamp to convert
  */
-static void ft_timestap_wr_to_zio(struct zio_cset *cset,
-				  struct ft_hw_timestamp *hwts)
+static void ft_zio_update_ctrl(struct zio_cset *cset,
+			       struct ft_hw_timestamp *hwts)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct zio_control *ctrl;
 	uint32_t *v;
-	struct ft_hw_timestamp ts = *hwts;
 	struct ft_channel_state *st;
 
 	st = &ft->channels[cset->index];
@@ -122,23 +121,15 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	v = ctrl->attr_channel.ext_val;
 
 	/* Write the timestamp in the trigger, it will reach the control */
-	cset->ti->tstamp.tv_sec = ts.seconds;
-	cset->ti->tstamp.tv_nsec = ts.coarse; /* we use 8ns steps */
-	cset->ti->tstamp_extra = ts.frac;
+	cset->ti->tstamp.tv_sec = hwts->seconds;
+	cset->ti->tstamp.tv_nsec = hwts->coarse; /* we use 8ns steps */
+	cset->ti->tstamp_extra = hwts->frac;
 
 	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
-	ctrl->seq_num = FT_HW_TS_META_SEQ(ts.metadata) - 1;
+	ctrl->seq_num = FT_HW_TS_META_SEQ(hwts->metadata) - 1;
 
 	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
-
-	if (cset->chan->active_block) {
-		memcpy(cset->chan->active_block->data, hwts,
-		       ctrl->nsamples * ctrl->ssize);
-	} else {
-		dev_warn(&cset->head.dev,
-			 "Time stamp lost, trigger was not armed\n");
-	}
 }
 
 /**
@@ -223,42 +214,31 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	struct ft_channel_state *st = &ft->channels[channel];
 	uint32_t base_cur;
 	struct ft_hw_timestamp *dma_buf;
-	const int ts_per_page = PAGE_SIZE / TDC_BYTES_PER_TIMESTAMP;
 	unsigned int count, transfer;
-	struct zio_cset *cset;
+	struct zio_cset *cset = &ft->zdev->cset[channel];
+	int n, len;
 
 	transfer = ft_buffer_switch(ft, channel);
 	count = ft_buffer_count(ft, channel);
 
-	cset = &ft->zdev->cset[channel];
-
-	/*
-	 * now we DMA the data. use a workqueue or something, the DMA call
-	 * below is blocking and is there just to validate the bitstream
-	 */
-	/* ugly hack to check if readout is correct */
-	dma_buf = kmalloc(4096, GFP_ATOMIC);
 	base_cur = st->buf_addr[transfer];
 	while (count > 0) {
-		int i, n = (count > ts_per_page ? ts_per_page : count);
+		n = min((unsigned long)count, KMALLOC_MAX_SIZE);
+		len = n * sizeof(struct ft_hw_timestamp);
+		cset->ti->nsamples = n;
+		zio_arm_trigger(cset->ti);
+		if (cset->chan->active_block) {
+			dma_buf = cset->chan->active_block->data;
+			gn4124_dma_read(ft, base_cur, dma_buf, len);
+			gn4124_dma_wait_done(ft);
 
-		gn4124_dma_read(ft, base_cur, dma_buf,
-				n * TDC_BYTES_PER_TIMESTAMP);
-		gn4124_dma_wait_done(ft);
-
-		/* gn4124_dma_read(ft->fmc, 0, dma_buf, 16); */
-
-		for (i = 0; i < n; i++) {
-			ft_timestamp_apply_offsets(ft, &dma_buf[i]);
-			zio_arm_trigger(cset->ti);
-			ft_timestap_wr_to_zio(cset, &dma_buf[i]);
-			zio_trigger_data_done(cset);
+			ft_zio_update_ctrl(cset, &dma_buf[0]);
 		}
-
-		base_cur += n * TDC_BYTES_PER_TIMESTAMP;
+		zio_trigger_data_done(cset);
+		dma_buf += len;
+		base_cur += len;
 		count -= n;
 	}
-	kfree(dma_buf);
 }
 
 /**
@@ -321,18 +301,19 @@ static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
 static void ft_readout_fifo_one(struct zio_cset *cset)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
-	struct ft_hw_timestamp hwts;
+	struct ft_hw_timestamp *hwts;
 
-	ft_timestap_get(cset, &hwts, 0);
-	ft_timestamp_apply_offsets(ft, &hwts);
+	cset->ti->nsamples = 1;
+	zio_arm_trigger(cset->ti);
+	if (!cset->chan->active_block)
+		goto out;
+	hwts = cset->chan->active_block->data;
 
-	if (!(ZIO_TI_ARMED & cset->ti->flags)) {
-		dev_warn(&cset->head.dev,
-			 "Time stamp lost, trigger was not armed\n");
-		return; /* Nothing to do, ZIO was not ready */
-	}
-	/* there is an active block, store data there */
-	ft_timestap_wr_to_zio(cset, &hwts);
+	ft_timestap_get(cset, hwts, 0);
+	ft_timestamp_apply_offsets(ft, hwts);
+
+	ft_zio_update_ctrl(cset, hwts);
+out:
 	zio_trigger_data_done(cset);
 }
 
