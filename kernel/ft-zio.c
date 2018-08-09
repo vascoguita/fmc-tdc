@@ -290,8 +290,6 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 		//	  TDC_FIFO_LAST_CSR);
 	} else {
 		/* ENABLED */
-		zio_arm_trigger(chan->cset->ti);
-
 		ft_enable(ft, chan->cset->index);
 	}
 	/*
@@ -316,8 +314,7 @@ static struct zio_channel ft_chan_tmpl = {
 		.n_chan =	1,\
 		.ssize =	sizeof(struct ft_hw_timestamp), \
 		.flags =	ZIO_DISABLED | \
-				ZIO_DIR_INPUT | \
-				ZIO_CSET_SELF_TIMED, \
+				ZIO_DIR_INPUT,\
 		.zattr_set = {\
 			.ext_zattr = ft_zattr_input,\
 			.n_ext_attr = ARRAY_SIZE(ft_zattr_input),\

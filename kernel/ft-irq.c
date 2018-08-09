@@ -135,6 +135,9 @@ static void ft_timestap_wr_to_zio(struct zio_cset *cset,
 	if (cset->chan->active_block) {
 		memcpy(cset->chan->active_block->data, hwts,
 		       ctrl->nsamples * ctrl->ssize);
+	} else {
+		dev_warn(&cset->head.dev,
+			 "Time stamp lost, trigger was not armed\n");
 	}
 }
 
@@ -251,14 +254,8 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 			dev_info(&ft->fmc->dev, "Ts %x %x %x %x\n",
 				 dma_buf[i].seconds, dma_buf[i].coarse,
 				 dma_buf[i].frac, dma_buf[i].metadata);
-			if (!(ZIO_TI_ARMED & cset->ti->flags)) {
-				dev_warn(&cset->head.dev,
-					 "Time stamp lost, trigger was not armed\n");
-				break;
-			}
-			/* there is an active block, store data there */
+			zio_arm_trigger(cset->ti);
 			ft_timestap_wr_to_zio(cset, &dma_buf[i]);
-
 			zio_trigger_data_done(cset);
 		}
 
