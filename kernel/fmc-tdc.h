@@ -74,6 +74,7 @@ struct ft_wr_timestamp {
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
 
+#include <linux/dma-mapping.h>
 #include <linux/spinlock.h>
 #include <linux/timer.h>
 #include <linux/fmc.h>
@@ -190,7 +191,6 @@ struct fmctdc_dev {
 	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
-	void *dmabuf_virt;
 
 	uint32_t irq_imr;
 	struct work_struct ts_work;

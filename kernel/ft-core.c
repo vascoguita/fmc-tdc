@@ -291,9 +291,13 @@ void gn4124_dma_wait_done(struct fmctdc_dev *ft)
 
 void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 {
-	dma_addr_t dma_handle = page_to_pfn(virt_to_page(ft->dmabuf_virt)) * PAGE_SIZE;
+	dma_addr_t dma_handle;
 
-	memcpy(ft->dmabuf_virt, src, len);
+	dma_handle = dma_map_single(ft->fmc->hwdev, src, len, DMA_TO_DEVICE);
+	if (dma_mapping_error(ft->fmc->hwdev, dma_handle)) {
+		dev_err(ft->fmc->hwdev, "Can't map buffer for DMA\n");
+		return;
+	}
 
 	dma_writel(ft, dst, GENNUM_DMA_ADDR);
 	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
@@ -301,12 +305,22 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
 	dma_writel(ft, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR, GENNUM_DMA_ATTR);
 	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
+	gn4124_dma_wait_done(ft);
 
+	dma_sync_single_for_device(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
+	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
 }
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
 {
-	dma_addr_t dma_handle = page_to_pfn(virt_to_page(ft->dmabuf_virt)) * PAGE_SIZE;
+	dma_addr_t dma_handle;
+
+	dma_handle = dma_map_single(ft->fmc->hwdev, dst, len, DMA_FROM_DEVICE);
+
+	if (dma_mapping_error(ft->fmc->hwdev, dma_handle)) {
+		dev_err(ft->fmc->hwdev, "Can't map buffer for DMA\n");
+		return;
+	}
 
 	dma_writel(ft, src, GENNUM_DMA_ADDR);
 	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
@@ -314,17 +328,29 @@ void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
 	dma_writel(ft, GENNUM_DMA_ATTR_LAST, GENNUM_DMA_ATTR);
 	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
+	gn4124_dma_wait_done(ft);
 
-
-	memcpy(dst, ft->dmabuf_virt, len);
+	dma_sync_single_for_cpu(ft->fmc->hwdev, dma_handle, len, DMA_FROM_DEVICE);
+	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_FROM_DEVICE);
 }
 
 #if 1
-void test_dma(struct fmctdc_dev *ft)
+int test_dma(struct fmctdc_dev *ft)
 {
 	const int buf_size = 16;
-	uint8_t buf1[buf_size], buf2[buf_size];
-	int i;
+	uint8_t *buf1, *buf2;
+	int i, ret = 0;
+
+	buf1 = kzalloc(PAGE_SIZE, GFP_KERNEL);
+	if (!buf1) {
+		ret = -ENOMEM;
+		goto out_buf1;
+	}
+	buf2 = kzalloc(PAGE_SIZE, GFP_KERNEL);
+	if (!buf2) {
+		ret = -ENOMEM;
+		goto out_buf2;
+	}
 
 	dev_info(&ft->fmc->dev, "Test DMA\n");
 	dev_info(&ft->fmc->dev, "R0 = %08x R4 = %08x\n",
@@ -345,6 +371,12 @@ void test_dma(struct fmctdc_dev *ft)
 	for (i = 0; i < buf_size; i++)
 		dev_info(&ft->fmc->dev, "%02x %02x ", buf1[i], buf2[i]);
 	dev_info(&ft->fmc->dev, "\n");
+
+	kfree(buf2);
+out_buf2:
+	kfree(buf1);
+out_buf1:
+	return ret;
 }
 #endif
 
@@ -448,6 +480,13 @@ int ft_probe(struct fmc_device *fmc)
 	 * time, here for the time being we don't.
 	 */
 	stat = ft_ioread(ft, ft->ft_core_base + TDC_REG_STAT);
+
+	if (dma_set_mask(ft->fmc->hwdev, DMA_BIT_MASK(64)) ||
+	    dma_set_mask(ft->fmc->hwdev, DMA_BIT_MASK(32))) {
+		dev_warn(ft->fmc->hwdev, "No suitable DMA available\n");
+		stat &= ~TDC_STAT_DMA;
+	}
+
 	if (stat & TDC_STAT_DMA) {
 		ft->mode = FT_ACQ_TYPE_DMA;
 	} else if (stat & TDC_STAT_FIFO) {
@@ -484,9 +523,6 @@ int ft_probe(struct fmc_device *fmc)
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
 	ft->initialized = 1;
-
-	ft->dmabuf_virt = kzalloc(PAGE_SIZE, GFP_KERNEL);
-
 	test_dma(ft);
 
 	/* Pin the carrier */
@@ -512,8 +548,6 @@ int ft_remove(struct fmc_device *fmc)
 
 	if (!ft->initialized)
 		return 0;	/* No init, no exit */
-
-	kfree(ft->dmabuf_virt);
 
 	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
 	ft_writel(ft, 0, TDC_REG_INPUT_ENABLE);
