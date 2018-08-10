@@ -194,8 +194,8 @@ package tdc_core_pkg is
   -- for synthesis: 1 sec = x"07735940" clk_i cycles (1 clk_i cycle = 8ns)
   constant c_SYN_CLK_PERIOD : std_logic_vector(31 downto 0) := x"07735940";
 
-  -- for simulation: 1 msec = x"0001E848" clk_i cycles (1 clk_i cycle = 8ns)
-  constant c_SIM_CLK_PERIOD : std_logic_vector(31 downto 0) := x"00001000";
+  -- for simulation: 100 usec = x"000030d4" clk_i cycles (1 clk_i cycle = 8ns)
+  constant c_SIM_CLK_PERIOD : std_logic_vector(31 downto 0) := x"000030d4";
 
 
 ---------------------------------------------------------------------------------------------------

@@ -106,8 +106,6 @@ end acam_timecontrol_interface;
 --=================================================================================================
 architecture rtl of acam_timecontrol_interface is
 
-  signal int_flag_synch, err_flag_synch                          : std_logic_vector(2 downto 0);
-  signal acam_intflag_f_edge_p                                   : std_logic;
   signal start_pulse, wait_for_utc, rst_n, wait_for_state_active : std_logic;
 
 
@@ -116,34 +114,26 @@ architecture rtl of acam_timecontrol_interface is
 --=================================================================================================
 begin
 
+ rst_n <= not(rst_i);
+
 ---------------------------------------------------------------------------------------------------
 --                            IntFlag and ERRflag Input Synchronizers                            --
 ---------------------------------------------------------------------------------------------------   
 
- rst_n <= not(rst_i);
+  sync_err_flag : gc_sync_ffs
+    port map (
+      clk_i    => clk_i,
+      rst_n_i  => '1',
+      data_i   => err_flag_i,
+      ppulse_o => acam_errflag_r_edge_p_o,
+      npulse_o => acam_errflag_f_edge_p_o);
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  sync_err_flag: process (clk_i)     -- synchronisation registers for ERR external signal
-  begin
-    if rising_edge (clk_i) then
-      if rst_i ='1' then
-        err_flag_synch <= (others => '0');
-        int_flag_synch <= (others => '0');
-
-      else
-        err_flag_synch <= err_flag_i & err_flag_synch(2 downto 1);
-        int_flag_synch <= int_flag_i & int_flag_synch(2 downto 1);
-      end if;
-    end if;
-  end process;
-
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  -- 
-  acam_errflag_f_edge_p_o   <= not(err_flag_synch(1)) and err_flag_synch(0);
-  acam_errflag_r_edge_p_o   <= err_flag_synch(1) and not(err_flag_synch(0));
-
-  acam_intflag_f_edge_p     <= not(int_flag_synch(1)) and int_flag_synch(0);
-  acam_intflag_f_edge_p_o   <= acam_intflag_f_edge_p; 
-
+  sync_int_flag : gc_sync_ffs
+    port map (
+      clk_i    => clk_i,
+      rst_n_i  => '1',
+      data_i   => int_flag_i,
+      npulse_o => acam_intflag_f_edge_p_o);
 
 ---------------------------------------------------------------------------------------------------
 --                                  start_from_fpga_o generation                                 --

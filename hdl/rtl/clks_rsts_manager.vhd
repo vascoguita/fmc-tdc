@@ -77,6 +77,8 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions-- Specific library
 -- Specific libraries
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.gencores_pkg.all;
+
 library UNISIM;
 use UNISIM.vcomponents.all;
 
@@ -161,9 +163,8 @@ architecture rtl of clks_rsts_manager is
   signal send_dac_word_r_edge_p, dac_only          : std_logic;
   signal pll_cs_n, dac_cs_n                        : std_logic;
   -- Synchronizers
-  signal pll_status_synch, internal_rst_synch      : std_logic_vector (1 downto 0);
-  signal rst_in_synch                              : std_logic_vector (1 downto 0) := "11";
-  signal acam_refclk_synch, send_dac_word_p_synch  : std_logic_vector (2 downto 0);
+  signal pll_status_synch, internal_rst_synch      : std_logic;
+  signal rst_in_synch                              : std_logic := '0';
   -- Clock buffers
   signal tdc_clk_buf                               : std_logic;
   signal tdc_clk, acam_refclk                      : std_logic;
@@ -303,29 +304,26 @@ begin
 -- Synchronous process rst_n_i_synchronizer: Synchronization of the input reset signal rst_n_i,
 -- coming from the GN4124/VME interface or a PoR, to the clk_sys_i, using a set of 2 registers.
 -- Note that the removal of the reset signal is synchronised.
-  PoR_synchronizer: process (clk_sys_i)
-    begin
-      if rising_edge (clk_sys_i) then
-        rst_in_synch <= rst_in_synch(0) & not rst_n_i;
-      end if;
-    end process;
+
+  PoR_synchronizer : gc_sync_ffs
+    port map (
+      clk_i    => clk_sys_i,
+      rst_n_i  => '1',
+      data_i   => rst_n_i,
+      synced_o => rst_in_synch);
 
 ---------------------------------------------------------------------------------------------------
 -- Synchronous process pll_status_synchronizer: Synchronization of the pll_status_i input to the
 -- clk_sys_i, using a set of 2 registers.
-  pll_status_synchronizer: process (clk_sys_i)
-  begin
-    if rising_edge (clk_sys_i) then
-      if rst_in_synch(1) = '1' then
-        pll_status_synch <= (others => '0');
-      else
-        pll_status_synch <= pll_status_synch(0) & pll_status_i;
-      end if;
-    end if;
-  end process;
-  --  --  --  --  --  --  --  --
-  pll_status_o           <= pll_status_synch(1);
 
+  pll_status_synchronizer : gc_sync_ffs
+    port map (
+      clk_i    => clk_sys_i,
+      rst_n_i  => '1',
+      data_i   => pll_status_i,
+      synced_o => pll_status_synch);
+
+  pll_status_o <= pll_status_synch;
 
 ---------------------------------------------------------------------------------------------------
 -- Synchronous process rst_generation: Generation of a reset signal for as long as the PLL
@@ -336,10 +334,10 @@ begin
   rst_generation: process (clk_sys_i)
   begin
     if rising_edge (clk_sys_i) then
-      if rst_in_synch(1) = '1' then
+      if rst_in_synch = '0' then
         rst         <= '1';
       else
-        if pll_status_synch(1) = '1' then
+        if pll_status_synch = '1' then
           if rst_cnt = "11111111" then
             rst     <= '0';
           else
@@ -357,15 +355,15 @@ begin
 ---------------------------------------------------------------------------------------------------
 -- Synchronous process internal_rst_synchronizer: Synchronization of the above generated rst signal
 -- to the 125MHz tdc_clk, using a set of 2 registers.
-  Internal_rst_synchronizer: process (tdc_clk)
-  begin
-    if rising_edge (tdc_clk) then
-      internal_rst_synch <= internal_rst_synch(0) & rst;
-    end if;
-  end process;
-  --  --  --  --  --  --  --  --
-  internal_rst_o         <= internal_rst_synch(1);
 
+  Internal_rst_synchronizer: gc_sync_ffs
+    port map (
+      clk_i    => tdc_clk,
+      rst_n_i  => '1',
+      data_i   => rst,
+      synced_o => internal_rst_synch);
+
+  internal_rst_o <= internal_rst_synch;
 
 ---------------------------------------------------------------------------------------------------
 --                                      ACAM Reference Clock                                     --
@@ -383,19 +381,12 @@ begin
      IB => acam_refclk_n_i);-- Diff_n buffer input (connect directly to top-level port)
 
 ---------------------------------------------------------------------------------------------------
-  acam_refclk_synchronizer: process (tdc_clk)
-  begin
-    if rising_edge (tdc_clk) then
-      if internal_rst_synch(1) = '1' then
-        acam_refclk_synch <= (others => '0');
-      else
-        acam_refclk_synch <= acam_refclk_synch(1 downto 0) & acam_refclk;
-      end if;
-    end if;
-  end process;
-  --  --  --  --  --  --
-  acam_refclk_r_edge_p_o  <= (not acam_refclk_synch(2)) and acam_refclk_synch(1);
-
+  acam_refclk_synchronizer : gc_sync_ffs
+    port map (
+      clk_i    => tdc_clk,
+      rst_n_i  => '1',
+      data_i   => acam_refclk,
+      ppulse_o => acam_refclk_r_edge_p_o);
 
 ---------------------------------------------------------------------------------------------------
 --                                       DAC configuration                                       --
@@ -403,18 +394,13 @@ begin
 ---------------------------------------------------------------------------------------------------
 -- Synchronous process send_dac_word_p_synchronizer: Synchronization of the send_dac_word_p_o
 -- input to the clk_sys_i, using a set of 3 registers.
-  send_dac_word_p_synchronizer: process (clk_sys_i)
-  begin
-    if rising_edge (clk_sys_i) then
-      if rst_in_synch(1) = '1' then
-        send_dac_word_p_synch <= (others => '0');
-      else
-        send_dac_word_p_synch <= send_dac_word_p_synch(1 downto 0) & send_dac_word_p_i;
-      end if;
-    end if;
-  end process;
-  --  --  --  --  --  --  --  --
-  send_dac_word_r_edge_p      <= (not send_dac_word_p_synch(2)) and send_dac_word_p_synch(1);
+  send_dac_word_p_synchronizer : gc_sync_ffs
+    port map (
+      clk_i    => clk_sys_i,
+      rst_n_i  => '1',
+      data_i   => send_dac_word_p_i,
+      ppulse_o => send_dac_word_r_edge_p);
+
 
 ---------------------------------------------------------------------------------------------------
 -- Synchronous process dac_word_reg: selection of the word to be sent to the DAC.
@@ -423,7 +409,7 @@ begin
   dac_word_reg: process (clk_sys_i)
   begin
     if rising_edge (clk_sys_i) then
-      if rst_in_synch(1)  = '1' then
+      if rst_in_synch = '0' then
         dac_word <= c_DEFAULT_DAC_WORD;
       elsif send_dac_word_r_edge_p = '1' then
         dac_word <= dac_word_i;
@@ -448,7 +434,7 @@ begin
   pll_dac_initialization_seq: process (clk_sys_i)
   begin
     if rising_edge (clk_sys_i) then
-      if rst_in_synch(1)  = '1' or send_dac_word_r_edge_p = '1' then
+      if rst_in_synch = '0' or send_dac_word_r_edge_p = '1' then
         config_st <= config_start;
         dac_only  <= '0';
       elsif  wrabbit_dac_wr_p_i = '1' then
@@ -555,7 +541,7 @@ begin
   pll_sclk_generator: process (clk_sys_i) -- transitions take place on the falling edge of sclk
   begin
     if rising_edge (clk_sys_i) then
-      if rst_in_synch(1) = '1' then
+      if rst_in_synch = '0' then
         sclk    <= '0';
         sclk_d1 <= '0';
         sclk_d2 <= '0';
@@ -579,7 +565,7 @@ begin
   process(clk_sys_i)
   begin
     if rising_edge(clk_sys_i) then
-      if rst_in_synch(1) = '1' then
+      if rst_in_synch = '0' then
         divider   <= (others => '0');
       else
         divider <= divider + 1;
@@ -592,7 +578,7 @@ begin
   begin
     if rising_edge (clk_sys_i) then
 
-      if rst_in_synch(1)  = '1' then
+      if rst_in_synch = '0' then
         pll_bit_index     <= 15;
 
       elsif pll_cs_n = '1' then
@@ -606,7 +592,7 @@ begin
         end if;
       end if;
 
-      if rst_in_synch(1)  = '1' then
+      if rst_in_synch = '0' then
         pll_byte_index    <= nb_of_reg -1;
       elsif config_st = rest and sclk_r_edge = '1' then
         if pll_byte_index = 0 then
@@ -628,7 +614,7 @@ begin
   begin
     if rising_edge (clk_sys_i) then -- counting of bits that are sent on the falling edges
 
-      if rst_in_synch(1)  = '1' then
+      if rst_in_synch = '0' then
         dac_bit_index <= 23;
 
       elsif dac_cs_n = '1' and sclk_f_edge = '1' then

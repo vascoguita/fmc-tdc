@@ -142,8 +142,6 @@ architecture rtl of acam_databus_interface is
   signal ack, rd, rd_extend             : std_logic;
   signal wr, wr_extend, wr_remove       : std_logic;
 
-
-
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -152,7 +150,11 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                      Input Synchronizers                                      --
 ---------------------------------------------------------------------------------------------------   
-    
+
+  -- Do not convert this to gc_sync_ffs, the ACAM readout process depends on it.
+  -- see also data_engine_fsm_comb process in data_engine.vhd.
+  -- Because there is a reset, Xilinx will not use shift registers here and the
+  -- sync chain will be implemented using FFs, no need for a "shreg_extract" attribute.
   input_registers: process (clk_i)
   begin
     if rising_edge (clk_i) then

@@ -252,6 +252,8 @@ architecture rtl of fmc_tdc_mezzanine is
      8 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005400")
      );
 
+  constant c_SYNC_PERIOD : std_logic_vector(31 downto 0) :=
+    f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
@@ -465,8 +467,8 @@ begin
         wrabbit_utc_p <= '0';
       else
         if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
-          if unsigned(wrabbit_cycles_i) = (unsigned(c_SYN_CLK_PERIOD)-3) then  -- so that the end of the pulse
-                                        -- comes exactly upon the UTC change
+          -- so that the end of the pulse comes exactly upon the UTC change
+          if unsigned(wrabbit_cycles_i) = unsigned(c_SYNC_PERIOD)-3 then
             wrabbit_utc_p <= '1';
           else
             wrabbit_utc_p <= '0';
