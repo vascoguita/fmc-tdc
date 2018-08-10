@@ -94,6 +94,7 @@ struct ft_hw_timestamp {
 
 #include "hw/tdc_regs.h"
 #include "hw/tdc_eic.h"
+#include "hw/tdc_dma_eic.h"
 
 
 extern struct workqueue_struct *ft_workqueue;
@@ -157,6 +158,7 @@ struct fmctdc_dev {
 	int ft_irq_base;
 	int ft_fifo_base;
 	int ft_dma_base;
+	int ft_dma_eic_base;
 	/* IRQ base index (for SVEC) */
 	struct fmc_device *fmc;
 	struct zio_device *zdev, *hwzdev;

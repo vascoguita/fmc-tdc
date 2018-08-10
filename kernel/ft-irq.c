@@ -377,9 +377,19 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	uint32_t irq_stat;
 
-	dev_info(&ft->fmc->dev, "DMA complete\n");
+	irq_stat = ft_ioread(ft, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_ISR);
+	if (!irq_stat)
+		return IRQ_NONE;
+	ft_iowrite(ft, irq_stat, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+
 	fmc_irq_ack(fmc);
+
+	dev_info(&ft->fmc->dev, "DMA interupt %x %x\n",
+		 ft->ft_dma_eic_base, irq_stat);
+
+
 
 	return IRQ_HANDLED;
 }
@@ -454,6 +464,12 @@ int ft_irq_init(struct fmctdc_dev *ft)
 	 * not ready to receive data at this time we should not see any trouble.
 	 * If we have problems here, the HDL is broken!
 	 */
+	if (ft->mode == FT_ACQ_TYPE_DMA) {
+		ft_iowrite(ft,
+			   DMA_EIC_EIC_IER_DMA_DONE | DMA_EIC_EIC_IER_DMA_ERROR,
+			   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
+
+	}
 	ft_iowrite(ft, ft_chan_to_irq_mask(ft, 0x1F),
 		   ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
 
@@ -463,6 +479,11 @@ int ft_irq_init(struct fmctdc_dev *ft)
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
+	if (ft->mode == FT_ACQ_TYPE_DMA) {
+		ft_iowrite(ft,
+			   DMA_EIC_EIC_IDR_DMA_DONE | DMA_EIC_EIC_IDR_DMA_ERROR,
+			   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
+	}
 
 	ft->fmc->irq = ft->ft_irq_base;
 	fmc_irq_free(ft->fmc);

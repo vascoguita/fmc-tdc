@@ -467,6 +467,8 @@ int ft_probe(struct fmc_device *fmc)
 	ft->ft_owregs_base = ft->ft_core_base + TDC_MEZZ_ONEWIRE_OFFSET;
 	ft->ft_fifo_base = ft->ft_core_base + TDC_MEZZ_MEM_FIFO_OFFSET;
 	ft->ft_dma_base = ft->ft_core_base + TDC_MEZZ_MEM_DMA_OFFSET;
+	ft->ft_dma_eic_base = fmc_sdb_find_nth_device(fmc->sdb, 0xce42, 0x12000661,
+						      &ord, NULL);
 
 	if (ft_verbose) {
 		dev_info(dev,
