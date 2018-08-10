@@ -640,41 +640,61 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 		struct fmctdc_time *t, int n, int flags)
 {
 	__define_board(b, userb);
-	int i, j;
+	int i;
+	int n_ts;
 	fd_set set;
-	struct ft_hw_timestamp data;
+	struct ft_hw_timestamp *data;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	for (i = 0; i < n;) {
-		j = read(b->fdd[channel], &data, sizeof(data));
-		if (j == sizeof(data)) {
-			fmctdc_ts_convert(&t[i], &data);
-			++i;
-			continue;
+	data = calloc(n, sizeof(*data));
+	if (!data) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	i = 0;
+	while (i < n) {
+		n_ts = read(b->fdd[channel], &data[i], sizeof(*data) * (n - i));
+		if (n_ts < 0 && errno != EAGAIN) {
+			if (i == 0)
+				goto err;
+			else
+				goto out;
 		}
 
-		if (j < 0 && errno != EAGAIN)
-			return -1;
+		if (n_ts % sizeof(*data) == 0) { /* Good samples here */
+			n_ts /= sizeof(*data);
+			n_ts += i;
+			for (; i < n_ts && i < n; i++)
+				fmctdc_ts_convert(&t[i], &data[i]);
+			continue; /* the while loop */
+		}
 
-		/* so, it's EAGAIN: if we already got something, we are done */
-		if (i)
-			return i;
+		if (i) /* error but before we got something */
+			goto out;
+
 		/* EAGAIN at first sample */
-		if (j < 0 && flags == O_NONBLOCK)
+		if (n_ts < 0 && flags == O_NONBLOCK)
 			return -1;
 
 		/* So, first sample and blocking read. Wait.. */
 		FD_ZERO(&set);
 		FD_SET(b->fdc[channel], &set);
 		if (select(b->fdc[channel] + 1, &set, NULL, NULL, NULL) < 0)
-			return -1;
-		continue;
+			goto err;
 	}
+
+out:
+	free(data);
 	return i;
+
+err:
+	free(data);
+	return -1;
 }
 
 /**
