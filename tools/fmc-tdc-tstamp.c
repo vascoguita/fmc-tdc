@@ -120,14 +120,15 @@ static void termination_handler(int signum)
 	stop = 1;
 }
 
+
 int main(int argc, char **argv)
 {
 	struct fmctdc_board *brd;
 	unsigned int dev_id;
-	struct fmctdc_time ts;
+	struct fmctdc_time *ts;
 	int channels[FMCTDC_NUM_CHANNELS];
 	int ref[FMCTDC_NUM_CHANNELS], a, b;
-	int chan_count = 0, i, n, ch, fd, byte_read, ret, n_boards;
+	int chan_count = 0, i, n, ch, fd, n_ts, ret, n_boards;
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
@@ -315,6 +316,12 @@ int main(int argc, char **argv)
 
 
 	/* Read Time-Stamps */
+	ts = calloc(n_show, sizeof(*ts));
+	if (!ts) {
+		fprintf(stderr, "%s: cannot allocate memory\n", argv[0]);
+		goto out;
+	}
+
 	n = 0;
 	while ((n < n_samples || n_samples <= 0) && (!stop)) {
 		if (!nblock && !last) {
@@ -331,22 +338,28 @@ int main(int argc, char **argv)
 
 			/* Read from buffer */
 			if (last) {
-				byte_read = fmctdc_read_last(brd, i, &ts);
+				n_ts = fmctdc_read_last(brd, i, ts);
 			} else {
 				if (!(p[ch_valid[i]].revents & POLLIN))
 					continue;
-				byte_read = fmctdc_read(brd, i, &ts, 1,
-							nblock ? O_NONBLOCK : 0);
+				n_ts = fmctdc_read(brd, i, ts, n_show,
+						   nblock ? O_NONBLOCK : 0);
+				if (n_ts < 0)
+					goto err_acq;
 			}
-			if (byte_read > 0) {
-				if ((n % n_show) == 0)
-					dump(i, &ts, ref[i] < 0 ? 0 : 1);
-				ts_prev[i] = ts;
-				n++;
-			}
+			if (n_ts == 0) /* no timestamp */
+				continue;
+
+			if (n % n_show == 0)
+				dump(i, &ts[0], ref[i] < 0 ? 0 : 1);
+			ts_prev[i] = ts[n_ts - 1];
+			n += n_ts;
 		}
 	}
 
+err_acq:
+	free(ts);
+out:
 	/* Restore default time-stamping */
 	for (i = 0; i <= FMCTDC_CH_LAST; i++) {
 		if (channels[i] > 0)
