@@ -217,6 +217,7 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	unsigned int count, transfer;
 	struct zio_cset *cset = &ft->zdev->cset[channel];
 	int n, len;
+	unsigned long flags;
 
 	transfer = ft_buffer_switch(ft, channel);
 	count = ft_buffer_count(ft, channel);
@@ -229,12 +230,20 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 		zio_arm_trigger(cset->ti);
 		if (cset->chan->active_block) {
 			dma_buf = cset->chan->active_block->data;
+
 			gn4124_dma_read(ft, base_cur, dma_buf, len);
 			gn4124_dma_wait_done(ft);
 
 			ft_zio_update_ctrl(cset, &dma_buf[0]);
 		}
+
+
 		zio_trigger_data_done(cset);
+
+		spin_lock_irqsave(&cset->lock, flags);
+		cset->flags &= ~ZIO_CSET_HW_BUSY;
+		spin_unlock_irqrestore(&cset->lock, flags);
+
 		dma_buf += len;
 		base_cur += len;
 		count -= n;

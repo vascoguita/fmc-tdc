@@ -180,14 +180,18 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 }
 
 /*
- * The input method may return immediately, because input is
- * asynchronous. The data_done callback is invoked when the block is
- * full.
+ * The input is asynchronous, but we know that from this point on
+ * our hardware will be busy in transfering data to the host.
+ * For this reason we need to flag the cset as BUSY
  */
-
 static int ft_zio_input(struct zio_cset *cset)
 {
-	/* The trigger will fire on interrupt */
+	unsigned long flags;
+
+	spin_lock_irqsave(&cset->lock, flags);
+	cset->flags |= ZIO_CSET_HW_BUSY;
+	spin_unlock_irqrestore(&cset->lock, flags);
+
 	return -EAGAIN;
 }
 
