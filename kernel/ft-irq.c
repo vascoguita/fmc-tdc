@@ -430,13 +430,11 @@ int ft_irq_init(struct fmctdc_dev *ft)
 {
 	int ret;
 
-	/* IRQ coalescing: 40 timestamps or 40 milliseconds */
-	/* fixme : only applicable to FIFO readout */
-	ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
-	ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
-
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
+		ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
+		ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
+
 		INIT_WORK(&ft->ts_work, ft_fifo_work);
 		break;
 	case FT_ACQ_TYPE_DMA:
