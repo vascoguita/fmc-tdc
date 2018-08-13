@@ -27,7 +27,7 @@ LDLIBS = -lfmctdc
 
 all: $(TESTS)
 
-$(TESTS): $(COMMON_SRCS:.c=.o)
+$(TESTS): $(COMMON_SRCS:.c=.o) $(LIBTDC)/libfmctdc.a
 
 clean:
 	rm -f $(TESTS) test-common.o
