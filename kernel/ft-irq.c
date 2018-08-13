@@ -205,6 +205,49 @@ static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
 	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 }
 
+static void ft_readout_dma_run(struct zio_cset *cset,
+			       unsigned int base_cur,
+			       unsigned int start,
+			       unsigned int count)
+{
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
+	struct ft_hw_timestamp *dma_buf;
+	unsigned int len = count * sizeof(*dma_buf);
+	unsigned int devmem = base_cur + (start * sizeof(*dma_buf));
+	int i;
+
+	if (unlikely(!(cset->ti->flags & ZIO_TI_ARMED))) {
+		dev_info(&cset->head.dev,
+			 "ZIO trigger not armed\n");
+		return;
+	}
+	if (unlikely(cset->chan->active_block == NULL)) {
+		dev_info(&cset->head.dev,
+			 "ZIO not armed properly, block missing\n");
+		return;
+	}
+
+	dev_dbg(&cset->head.dev,
+		 "0x%x(0x%x + %ld), %d(%d * %ld) %d\n",
+		 devmem, base_cur, (start * sizeof(*dma_buf)),
+		 len, count, sizeof(*dma_buf),
+		 start);
+
+	dma_buf = cset->chan->active_block->data;
+	dma_buf += start;
+	gn4124_dma_read(ft, devmem, dma_buf, len);
+	gn4124_dma_wait_done(ft);
+
+	for(i = start; i < start + count; ++i) {
+		dev_dbg(&cset->head.dev, "TS%d %d.%d.%d 0x%x\n", i,
+			dma_buf[i].seconds, dma_buf[i].coarse,
+			dma_buf[i].frac, dma_buf[i].metadata);
+		ft_timestamp_apply_offsets(ft, &dma_buf[i]);
+	}
+
+	ft_zio_update_ctrl(cset, &dma_buf[0]);
+}
+
 /**
  * @ft FmcTdc instance
  * @chan channel number [0, N -1]
@@ -213,40 +256,31 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 {
 	struct ft_channel_state *st = &ft->channels[channel];
 	uint32_t base_cur;
-	struct ft_hw_timestamp *dma_buf;
-	unsigned int count, transfer;
 	struct zio_cset *cset = &ft->zdev->cset[channel];
-	int n, len;
 	unsigned long flags;
+	unsigned int transfer;
+	unsigned int count; /* number of timestamps currently transfered */
+	unsigned int total; /* total number of timestamps to transfer */
 
 	transfer = ft_buffer_switch(ft, channel);
-	count = ft_buffer_count(ft, channel);
-
+	total = ft_buffer_count(ft, channel);
 	base_cur = st->buf_addr[transfer];
-	while (count > 0) {
-		n = min((unsigned long)count, KMALLOC_MAX_SIZE);
-		len = n * sizeof(struct ft_hw_timestamp);
-		cset->ti->nsamples = n;
+
+	count = 0;
+	while (total > 0) {
+		cset->ti->nsamples  = min((unsigned long)total,
+					  KMALLOC_MAX_SIZE);
 		zio_arm_trigger(cset->ti);
-		if (cset->chan->active_block) {
-			dma_buf = cset->chan->active_block->data;
-
-			gn4124_dma_read(ft, base_cur, dma_buf, len);
-			gn4124_dma_wait_done(ft);
-
-			ft_zio_update_ctrl(cset, &dma_buf[0]);
-		}
-
-
+		ft_readout_dma_run(cset, base_cur, count, cset->ti->nsamples);
 		zio_trigger_data_done(cset);
 
 		spin_lock_irqsave(&cset->lock, flags);
+		/* set in cset->raw_io (within ARM) */
 		cset->flags &= ~ZIO_CSET_HW_BUSY;
 		spin_unlock_irqrestore(&cset->lock, flags);
 
-		dma_buf += len;
-		base_cur += len;
-		count -= n;
+		count += cset->ti->nsamples;
+		total -= cset->ti->nsamples;
 	}
 }
 
