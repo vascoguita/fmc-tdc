@@ -87,52 +87,6 @@ static void ft_irq_enable_restore(struct fmctdc_dev *ft)
 }
 
 /**
- * It applies all calibration offsets to the givne timestamp
- * @ft FmcTdc device instance
- * @ts timestamp
- */
-static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
-				       struct ft_hw_timestamp *hwts)
-{
-	unsigned int chan = FT_HW_TS_META_CHN(hwts->metadata);
-	struct ft_channel_state *st = &ft->channels[chan];
-
-	ft_ts_apply_offset(hwts, ft->calib.zero_offset[chan]);
-	ft_ts_apply_offset(hwts, -ft->calib.wr_offset);
-	if (st->user_offset)
-		ft_ts_apply_offset(hwts, st->user_offset);
-}
-
-/**
- * It puts the given timestamp in the ZIO control
- * @cset ZIO cset instant
- * @hwts the timestamp to convert
- */
-static void ft_zio_update_ctrl(struct zio_cset *cset,
-			       struct ft_hw_timestamp *hwts)
-{
-	struct fmctdc_dev *ft = cset->zdev->priv_d;
-	struct zio_control *ctrl;
-	uint32_t *v;
-	struct ft_channel_state *st;
-
-	st = &ft->channels[cset->index];
-	ctrl = cset->chan->current_ctrl;
-	v = ctrl->attr_channel.ext_val;
-
-	/* Write the timestamp in the trigger, it will reach the control */
-	cset->ti->tstamp.tv_sec = hwts->seconds;
-	cset->ti->tstamp.tv_nsec = hwts->coarse; /* we use 8ns steps */
-	cset->ti->tstamp_extra = hwts->frac;
-
-	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
-	ctrl->seq_num = FT_HW_TS_META_SEQ(hwts->metadata) - 1;
-
-	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
-	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
-}
-
-/**
  * It changes the current acquisition buffer
  * @ft FmcTdc instance
  * @chan channel number [0, N-1]
@@ -214,7 +168,6 @@ static void ft_readout_dma_run(struct zio_cset *cset,
 	struct ft_hw_timestamp *dma_buf;
 	unsigned int len = count * sizeof(*dma_buf);
 	unsigned int devmem = base_cur + (start * sizeof(*dma_buf));
-	int i;
 
 	if (unlikely(!(cset->ti->flags & ZIO_TI_ARMED))) {
 		dev_info(&cset->head.dev,
@@ -234,18 +187,8 @@ static void ft_readout_dma_run(struct zio_cset *cset,
 		 start);
 
 	dma_buf = cset->chan->active_block->data;
-	dma_buf += start;
 	gn4124_dma_read(ft, devmem, dma_buf, len);
 	gn4124_dma_wait_done(ft);
-
-	for(i = start; i < start + count; ++i) {
-		dev_dbg(&cset->head.dev, "TS%d %d.%d.%d 0x%x\n", i,
-			dma_buf[i].seconds, dma_buf[i].coarse,
-			dma_buf[i].frac, dma_buf[i].metadata);
-		ft_timestamp_apply_offsets(ft, &dma_buf[i]);
-	}
-
-	ft_zio_update_ctrl(cset, &dma_buf[0]);
 }
 
 /**
@@ -343,7 +286,6 @@ static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
  */
 static void ft_readout_fifo_one(struct zio_cset *cset)
 {
-	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct ft_hw_timestamp *hwts;
 
 	cset->ti->nsamples = 1;
@@ -353,9 +295,6 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 	hwts = cset->chan->active_block->data;
 
 	ft_timestap_get(cset, hwts, 0);
-	ft_timestamp_apply_offsets(ft, hwts);
-
-	ft_zio_update_ctrl(cset, hwts);
 out:
 	zio_trigger_data_done(cset);
 }

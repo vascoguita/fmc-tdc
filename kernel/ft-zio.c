@@ -372,6 +372,52 @@ enum ft_trig_options {
 };
 
 
+/**
+ * It applies all calibration offsets to the givne timestamp
+ * @ft FmcTdc device instance
+ * @ts timestamp
+ */
+static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
+				       struct ft_hw_timestamp *hwts)
+{
+	unsigned int chan = FT_HW_TS_META_CHN(hwts->metadata);
+	struct ft_channel_state *st = &ft->channels[chan];
+
+	ft_ts_apply_offset(hwts, ft->calib.zero_offset[chan]);
+	ft_ts_apply_offset(hwts, -ft->calib.wr_offset);
+	if (st->user_offset)
+		ft_ts_apply_offset(hwts, st->user_offset);
+}
+
+/**
+ * It puts the given timestamp in the ZIO control
+ * @cset ZIO cset instant
+ * @hwts the timestamp to convert
+ */
+static void ft_zio_update_ctrl(struct zio_cset *cset,
+			       struct ft_hw_timestamp *hwts)
+{
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
+	struct zio_control *ctrl;
+	uint32_t *v;
+	struct ft_channel_state *st;
+
+	st = &ft->channels[cset->index];
+	ctrl = cset->chan->current_ctrl;
+	v = ctrl->attr_channel.ext_val;
+
+	/* Write the timestamp in the trigger, it will reach the control */
+	cset->ti->tstamp.tv_sec = hwts->seconds;
+	cset->ti->tstamp.tv_nsec = hwts->coarse; /* we use 8ns steps */
+	cset->ti->tstamp_extra = hwts->frac;
+
+	/* Synchronize ZIO sequence number with ours (ZIO does +1 on this) */
+	ctrl->seq_num = FT_HW_TS_META_SEQ(hwts->metadata) - 1;
+
+	v[FT_ATTR_TDC_ZERO_OFFSET] = ft->calib.zero_offset[cset->index];
+	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
+}
+
 static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
 				     unsigned int chan,
 				     uint32_t size)
@@ -467,6 +513,32 @@ static void ft_trig_destroy(struct zio_ti *ti)
 	kfree(tti);
 }
 
+/**
+ * It completes an acquisition.
+ * @cset the ZIO channel set that completed the acquisition
+ */
+static int ft_trig_data_done(struct zio_cset *cset)
+{
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
+	struct ft_hw_timestamp *ts;
+	int i;
+
+	if (!cset->chan->active_block)
+		goto out;
+
+	ts = cset->chan->active_block->data;
+	for(i = 0; i < cset->ti->nsamples; ++i) {
+		dev_dbg(&cset->head.dev, "TS%d %d.%d.%d 0x%x\n", i,
+			ts[i].seconds,ts[i].coarse,
+			ts[i].frac, ts[i].metadata);
+		ft_timestamp_apply_offsets(ft, &ts[i]);
+	}
+	ft_zio_update_ctrl(cset, &ts[0]);
+
+out:
+	return zio_generic_data_done(cset);
+}
+
 static int ft_trig_push(struct zio_ti *ti, struct zio_channel *chan,
 		     struct zio_block *block)
 {
@@ -478,7 +550,7 @@ static const struct zio_trigger_operations ft_trig_ops = {
 	.create = ft_trig_create,
 	.destroy = ft_trig_destroy,
 	.change_status = NULL,
-	.data_done = NULL,
+	.data_done = ft_trig_data_done,
 	.arm = NULL,
 	.abort = NULL,
 	.push_block = ft_trig_push,
