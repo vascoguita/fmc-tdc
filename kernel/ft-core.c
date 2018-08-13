@@ -276,6 +276,74 @@ void gn4124_dma_wait_done(struct fmctdc_dev *ft)
 		;
 }
 
+/**
+ * It maps a host buffer and configure the DMA engine
+ * @ft FmcTdc device instance
+ */
+dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem, int len)
+{
+	dma_addr_t dma_handle;
+
+	dma_handle = dma_map_single(ft->fmc->hwdev, hostmem, len, DMA_TO_DEVICE);
+	if (dma_mapping_error(ft->fmc->hwdev, dma_handle)) {
+		dev_err(ft->fmc->hwdev, "Failed to map DMA buffer\n");
+		return dma_handle;
+	}
+
+	dma_writel(ft, devmem, GENNUM_DMA_ADDR);
+	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
+	dma_writel(ft, len,  GENNUM_DMA_LEN);
+	dma_writel(ft, GENNUM_DMA_ATTR_LAST, GENNUM_DMA_ATTR);
+
+	return dma_handle;
+}
+
+/**
+ * It starts the DMA transfer
+ * @ft FmcTdc device instance
+ */
+void gn4124_dma_start(struct fmctdc_dev *ft)
+{
+	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
+}
+
+/**
+ * It unmap a given DMA buffer
+ * @ft FmcTdc device instance
+ * @dma_handle DMA buffer
+ * @len buffer length in byte
+ */
+void gn4124_dma_unmap(struct fmctdc_dev *ft, dma_addr_t dma_handle, int len)
+{
+	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_FROM_DEVICE);
+}
+
+/**
+ * It executes a blocking DMA transfer. When this function return, the DMA
+ * transfer is complete
+ * @ft FmcTdc device instance
+ * @devmem device memory offset from which start the DMA transfer
+ * @hostmem host memory where to store data
+ * @len buffer length in byte
+ */
+void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem, int len)
+{
+	dma_addr_t dma_handle;
+
+	dma_handle = gn4124_dma_map(ft, devmem, hostmem, len);
+	if (dma_mapping_error(ft->fmc->hwdev, dma_handle))
+		return;
+
+	gn4124_dma_start(ft);
+	gn4124_dma_wait_done(ft);
+	gn4124_dma_unmap(ft, dma_handle, len);
+}
+
+/**
+ * It performs a blocking DMA write on device memory. This is used only for
+ * testing purposes
+ */
 void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 {
 	dma_addr_t dma_handle;
@@ -286,6 +354,7 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 		return;
 	}
 
+	dev_dbg(&ft->fmc->dev, "0x%llx %d\n", dma_handle, len);
 	dma_writel(ft, dst, GENNUM_DMA_ADDR);
 	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
 	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
@@ -296,29 +365,6 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 
 	dma_sync_single_for_device(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
 	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
-}
-
-void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len)
-{
-	dma_addr_t dma_handle;
-
-	dma_handle = dma_map_single(ft->fmc->hwdev, dst, len, DMA_FROM_DEVICE);
-
-	if (dma_mapping_error(ft->fmc->hwdev, dma_handle)) {
-		dev_err(ft->fmc->hwdev, "Can't map buffer for DMA\n");
-		return;
-	}
-
-	dma_writel(ft, src, GENNUM_DMA_ADDR);
-	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
-	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, GENNUM_DMA_ATTR_LAST, GENNUM_DMA_ATTR);
-	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
-	gn4124_dma_wait_done(ft);
-
-	dma_sync_single_for_cpu(ft->fmc->hwdev, dma_handle, len, DMA_FROM_DEVICE);
-	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_FROM_DEVICE);
 }
 
 #if 1
