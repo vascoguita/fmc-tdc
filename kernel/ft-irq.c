@@ -200,7 +200,6 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	struct ft_channel_state *st = &ft->channels[channel];
 	uint32_t base_cur;
 	struct zio_cset *cset = &ft->zdev->cset[channel];
-	unsigned long flags;
 	unsigned int transfer;
 	unsigned int count; /* number of timestamps currently transfered */
 	unsigned int total; /* total number of timestamps to transfer */
@@ -213,14 +212,9 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	while (total > 0) {
 		cset->ti->nsamples  = min((unsigned long)total,
 					  KMALLOC_MAX_SIZE);
-		zio_arm_trigger(cset->ti);
+		zio_arm_trigger(cset->ti); /* actually a fire */
 		ft_readout_dma_run(cset, base_cur, count, cset->ti->nsamples);
 		zio_trigger_data_done(cset);
-
-		spin_lock_irqsave(&cset->lock, flags);
-		/* set in cset->raw_io (within ARM) */
-		cset->flags &= ~ZIO_CSET_HW_BUSY;
-		spin_unlock_irqrestore(&cset->lock, flags);
 
 		count += cset->ti->nsamples;
 		total -= cset->ti->nsamples;

@@ -516,12 +516,16 @@ static void ft_trig_destroy(struct zio_ti *ti)
 /**
  * It completes an acquisition.
  * @cset the ZIO channel set that completed the acquisition
+ *
+ * Rembember that here the cset->lock is taken and we can do
+ * what we want with the cset
  */
 static int ft_trig_data_done(struct zio_cset *cset)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct ft_hw_timestamp *ts;
-	int i;
+	unsigned long flags;
+	int i, ret;
 
 	if (!cset->chan->active_block)
 		goto out;
@@ -536,7 +540,11 @@ static int ft_trig_data_done(struct zio_cset *cset)
 	ft_zio_update_ctrl(cset, &ts[0]);
 
 out:
-	return zio_generic_data_done(cset);
+	ret = zio_generic_data_done(cset);
+
+	cset->flags &= ~ZIO_CSET_HW_BUSY;
+
+	return ret;
 }
 
 static int ft_trig_push(struct zio_ti *ti, struct zio_channel *chan,
