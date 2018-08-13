@@ -124,7 +124,7 @@ static void termination_handler(int signum)
 int main(int argc, char **argv)
 {
 	struct fmctdc_board *brd;
-	unsigned int dev_id;
+	unsigned int dev_id = 0xFFFFFFFF;
 	struct fmctdc_time *ts;
 	int channels[FMCTDC_NUM_CHANNELS];
 	int ref[FMCTDC_NUM_CHANNELS], a, b;
@@ -161,8 +161,15 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "hwns:d:frm:l:Lc:VS:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:")) != -1) {
 		switch (opt) {
+		case 'D':
+			ret = sscanf(optarg, "0x%04x", &dev_id);
+			if (!ret) {
+				help(argv[0]);
+				exit(EXIT_SUCCESS);
+			}
+			break;
 		case 'h':
 		case '?':
 			help(argv[0]);
@@ -240,22 +247,15 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-	if (optind >= argc) {
-		help(argv[0]);
-		exit(EXIT_FAILURE);
-	}
-	if (sscanf(argv[optind], "0x%04x", &dev_id) != 1) {
-		fprintf(stderr, "Error parsing device ID %s\n", argv[optind]);
-		exit(EXIT_FAILURE);
-	}
-	optind++;
-
 
 	/* Open FMC TDC device */
 	brd = fmctdc_open(-1, dev_id); /* look for dev_id form the beginning */
 	if (!brd) {
-		fprintf(stderr, "Can't open device 0x%x: %s\n", dev_id,
-			strerror(errno));
+		if (dev_id == 0xFFFFFFFF)
+			fprintf(stderr, "Missing device identifier\n");
+		else
+			fprintf(stderr, "Can't open device 0x%x: %s\n", dev_id,
+				strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
