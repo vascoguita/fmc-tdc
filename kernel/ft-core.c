@@ -266,19 +266,6 @@ static struct ft_modlist init_subsystems[] = {
 	{"zio", ft_zio_init, ft_zio_exit}
 };
 
-
-static uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
-{
-	return ft_ioread(ft, TDC_SPEC_DMA_BASE + reg);
-}
-
-static void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
-{
-	dev_vdbg(&ft->fmc->dev, "%s %x %x\n",
-		 __func__, data, TDC_SPEC_DMA_BASE + reg);
-	ft_iowrite(ft, data, TDC_SPEC_DMA_BASE + reg);
-}
-
 /**
  * It does an active wait until the DMA transfer is over
  * @ft FmcTdc device instance

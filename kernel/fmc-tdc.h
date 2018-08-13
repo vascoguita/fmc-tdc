@@ -205,6 +205,18 @@ static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
 	ft_iowrite(ft, v, ft->ft_core_base + reg);
 }
 
+static inline uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
+{
+	return ft_ioread(ft, TDC_SPEC_DMA_BASE + reg);
+}
+
+static inline void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
+{
+	dev_vdbg(&ft->fmc->dev, "%s %x %x\n",
+		 __func__, data, TDC_SPEC_DMA_BASE + reg);
+	ft_iowrite(ft, data, TDC_SPEC_DMA_BASE + reg);
+}
+
 
 
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable);
