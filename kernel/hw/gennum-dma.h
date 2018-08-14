@@ -6,7 +6,7 @@
 #define GENNUM_DMA_CTL_START	0x1
 
 #define GENNUM_DMA_STA		(0x4*1)
-#define GENNUM_DMA_STA_DONE    (1<<1)
+#define GENNUM_DMA_STA_DONE    (1<<0)
 
 #define GENNUM_DMA_ADDR (0x08*1)
 #define GENNUM_DMA_ADDR_L (0x0C*1)
