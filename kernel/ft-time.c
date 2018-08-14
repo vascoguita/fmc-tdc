@@ -16,9 +16,6 @@
 
 #include "hw/tdc_regs.h"
 
-/* WARNING: the seconds register name is a bit misleading - it is not UTC time
-   as the core is not aware of leap seconds, making it TAI time. */
-
 void ft_ts_from_picos(uint32_t picos, struct ft_hw_timestamp *result)
 {
 	result->frac = (picos % 8000) * 4096 / 8000;
