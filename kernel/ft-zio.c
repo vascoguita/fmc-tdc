@@ -524,7 +524,6 @@ static int ft_trig_data_done(struct zio_cset *cset)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct ft_hw_timestamp *ts;
-	unsigned long flags;
 	int i, ret;
 
 	if (!cset->chan->active_block)
