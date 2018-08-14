@@ -280,7 +280,7 @@ dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem,
 	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
 	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, GENNUM_DMA_ATTR_LAST, GENNUM_DMA_ATTR);
+	dma_writel(ft, 0, GENNUM_DMA_ATTR);
 
 	return dma_handle;
 }
@@ -345,7 +345,7 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
 	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
 	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, GENNUM_DMA_ATTR_LAST | GENNUM_DMA_ATTR_DIR, GENNUM_DMA_ATTR);
+	dma_writel(ft, GENNUM_DMA_ATTR_DIR, GENNUM_DMA_ATTR);
 	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
 	gn4124_dma_wait_done(ft);
 
