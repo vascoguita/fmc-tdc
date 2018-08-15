@@ -283,7 +283,6 @@ signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
 				     uint32_t *size );
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
-void gn4124_dma_wait_done(struct fmctdc_dev *ft);
 
 
 /**
@@ -314,6 +313,33 @@ static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
 }
 
+/**
+ * It starts the DMA transfer
+ * @ft FmcTdc device instance
+ */
+static inline void gn4124_dma_abort(struct fmctdc_dev *ft)
+{
+	dma_writel(ft, GENNUM_DMA_CTL_ABORT, GENNUM_DMA_CTL);
+}
+
+/**
+ * It starts the DMA transfer
+ * @ft FmcTdc device instance
+ */
+static inline void gn4124_dma_start(struct fmctdc_dev *ft)
+{
+	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
+}
+
+/**
+ * It does an active wait until the DMA transfer is over
+ * @ft FmcTdc device instance
+ */
+static inline void gn4124_dma_wait_done(struct fmctdc_dev *ft)
+{
+	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
+		;
+}
 
 
 #endif // __KERNEL__

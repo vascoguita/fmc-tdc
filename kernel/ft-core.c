@@ -252,15 +252,6 @@ static struct ft_modlist init_subsystems[] = {
 	{"zio", ft_zio_init, ft_zio_exit}
 };
 
-/**
- * It does an active wait until the DMA transfer is over
- * @ft FmcTdc device instance
- */
-void gn4124_dma_wait_done(struct fmctdc_dev *ft)
-{
-	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
-		;
-}
 
 /**
  * It maps a host buffer and configure the DMA engine
@@ -285,14 +276,6 @@ dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem,
 	return dma_handle;
 }
 
-/**
- * It starts the DMA transfer
- * @ft FmcTdc device instance
- */
-void gn4124_dma_start(struct fmctdc_dev *ft)
-{
-	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
-}
 
 /**
  * It unmap a given DMA buffer
