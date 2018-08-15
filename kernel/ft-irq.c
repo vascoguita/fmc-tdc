@@ -358,14 +358,12 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 	irq_stat = ft_ioread(ft, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_ISR);
 	if (!irq_stat)
 		return IRQ_NONE;
-	ft_iowrite(ft, irq_stat, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+	ft_iowrite(ft, irq_stat, ft->ft_dma_eic_base + TDC_EIC_REG_EIC_ISR);
 
 	fmc_irq_ack(fmc);
 
 	dev_info(&ft->fmc->dev, "DMA interupt %x %x\n",
 		 ft->ft_dma_eic_base, irq_stat);
-
-
 
 	return IRQ_HANDLED;
 }
