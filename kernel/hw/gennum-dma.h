@@ -40,6 +40,6 @@ struct gncore_dma_item {
 #define GENNUM_DMA_CTL_START 0x1
 #define GENNUM_DMA_STA_DONE 1 << 0
 #define GENNUM_DMA_ATTR_DIR 0x00000002
-#define GENNUM_DMA_ATTR_LAST 0x00000001
+#define GENNUM_DMA_ATTR_MORE 0x00000001
 
 #endif /* __GENNUM_DMA__ */
