@@ -186,12 +186,6 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
  */
 static int ft_zio_input(struct zio_cset *cset)
 {
-	unsigned long flags;
-
-	spin_lock_irqsave(&cset->lock, flags);
-	cset->flags |= ZIO_CSET_HW_BUSY;
-	spin_unlock_irqrestore(&cset->lock, flags);
-
 	return -EAGAIN;
 }
 
@@ -540,8 +534,6 @@ static int ft_trig_data_done(struct zio_cset *cset)
 
 out:
 	ret = zio_generic_data_done(cset);
-
-	cset->flags &= ~ZIO_CSET_HW_BUSY;
 
 	return ret;
 }
