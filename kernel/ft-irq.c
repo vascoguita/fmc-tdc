@@ -40,6 +40,55 @@
 
 
 /**
+ * It tells if the trigger is armed or not
+ * @ti trigger instance
+ *
+ * Return 1 when armed, 0 when un-armed
+ */
+static inline int zio_trigger_is_armed(struct zio_ti *ti)
+{
+	return !!(ti->flags & ZIO_TI_ARMED);
+}
+
+/**
+ * It tells if the channel has an active block
+ * @chan channel instance
+ *
+ * Return 1 when it has an active block, 0 when it has not an active block
+ */
+static inline int zio_chan_has_active_block(struct zio_channel *chan)
+{
+	return !!(chan->active_block);
+}
+
+/**
+ * It tells if the acquisition can be done.
+ * @cset channel set instance
+ *
+ * It returns 1, if at least 1 channel is ready for acquisition
+ *
+ * Return: 1 when it is possible to acquire, 0 when it is not possible
+ *         to acquire
+ */
+static int zio_cset_can_acquire(struct zio_cset *cset)
+{
+	int i;
+
+	if (!zio_trigger_is_armed(cset->ti))
+		return 0;
+
+	for (i = 0; i < cset->n_chan; ++i) {
+		if (zio_chan_has_active_block(&cset->chan[i]))
+			break;
+	}
+	if (i == cset->n_chan)
+		return 0;
+
+	return 1;
+}
+
+
+/**
  * It converts a channel bitmask into an IRQ bitmask according to
  * the acquisition mode
  * @ft FmcTdc device instance
