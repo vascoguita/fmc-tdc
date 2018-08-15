@@ -259,6 +259,7 @@ static struct ft_modlist init_subsystems[] = {
  */
 dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem, int len)
 {
+	struct gncore_dma_item item;
 	dma_addr_t dma_handle;
 
 	dma_handle = dma_map_single(ft->fmc->hwdev, hostmem, len, DMA_TO_DEVICE);
@@ -267,11 +268,15 @@ dma_addr_t gn4124_dma_map(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem,
 		return dma_handle;
 	}
 
-	dma_writel(ft, devmem, GENNUM_DMA_ADDR);
-	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
-	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, 0, GENNUM_DMA_ATTR);
+	item.start_addr = devmem;
+	item.dma_addr_h = dma_handle >> 32;
+	item.dma_addr_l = dma_handle & 0xFFFFFFFFULL;
+	item.dma_len = len;
+	item.next_addr_h = 0;
+	item.next_addr_l = 0;
+	item.attribute = 0;
+
+	gn4124_dma_config(ft, &item);
 
 	return dma_handle;
 }
@@ -315,6 +320,7 @@ void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem, int 
  */
 void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 {
+	struct gncore_dma_item item;
 	dma_addr_t dma_handle;
 
 	dma_handle = dma_map_single(ft->fmc->hwdev, src, len, DMA_TO_DEVICE);
@@ -324,12 +330,16 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	}
 
 	dev_dbg(&ft->fmc->dev, "0x%llx %d\n", dma_handle, len);
-	dma_writel(ft, dst, GENNUM_DMA_ADDR);
-	dma_writel(ft, dma_handle >> 32, GENNUM_DMA_ADDR_H);
-	dma_writel(ft, dma_handle & 0xffffffffULL, GENNUM_DMA_ADDR_L);
-	dma_writel(ft, len,  GENNUM_DMA_LEN);
-	dma_writel(ft, GENNUM_DMA_ATTR_DIR, GENNUM_DMA_ATTR);
-	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
+
+	item.start_addr = dst;
+	item.dma_addr_h = dma_handle >> 32;
+	item.dma_addr_l = dma_handle & 0xFFFFFFFFULL;
+	item.dma_len = len;
+	item.next_addr_h = 0;
+	item.next_addr_l = 0;
+	item.attribute = GENNUM_DMA_ATTR_DIR;
+	gn4124_dma_config(ft, &item);
+	gn4124_dma_start(ft);
 	gn4124_dma_wait_done(ft);
 
 	dma_sync_single_for_device(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);

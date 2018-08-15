@@ -341,6 +341,23 @@ static inline void gn4124_dma_wait_done(struct fmctdc_dev *ft)
 		cpu_relax();
 }
 
+/**
+ * It configures the DMA engine for the next transfer
+ * @ft FmcTdc instance
+ * @item gennum DMA transfer descriptor
+ */
+static inline void gn4124_dma_config(struct fmctdc_dev *ft,
+				     struct gncore_dma_item *item)
+{
+	dma_writel(ft, item->start_addr, GENNUM_DMA_ADDR);
+	dma_writel(ft, item->dma_addr_h, GENNUM_DMA_ADDR_H);
+	dma_writel(ft, item->dma_addr_l, GENNUM_DMA_ADDR_L);
+	dma_writel(ft, item->dma_len, GENNUM_DMA_LEN);
+	dma_writel(ft, item->next_addr_h, GENNUM_DMA_NEXT_H);
+	dma_writel(ft, item->next_addr_l, GENNUM_DMA_NEXT_L);
+	dma_writel(ft, item->attribute, GENNUM_DMA_ATTR);
+}
+
 
 #endif // __KERNEL__
 
