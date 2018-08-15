@@ -338,7 +338,7 @@ static inline void gn4124_dma_start(struct fmctdc_dev *ft)
 static inline void gn4124_dma_wait_done(struct fmctdc_dev *ft)
 {
 	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
-		;
+		cpu_relax();
 }
 
 
