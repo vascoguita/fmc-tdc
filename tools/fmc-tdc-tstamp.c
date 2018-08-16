@@ -328,6 +328,7 @@ int main(int argc, char **argv)
 
 	/* Open Channels from command line */
 	memset(channels, 0, sizeof(channels));
+	memset(p, 0, sizeof(p));
 	if (!chan_count)
 		chan_count = FMCTDC_NUM_CHANNELS;
 	for (i = 0; i < chan_count; i++) {
