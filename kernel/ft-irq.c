@@ -411,10 +411,11 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 		return IRQ_NONE;
 	ft_iowrite(ft, irq_stat, ft->ft_dma_eic_base + TDC_EIC_REG_EIC_ISR);
 
-	fmc_irq_ack(fmc);
+	if (unlikely(irq_stat & DMA_EIC_EIC_ISR_DMA_ERROR))
+		dev_info(&ft->fmc->dev, "DMA interrupt ERROR %x\n",
+			 irq_stat);
 
-	dev_info(&ft->fmc->dev, "DMA interupt %x %x\n",
-		 ft->ft_dma_eic_base, irq_stat);
+	fmc_irq_ack(fmc);
 
 	return IRQ_HANDLED;
 }
