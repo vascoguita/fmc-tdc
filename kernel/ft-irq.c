@@ -67,7 +67,7 @@ static inline int zio_chan_has_active_block(struct zio_channel *chan)
 {
 	return !!(chan->active_block);
 }
-#if 0
+
 /**
  * It tells if the acquisition can be done.
  * @cset channel set instance
@@ -93,7 +93,7 @@ static int zio_cset_can_acquire(struct zio_cset *cset)
 
 	return 1;
 }
-#endif
+
 
 /**
  * It converts a channel bitmask into an IRQ bitmask according to
@@ -140,6 +140,57 @@ static void ft_irq_disable_save(struct fmctdc_dev *ft)
 static void ft_irq_enable_restore(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
+}
+
+
+/**
+ * It configures the gennum to run a DMA transfer
+ */
+static int gennum_dma_fill(struct zio_dma_sg *zsg)
+{
+	struct gncore_dma_item *item = (struct gncore_dma_item *)zsg->page_desc;
+	struct scatterlist *sg = zsg->sg;
+	struct zio_channel *chan = zsg->zsgt->chan;
+	struct fmctdc_dev *ft = chan->cset->zdev->priv_d;
+	dma_addr_t tmp;
+
+	/* Prepare DMA item */
+	item->start_addr = zsg->dev_mem_off;
+	item->dma_addr_l = sg_dma_address(sg) & 0xFFFFFFFF;
+	item->dma_addr_h = (uint64_t)sg_dma_address(sg) >> 32;
+	item->dma_len = sg_dma_len(sg);
+
+	if (!sg_is_last(sg)) {/* more transfers */
+		/* uint64_t so it works on 32 and 64 bit */
+		tmp = zsg->zsgt->dma_page_desc_pool;
+		tmp += (zsg->zsgt->page_desc_size * (zsg->page_idx + 1));
+		item->next_addr_l = ((uint64_t)tmp) & 0xFFFFFFFF;
+		item->next_addr_h = ((uint64_t)tmp) >> 32;
+		item->attribute = GENNUM_DMA_ATTR_MORE; /* more items */
+	} else {
+		item->attribute = 0x0;	/* last item */
+	}
+
+	/* The first item is written on the device */
+	if (zsg->page_idx == 0)
+		gn4124_dma_config(ft, item);
+
+	dev_dbg(ft->fmc->hwdev, "DMA item %d (block %d)\n"
+		"    pool   0x%llx\n"
+		"    addr   0x%x\n"
+		"    addr_l 0x%x\n"
+		"    addr_h 0x%x\n"
+		"    length %d\n"
+		"    next_l 0x%x\n"
+		"    next_h 0x%x\n"
+		"    attr   0x%x\n",
+		zsg->page_idx, zsg->block_idx,
+		zsg->zsgt->dma_page_desc_pool + (zsg->zsgt->page_desc_size * zsg->page_idx),
+		item->start_addr, item->dma_addr_l, item->dma_addr_h,
+		item->dma_len, item->next_addr_l, item->next_addr_h,
+		item->attribute);
+
+	return 0;
 }
 
 /**
@@ -215,69 +266,6 @@ static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
 	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 }
 
-static void ft_readout_dma_run(struct zio_cset *cset,
-			       unsigned int base_cur,
-			       unsigned int start,
-			       unsigned int count)
-{
-	struct fmctdc_dev *ft = cset->zdev->priv_d;
-	struct ft_hw_timestamp *dma_buf;
-	unsigned int len = count * sizeof(*dma_buf);
-	unsigned int devmem = base_cur + (start * sizeof(*dma_buf));
-
-	if (unlikely(!(cset->ti->flags & ZIO_TI_ARMED))) {
-		dev_info(&cset->head.dev,
-			 "ZIO trigger not armed\n");
-		return;
-	}
-	if (unlikely(cset->chan->active_block == NULL)) {
-		dev_info(&cset->head.dev,
-			 "ZIO not armed properly, block missing\n");
-		return;
-	}
-
-	dev_dbg(&cset->head.dev,
-		 "0x%x(0x%x + %ld), %d(%d * %ld) %d\n",
-		 devmem, base_cur, (start * sizeof(*dma_buf)),
-		 len, count, sizeof(*dma_buf),
-		 start);
-
-	dma_buf = cset->chan->active_block->data;
-	gn4124_dma_sg(ft, devmem, dma_buf, len, DMA_FROM_DEVICE);
-	gn4124_dma_wait_done(ft, 10000);
-}
-
-/**
- * @ft FmcTdc instance
- * @chan channel number [0, N -1]
- */
-static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
-{
-	struct ft_channel_state *st = &ft->channels[channel];
-	uint32_t base_cur;
-	struct zio_cset *cset = &ft->zdev->cset[channel];
-	unsigned int transfer;
-	unsigned int count; /* number of timestamps currently transfered */
-	unsigned int total; /* total number of timestamps to transfer */
-
-	transfer = ft_buffer_switch(ft, channel);
-	total = ft_buffer_count(ft, channel);
-	base_cur = st->buf_addr[transfer];
-
-	count = 0;
-	while (total > 0) {
-		cset->ti->nsamples  = min((unsigned long)total,
-					  KMALLOC_MAX_SIZE / cset->ssize);
-		zio_cset_busy_set(cset, 1);
-		zio_arm_trigger(cset->ti); /* actually a fire */
-		ft_readout_dma_run(cset, base_cur, count, cset->ti->nsamples);
-		zio_cset_busy_clear(cset, 1);
-		zio_trigger_data_done(cset);
-
-		count += cset->ti->nsamples;
-		total -= cset->ti->nsamples;
-	}
-}
 
 /**
  * It transfers timestamps from the DDR
@@ -286,22 +274,79 @@ static void ft_dma_work(struct work_struct *work)
 {
 	struct fmctdc_dev *ft = container_of(work, struct fmctdc_dev,
 					     ts_work);
+	struct ft_channel_state *st;
+	struct zio_cset *cset;
+	struct zio_block *blocks[ft->zdev->n_cset];
+	uint32_t base_cur[ft->zdev->n_cset];
 	uint32_t irq_stat;
-	int i;
+	int i, err, transfer, n_block;
 	unsigned long *loop;
 
 	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 	if (!(irq_stat & TDC_EIC_EIC_IMR_TDC_DMA_MASK)) {
 		dev_warn(&ft->fmc->dev,
 			 "Expected DMA interrupt but got 0x%x\n", irq_stat);
-		goto out;
+		goto err;
+	}
+	dev_err(ft->fmc->hwdev, "IRQ stat 0x%x", irq_stat);
+
+	ft->dma_chan_mask = irq_stat;
+	loop = (unsigned long *) &irq_stat;
+	/* arm all csets */
+	n_block = 0;
+	for_each_set_bit(i, loop, ft->zdev->n_cset) {
+		st = &ft->channels[i];
+		cset = &ft->zdev->cset[i];
+		transfer = ft_buffer_switch(ft, i);
+		base_cur[n_block] = st->buf_addr[transfer];
+
+		cset->ti->nsamples = ft_buffer_count(ft, i);
+		dev_err(&cset->head.dev, "%d ts to transfer\n",
+			cset->ti->nsamples);
+
+		zio_arm_trigger(cset->ti); /* actually arm'n'fire */
+		if (!zio_cset_can_acquire(cset)) {
+			dev_warn(&cset->head.dev,
+				 "ZIO trigger not armed, or missing block\n");
+			continue;
+		}
+		blocks[n_block] = cset->chan->active_block;
+		n_block++;
 	}
 
-	loop = (unsigned long *) &irq_stat;
-	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
-		ft_readout_dma_start(ft, i);
-out:
-	/* Re-Enable interrupts that where disabled in the IRQ handler */
+	cset = &ft->zdev->cset[0]; /* ZIO is not really using the channel,
+				      and probably it should not */
+	ft->zdma = zio_dma_alloc_sg(cset->chan, ft->fmc->hwdev,
+				    blocks, n_block, GFP_ATOMIC);
+	if (IS_ERR_OR_NULL(ft->zdma))
+		goto err_alloc;
+	for (i = 0; i < n_block; ++i)
+		ft->zdma->sg_blocks[i].dev_mem_off = base_cur[i];
+
+	err = zio_dma_map_sg(ft->zdma, sizeof(struct gncore_dma_item),
+			     gennum_dma_fill);
+	if (err)
+		goto err_map;
+
+
+	for_each_set_bit(i, loop, ft->zdev->n_cset)
+		zio_cset_busy_set(&ft->zdev->cset[i], 1);
+	dma_sync_single_for_device(ft->fmc->hwdev, ft->zdma->dma_page_desc_pool,
+				   sizeof(struct gncore_dma_item) * ft->zdma->sgt.nents,
+				   DMA_TO_DEVICE);
+	gn4124_dma_start(ft);
+
+	return;
+err_map:
+	zio_dma_free_sg(ft->zdma);
+err_alloc:
+	dev_err(ft->fmc->hwdev, "Cannot execute DMA\n");
+	ft->zdma = NULL;
+	for_each_set_bit(i, loop, ft->zdev->n_cset) {
+		zio_cset_busy_clear(&ft->zdev->cset[i], 1);
+		zio_trigger_abort_disable(&ft->zdev->cset[i], 0);
+	}
+err:
 	ft_irq_enable_restore(ft);
 }
 
@@ -405,24 +450,64 @@ irq:
 	return;
 }
 
+/**
+ * It aborts a running acquisition
+ * @cset ZIO channel set
+ */
+static void ft_abort_acquisition(struct zio_cset *cset)
+{
+	struct fmctdc_dev *ft = cset->zdev->priv_d;
 
+	gn4124_dma_abort(ft);
+	zio_cset_busy_clear(cset, 1);
+	zio_trigger_abort_disable(cset, 0);
+}
 
 static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	uint32_t irq_stat;
+	unsigned long *loop;
+	int i;
 
 	irq_stat = ft_ioread(ft, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_ISR);
 	if (!irq_stat)
 		return IRQ_NONE;
 	ft_iowrite(ft, irq_stat, ft->ft_dma_eic_base + TDC_EIC_REG_EIC_ISR);
 
-	if (unlikely(irq_stat & DMA_EIC_EIC_ISR_DMA_ERROR))
-		dev_info(&ft->fmc->dev, "DMA interrupt ERROR %x\n",
-			 irq_stat);
+	loop = (unsigned long *) &ft->dma_chan_mask;
 
+	if (WARN(!ft->zdma, "DMA not programmed correctly ")) {
+		for_each_set_bit(i, loop, FT_NUM_CHANNELS)
+			ft_abort_acquisition(&ft->zdev->cset[i]);
+		goto out;
+	}
+
+	zio_dma_unmap_sg(ft->zdma);
+	zio_dma_free_sg(ft->zdma);
+
+	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
+		zio_cset_busy_clear(&ft->zdev->cset[i], 1);
+
+	if (irq_stat & DMA_EIC_EIC_IDR_DMA_ERROR) {
+		dev_err(ft->fmc->hwdev, "0x%X 0x%X",
+			irq_stat, dma_readl(ft, GENNUM_DMA_STA));
+
+		for_each_set_bit(i, loop, FT_NUM_CHANNELS)
+			ft_abort_acquisition(&ft->zdev->cset[i]);
+		goto out;
+	}
+
+	/* perhpas WQ: it processes data */
+	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
+		zio_trigger_data_done(&ft->zdev->cset[i]);
+
+out:
 	fmc_irq_ack(fmc);
+
+	/* Re-Enable interrupts that were disabled in the IRQ handler */
+	ft_irq_enable_restore(ft);
 
 	return IRQ_HANDLED;
 }

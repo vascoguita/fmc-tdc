@@ -97,6 +97,7 @@ struct ft_hw_timestamp {
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
+#include <linux/zio-dma.h>
 #include <linux/zio-trigger.h>
 
 #include "hw/tdc_regs.h"
@@ -197,6 +198,9 @@ struct fmctdc_dev {
 
 	uint32_t irq_imr;
 	struct work_struct ts_work;
+
+	struct zio_dma_sgt *zdma;
+	int dma_chan_mask;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, unsigned long addr)
