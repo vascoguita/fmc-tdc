@@ -89,6 +89,11 @@ static void print_version(char *pname)
 	printf("%s\n", libfmctdc_zio_version_s);
 }
 
+enum tstamp_testing_modes {
+	TST_MODE_1 = 1,
+	__TST_MODE_MAX,
+};
+
 /* Print help message */
 static void help(char *name)
 {
@@ -109,8 +114,15 @@ static void help(char *name)
 	fprintf(stderr, "  -S n_samples: output decimation, number of samples to skip\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, "  -V:           print version info\n\n");
+	fprintf(stderr, "  -t <mode>:    It does some test of the incoming timestampts\n\n");
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
+
+	fprintf(stderr, " Testing Modes\n");
+	fprintf(stderr, " Following a list of testing modes. When running in testing mode the program will run a validation routine and on failure it will stop the timestamp acquisition. All tests assumes frequncy in range [1Hz, 1MHz]\n\n");
+
+	fprintf(stderr, " %d: on channel %d the sequence number grows +1 and the timestamps are always in the future. This means that only channel one must be connected.\n",
+		TST_MODE_1, FMCTDC_CH_1);
 }
 
 
@@ -120,6 +132,51 @@ static void termination_handler(int signum)
 	stop = 1;
 }
 
+
+static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
+{
+	/* any previous timestamp , that's why I use static */
+	static struct fmctdc_time ts_prev = {0, 0, 0, -1, 0};
+	uint64_t ns_p, ns_c;
+	int i;
+
+	for (i = 0; i < n; ts_prev = ts[i], ++i) {
+		if (ts_prev.seq_id == -1)
+			continue;
+		if (ts_prev.seq_id + 1 != ts[i].seq_id) {
+			fprintf(stderr,
+				"*** Invalid sequence number. Previous %d, current %d, expected +1\n",
+				ts_prev.seq_id, ts[i].seq_id);
+			return -EINVAL;
+		}
+		ns_p = fmctdc_ts_approx_ns(&ts_prev);
+		ns_c = fmctdc_ts_approx_ns(&ts[i]);
+		if (ns_p >= ns_c) {
+			fprintf(stderr,
+				"*** Invalid timestamp. Previous %"PRIu64"ns, current %"PRIu64"ns current one should be greater\n",
+				ns_p, ns_c);
+
+			return -EINVAL;
+		}
+	}
+	return 0;
+}
+
+static int tstamp_testing_mode(struct fmctdc_time *ts, unsigned int n,
+			       enum tstamp_testing_modes mode)
+{
+	int err = 0;
+
+	switch (mode) {
+	case TST_MODE_1:
+		err = tstamp_testing_mode_1(ts, n);
+		break;
+	default:
+		break;
+	}
+
+	return err;
+}
 
 int main(int argc, char **argv)
 {
@@ -138,6 +195,7 @@ int main(int argc, char **argv)
 	struct sigaction new_action, old_action;
 	int ch_valid[FMCTDC_NUM_CHANNELS] = {0, 1, 2, 3, 4};
 	struct pollfd p[FMCTDC_NUM_CHANNELS];
+	enum tstamp_testing_modes mode = 0;
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -161,7 +219,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
@@ -244,6 +302,14 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 
+			break;
+		case 't':
+			sscanf(optarg, "%u", &mode);
+			if (mode < TST_MODE_1 || mode > __TST_MODE_MAX) {
+				fprintf(stderr, "%s: invalid test mode %u\n", argv[0], mode);
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		}
 	}
@@ -349,6 +415,10 @@ int main(int argc, char **argv)
 			}
 			if (n_ts == 0) /* no timestamp */
 				continue;
+
+			ret = tstamp_testing_mode(ts, n_ts, mode);
+			if (ret)
+				stop = 1;
 
 			if (n % n_show == 0)
 				dump(i, &ts[0], ref[i] < 0 ? 0 : 1);
