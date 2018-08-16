@@ -152,6 +152,13 @@ extern int fmctdc_get_offset_user(struct fmctdc_board *userb,
 extern int fmctdc_buffer_mode(struct fmctdc_board *userb,
 			      unsigned int channel,
 			      enum ft_transfer_mode *mode);
+extern int fmctdc_coalescing_timeout_set(struct fmctdc_board *userb,
+					 unsigned int channel,
+					 unsigned int timeout_ms);
+extern int fmctdc_coalescing_timeout_get(struct fmctdc_board *userb,
+					 unsigned int channel,
+					 unsigned int *timeout_ms);
+
 
 /**@}*/
 

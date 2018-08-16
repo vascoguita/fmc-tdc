@@ -48,6 +48,8 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
+	ZIO_ATTR_EXT("irq_coalescing_time", ZIO_RW_PERM,
+		     FT_ATTR_TDC_COALESCING_TIME, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -92,6 +94,9 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		break;
 	case FT_ATTR_TDC_TRANSFER_MODE:
 		*usr_val = ft->mode;
+		break;
+	case FT_ATTR_TDC_COALESCING_TIME:
+		*usr_val = ft_irq_coalescing_timeout_get(ft, cset->index);
 		break;
 	}
 
@@ -171,6 +176,9 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 		if (usr_val > FT_NUM_CHANNELS)
 			return -EINVAL;
 		/* FIXME write on HW */
+		break;
+	case FT_ATTR_TDC_COALESCING_TIME:
+		ft_irq_coalescing_timeout_set(ft, cset->index, usr_val);
 		break;
 	default:
 		return -EINVAL;

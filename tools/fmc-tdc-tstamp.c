@@ -115,6 +115,8 @@ static void help(char *name)
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, "  -V:           print version info\n\n");
 	fprintf(stderr, "  -t <mode>:    It does some test of the incoming timestampts\n\n");
+	fprintf(stderr, "  -o <ms>:      IRQ coalescing milleseconds timeout\n\n");
+
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
 
@@ -196,6 +198,7 @@ int main(int argc, char **argv)
 	int ch_valid[FMCTDC_NUM_CHANNELS] = {0, 1, 2, 3, 4};
 	struct pollfd p[FMCTDC_NUM_CHANNELS];
 	enum tstamp_testing_modes mode = 0;
+	int timeout_ms = -1;
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -219,7 +222,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
@@ -311,6 +314,15 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 			break;
+		case 'o':
+			ret = sscanf(optarg, "%u", &timeout_ms);
+			if (ret != 1) {
+				fprintf(stderr, "%s: invalid IRQ coalescing timeout %s\n",
+					argv[0], optarg);
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+			break;
 		}
 	}
 
@@ -355,6 +367,13 @@ int main(int argc, char **argv)
 				"%s: continue in normal mode: %s\n",
 				argv[0], fmctdc_strerror(errno));
 			ref[ch] = -1;
+		}
+
+		ret = fmctdc_coalescing_timeout_set(brd, ch, timeout_ms);
+		if (ret) {
+			fprintf(stderr,
+				"%s: chan %d: cannot set IRQ coalescing timeout: %s. Use default\n",
+				argv[0], ch, fmctdc_strerror(errno));
 		}
 
 		/* set buffer mode */

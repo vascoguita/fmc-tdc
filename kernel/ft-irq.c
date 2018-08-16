@@ -19,12 +19,19 @@
 #include <linux/spinlock.h>
 #include <linux/io.h>
 #include <linux/kfifo.h>
+#include <linux/moduleparam.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
 #include <linux/zio-buffer.h>
 
 #include "fmc-tdc.h"
+
+/* Module parameters */
+static int irq_timeout_ms_default = 10;
+module_param_named(irq_timeout_ms, irq_timeout_ms_default, int, 0444);
+MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
+
 
 #define TDC_EIC_EIC_IMR_TDC_DMA_MASK (TDC_EIC_EIC_ISR_TDC_DMA1 | \
 				      TDC_EIC_EIC_ISR_TDC_DMA2 |  \
@@ -451,16 +458,142 @@ static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
+/**
+ * It sets the coalescing timeout for the DMA buffers
+ * @ft FmcTdc instance
+ * @chan channel buffer -1 for all channels, otherwise [0, 4]
+ * @timeout timeout in milliseconds
+ */
+static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
+					      unsigned int chan,
+					      uint32_t timeout)
+{
+	uint32_t base, tmp;
+	int i;
+
+	for (i = (chan == -1 ? 0 : chan);
+	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
+	     ++i) {
+		pr_info("%s:%d %d %d\n", __func__, __LINE__, i, timeout);
+		base = ft->ft_dma_base + (0x40 * i);
+		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+		tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
+		tmp |= TDC_BUF_CSR_IRQ_TIMEOUT_W(timeout);
+		ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+	}
+}
+
+/**
+ * It gets the coalescing timeout for the DMA buffers
+ * @ft FmcTdc instance
+ * @chan channel buffer [0, 4]
+ *
+ * Return: timeout in milliseconds
+ */
+static uint32_t ft_dma_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
+						  unsigned int chan)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+
+	return TDC_BUF_CSR_IRQ_TIMEOUT_R(tmp);
+}
+
+
+/**
+ * It sets the coalescing timeout according to the acquisition mode
+ * @ft FmcTdc instance
+ * @chan channe [0, 4] (used only for DMA acquisition mode)
+ * @timeout_ms timeout in milliseconds to trigger IRQ
+ */
+void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
+				   unsigned int chan,
+				   uint32_t timeout_ms)
+{
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		if (unlikely(chan != -1)) {
+			dev_warn(&ft->fmc->dev,
+				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, set global value\n",
+				 __func__, chan);
+		}
+		ft_writel(ft, timeout_ms, TDC_REG_IRQ_TIMEOUT);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		ft_dma_irq_coalescing_timeout_set(ft, chan, timeout_ms);
+		break;
+	}
+}
+
+/**
+ * It sets the coalescing size according to the acquisition mode
+ * @ft FmcTdc instance
+ * @chan channe [0, 4] (used only for DMA acquisition mode)
+ *
+ * Return: timeout in milliseconds
+ */
+uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
+				       unsigned int chan)
+{
+	uint32_t timeout = 0;
+
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		if (unlikely(chan != -1)) {
+			dev_warn(&ft->fmc->dev,
+				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, get global value\n",
+				 __func__, chan);
+		}
+		timeout = ft_readl(ft, TDC_REG_IRQ_THRESHOLD);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		/* There is none */
+		timeout = ft_dma_irq_coalescing_timeout_get(ft, chan);
+		break;
+	default:
+		dev_err(&ft->fmc->dev, "%s: unknown acquisition mode %d\n",
+			__func__, ft->mode);
+	}
+
+	return timeout;
+}
+
+/**
+ * It sets the coalescing size according to the acquisition mode
+ * @ft FmcTdc instance
+ * @chan channe [0, 4] (used only for DMA acquisition mode)
+ * @size number of samples to trigger IRQ
+ */
+void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
+				unsigned int chan,
+				uint32_t size)
+{
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		if (unlikely(chan != -1)) {
+			dev_warn(&ft->fmc->dev,
+				 "FIFO acquisition mode has a gobal coalesing size. Ignore channel %d, apply globally\n",
+				 chan);
+		}
+		ft_writel(ft, size, TDC_REG_IRQ_THRESHOLD);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		/* There is none */
+		break;
+	}
+}
 
 int ft_irq_init(struct fmctdc_dev *ft)
 {
 	int ret;
 
+	ft_irq_coalescing_timeout_set(ft, -1, irq_timeout_ms_default);
+	ft_irq_coalescing_size_set(ft, -1, 40);
+
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
-		ft_writel(ft, 40, TDC_REG_IRQ_THRESHOLD);
-		ft_writel(ft, 40, TDC_REG_IRQ_TIMEOUT);
-
 		INIT_WORK(&ft->ts_work, ft_fifo_work);
 		break;
 	case FT_ACQ_TYPE_DMA:

@@ -47,6 +47,7 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_DELAY_REF,
 	FT_ATTR_TDC_WR_OFFSET,
 	FT_ATTR_TDC_TRANSFER_MODE,
+	FT_ATTR_TDC_COALESCING_TIME,
 	FT_ATTR_TDC__LAST,
 };
 
@@ -283,6 +284,15 @@ signed long fmc_sdb_find_nth_device (struct sdb_array *tree, uint64_t vid,
 				     uint32_t *size );
 
 void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
+void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
+				unsigned int chan,
+				uint32_t size);
+
+void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
+				   unsigned int chan,
+				   uint32_t timeout_ms);
+uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
+				       unsigned int chan);
 
 
 /**

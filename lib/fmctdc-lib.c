@@ -1019,3 +1019,66 @@ int fmctdc_buffer_mode(struct fmctdc_board *userb,
 	*mode = val;
 	return 0;
 }
+
+/**
+ * It sets the coalescing timeout on a given channel
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[in] timeout_ms ms timeout to trigger IRQ
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ *
+ * It does not work per-channel for the following acuqisition mechanism:
+ * - FIFO
+ */
+int fmctdc_coalescing_timeout_set(struct fmctdc_board *userb,
+				  unsigned int channel,
+				  unsigned int timeout_ms)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	char path[64];
+	uint32_t val = timeout_ms;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(path, sizeof(path), "ft-ch%d/irq_coalescing_time",
+		 channel + 1);
+	return fmctdc_sysfs_set(b, path, &val);
+}
+
+/**
+ * It gets the coalescing timeout from a given channel
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[out] timeout_ms ms timeout to trigger IRQ
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ *
+ * It does not work per-channel for the following acuqisition mechanism:
+ * - FIFO: there is a global configuration for all channels
+ */
+int fmctdc_coalescing_timeout_get(struct fmctdc_board *userb,
+				  unsigned int channel,
+				  unsigned int *timeout_ms)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	char path[64];
+	uint32_t val;
+	int err;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(path, sizeof(path), "ft-ch%d/irq_coalescing_time",
+		 channel + 1);
+	err = fmctdc_sysfs_get(b, path, &val);
+	if (err)
+		return -1;
+
+	*timeout_ms = val;
+
+	return 0;
+}

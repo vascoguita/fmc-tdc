@@ -29,18 +29,11 @@
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
-/* Module parameters */
-static int dma_buf_irq_timeout_ms_default = 10;
-module_param_named(dma_buf_irq_timeout_ms, dma_buf_irq_timeout_ms_default,
-		   int, 0444);
-MODULE_PARM_DESC(dma_buf_irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
-
 static int dma_buf_ddr_burst_size_default = 16;
 module_param_named(dma_buf_ddr_burst_size, dma_buf_ddr_burst_size_default,
 		   int, 0444);
 MODULE_PARM_DESC(dma_buf_ddr_burst_size,
 		 "DDR size coalesing timeout (default: 16 timestamps).");
-
 
 static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
@@ -139,19 +132,6 @@ static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
 
 }
 
-static void ft_buffer_burst_timeout_set(struct fmctdc_dev *ft,
-					unsigned int chan,
-					uint32_t timeout)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
-
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
-	tmp |= TDC_BUF_CSR_IRQ_TIMEOUT_W(timeout);
-	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-}
-
 
 /**
  * It configure the double buffers for a given channel
@@ -172,7 +152,7 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / sizeof(struct ft_hw_timestamp);
 	st->active_buffer = 0;
 
-	ft_iowrite(ft, 0, base + TDC_BUF_REG_CSR);
+	ft_buffer_burst_disable(ft, channel);
 
 	/* Buffer 1 */
 	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel);
@@ -188,8 +168,6 @@ static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
 	val |= TDC_BUF_NEXT_SIZE_VALID;
 	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
 
-	ft_buffer_burst_timeout_set(ft, channel,
-				    dma_buf_irq_timeout_ms_default);
 	ft_buffer_burst_enable(ft, channel);
 
 	dev_info(&ft->fmc->dev,
