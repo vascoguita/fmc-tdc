@@ -610,6 +610,16 @@ static void fmctdc_ts_convert(struct fmctdc_time *t, struct ft_hw_timestamp *o)
 	t->seq_id = FT_HW_TS_META_SEQ(o->metadata);
 }
 
+static void fmctdc_ts_convert_n(struct fmctdc_time *t,
+				struct ft_hw_timestamp *o,
+				unsigned int n)
+{
+	int i;
+
+	for (i = 0; i < n; ++i)
+		fmctdc_ts_convert(&t[i], &o[i]);
+}
+
 /**
  * It reads a given number of time-stamps from the driver. It will wait at
  * most once and return the number of samples that it received from a given
@@ -668,9 +678,8 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 
 		if (n_ts % sizeof(*data) == 0) { /* Good samples here */
 			n_ts /= sizeof(*data);
-			n_ts += i;
-			for (; i < n_ts && i < n; i++)
-				fmctdc_ts_convert(&t[i], &data[i]);
+			fmctdc_ts_convert_n(&t[i], &data[i], n_ts);
+			i += n_ts;
 			continue; /* the while loop */
 		}
 
