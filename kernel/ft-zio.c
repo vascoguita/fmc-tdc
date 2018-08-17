@@ -412,20 +412,6 @@ static void ft_zio_update_ctrl(struct zio_cset *cset,
 	v[FT_ATTR_TDC_USER_OFFSET] = st->user_offset;
 }
 
-static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
-				     unsigned int chan,
-				     uint32_t size)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
-
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	tmp &= ~TDC_BUF_CSR_BURST_SIZE_MASK;
-	tmp |= TDC_BUF_CSR_BURST_SIZE_W(size);
-	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-}
-
-
 static ZIO_ATTR_DEFINE_STD(ZIO_TRG, ft_trig_std_zattr) = {
 	/* Number of shots */
 	ZIO_ATTR(trig, ZIO_ATTR_TRIG_POST_SAMP, ZIO_RW_PERM, FT_TRIG_POST,
@@ -435,36 +421,12 @@ static ZIO_ATTR_DEFINE_STD(ZIO_TRG, ft_trig_std_zattr) = {
 static int ft_trig_conf_set(struct device *dev, struct zio_attribute *zattr,
 			 uint32_t usr_val)
 {
-	struct zio_ti *ti = to_zio_ti(dev);
-	struct fmctdc_dev *ft = ti->cset->zdev->priv_d;
-
-	switch (zattr->id) {
-	case FT_TRIG_POST:
-		switch (ft->mode) {
-		case FT_ACQ_TYPE_FIFO:
-			break;
-		case FT_ACQ_TYPE_DMA:
-			ft_buffer_burst_size_set(ft, ti->cset->index, usr_val);
-			break;
-		default:
-			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
-	}
 	return 0;
 }
 
 static int ft_trig_info_get(struct device *dev, struct zio_attribute *zattr,
 			 uint32_t *usr_val)
 {
-	switch (zattr->id) {
-	case FT_TRIG_POST:
-		break;
-	default:
-		return -EINVAL;
-	}
 	return 0;
 }
 
@@ -477,7 +439,6 @@ static struct zio_ti *ft_trig_create(struct zio_trigger_type *trig,
 				 struct zio_cset *cset,
 				 struct zio_control *ctrl, fmode_t flags)
 {
-	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct fmctdc_trig *tti;
 
 	tti = kzalloc(sizeof(*tti), GFP_KERNEL);
@@ -486,16 +447,6 @@ static struct zio_ti *ft_trig_create(struct zio_trigger_type *trig,
 
 	tti->ti.flags = ZIO_DISABLED;
 	tti->ti.cset = cset;
-
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		break;
-	case FT_ACQ_TYPE_DMA:
-		ft_buffer_burst_size_set(ft, cset->index, FT_TRIG_POST_DEFAULT);
-		break;
-	default:
-		return ERR_PTR(-EINVAL);
-	}
 
 	return &tti->ti;
 }
