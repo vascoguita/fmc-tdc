@@ -14,7 +14,7 @@
 #define FT_VERSION_MAJ   2		/* version of the driver */
 #define FT_VERSION_MIN   1
 
-#define FT_ZIO_TRIG_TYPE_NAME "tdc1n5c-trig\0"
+#define FT_ZIO_TRIG_TYPE_NAME "tdc1n5c-trg\0"
 
 /* default gatewares */
 #define FT_GATEWARE_SVEC  "fmc/svec-fmc-tdc.bin"
