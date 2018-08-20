@@ -425,11 +425,20 @@ static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
 {
 	struct fmc_device *fmc = dev_id;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
-	uint32_t irq_stat;
+	uint32_t irq_stat, chan_stat;
 
 	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 	if (!irq_stat)
 		return IRQ_NONE;
+
+	chan_stat = ft_readl(ft, TDC_REG_INPUT_ENABLE);
+	chan_stat &= TDC_INPUT_ENABLE_CH_ALL;
+	chan_stat >>= TDC_INPUT_ENABLE_CH1_SHIFT;
+	chan_stat = ft_chan_to_irq_mask(ft, chan_stat);
+
+	WARN((chan_stat & irq_stat) == 0,
+	     "Received an unexpected interrupt: 0x%X 0x%X\n",
+	     chan_stat, irq_stat);
 
 	/* Disable interrupts until we fetch all stored samples */
 	ft_irq_disable_save(ft);
