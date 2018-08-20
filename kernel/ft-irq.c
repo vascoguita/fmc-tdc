@@ -287,13 +287,13 @@ static void ft_dma_work(struct work_struct *work)
 	if (!(irq_stat & TDC_EIC_EIC_IMR_TDC_DMA_MASK)) {
 		dev_warn(&ft->fmc->dev,
 			 "Expected DMA interrupt but got 0x%x\n", irq_stat);
-		return;
+		goto out;
 	}
 
 	loop = (unsigned long *) &irq_stat;
 	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
 		ft_readout_dma_start(ft, i);
-
+out:
 	/* Re-Enable interrupts that where disabled in the IRQ handler */
 	ft_irq_enable_restore(ft);
 }
