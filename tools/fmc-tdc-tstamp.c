@@ -155,8 +155,8 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
 		ns_c = fmctdc_ts_approx_ns(&ts[i]);
 		if (ns_p >= ns_c) {
 			fprintf(stderr,
-				"*** Invalid timestamp. Previous %"PRIu64"ns, current %"PRIu64"ns current one should be greater\n",
-				ns_p, ns_c);
+				"*** Invalid timestamp. Previous %d %"PRIu64"ns, current %d %"PRIu64"ns current one should be greater\n",
+				ts_prev.seq_id, ns_p, ts[i].seq_id, ns_c);
 
 			return -EINVAL;
 		}
