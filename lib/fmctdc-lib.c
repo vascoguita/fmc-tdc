@@ -621,6 +621,46 @@ static void fmctdc_ts_convert_n(struct fmctdc_time *t,
 }
 
 /**
+ * It reads up to *max* timestamps from the buffer
+ * @param[in] userb TDC board instance token
+ * @param[in] channel channel to use [0, 4]
+ * @param[out] t array of time-stamps
+ * @param[in] n number of elements to save in the array
+ * @return the number of samples read
+ */
+static int __fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
+			 struct fmctdc_time *t, int max)
+{
+	__define_board(b, userb);
+	struct ft_hw_timestamp *data;
+	int n;
+
+	data = calloc(max, sizeof(*data));
+	if (!data) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	n = read(b->fdd[channel], data, sizeof(*data) * max);
+	if (n < 0)
+		goto err;
+	if (n % sizeof(*data) != 0) {
+		errno = EIO;
+		goto err;
+	}
+
+	n /= sizeof(*data); /* convert to number of samples */
+	fmctdc_ts_convert_n(t, data, n);
+	free(data);
+
+	return n;
+
+err:
+	free(data);
+	return -1;
+}
+
+/**
  * It reads a given number of time-stamps from the driver. It will wait at
  * most once and return the number of samples that it received from a given
  * input channel. According to the 'mode' in use the meaning of the time-stamp
@@ -653,38 +693,29 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 	int i;
 	int n_ts;
 	fd_set set;
-	struct ft_hw_timestamp *data;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	data = calloc(n, sizeof(*data));
-	if (!data) {
-		errno = ENOMEM;
-		return -1;
-	}
-
 	i = 0;
 	while (i < n) {
-		n_ts = read(b->fdd[channel], &data[i], sizeof(*data) * (n - i));
+		n_ts = __fmctdc_read(userb, channel, &t[i], 1);
 		if (n_ts < 0 && errno != EAGAIN) {
 			if (i == 0)
-				goto err;
+				return -1;
 			else
-				goto out;
+				break;
 		}
 
-		if (n_ts % sizeof(*data) == 0) { /* Good samples here */
-			n_ts /= sizeof(*data);
-			fmctdc_ts_convert_n(&t[i], &data[i], n_ts);
+		if (n_ts > 0) {
 			i += n_ts;
-			continue; /* the while loop */
+			continue;
 		}
 
 		if (i) /* error but before we got something */
-			goto out;
+			break;
 
 		/* EAGAIN at first sample */
 		if (n_ts < 0 && flags == O_NONBLOCK)
@@ -694,16 +725,10 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 		FD_ZERO(&set);
 		FD_SET(b->fdc[channel], &set);
 		if (select(b->fdc[channel] + 1, &set, NULL, NULL, NULL) < 0)
-			goto err;
+			return -1;
 	}
 
-out:
-	free(data);
 	return i;
-
-err:
-	free(data);
-	return -1;
 }
 
 /**
