@@ -29,22 +29,58 @@ char git_version[] = "git_version: " GIT_VERSION;
 struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
 static unsigned int stop = 0, fmt_wr = 0;
 
+enum tstamp_print_format {
+	TSTAMP_FMT_PS = 0,
+	TSTAMP_FMT_WR,
+};
 
-void dump_timestamp(struct fmctdc_time ts)
+/**
+ * It prints the given timestamp using the White-Rabit format
+ * @param[in] ts timestamp
+ *
+ * seconds:coarse:frac
+ */
+static inline void print_ts_wr(struct fmctdc_time ts)
+{
+	fprintf(stdout, "%10"PRIu64":%09u:%04u",
+		ts.seconds, ts.coarse, ts.frac);
+
+}
+
+/**
+ * It prints the given timestamp using the picosecond format
+ * @param[in] ts timestamp
+ *
+ * seconds.picoseconds
+ */
+static inline void print_ts_ps(struct fmctdc_time ts)
 {
 	uint64_t picoseconds;
 
-	if (fmt_wr) {
-		/* White rabbit format */
-		fprintf(stdout, "%10"PRIu64":%09u:%04u",
-			ts.seconds, ts.coarse, ts.frac);
-		return;
-	} else {
-		picoseconds = (uint64_t) ts.coarse * 8000ULL +
-			      (uint64_t) ts.frac * 8000ULL / 4096ULL;
-		fprintf(stdout,
-			"%010"PRIu64"s  %012"PRIu64"ps",
-			ts.seconds, picoseconds);
+	picoseconds = ((uint64_t)ts.coarse) * 8000ULL;
+	picoseconds += ((uint64_t)ts.frac) * 8000ULL / 4096ULL;
+	fprintf(stdout,
+		"%010"PRIu64"s  %012"PRIu64"ps",
+		ts.seconds, picoseconds);
+}
+
+/**
+ * It prints the given timestamp
+ * @param[in] ts timestamp
+ * @param[in] fmt timestamp print format
+ */
+static void print_ts(struct fmctdc_time ts, enum tstamp_print_format fmt)
+{
+	switch (fmt) {
+	case TSTAMP_FMT_WR:
+		print_ts_wr(ts);
+		break;
+	case TSTAMP_FMT_PS:
+		print_ts_ps(ts);
+		break;
+	default:
+		fprintf(stdout, "--- invalid format ---\n");
+		break;
 	}
 }
 
@@ -57,7 +93,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	fprintf(stdout,
 		"channel %d | channel seq %-12u\n    ts   ",
 		ch, ts->seq_id);
-	dump_timestamp(*ts);
+	print_ts(*ts, fmt_wr);
 	fprintf(stdout, "\n");
 
 	ts_tmp = *ts;
@@ -71,7 +107,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 
 	/* We are in normal mode, calculate the difference */
 	fprintf(stdout, "    diff ");
-	dump_timestamp(ts_tmp);
+	print_ts(ts_tmp, fmt_wr);
 
 	ns  = (uint64_t) ts_tmp.coarse * 8ULL;
 	ns += (uint64_t) (ts_tmp.frac * 8000ULL / 4096ULL) / 1000ULL;
