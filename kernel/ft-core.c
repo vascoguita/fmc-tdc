@@ -35,6 +35,11 @@ module_param_named(dma_buf_ddr_burst_size, dma_buf_ddr_burst_size_default,
 MODULE_PARM_DESC(dma_buf_ddr_burst_size,
 		 "DDR size coalesing timeout (default: 16 timestamps).");
 
+static int test_data_period = 0;
+module_param_named(test_data_period, test_data_period, int, 0444);
+MODULE_PARM_DESC(test_data_period,
+		 "It sets how many fake timestamps to generate every seconds on the first channel, 0 to disable (default: 0)");
+
 static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
@@ -370,6 +375,42 @@ out_buf1:
 }
 #endif
 
+/**
+ * It configures the test data
+ * @chan channel number [0, 4]
+ * @period period in 125Mhz ticks (125000000 -1 = 1Hz)
+ * @enable enable or disable
+ */
+void ft_test_data(struct fmctdc_dev *ft,
+		  unsigned int chan,
+		  unsigned int period,
+		  bool enable)
+{
+	uint32_t tmp = 0;
+
+	if (chan >= ft->zdev->n_cset) {
+		dev_err(&ft->fmc->dev, "%s Invalid channel %d\n",
+			__func__, chan);
+		return;
+	}
+
+	if (period == 0) {
+		dev_err(&ft->fmc->dev, "%s Invalid period %d\n",
+			__func__, period);
+		return;
+	}
+
+	tmp |= (enable ? TDC_FAKE_TS_EN : 0);
+	tmp |= ((chan << TDC_FAKE_TS_CHAN_SHIFT) & TDC_FAKE_TS_CHAN_MASK);
+	tmp |= ((period << TDC_FAKE_TS_PERIOD_SHIFT) & TDC_FAKE_TS_PERIOD_MASK);
+	ft_writel(ft, tmp, TDC_REG_FAKE_TS_CSR);
+
+	if (enable)
+		dev_warn(&ft->fmc->dev,
+			 "Channel 0 is running in test mode 0x%x\n",
+			 tmp);
+}
+
 /* probe and remove are called by the FMC bus core */
 int ft_probe(struct fmc_device *fmc)
 {
@@ -504,6 +545,8 @@ int ft_probe(struct fmc_device *fmc)
 		if (ret < 0)
 			goto err;
 	}
+
+	ft_test_data(ft, 0, test_data_period, !!test_data_period);
 
 	ret = ft_irq_init(ft);
 	if (ret < 0)
