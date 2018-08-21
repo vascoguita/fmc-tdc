@@ -484,9 +484,9 @@ static int ft_trig_data_done(struct zio_cset *cset)
 
 	ts = cset->chan->active_block->data;
 	for(i = 0; i < cset->ti->nsamples; ++i) {
-		dev_dbg(&cset->head.dev, "TS%d %d.%d.%d 0x%x\n", i,
+		dev_dbg(&cset->head.dev, "TS%d %d.%d.%d %d\n", i,
 			ts[i].seconds,ts[i].coarse,
-			ts[i].frac, ts[i].metadata);
+			ts[i].frac, FT_HW_TS_META_SEQ(ts[i].metadata));
 		ft_timestamp_apply_offsets(ft, &ts[i]);
 	}
 	ft_zio_update_ctrl(cset, &ts[0]);
