@@ -549,7 +549,7 @@ uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 		timeout = ft_readl(ft, TDC_REG_IRQ_THRESHOLD);
 		break;
 	case FT_ACQ_TYPE_DMA:
-		/* There is none */
+
 		timeout = ft_dma_irq_coalescing_timeout_get(ft, chan);
 		break;
 	default:

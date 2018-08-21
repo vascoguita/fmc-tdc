@@ -49,7 +49,7 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
 	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
 	ZIO_ATTR_EXT("irq_coalescing_time", ZIO_RW_PERM,
-		     FT_ATTR_TDC_COALESCING_TIME, 0),
+		     FT_ATTR_TDC_COALESCING_TIME, 10),
 };
 
 /* This identifies if our "struct device" is device, input, output */
