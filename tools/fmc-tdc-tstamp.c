@@ -405,11 +405,13 @@ int main(int argc, char **argv)
 			ref[ch] = -1;
 		}
 
-		ret = fmctdc_coalescing_timeout_set(brd, ch, timeout_ms);
-		if (ret) {
-			fprintf(stderr,
-				"%s: chan %d: cannot set IRQ coalescing timeout: %s. Use default\n",
-				argv[0], ch, fmctdc_strerror(errno));
+		if (timeout_ms > 0) {
+			ret = fmctdc_coalescing_timeout_set(brd, ch, timeout_ms);
+			if (ret) {
+				fprintf(stderr,
+					"%s: chan %d: cannot set IRQ coalescing timeout: %s. Use default\n",
+					argv[0], ch, fmctdc_strerror(errno));
+			}
 		}
 
 		/* set buffer mode */
