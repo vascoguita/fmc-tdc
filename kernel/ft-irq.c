@@ -474,7 +474,6 @@ static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 	for (i = (chan == -1 ? 0 : chan);
 	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
 	     ++i) {
-		pr_info("%s:%d %d %d\n", __func__, __LINE__, i, timeout);
 		base = ft->ft_dma_base + (0x40 * i);
 		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
 		tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
