@@ -152,6 +152,7 @@ static void help(char *name)
 	fprintf(stderr, "  -V:           print version info\n\n");
 	fprintf(stderr, "  -t <mode>:    It does some test of the incoming timestampts\n\n");
 	fprintf(stderr, "  -o <ms>:      IRQ coalescing milleseconds timeout\n\n");
+	fprintf(stderr, "  -e:           stop on error\n\n");
 
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
@@ -185,7 +186,7 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
 			fprintf(stderr,
 				"*** Invalid sequence number. Previous %d, current %d, expected +1\n",
 				ts_prev.seq_id, ts[i].seq_id);
-			return -EINVAL;
+			goto err;
 		}
 		ns_p = fmctdc_ts_approx_ns(&ts_prev);
 		ns_c = fmctdc_ts_approx_ns(&ts[i]);
@@ -193,11 +194,13 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
 			fprintf(stderr,
 				"*** Invalid timestamp. Previous %d %"PRIu64"ns, current %d %"PRIu64"ns current one should be greater\n",
 				ts_prev.seq_id, ns_p, ts[i].seq_id, ns_c);
-
-			return -EINVAL;
+			goto err;
 		}
 	}
 	return 0;
+err:
+	ts_prev = ts[n - 1];
+	return -EINVAL;
 }
 
 static int tstamp_testing_mode(struct fmctdc_time *ts, unsigned int n,
@@ -235,6 +238,7 @@ int main(int argc, char **argv)
 	struct pollfd p[FMCTDC_NUM_CHANNELS];
 	enum tstamp_testing_modes mode = 0;
 	int timeout_ms = -1;
+	int stop_on_err = 0;
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -258,7 +262,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:e")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
@@ -302,6 +306,9 @@ int main(int argc, char **argv)
 			break;
 		case 'w':
 			fmt_wr = 1;
+			break;
+		case 'e':
+			stop_on_err = 1;
 			break;
 		case 'd':
 			sscanf(optarg, "%i,%i", &a, &b);
@@ -475,7 +482,7 @@ int main(int argc, char **argv)
 				continue;
 
 			ret = tstamp_testing_mode(ts, n_ts, mode);
-			if (ret)
+			if (ret && stop_on_err)
 				stop = 1;
 
 			if (n % n_show == 0)
