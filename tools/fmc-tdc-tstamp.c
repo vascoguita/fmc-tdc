@@ -181,7 +181,7 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
 	for (i = 0; i < n; ts_prev = ts[i], ++i) {
 		if (ts_prev.seq_id == -1)
 			continue;
-		if (ts_prev.seq_id + 1 != ts[i].seq_id) {
+		if (ts_prev.seq_id + 1 != ts[i].seq_id && ts[i].seq_id != 0) {
 			fprintf(stderr,
 				"*** Invalid sequence number. Previous %d, current %d, expected +1\n",
 				ts_prev.seq_id, ts[i].seq_id);
