@@ -267,7 +267,7 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	count = 0;
 	while (total > 0) {
 		cset->ti->nsamples  = min((unsigned long)total,
-					  KMALLOC_MAX_SIZE);
+					  PAGE_SIZE / cset->ssize);
 		zio_cset_busy_set(cset, 1);
 		zio_arm_trigger(cset->ti); /* actually a fire */
 		ft_readout_dma_run(cset, base_cur, count, cset->ti->nsamples);
