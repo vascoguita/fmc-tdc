@@ -483,8 +483,22 @@ static int ft_trig_data_done(struct zio_cset *cset)
 		goto out;
 
 	ts = cset->chan->active_block->data;
+
+	dev_dbg(&cset->head.dev, "%s TS 0/%d %d.%d.%d %d\n",
+		__func__, cset->ti->nsamples,
+		ts[0].seconds,ts[0].coarse, ts[0].frac,
+		FT_HW_TS_META_SEQ(ts[0].metadata));
+	dev_dbg(&cset->head.dev, "%s TS %d/%d %d.%d.%d %d\n",
+		__func__, cset->ti->nsamples - 1, cset->ti->nsamples,
+		ts[cset->ti->nsamples - 1].seconds,
+		ts[cset->ti->nsamples - 1].coarse,
+		ts[cset->ti->nsamples - 1].frac,
+		FT_HW_TS_META_SEQ(ts[cset->ti->nsamples - 1].metadata));
+
+
 	for(i = 0; i < cset->ti->nsamples; ++i) {
-		dev_dbg(&cset->head.dev, "TS%d %d.%d.%d %d\n", i,
+		dev_vdbg(&cset->head.dev, "%s TS  %d/%d %d.%d.%d %d\n",
+			__func__, i, cset->ti->nsamples,
 			ts[i].seconds,ts[i].coarse,
 			ts[i].frac, FT_HW_TS_META_SEQ(ts[i].metadata));
 		ft_timestamp_apply_offsets(ft, &ts[i]);
