@@ -29,22 +29,58 @@ char git_version[] = "git_version: " GIT_VERSION;
 struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
 static unsigned int stop = 0, fmt_wr = 0;
 
+enum tstamp_print_format {
+	TSTAMP_FMT_PS = 0,
+	TSTAMP_FMT_WR,
+};
 
-void dump_timestamp(struct fmctdc_time ts)
+/**
+ * It prints the given timestamp using the White-Rabit format
+ * @param[in] ts timestamp
+ *
+ * seconds:coarse:frac
+ */
+static inline void print_ts_wr(struct fmctdc_time ts)
+{
+	fprintf(stdout, "%10"PRIu64":%09u:%04u",
+		ts.seconds, ts.coarse, ts.frac);
+
+}
+
+/**
+ * It prints the given timestamp using the picosecond format
+ * @param[in] ts timestamp
+ *
+ * seconds.picoseconds
+ */
+static inline void print_ts_ps(struct fmctdc_time ts)
 {
 	uint64_t picoseconds;
 
-	if (fmt_wr) {
-		/* White rabbit format */
-		fprintf(stdout, "%10"PRIu64":%09u:%04u",
-			ts.seconds, ts.coarse, ts.frac);
-		return;
-	} else {
-		picoseconds = (uint64_t) ts.coarse * 8000ULL +
-			      (uint64_t) ts.frac * 8000ULL / 4096ULL;
-		fprintf(stdout,
-			"%010"PRIu64"s  %012"PRIu64"ps",
-			ts.seconds, picoseconds);
+	picoseconds = ((uint64_t)ts.coarse) * 8000ULL;
+	picoseconds += ((uint64_t)ts.frac) * 8000ULL / 4096ULL;
+	fprintf(stdout,
+		"%010"PRIu64"s  %012"PRIu64"ps",
+		ts.seconds, picoseconds);
+}
+
+/**
+ * It prints the given timestamp
+ * @param[in] ts timestamp
+ * @param[in] fmt timestamp print format
+ */
+static void print_ts(struct fmctdc_time ts, enum tstamp_print_format fmt)
+{
+	switch (fmt) {
+	case TSTAMP_FMT_WR:
+		print_ts_wr(ts);
+		break;
+	case TSTAMP_FMT_PS:
+		print_ts_ps(ts);
+		break;
+	default:
+		fprintf(stdout, "--- invalid format ---\n");
+		break;
 	}
 }
 
@@ -57,7 +93,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	fprintf(stdout,
 		"channel %d | channel seq %-12u\n    ts   ",
 		ch, ts->seq_id);
-	dump_timestamp(*ts);
+	print_ts(*ts, fmt_wr);
 	fprintf(stdout, "\n");
 
 	ts_tmp = *ts;
@@ -71,7 +107,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 
 	/* We are in normal mode, calculate the difference */
 	fprintf(stdout, "    diff ");
-	dump_timestamp(ts_tmp);
+	print_ts(ts_tmp, fmt_wr);
 
 	ns  = (uint64_t) ts_tmp.coarse * 8ULL;
 	ns += (uint64_t) (ts_tmp.frac * 8000ULL / 4096ULL) / 1000ULL;
@@ -116,6 +152,7 @@ static void help(char *name)
 	fprintf(stderr, "  -V:           print version info\n\n");
 	fprintf(stderr, "  -t <mode>:    It does some test of the incoming timestampts\n\n");
 	fprintf(stderr, "  -o <ms>:      IRQ coalescing milleseconds timeout\n\n");
+	fprintf(stderr, "  -e:           stop on error\n\n");
 
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
@@ -145,11 +182,11 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
 	for (i = 0; i < n; ts_prev = ts[i], ++i) {
 		if (ts_prev.seq_id == -1)
 			continue;
-		if (ts_prev.seq_id + 1 != ts[i].seq_id) {
+		if (ts_prev.seq_id + 1 != ts[i].seq_id && ts[i].seq_id != 0) {
 			fprintf(stderr,
 				"*** Invalid sequence number. Previous %d, current %d, expected +1\n",
 				ts_prev.seq_id, ts[i].seq_id);
-			return -EINVAL;
+			goto err;
 		}
 		ns_p = fmctdc_ts_approx_ns(&ts_prev);
 		ns_c = fmctdc_ts_approx_ns(&ts[i]);
@@ -157,11 +194,13 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
 			fprintf(stderr,
 				"*** Invalid timestamp. Previous %d %"PRIu64"ns, current %d %"PRIu64"ns current one should be greater\n",
 				ts_prev.seq_id, ns_p, ts[i].seq_id, ns_c);
-
-			return -EINVAL;
+			goto err;
 		}
 	}
 	return 0;
+err:
+	ts_prev = ts[n - 1];
+	return -EINVAL;
 }
 
 static int tstamp_testing_mode(struct fmctdc_time *ts, unsigned int n,
@@ -199,6 +238,7 @@ int main(int argc, char **argv)
 	struct pollfd p[FMCTDC_NUM_CHANNELS];
 	enum tstamp_testing_modes mode = 0;
 	int timeout_ms = -1;
+	int stop_on_err = 0;
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -222,7 +262,7 @@ int main(int argc, char **argv)
 		ref[i] = -1;
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:e")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
@@ -266,6 +306,9 @@ int main(int argc, char **argv)
 			break;
 		case 'w':
 			fmt_wr = 1;
+			break;
+		case 'e':
+			stop_on_err = 1;
 			break;
 		case 'd':
 			sscanf(optarg, "%i,%i", &a, &b);
@@ -369,11 +412,13 @@ int main(int argc, char **argv)
 			ref[ch] = -1;
 		}
 
-		ret = fmctdc_coalescing_timeout_set(brd, ch, timeout_ms);
-		if (ret) {
-			fprintf(stderr,
-				"%s: chan %d: cannot set IRQ coalescing timeout: %s. Use default\n",
-				argv[0], ch, fmctdc_strerror(errno));
+		if (timeout_ms > 0) {
+			ret = fmctdc_coalescing_timeout_set(brd, ch, timeout_ms);
+			if (ret) {
+				fprintf(stderr,
+					"%s: chan %d: cannot set IRQ coalescing timeout: %s. Use default\n",
+					argv[0], ch, fmctdc_strerror(errno));
+			}
 		}
 
 		/* set buffer mode */
@@ -437,7 +482,7 @@ int main(int argc, char **argv)
 				continue;
 
 			ret = tstamp_testing_mode(ts, n_ts, mode);
-			if (ret)
+			if (ret && stop_on_err)
 				stop = 1;
 
 			if (n % n_show == 0)

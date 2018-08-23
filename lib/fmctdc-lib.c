@@ -1028,6 +1028,7 @@ int fmctdc_get_offset_user(struct fmctdc_board *userb,
 }
 
 /**
+ * It gets the current buffer mode
  * @param[in] userb TDC board instance token
  * @param[in] channel target channel [0, 4]
  * @param[out] mode transfer mode

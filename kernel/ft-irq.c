@@ -267,7 +267,7 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	count = 0;
 	while (total > 0) {
 		cset->ti->nsamples  = min((unsigned long)total,
-					  KMALLOC_MAX_SIZE);
+					  PAGE_SIZE / cset->ssize);
 		zio_cset_busy_set(cset, 1);
 		zio_arm_trigger(cset->ti); /* actually a fire */
 		ft_readout_dma_run(cset, base_cur, count, cset->ti->nsamples);
@@ -474,7 +474,6 @@ static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 	for (i = (chan == -1 ? 0 : chan);
 	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
 	     ++i) {
-		pr_info("%s:%d %d %d\n", __func__, __LINE__, i, timeout);
 		base = ft->ft_dma_base + (0x40 * i);
 		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
 		tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
@@ -549,7 +548,7 @@ uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 		timeout = ft_readl(ft, TDC_REG_IRQ_THRESHOLD);
 		break;
 	case FT_ACQ_TYPE_DMA:
-		/* There is none */
+
 		timeout = ft_dma_irq_coalescing_timeout_get(ft, chan);
 		break;
 	default:
