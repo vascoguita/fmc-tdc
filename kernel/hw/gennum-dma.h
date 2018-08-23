@@ -26,6 +26,7 @@ struct gncore_dma_item {
 };
 
 #define GENUM_DMA_STA_MASK 0x7
+#define GENUM_DMA_STA_SHIFT 0
 enum gncore_dma_status {
 	GENNUM_DMA_STA_IDLE = 0,
 	GENNUM_DMA_STA_DONE,
@@ -33,6 +34,22 @@ enum gncore_dma_status {
 	GENNUM_DMA_STA_ERROR,
 	GENNUM_DMA_STA_ABORT,
 };
+
+#define GENNUM_DMA_STA_ERR_P2L_MASK 0x78
+#define GENNUM_DMA_STA_ERR_P2L_SHIFT 3
+enum gncore_dma_status_p2l {
+	GENNUM_DMA_STA_ERROR_P2L_COMP = 3,
+	GENNUM_DMA_STA_ERROR_P2L_BUSY,
+};
+
+#define GENNUM_DMA_STA_ERR_L2P_MASK 0x780
+#define GENNUM_DMA_STA_ERR_L2P_SHIFT 7
+enum gncore_dma_status_l2p {
+	GENNUM_DMA_STA_ERROR_L2P_TX = 7,
+	GENNUM_DMA_STA_ERROR_L2P_TIMEOUT,
+	GENNUM_DMA_STA_ERROR_L2P_ABORT,
+};
+
 
 #define GENNUM_DMA_CTL 0x00
 #define GENNUM_DMA_STA 0x04
