@@ -25,6 +25,15 @@ struct gncore_dma_item {
 	uint32_t reserved;	/* ouch */
 };
 
+#define GENUM_DMA_STA_MASK 0x7
+enum gncore_dma_status {
+	GENNUM_DMA_STA_IDLE = 0,
+	GENNUM_DMA_STA_DONE,
+	GENNUM_DMA_STA_BUSY,
+	GENNUM_DMA_STA_ERROR,
+	GENNUM_DMA_STA_ABORT,
+};
+
 #define GENNUM_DMA_CTL 0x00
 #define GENNUM_DMA_STA 0x04
 #define GENNUM_DMA_ADDR 0x08
@@ -38,7 +47,6 @@ struct gncore_dma_item {
 #define GENNUM_DMA_CTL_SWP 0xc
 #define GENNUM_DMA_CTL_ABORT 0x2
 #define GENNUM_DMA_CTL_START 0x1
-#define GENNUM_DMA_STA_DONE 1 << 0
 #define GENNUM_DMA_ATTR_DIR 0x00000002
 #define GENNUM_DMA_ATTR_MORE 0x00000001
 

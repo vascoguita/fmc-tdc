@@ -244,7 +244,7 @@ static void ft_readout_dma_run(struct zio_cset *cset,
 
 	dma_buf = cset->chan->active_block->data;
 	gn4124_dma_read(ft, devmem, dma_buf, len);
-	gn4124_dma_wait_done(ft);
+	gn4124_dma_wait_done(ft, 10000);
 }
 
 /**

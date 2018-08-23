@@ -307,7 +307,7 @@ void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t devmem, void *hostmem, int 
 		return;
 
 	gn4124_dma_start(ft);
-	gn4124_dma_wait_done(ft);
+	gn4124_dma_wait_done(ft, 10000);
 	gn4124_dma_unmap(ft, dma_handle, len);
 }
 
@@ -337,57 +337,192 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	item.attribute = GENNUM_DMA_ATTR_DIR;
 	gn4124_dma_config(ft, &item);
 	gn4124_dma_start(ft);
-	gn4124_dma_wait_done(ft);
+	gn4124_dma_wait_done(ft, 10000);
 
 	dma_sync_single_for_device(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
 	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
 }
 
-#if 1
-int test_dma(struct fmctdc_dev *ft)
+static int gn4124_dma_sg(struct fmctdc_dev *ft,
+			 uint32_t offset, void *buf, int size,
+			 enum dma_data_direction dir)
 {
-	const int buf_size = 16;
+	struct gncore_dma_item *item; /* linked-list descriptor */
+	struct sg_table sgt;
+	dma_addr_t item_pool; /* DMA mem for linked-list descriptors */
+	dma_addr_t item_dma; /* temporary pointer */
+	uint32_t devmem = offset;
+	struct scatterlist *sg;
+	enum gncore_dma_status status;
+	int mapbytes = 0;
+	int byteleft = size;
+	int ret;
+	int n = (size / PAGE_SIZE) + (size % PAGE_SIZE ? 1 : 0);
+	int i;
+
+	item = kmalloc(sizeof(struct gncore_dma_item) * n, GFP_KERNEL);
+	if (!item)
+		return -ENOMEM;
+
+	item_pool = dma_map_single(ft->fmc->hwdev, item,
+				   sizeof(struct gncore_dma_item) * n,
+				   DMA_TO_DEVICE);
+	if (dma_mapping_error(ft->fmc->hwdev, item_pool)) {
+		ret = -EINVAL;
+		goto out_dma_item;
+	}
+
+	ret = sg_alloc_table(&sgt, n, GFP_KERNEL);
+	if (ret) {
+		ret = -ENOMEM;
+		goto out_sg_alloc;
+	}
+
+	for_each_sg(sgt.sgl, sg, sgt.nents, i) {
+		void *bufp = buf + mapbytes;
+		if (byteleft < (PAGE_SIZE - offset_in_page(bufp)))
+			mapbytes = byteleft;
+		else
+			mapbytes = PAGE_SIZE - offset_in_page(bufp);
+		sg_set_buf(sg, buf, mapbytes);
+		byteleft -= mapbytes;
+	}
+
+	ret = dma_map_sg(ft->fmc->hwdev, sgt.sgl, sgt.nents, dir);
+	if (ret < 0)
+		goto out_map_sg;
+
+	item_dma = item_pool;
+	for_each_sg(sgt.sgl, sg, sgt.nents, i) {
+		item[i].start_addr = devmem;
+		item[i].dma_addr_h = sg_dma_address(sg) >> 32;
+		item[i].dma_addr_l = sg_dma_address(sg) & 0xFFFFFFFFULL;
+		item[i].dma_len = sg_dma_len(sg);
+		item[i].next_addr_h = item_dma >> 32;
+		item[i].next_addr_l = item_dma & 0xFFFFFFFFULL;
+		item[i].attribute = 0;
+		if (DMA_TO_DEVICE)
+			item[i].attribute = GENNUM_DMA_ATTR_DIR;
+		if (!sg_is_last(sg))
+			item[i].attribute = GENNUM_DMA_ATTR_MORE;
+		item_dma += sizeof(struct gncore_dma_item);
+		devmem += sg_dma_len(sg);
+	}
+
+	gn4124_dma_config(ft, &item[0]);
+	dma_sync_single_for_device(ft->fmc->hwdev, item_pool,
+				   sizeof(struct gncore_dma_item) * sgt.nents,
+				   DMA_TO_DEVICE);
+
+	gn4124_dma_start(ft);
+	status = gn4124_dma_wait_done(ft, 10000);
+	if (status == GENNUM_DMA_STA_ERROR) {
+		dev_err(ft->fmc->hwdev, "DMA transfer error\n");
+		ret = -EIO;
+	} else if (status == GENNUM_DMA_STA_ABORT) {
+		dev_err(ft->fmc->hwdev,
+			"DMA transfer timeout or manually aborted\n");
+		ret = -EIO;
+	}
+
+	dma_unmap_sg(ft->fmc->hwdev, sgt.sgl, sgt.nents, dir);
+out_map_sg:
+	sg_free_table(&sgt);
+out_sg_alloc:
+	dma_unmap_single(ft->fmc->hwdev, item_pool,
+			 sizeof(struct gncore_dma_item) * n,
+			 DMA_TO_DEVICE);
+out_dma_item:
+	kfree(item);
+
+	return ret;
+}
+
+
+/**
+ * It performs a DMA test
+ * @ft FmcTDc instance
+ * @buf_size number of byte to transfer
+ * @use_sg 1 if you want to use scatterlists, 0 to do a single transfer
+ *
+ * It writes on the device memory a known pattern, then it reads it back
+ * and validate.
+ *
+ * The code will always prepare the SG table, but it will use it only
+ * when asked.
+ *
+ * Return: 0 on success, otherwise a negative error number
+ */
+int test_dma(struct fmctdc_dev *ft, unsigned int buf_size, unsigned int use_sg)
+{
 	uint8_t *buf1, *buf2;
 	int i, ret = 0;
+	uint32_t eic;
 
-	buf1 = kzalloc(PAGE_SIZE, GFP_KERNEL);
+	dev_dbg(&ft->fmc->dev, "Test DMA\n");
+
+	/* Disable DMA interrupts, we do active waits here */
+	eic = ft_ioread(ft, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IMR);
+	ft_iowrite(ft, eic, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IDR);
+
+	/* Write buffer one */
+	buf1 = kzalloc(buf_size, GFP_KERNEL);
 	if (!buf1) {
 		ret = -ENOMEM;
 		goto out_buf1;
 	}
-	buf2 = kzalloc(PAGE_SIZE, GFP_KERNEL);
-	if (!buf2) {
-		ret = -ENOMEM;
-		goto out_buf2;
-	}
-
-	dev_info(&ft->fmc->dev, "Test DMA\n");
-	dev_info(&ft->fmc->dev, "R0 = %08x R4 = %08x\n",
-	       dma_readl(ft, 0), dma_readl(ft, 4));
-
-	/* mdelay(5000); */
-
-	for (i = 0; i < buf_size; i++) {
-		buf1[i] = i * 31011 + 12312;
-		buf2[i] = 0xff;
-	}
-
-	gn4124_dma_write(ft, 0, buf1, 16);
-	gn4124_dma_wait_done(ft);
-	gn4124_dma_read(ft, 0, buf2, 16);
-	gn4124_dma_wait_done(ft);
 
 	for (i = 0; i < buf_size; i++)
-		dev_info(&ft->fmc->dev, "%02x %02x ", buf1[i], buf2[i]);
-	dev_info(&ft->fmc->dev, "\n");
+		buf1[i] = i * 31011 + 12312;
 
+	if (use_sg)
+		ret = gn4124_dma_sg(ft, 0, buf1, buf_size, DMA_TO_DEVICE);
+	else
+		gn4124_dma_write(ft, 0, buf1, buf_size);
+
+	if (ret < 0)
+		goto out_fail_w;
+
+	/* Read buffer two */
+	buf2 = kzalloc(buf_size, GFP_KERNEL);
+	if (!buf2)
+		goto out_buf2;
+
+	if (use_sg)
+		ret = gn4124_dma_sg(ft, 0, buf1, buf_size, DMA_FROM_DEVICE);
+	else
+		gn4124_dma_read(ft, 0, buf2, buf_size);
+
+	if (ret < 0)
+		goto out_fail_r;
+
+	/* Validate */
+	for (i = 0; i < buf_size; i++) {
+		dev_vdbg(&ft->fmc->dev, "%d 0x%02x 0x%02x\n",
+			i, buf1[i], buf2[i]);
+		if (buf1[i] != buf2[i]) {
+			dev_err(&ft->fmc->dev, "ERROR %d 0x%02x 0x%02x\n",
+				i, buf1[i], buf2[i]);
+			ret = -EINVAL;
+		}
+	}
+
+out_fail_r:
 	kfree(buf2);
 out_buf2:
+out_fail_w:
 	kfree(buf1);
 out_buf1:
+	/*
+	 * clear any pending interrupt befre re-enabling, we have just
+	 * generated and handled them here in this function
+	 */
+	ft_iowrite(ft, 0xFFFFFFFF, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_ISR);
+	ft_iowrite(ft, eic, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
+
+	dev_dbg(&ft->fmc->dev, "Test DMA complete %d\n", ret);
 	return ret;
 }
-#endif
 
 /**
  * It configures the test data
@@ -572,7 +707,6 @@ int ft_probe(struct fmc_device *fmc)
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
 	ft->initialized = 1;
-	test_dma(ft);
 
 	/* Pin the carrier */
 	if (!try_module_get(fmc->owner))

@@ -53,6 +53,8 @@ enum ft_zattr_in_idx {
 
 enum ft_zattr_paremeters {
 	FT_ATTR_PARAM_TEMP = FT_ATTR_TDC__LAST,
+	FT_ATTR_PARAM_DMA,
+	FT_ATTR_PARAM_DMA_SG,
 };
 
 enum ft_command {
@@ -294,6 +296,8 @@ void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 				       unsigned int chan);
 
+int test_dma(struct fmctdc_dev *ft, unsigned int buf_size,
+	     unsigned int use_sg);
 
 /**
  * It enables the acquisition on a give channel
@@ -344,11 +348,29 @@ static inline void gn4124_dma_start(struct fmctdc_dev *ft)
 /**
  * It does an active wait until the DMA transfer is over
  * @ft FmcTdc device instance
+ * @timeout_ms timeout in milli-seconds
  */
-static inline void gn4124_dma_wait_done(struct fmctdc_dev *ft)
+static inline enum gncore_dma_status gn4124_dma_wait_done(struct fmctdc_dev *ft,
+							  unsigned int timeout_ms)
 {
-	while (!(dma_readl(ft, GENNUM_DMA_STA) & GENNUM_DMA_STA_DONE))
-		cpu_relax();
+	uint32_t tmp;
+	unsigned long timeout = jiffies + msecs_to_jiffies(timeout_ms);
+
+	while (1) {
+		tmp = dma_readl(ft, GENNUM_DMA_STA) & GENUM_DMA_STA_MASK;
+		switch (tmp) {
+		case GENNUM_DMA_STA_DONE:
+		case GENNUM_DMA_STA_ERROR:
+		case GENNUM_DMA_STA_ABORT:
+			return tmp;
+		default:
+			if (time_after(jiffies, timeout))
+				gn4124_dma_abort(ft);
+			cpu_relax();
+			break;
+		}
+	}
+
 }
 
 /**
