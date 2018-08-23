@@ -360,13 +360,15 @@ static inline enum gncore_dma_status gn4124_dma_wait_done(struct fmctdc_dev *ft,
 		tmp = dma_readl(ft, GENNUM_DMA_STA);
 		switch (tmp & GENUM_DMA_STA_MASK) {
 		case GENNUM_DMA_STA_ERROR:
-		case GENNUM_DMA_STA_ABORT:
 			dev_err(&ft->fmc->dev, "DMA problem: 0x%x", tmp);
+		case GENNUM_DMA_STA_ABORT:
 		case GENNUM_DMA_STA_DONE:
 			return tmp;
 		default:
-			if (time_after(jiffies, timeout))
+			if (time_after(jiffies, timeout)) {
+				dev_err(&ft->fmc->dev, "DMA timeout: 0x%x", tmp);
 				gn4124_dma_abort(ft);
+			}
 			cpu_relax();
 			break;
 		}

@@ -496,6 +496,7 @@ int test_dma(struct fmctdc_dev *ft, unsigned int buf_size, unsigned int use_sg)
 	if (ret < 0)
 		goto out_fail_r;
 
+	ret = 0;
 	/* Validate */
 	for (i = 0; i < buf_size; i++) {
 		dev_vdbg(&ft->fmc->dev, "%d 0x%02x 0x%02x\n",
