@@ -459,7 +459,7 @@ int test_dma(struct fmctdc_dev *ft, unsigned int buf_size, unsigned int use_sg)
 	int i, ret = 0;
 	uint32_t eic;
 
-	dev_dbg(&ft->fmc->dev, "Test DMA\n");
+	dev_dbg(&ft->fmc->dev, "Test DMA - scatterlist: %d\n", use_sg);
 
 	/* Disable DMA interrupts, we do active waits here */
 	eic = ft_ioread(ft, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IMR);

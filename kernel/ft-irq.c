@@ -67,7 +67,7 @@ static inline int zio_chan_has_active_block(struct zio_channel *chan)
 {
 	return !!(chan->active_block);
 }
-
+#if 0
 /**
  * It tells if the acquisition can be done.
  * @cset channel set instance
@@ -93,7 +93,7 @@ static int zio_cset_can_acquire(struct zio_cset *cset)
 
 	return 1;
 }
-
+#endif
 
 /**
  * It converts a channel bitmask into an IRQ bitmask according to

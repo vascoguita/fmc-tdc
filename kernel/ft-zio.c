@@ -243,6 +243,8 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 		default:
 			return -EINVAL;
 		}
+	default:
+		return -EPERM;
 	}
 }
 
