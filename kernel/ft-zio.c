@@ -551,19 +551,10 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	int err = 0;
 	int dev_id;
 
-	err = zio_register_trig(&ft_trig_type, FT_ZIO_TRIG_TYPE_NAME);
-	if (err) {
-		dev_err(&ft->fmc->dev,
-			"Cannot register ZIO trigger type \"%s\" (error %i)\n",
-			FT_ZIO_TRIG_TYPE_NAME, err);
-		return err;
-	}
 
 	ft->hwzdev = zio_allocate_device();
-	if (IS_ERR(ft->hwzdev)) {
-		err = PTR_ERR(ft->hwzdev);
-		goto err_dev_alloc;
-	}
+	if (IS_ERR(ft->hwzdev))
+		return PTR_ERR(ft->hwzdev);
 
 	/* Mandatory fields */
 	ft->hwzdev->owner = THIS_MODULE;
@@ -579,8 +570,6 @@ int ft_zio_init(struct fmctdc_dev *ft)
 
 err_dev_reg:
 	zio_free_device(ft->hwzdev);
-err_dev_alloc:
-	zio_unregister_trig(&ft_trig_type);
 	return err;
 }
 
@@ -588,5 +577,4 @@ void ft_zio_exit(struct fmctdc_dev *ft)
 {
 	zio_unregister_device(ft->hwzdev);
 	zio_free_device(ft->hwzdev);
-	zio_unregister_trig(&ft_trig_type);
 }

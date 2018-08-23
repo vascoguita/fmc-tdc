@@ -593,6 +593,13 @@ static int ft_init(void)
 	if (ft_workqueue == NULL)
 		return -ENOMEM;
 
+	ret = zio_register_trig(&ft_trig_type, FT_ZIO_TRIG_TYPE_NAME);
+	if (ret) {
+		pr_err("fmc-tdc: cannot register ZIO trigger type \"%s\" (error %i)\n",
+		       FT_ZIO_TRIG_TYPE_NAME, ret);
+		goto err_zio_trg;
+	}
+
 	ret = ft_zio_register();
 	if (ret < 0)
 		goto err_zio;
@@ -606,6 +613,8 @@ static int ft_init(void)
 err_fmc:
 	ft_zio_unregister();
 err_zio:
+	zio_unregister_trig(&ft_trig_type);
+err_zio_trg:
 	destroy_workqueue(ft_workqueue);
 
 	return ret;
@@ -615,6 +624,7 @@ static void ft_exit(void)
 {
 	fmc_driver_unregister(&ft_drv);
 	ft_zio_unregister();
+	zio_unregister_trig(&ft_trig_type);
 	destroy_workqueue(ft_workqueue);
 }
 

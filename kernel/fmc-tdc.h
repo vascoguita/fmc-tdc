@@ -101,7 +101,7 @@ struct ft_hw_timestamp {
 #include "hw/tdc_eic.h"
 #include "hw/tdc_dma_eic.h"
 
-
+extern struct zio_trigger_type ft_trig_type;
 extern struct workqueue_struct *ft_workqueue;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
