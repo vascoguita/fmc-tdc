@@ -401,7 +401,7 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 		item[i].next_addr_h = item_dma >> 32;
 		item[i].next_addr_l = item_dma & 0xFFFFFFFFULL;
 		item[i].attribute = 0;
-		if (DMA_TO_DEVICE)
+		if (dir == DMA_TO_DEVICE)
 			item[i].attribute = GENNUM_DMA_ATTR_DIR;
 		if (!sg_is_last(sg))
 			item[i].attribute = GENNUM_DMA_ATTR_MORE;
