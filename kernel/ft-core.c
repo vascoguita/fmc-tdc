@@ -538,6 +538,11 @@ void ft_test_data(struct fmctdc_dev *ft,
 {
 	uint32_t tmp = 0;
 
+	ft_writel(ft, 0, TDC_REG_FAKE_TS_CSR);
+
+	if (!enable)
+		return;
+
 	if (chan >= ft->zdev->n_cset) {
 		dev_err(&ft->fmc->dev, "%s Invalid channel %d\n",
 			__func__, chan);
@@ -550,15 +555,14 @@ void ft_test_data(struct fmctdc_dev *ft,
 		return;
 	}
 
-	tmp |= (enable ? TDC_FAKE_TS_EN : 0);
+	tmp |= TDC_FAKE_TS_EN;
 	tmp |= ((chan << TDC_FAKE_TS_CHAN_SHIFT) & TDC_FAKE_TS_CHAN_MASK);
 	tmp |= ((period << TDC_FAKE_TS_PERIOD_SHIFT) & TDC_FAKE_TS_PERIOD_MASK);
 	ft_writel(ft, tmp, TDC_REG_FAKE_TS_CSR);
 
-	if (enable)
-		dev_warn(&ft->fmc->dev,
-			 "Channel 0 is running in test mode 0x%x\n",
-			 tmp);
+	dev_warn(&ft->fmc->dev,
+		 "Channel 0 is running in test mode 0x%x\n",
+		 tmp);
 }
 
 /* probe and remove are called by the FMC bus core */
