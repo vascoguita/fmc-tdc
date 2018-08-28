@@ -359,13 +359,14 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 	int ret = 0;
 	int n = (size / PAGE_SIZE) + (size % PAGE_SIZE ? 1 : 0);
 	int i;
+	void *bufp;
 
-	item = kmalloc(sizeof(struct gncore_dma_item) * n, GFP_KERNEL);
+	item = kmalloc(sizeof(struct gncore_dma_item) * (n + 1), GFP_KERNEL);
 	if (!item)
 		return -ENOMEM;
 
 	item_pool = dma_map_single(ft->fmc->hwdev, item,
-				   sizeof(struct gncore_dma_item) * n,
+				   sizeof(struct gncore_dma_item) * (n + 1),
 				   DMA_TO_DEVICE);
 	if (dma_mapping_error(ft->fmc->hwdev, item_pool)) {
 		ret = -EINVAL;
@@ -378,14 +379,16 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 		goto out_sg_alloc;
 	}
 
+	bufp = buf;
 	for_each_sg(sgt.sgl, sg, sgt.nents, i) {
-		void *bufp = buf + mapbytes;
 		if (byteleft < (PAGE_SIZE - offset_in_page(bufp)))
 			mapbytes = byteleft;
 		else
 			mapbytes = PAGE_SIZE - offset_in_page(bufp);
-		sg_set_buf(sg, buf, mapbytes);
+
+		sg_set_buf(sg, bufp, mapbytes);
 		byteleft -= mapbytes;
+		bufp += mapbytes;
 	}
 
 	ret = dma_map_sg(ft->fmc->hwdev, sgt.sgl, sgt.nents, dir);
@@ -394,6 +397,8 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 
 	item_dma = item_pool;
 	for_each_sg(sgt.sgl, sg, sgt.nents, i) {
+		item_dma += sizeof(struct gncore_dma_item);
+
 		item[i].start_addr = devmem;
 		item[i].dma_addr_h = sg_dma_address(sg) >> 32;
 		item[i].dma_addr_l = sg_dma_address(sg) & 0xFFFFFFFFULL;
@@ -401,12 +406,23 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 		item[i].next_addr_h = item_dma >> 32;
 		item[i].next_addr_l = item_dma & 0xFFFFFFFFULL;
 		item[i].attribute = 0;
+
 		if (dir == DMA_TO_DEVICE)
 			item[i].attribute = GENNUM_DMA_ATTR_DIR;
 		if (!sg_is_last(sg))
-			item[i].attribute = GENNUM_DMA_ATTR_MORE;
-		item_dma += sizeof(struct gncore_dma_item);
+			item[i].attribute |= GENNUM_DMA_ATTR_MORE;
+
 		devmem += sg_dma_len(sg);
+
+		pr_debug("item[%p]: sa %08x ha %08x %08x len %d next %08x %08x attr %x\n",
+			 (void*) ( item_pool + sizeof(struct gncore_dma_item)*(&item[i]-&item[0]) ),
+			 item[i].start_addr,
+			 item[i].dma_addr_h,
+			 item[i].dma_addr_l,
+			 item[i].dma_len,
+			 item[i].next_addr_h,
+			 item[i].next_addr_l,
+			 item[i].attribute );
 	}
 
 	gn4124_dma_config(ft, &item[0]);
@@ -415,7 +431,7 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 				   DMA_TO_DEVICE);
 
 	gn4124_dma_start(ft);
-	status = gn4124_dma_wait_done(ft, 10000);
+	status = gn4124_dma_wait_done(ft, 500);
 	if (status == GENNUM_DMA_STA_ERROR) {
 		dev_err(ft->fmc->hwdev, "DMA transfer error\n");
 		ret = -EIO;
@@ -521,7 +537,7 @@ out_buf1:
 	ft_iowrite(ft, 0xFFFFFFFF, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_ISR);
 	ft_iowrite(ft, eic, ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
 
-	dev_dbg(&ft->fmc->dev, "Test DMA complete %d\n", ret);
+	dev_dbg(&ft->fmc->dev, "Test DMA complete, status: %d\n", ret);
 	return ret;
 }
 
