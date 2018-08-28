@@ -356,7 +356,7 @@ static int gn4124_dma_sg(struct fmctdc_dev *ft,
 	enum gncore_dma_status status;
 	int mapbytes = 0;
 	int byteleft = size;
-	int ret;
+	int ret = 0;
 	int n = (size / PAGE_SIZE) + (size % PAGE_SIZE ? 1 : 0);
 	int i;
 
@@ -435,7 +435,7 @@ out_sg_alloc:
 out_dma_item:
 	kfree(item);
 
-	return ret;
+	return (ret < 0 ? ret : 0);
 }
 
 
@@ -489,7 +489,7 @@ int test_dma(struct fmctdc_dev *ft, unsigned int buf_size, unsigned int use_sg)
 		goto out_buf2;
 
 	if (use_sg)
-		ret = gn4124_dma_sg(ft, 0, buf1, buf_size, DMA_FROM_DEVICE);
+		ret = gn4124_dma_sg(ft, 0, buf2, buf_size, DMA_FROM_DEVICE);
 	else
 		gn4124_dma_read(ft, 0, buf2, buf_size);
 
