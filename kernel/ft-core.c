@@ -343,9 +343,9 @@ void gn4124_dma_write(struct fmctdc_dev *ft, uint32_t dst, void *src, int len)
 	dma_unmap_single(ft->fmc->hwdev, dma_handle, len, DMA_TO_DEVICE);
 }
 
-static int gn4124_dma_sg(struct fmctdc_dev *ft,
-			 uint32_t offset, void *buf, int size,
-			 enum dma_data_direction dir)
+int gn4124_dma_sg(struct fmctdc_dev *ft,
+		  uint32_t offset, void *buf, int size,
+		  enum dma_data_direction dir)
 {
 	struct gncore_dma_item *item; /* linked-list descriptor */
 	struct sg_table sgt;

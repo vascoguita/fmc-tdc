@@ -243,7 +243,7 @@ static void ft_readout_dma_run(struct zio_cset *cset,
 		 start);
 
 	dma_buf = cset->chan->active_block->data;
-	gn4124_dma_read(ft, devmem, dma_buf, len);
+	gn4124_dma_sg(ft, devmem, dma_buf, len, DMA_FROM_DEVICE);
 	gn4124_dma_wait_done(ft, 10000);
 }
 
@@ -267,7 +267,7 @@ static void ft_readout_dma_start(struct fmctdc_dev *ft, int channel)
 	count = 0;
 	while (total > 0) {
 		cset->ti->nsamples  = min((unsigned long)total,
-					  PAGE_SIZE / cset->ssize);
+					  KMALLOC_MAX_SIZE / cset->ssize);
 		zio_cset_busy_set(cset, 1);
 		zio_arm_trigger(cset->ti); /* actually a fire */
 		ft_readout_dma_run(cset, base_cur, count, cset->ti->nsamples);
