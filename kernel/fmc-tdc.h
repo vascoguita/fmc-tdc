@@ -163,6 +163,10 @@ static inline struct fmctdc_trig *to_fmctdc_trig(struct zio_ti *ti_ptr)
  * @lock it protects: irq_imr (irq vs user), offset (user vs user),
  *       wr_mode (user vs user)
  * @irq_imr it holds the IMR value since our last modification
+ * @dma_chan_mask: bitmask to keep track of which channels are
+ *                 transferring data. Timestamp interrupts are disabled
+ *                 while DMA is running and we touch and this is the only
+ *                 place where we use it: so, we do not need to protect it.
  */
 struct fmctdc_dev {
 	enum ft_transfer_mode mode;
