@@ -32,13 +32,14 @@ static int irq_timeout_ms_default = 10;
 module_param_named(irq_timeout_ms, irq_timeout_ms_default, int, 0444);
 MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
 
-
+#define TDC_EIC_EIC_IMR_TDC_DMA_SHIFT 5
 #define TDC_EIC_EIC_IMR_TDC_DMA_MASK (TDC_EIC_EIC_ISR_TDC_DMA1 | \
 				      TDC_EIC_EIC_ISR_TDC_DMA2 |  \
 				      TDC_EIC_EIC_ISR_TDC_DMA3 |  \
 				      TDC_EIC_EIC_ISR_TDC_DMA4 |  \
 				      TDC_EIC_EIC_ISR_TDC_DMA5)
 
+#define TDC_EIC_EIC_IMR_TDC_FIFO_SHIFT 5
 #define TDC_EIC_EIC_IMR_TDC_FIFO_MASK (TDC_EIC_EIC_ISR_TDC_FIFO1 | \
 				       TDC_EIC_EIC_ISR_TDC_FIFO2 | \
 				       TDC_EIC_EIC_ISR_TDC_FIFO3 | \
@@ -290,6 +291,8 @@ static void ft_dma_work(struct work_struct *work)
 	}
 	dev_err(ft->fmc->hwdev, "IRQ stat 0x%x", irq_stat);
 
+	irq_stat &= TDC_EIC_EIC_IMR_TDC_DMA_MASK;
+	irq_stat >>= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
 	ft->dma_chan_mask = irq_stat;
 	loop = (unsigned long *) &irq_stat;
 	/* arm all csets */
