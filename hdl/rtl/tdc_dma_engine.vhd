@@ -16,6 +16,8 @@ entity tdc_dma_engine is
     clk_i : in std_logic;
     rst_n_i   : in std_logic;
 
+    enable_i : in std_logic_vector(4 downto 0);
+    
     ts_i       : in  t_tdc_timestamp_array(4 downto 0);
     ts_valid_i : in  std_logic_vector(4 downto 0);
     ts_ready_o : out std_logic_vector(4 downto 0);
@@ -114,6 +116,7 @@ begin
       port map (
         clk_i      => clk_i,
         rst_n_i    => rst_n_i,
+        enable_i => enable_i(i),
         ts_i       => ts_i(i),
         ts_valid_i => ts_valid_i(i),
         ts_ready_o => ts_ready_o(i),

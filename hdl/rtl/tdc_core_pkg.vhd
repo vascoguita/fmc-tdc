@@ -67,9 +67,11 @@ package tdc_core_pkg is
     n_bins : std_logic_vector(16 downto 0);
     coarse : std_logic_vector(31 downto 0);
     tai : std_logic_vector(31 downto 0);
+    seq : std_logic_vector(27 downto 0);
   end record;
 
   type t_tdc_timestamp is record
+    raw : t_raw_acam_timestamp;
     slope : std_logic;
     channel : std_logic_vector(2 downto 0);
     frac : std_logic_vector(11 downto 0);
@@ -79,7 +81,7 @@ package tdc_core_pkg is
   end record;
 
   constant c_dummy_timestamp : t_tdc_timestamp :=
-    ( '0', "000", x"000", x"00000000", x"00000000", x"00000000" );
+    ( ( '0', "000", "00000000000000000", x"00000000", x"00000000", x"0000000" ), '0', "000", x"000", x"00000000", x"00000000", x"00000000" );
   
   type t_tdc_timestamp_array is array(integer range<>) of t_tdc_timestamp;
   
@@ -322,6 +324,8 @@ package tdc_core_pkg is
 
   constant c_WRABBIT_STATUS_ADR   : std_logic_vector(7 downto 0) := x"2C"; -- address 0x510B0 of GN4124 BAR 0
   constant c_WRABBIT_CTRL_ADR     : std_logic_vector(7 downto 0) := x"2D"; -- address 0x510B4 of GN4124 BAR 0
+
+  constant c_TEST0_ADR     : std_logic_vector(7 downto 0) := x"2E"; -- address 0x510B4 of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Address of TDC core Control register
@@ -711,7 +715,11 @@ package tdc_core_pkg is
       one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0);
       acam_inputs_en_o       : out std_logic_vector(g_width-1 downto 0);
       wrabbit_ctrl_reg_o     : out std_logic_vector(g_width-1 downto 0);
-      start_phase_o          : out std_logic_vector(g_width-1 downto 0));
+      start_phase_o          : out std_logic_vector(g_width-1 downto 0);
+      gen_fake_ts_enable_o  : out std_logic;
+      gen_fake_ts_period_o  : out std_logic_vector(27 downto 0);
+      gen_fake_ts_channel_o : out std_logic_vector(2 downto 0)
+    );
   end component reg_ctrl;
 ---------------------------------------------------------------------------------------------------
   component acam_timecontrol_interface
@@ -748,6 +756,9 @@ package tdc_core_pkg is
       roll_over_nb_i          : in  std_logic_vector(31 downto 0);
       retrig_nb_offset_i      : in  std_logic_vector(31 downto 0);
       utc_p_i                 : in  std_logic;
+      gen_fake_ts_enable_i  : in std_logic;
+      gen_fake_ts_period_i  : in std_logic_vector(27 downto 0);
+      gen_fake_ts_channel_i : in std_logic_vector(2 downto 0);
       timestamp_o             : out std_logic_vector(127 downto 0);
       timestamp_valid_o       : out std_logic);
   end component data_formatting;

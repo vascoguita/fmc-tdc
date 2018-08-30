@@ -269,10 +269,18 @@ architecture rtl of fmc_tdc_core is
   signal final_timestamp       : t_tdc_timestamp_array(4 downto 0);
 
 
-  signal channel_enable_int : std_logic_vector(4 downto 0);
+  signal channel_enable_tdc : std_logic_vector(4 downto 0);
+  signal channel_enable_sys : std_logic_vector(4 downto 0);
 
   signal rst_sys, rst_tdc : std_logic;
   signal core_status : std_logic_vector(31 downto 0);
+
+  
+  signal gen_fake_ts_enable : std_logic;
+  signal gen_fake_ts_channel : std_logic_vector(2 downto 0);
+  signal gen_fake_ts_period : std_logic_vector(27 downto 0);
+  
+
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -329,7 +337,11 @@ begin
      irq_time_threshold_o   => irq_time_threshold,
      send_dac_word_p_o      => send_dac_word_p_o,
      dac_word_o             => dac_word_o,
-     one_hz_phase_o         => pulse_delay);
+     one_hz_phase_o         => pulse_delay,
+     gen_fake_ts_period_o => gen_fake_ts_period,
+     gen_fake_ts_enable_o => gen_fake_ts_enable,
+     gen_fake_ts_channel_o => gen_fake_ts_channel
+     );
 
   process(clk_tdc_i)
   begin
@@ -512,8 +524,12 @@ begin
      clk_i_cycles_offset_i   => clk_i_cycles_offset,
      roll_over_nb_i          => roll_over_nb,
      retrig_nb_offset_i      => retrig_nb_offset,
+     current_retrig_nb_i => current_retrig_nb,
      utc_p_i                 => utc_p,
      utc_i                   => utc,
+     gen_fake_ts_period_i => gen_fake_ts_period,
+     gen_fake_ts_enable_i => gen_fake_ts_enable,
+     gen_fake_ts_channel_i => gen_fake_ts_channel,
      timestamp_o             => raw_timestamp,
      timestamp_valid_o       => raw_timestamp_valid
      );
@@ -526,7 +542,7 @@ begin
       clk_sys_i   => clk_sys_i,
       rst_sys_n_i => rst_sys_n_i,
 
-      enable_i   => channel_enable_int,
+      enable_i   => channel_enable_sys,
       ts_i       => raw_timestamp,
       ts_valid_i => raw_timestamp_valid,
       ts_o       => final_timestamp,
@@ -573,8 +589,17 @@ begin
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
 
-  channel_enable_int <= acam_inputs_en(20 downto 16);
-  channel_enable_o   <= channel_enable_int;
+  U_Sync_ChannelEnable: entity work.gc_sync_register
+    generic map (
+      g_width => 5)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_sys_n_i,
+      d_i       => channel_enable_tdc,
+      q_o       => channel_enable_sys);
+  
+  channel_enable_tdc <= acam_inputs_en(20 downto 16);
+  channel_enable_o   <= channel_enable_sys;
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

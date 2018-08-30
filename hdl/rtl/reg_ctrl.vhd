@@ -128,6 +128,11 @@ entity reg_ctrl is
       acam_rdbk_ififo2_p_o  : out std_logic;  -- enables reading of ACAM reg 9
       acam_rdbk_start01_p_o : out std_logic;  -- enables reading of ACAM reg 10
 
+      gen_fake_ts_enable_o  : out std_logic;
+      gen_fake_ts_period_o  : out std_logic_vector(27 downto 0);
+      gen_fake_ts_channel_o : out std_logic_vector(2 downto 0);
+
+      
       -- Signals to the clks_resets_manager unit
       send_dac_word_p_o : out std_logic;  -- initiates the reconfiguration of the DAC
       dac_word_o        : out std_logic_vector(23 downto 0);
@@ -351,6 +356,8 @@ begin
         irq_time_threshold   <= x"00000001";  -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD;  -- default DAC Vout = 1.65
 
+        gen_fake_ts_enable_o <= '0';
+        
       elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
 
         if reg_adr = c_STARTING_UTC_ADR then
@@ -383,6 +390,12 @@ begin
 
         if reg_adr = c_WRABBIT_CTRL_ADR then
           wrabbit_ctrl_reg <= wb_in.dat;
+        end if;
+
+        if reg_adr = c_TEST0_ADR then
+          gen_fake_ts_enable_o <= wb_in.dat(31);
+          gen_fake_ts_channel_o <= wb_in.dat(30 downto 28);
+          gen_fake_ts_period_o <= wb_in.dat(27 downto 0);
         end if;
 
 

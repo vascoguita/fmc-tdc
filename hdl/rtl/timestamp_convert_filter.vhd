@@ -20,6 +20,7 @@ entity timestamp_convert_filter is
     ts_valid_i : in std_logic;
 
     -- converted and filtered timestamp output, clk_sys_i domain
+--    ts_offset_i : in t_tdc_timestamp_array(4 downto 0);
     ts_o       : out t_tdc_timestamp_array(4 downto 0);
     ts_valid_o : out std_logic_vector(4 downto 0);
     ts_ready_i : in std_logic_vector(4 downto 0)
@@ -64,6 +65,8 @@ architecture rtl of timestamp_convert_filter is
   signal s3_ts : t_tdc_timestamp;
 
   signal ts_valid_sys : std_logic;
+
+  signal ts_latched : t_raw_acam_timestamp;
   
 begin
 
@@ -78,6 +81,16 @@ begin
       d_ready_o   => open,
       d_p_i       => ts_valid_i,
       q_p_o       => ts_valid_sys);
+  
+
+  process(clk_tdc_i)
+  begin
+    if rising_edge(clk_tdc_i) then
+      if ts_valid_i = '1' then
+        ts_latched <= ts_i;
+      end if;
+    end if;
+  end process;
   
   
   process(clk_sys_i)
@@ -151,58 +164,71 @@ begin
         else
           channels(i).s1_valid <= '0';
 
-
-          
-          if s3_valid = '1' and unsigned(s3_channel) = i then
---            report "s3_valid";
-
-            if (s3_ts.slope = '1') then  -- rising edge
-              channels(i).last_ts    <= s3_ts;
-              channels(i).last_valid <= '1';
-              channels(i).s1_valid   <= '0';
-  --            report "rise";
-            else
-              channels(i).last_valid <= '0';
-              channels(i).s1_valid   <= '1';
-    --          report "fall";
-            end if;
-
-            channels(i).s1_delta_coarse <= unsigned(s3_ts.coarse) - unsigned(channels(i).last_ts.coarse);
-            channels(i).s1_delta_tai    <= unsigned(s3_ts.tai) - unsigned(channels(i).last_ts.tai);
-
-          end if;
-
-
-          if channels(i).s1_delta_coarse(31) = '1' then
-            channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse + to_unsigned(125000000, 32);
-            channels(i).s2_delta_tai    <= channels(i).s1_delta_tai - 1;
-          else
-            channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse;
-            channels(i).s2_delta_tai    <= channels(i).s1_delta_tai;
-          end if;
-
-          channels(i).s2_valid <= channels(i).s1_valid;
-
-
           if(ts_ready_i(i) = '1') then
             ts_valid_o(i) <= '0';
           end if;
-          
-          if channels(i).s2_valid = '1' then
-            if channels(i).s2_delta_tai = 0 and channels(i).s2_delta_coarse >= 12 then
 
-              ts_o(i).tai       <= channels(i).last_ts.tai;
-              ts_o(i).coarse       <= channels(i).last_ts.coarse;
-              ts_o(i).frac       <= channels(i).last_ts.frac;
-              ts_o(i).channel       <= channels(i).last_ts.channel;
-              ts_o(i).slope       <= channels(i).last_ts.slope;
-              ts_o(i).seq <= std_logic_vector(channels(i).seq);
 
-              
-              ts_valid_o(i) <= '1';
+          if( ts_valid_sys = '1' and ts_latched.slope = '1' )then
+            ts_o(i).raw <= ts_latched;
+            ts_o(i).seq <= std_logic_vector(channels(i).seq);
+            if( i = unsigned( ts_i.channel ) ) then
+              ts_valid_o(i) <=  '1';
               channels(i).seq <= channels(i).seq + 1;
             end if;
           end if;
+          
+              
+          
+
+          
+--          if s3_valid = '1' and unsigned(s3_channel) = i then
+----            report "s3_valid";
+
+--            if (s3_ts.slope = '1') then  -- rising edge
+----              channels(i).last_ts    <= s3_ts;
+--  --            channels(i).last_valid <= '1';
+--    --          channels(i).s1_valid   <= '0';
+--  --            report "rise";
+--            else
+--              channels(i).last_valid <= '0';
+--              channels(i).s1_valid   <= '1';
+--    --          report "fall";
+--            end if;
+
+--            channels(i).s1_delta_coarse <= unsigned(s3_ts.coarse) - unsigned(channels(i).last_ts.coarse);
+--            channels(i).s1_delta_tai    <= unsigned(s3_ts.tai) - unsigned(channels(i).last_ts.tai);
+
+--          end if;
+
+
+--          if channels(i).s1_delta_coarse(31) = '1' then
+--            channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse + to_unsigned(125000000, 32);
+--            channels(i).s2_delta_tai    <= channels(i).s1_delta_tai - 1;
+--          else
+--            channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse;
+--            channels(i).s2_delta_tai    <= channels(i).s1_delta_tai;
+--          end if;
+
+--          channels(i).s2_valid <= channels(i).s1_valid;
+
+
+          
+--          if channels(i).s2_valid = '1' then
+--            if channels(i).s2_delta_tai = 0 and channels(i).s2_delta_coarse >= 12 then
+
+--              ts_o(i).tai       <= channels(i).last_ts.tai;
+--              ts_o(i).coarse       <= channels(i).last_ts.coarse;
+--              ts_o(i).frac       <= channels(i).last_ts.frac;
+--              ts_o(i).channel       <= channels(i).last_ts.channel;
+--              ts_o(i).slope       <= channels(i).last_ts.slope;
+--              ts_o(i).seq <= std_logic_vector(channels(i).seq);
+
+              
+--              ts_valid_o(i) <= '1';
+--              channels(i).seq <= channels(i).seq + 1;
+--            end if;
+--          end if;
 
 
 

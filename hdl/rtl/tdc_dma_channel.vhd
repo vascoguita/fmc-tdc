@@ -14,6 +14,8 @@ entity tdc_dma_channel is
     clk_i : in std_logic;
     rst_n_i   : in std_logic;
 
+    enable_i : in std_logic;
+    
     ts_i       : in  t_tdc_timestamp;
     ts_valid_i : in  std_logic;
     ts_ready_o : out std_logic;
@@ -103,7 +105,7 @@ begin
   p_irq_timer : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if rst_n_i = '0' then
+      if rst_n_i = '0' or enable_i = '0' then
         irq_timer <= (others => '0');
         irq_o     <= '0';
       else
@@ -198,7 +200,9 @@ begin
               state <= SWITCH_BUFFERS;
             end if;
 
-            if regs_out.tdc_buf_csr_enable_o = '1' and ts_valid_i = '1' then
+
+            
+            if enable_i = '1' and regs_out.tdc_buf_csr_enable_o = '1' and ts_valid_i = '1' then
 
               if cur_valid = '1' then
 
@@ -226,7 +230,7 @@ begin
 
           when WAIT_NEXT_TS =>
             fifo_in_is_addr <= '0';
-            if regs_out.tdc_buf_csr_enable_o = '0' or burst_count = unsigned(regs_out.tdc_buf_csr_burst_size_o) or buffer_switch_latched = '1' then
+            if enable_i = '0' or regs_out.tdc_buf_csr_enable_o = '0' or burst_count = unsigned(regs_out.tdc_buf_csr_burst_size_o) or buffer_switch_latched = '1' then
               burst_add <= '1';
               state     <= IDLE;
             elsif ts_valid_i = '1' then
@@ -245,22 +249,22 @@ begin
 --  bit  2-0 chan  (mask: 0x7)
 
           when SER0 =>
-            fifo_in_data    <= ts.tai;
+            fifo_in_data    <= ts.raw.tai;
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= SER1;
           when SER1 =>
-            fifo_in_data    <= ts.coarse;
+            fifo_in_data    <= ts.raw.coarse;
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= SER2;
           when SER2 =>
-            fifo_in_data    <= x"00000" & ts.frac;
+            fifo_in_data    <= "000000000000000" & ts.raw.n_bins;
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= SER3;
           when SER3 =>
-            fifo_in_data    <= ts.seq(27 downto 0) & ts.slope & ts.channel(2 downto 0);
+            fifo_in_data    <= ts.raw.seq(27 downto 0) & ts.raw.slope & ts.raw.channel(2 downto 0);
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= WAIT_NEXT_TS;

@@ -523,7 +523,6 @@ NET "flash_miso_i" IOSTANDARD = "LVCMOS25";
 NET "gn_rst_n" TIG;
 #NET "gen_with_gennum/cmp_gn4124_core/rst_*" TIG;
 #NET "gen_with_gennum/cmp_gn4124_core/cmp_clk_in/P_clk" TNM_NET = cmp_gn4124_core/cmp_clk_in/P_clk;
-
 NET "clk_sys_62m5" TNM_NET = clk_sys_62m5;
 TIMESPEC ts_ignore_crossclock = FROM "clk_sys_62m5" TO "tdc_clk_125m_p_i" 10ns DATAPATHONLY;
 TIMESPEC ts_ignore_crossclock2 = FROM "tdc_clk_125m_p_i" TO "clk_sys_62m5" 10ns  DATAPATHONLY;
@@ -538,16 +537,22 @@ TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_sys_62m5" 10ns DATAPATHONLY;
 NET "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" TNM_NET = cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>;
 TIMESPEC TS_cmp_xwrc_board_spec_cmp_xwrc_platform_gen_phy_spartan6_cmp_gtp_ch1_gtp_clkout_int_1_ = PERIOD "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
 
-INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
-INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
+#INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
+#INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
 
-TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 2 ns DATAPATHONLY;
+#TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 2 ns DATAPATHONLY;
 
 NET "*/memc3_wrapper_inst/memc3_mcb_raw_wrapper_inst/selfrefresh_mcb_mode" TIG;
 NET "*/memc3_wrapper_inst/memc3_mcb_raw_wrapper_inst/hard_done_cal" TIG;
-NET "*/memc3_wrapper_inst/memc3_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/DONE_SOFTANDHARD_CAL" TIG;
+#NET "*/memc3_wrapper_inst/memc3_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/DONE_SOFTANDHARD_CAL" TIG;
 #Created by Constraints Editor (xc6slx45t-fgg484-3) - 2018/07/26
 NET "gen_with_gennum.cmp_gn4124_core/cmp_clk_in/feedback" TNM_NET = gen_with_gennum.cmp_gn4124_core/cmp_clk_in/feedback;
 TIMESPEC TS_gen_with_gennum_cmp_gn4124_core_cmp_clk_in_feedback = PERIOD "gen_with_gennum.cmp_gn4124_core/cmp_clk_in/feedback" 5 ns HIGH 50%;
 NET "gen_with_gennum.cmp_gn4124_core/cmp_clk_in/P_clk" TNM_NET = gen_with_gennum.cmp_gn4124_core/cmp_clk_in/P_clk;
 TIMESPEC TS_gen_with_gennum_cmp_gn4124_core_cmp_clk_in_P_clk = PERIOD "gen_with_gennum.cmp_gn4124_core/cmp_clk_in/P_clk" 5 ns HIGH 50%;
+
+NET "gn_rst_n" TIG;
+# NET "*/cmp_gn4124_core/rst_*" TIG;
+#Created by Constraints Editor (xc6slx45t-fgg484-3) - 2018/08/24
+NET "gen_with_gennum.cmp_gn4124_core/rst_reg_d" TIG;
+#Created by Constraints Editor (xc6slx45t-fgg484-3) - 2018/08/27

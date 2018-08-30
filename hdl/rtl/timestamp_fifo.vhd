@@ -78,12 +78,21 @@ signal ref_valid : std_logic;
 begin
 
 
-  timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).tai), 32));
-  timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).coarse), 32));
-  timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).frac), 32));
-  timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).channel;
-  timestamp_with_seq(99)            <= timestamp_i(g_channel).slope;
+  --timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).tai), 32));
+  --timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).coarse), 32));
+  --timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).frac), 32));
+  --timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).channel;
+  --timestamp_with_seq(99)            <= timestamp_i(g_channel).slope;
+  --timestamp_with_seq(127 downto 100) <= timestamp_i(g_channel).seq(27 downto 0);
+
+  timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).raw.tai), 32));
+  timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).raw.coarse), 32));
+  timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).raw.n_bins), 32));
+  timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).raw.channel;
+  timestamp_with_seq(99)            <= timestamp_i(g_channel).raw.slope;
   timestamp_with_seq(127 downto 100) <= timestamp_i(g_channel).seq(27 downto 0);
+
+
 
   U_WB_Slave : entity work.timestamp_fifo_wb
     port map (

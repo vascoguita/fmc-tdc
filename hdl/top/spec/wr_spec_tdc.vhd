@@ -517,6 +517,9 @@ architecture rtl of wr_spec_tdc is
   -- Clocks and resets
   signal clk_sys_62m5              : std_logic;
   signal rst_sys_62m5_n            : std_logic;
+  signal clk_ref_125m : std_logic;
+  signal rst_ref_125_n : std_logic;
+  
   -- DAC configuration through PCIe/VME
   -- WISHBONE from crossbar master port
   signal cnx_master_out            : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
@@ -526,7 +529,9 @@ architecture rtl of wr_spec_tdc is
   signal cnx_slave_in              : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
   signal gn_wb_adr                 : std_logic_vector(31 downto 0);
   -- Carrier CSR info
+  signal gn4124_clk : std_logic;
   signal gn4124_status             : std_logic_vector(31 downto 0);
+  signal gn4124_ext_status             : std_logic_vector(31 downto 0);
   -- VIC
   signal irq_to_gn4124             : std_logic;
   -- WRabbit time
@@ -578,6 +583,7 @@ architecture rtl of wr_spec_tdc is
   signal dma_irq              : std_logic_vector(1 downto 0);
   signal ddr_wr_fifo_empty    : std_logic;
   signal dma_eic_irq : std_logic;
+  signal gn4124_dbg : std_logic_vector(127 downto 0);
   
   component chipscope_icon
     port (
@@ -598,6 +604,12 @@ architecture rtl of wr_spec_tdc is
   signal trig0, trig1, trig2, trig3 : std_logic_vector(31 downto 0);
 
 
+  attribute keep : string;
+  attribute keep of trig0 : signal is "true";
+  attribute keep of trig1 : signal is "true";
+  attribute keep of trig2 : signal is "true";
+  attribute keep of trig3 : signal is "true";
+  
   signal ddr3_status : std_logic_vector(31 downto 0);
 
   function f_to_string(x : boolean) return string is
@@ -639,7 +651,8 @@ begin
       g_with_external_clock_input => false,
       g_aux_clks                  => 1,
       g_dpram_initf               => "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram",
-      g_fabric_iface              => PLAIN)
+      g_fabric_iface              => PLAIN,
+      g_enable_wr_core => false)
     port map (
       areset_n_i              => button1_i,
       areset_edge_n_i         => gn_rst_n,
@@ -649,9 +662,11 @@ begin
       clk_125m_gtp_n_i        => clk_125m_gtp_n_i,
       clk_125m_gtp_p_i        => clk_125m_gtp_p_i,
       clk_ddr_o => clk_ddr_333m,
+      clk_ref_125m_o => clk_ref_125m,
       clk_sys_62m5_o          => clk_sys_62m5,
       clk_aux_i(0)            => tdc0_clk_125m,
       rst_sys_62m5_n_o        => rst_sys_62m5_n,
+      rst_ref_125m_n_o => rst_ref_125_n,
       plldac_sclk_o           => wr_dac_sclk_o,
       plldac_din_o            => wr_dac_din_o,
       pll25dac_cs_n_o         => wr_25dac_cs_n_o,
@@ -738,6 +753,8 @@ begin
       port map
       (rst_n_a_i    => gn_rst_n,
        status_o     => gn4124_status,
+       ext_status_o     => gn4124_ext_status,
+       sys_clk_o => gn4124_clk,
        ---------------------------------------------------------
        -- P2L Direction
        --
@@ -788,7 +805,8 @@ begin
        csr_err_i   => '0',
        csr_rty_i   => '0',
        csr_int_i   => '0',
-       dma_clk_i   => clk_sys_62m5,
+
+       dma_clk_i   => clk_ref_125m,
        dma_adr_o   => wb_dma_adr,
        dma_dat_o   => wb_dma_dat_o,
        dma_sel_o   => wb_dma_sel,
@@ -812,7 +830,9 @@ begin
        dma_reg_cyc_i   => cnx_master_out(c_WB_SLAVE_DMA).cyc,
        dma_reg_dat_o   => cnx_master_in(c_WB_SLAVE_DMA).dat,
        dma_reg_ack_o   => cnx_master_in(c_WB_SLAVE_DMA).ack,
-       dma_reg_stall_o => cnx_master_in(c_WB_SLAVE_DMA).stall
+       dma_reg_stall_o => cnx_master_in(c_WB_SLAVE_DMA).stall,
+
+       dbg_o => gn4124_dbg
 
        );
 
@@ -965,7 +985,7 @@ begin
      carrier_info_carrier_reserved_i   => (others => '0'),
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
      carrier_info_stat_fmc_pres_i      => prsnt_m2c_n_i,
-     carrier_info_stat_p2l_pll_lck_i   => gn4124_status(0),
+     carrier_info_stat_p2l_pll_lck_i   => '1', --gn4124_status(0),
      -- SPEC board wrapper releases rst_sys_62m5_n only when system clock pll is
      -- locked. Therefore we report here '1' - pll locked
      carrier_info_stat_sys_pll_lck_i   => '1',
@@ -1048,8 +1068,8 @@ begin
       p0_wr_underrun_o => open,
       p0_wr_error_o    => open,
 
-      wb1_rst_n_i => rst_sys_62m5_n,
-      wb1_clk_i   => clk_sys_62m5,
+      wb1_rst_n_i => rst_ref_125_n,
+      wb1_clk_i   => clk_ref_125m,
       wb1_sel_i   => wb_dma_sel,
       wb1_cyc_i   => wb_dma_cyc,
       wb1_stb_i   => wb_dma_stb,
@@ -1078,31 +1098,6 @@ begin
 
   ddr3_tdc_adr <= "00" & tdc_dma_out.adr(31 downto 2);
 
-  --CS_ICON : chipscope_icon
-  --  port map (
-  --    CONTROL0 => CONTROL0);
-  --CS_ILA : chipscope_ila
-  --  port map (
-  --    CONTROL => CONTROL0,
-  --    CLK     => clk_sys_62m5,
-  --    TRIG0   => TRIG0,
-  --    TRIG1   => TRIG1,
-  --    TRIG2   => TRIG2,
-  --    TRIG3   => TRIG3);
-
-  trig0(0) <= ddr3_calib_done;
-  trig0(1) <= wb_dma_cyc;
-  trig0(2) <= wb_dma_we;
-  trig0(3) <= wb_dma_stb;
-  trig0(4) <= wb_dma_ack;
-  trig0(5) <= wb_dma_stall;
-  trig0(6) <= irq_to_gn4124;
-  trig0(7) <= tdc0_irq;
-  trig0(8) <= dma_irq(0);
-
-  trig1 <= wb_dma_dat_o;
-  trig2 <= wb_dma_dat_i;
-  trig3 <= wb_dma_adr;
 
   ddr3_calib_done <= ddr3_status(0);
 

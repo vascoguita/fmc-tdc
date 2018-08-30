@@ -433,6 +433,8 @@ begin
     timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
   end generate gen_fifos;
 
+  timestamp_ready <= (others => '1');
+
   gen_with_dma_readout : if g_use_dma_readout generate
     U_DMA_Engine : entity work.tdc_dma_engine
       generic map (
@@ -440,9 +442,10 @@ begin
       port map (
         clk_i      => clk_sys_i,
         rst_n_i    => rst_sys_n_i,
+        enable_i => channel_enable,
         ts_i       => timestamp,
         ts_valid_i => timestamp_valid,
-        ts_ready_o => timestamp_ready,
+--        ts_ready_o => timestamp_ready,
         slave_i    => cnx_master_out(c_WB_SLAVE_TDC_DMA),
         slave_o    => cnx_master_in(c_WB_SLAVE_TDC_DMA),
         irq_o      => irq_dma,

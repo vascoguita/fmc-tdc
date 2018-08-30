@@ -94,10 +94,14 @@ entity data_formatting is
      clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
      roll_over_nb_i          : in std_logic_vector(31 downto 0);
      retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
+     current_retrig_nb_i : in std_logic_vector(31 downto 0);
+
+     gen_fake_ts_enable_i  : in std_logic;
+     gen_fake_ts_period_i  : in std_logic_vector(27 downto 0);
+     gen_fake_ts_channel_i : in std_logic_vector(2 downto 0);
 
      -- Signal from the WRabbit core or the one_hz_generator unit
      utc_p_i : in std_logic;
-
 
      -- OUTPUTS
 
@@ -139,6 +143,15 @@ architecture rtl of data_formatting is
   signal previous_utc                                         : std_logic_vector(31 downto 0);
   signal timestamp_valid_int                                  : std_logic;
 
+  signal raw_seq : unsigned(27 downto 0);
+
+  signal fake_cnt_coarse : unsigned(27 downto 0);
+  signal fake_cnt_period : unsigned(27 downto 0);
+  signal fake_cnt_tai    : unsigned(31 downto 0);
+  signal fake_ts_valid   : std_logic;
+
+  signal timestamp_valid_int_d : std_logic;
+
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -152,6 +165,7 @@ begin
         timestamp_valid_int <= '0';
       else
         timestamp_valid_int <= acam_tstamp1_ok_p_i or acam_tstamp2_ok_p_i;
+        timestamp_valid_int_d <= timestamp_valid_int;
       end if;
     end if;
   end process;
@@ -200,13 +214,13 @@ begin
         acam_channel        <= "0" & acam_tstamp1_i(27 downto 26);
         acam_fine_timestamp <= acam_tstamp1_i(16 downto 0);
         acam_slope          <= acam_tstamp1_i(17);
-        acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18))-1;
+        acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18));
 
       elsif acam_tstamp2_ok_p_i = '1' then
         acam_channel        <= "1" & acam_tstamp2_i(27 downto 26);
         acam_fine_timestamp <= acam_tstamp2_i(16 downto 0);
         acam_slope          <= acam_tstamp2_i(17);
-        acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18))-1;
+        acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18));
       end if;
     end if;
   end process;
@@ -237,6 +251,7 @@ begin
   un_acam_start_nb                 <= unsigned(acam_start_nb_32);
   un_current_retrig_nb_offset      <= unsigned(retrig_nb_offset_i);
   un_current_roll_over_nb          <= unsigned(roll_over_nb_i);
+
   un_current_retrig_from_roll_over <= shift_left(un_current_roll_over_nb-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 and un_current_roll_over_nb > 0
                                       else shift_left(un_current_roll_over_nb, 8);
 
@@ -290,7 +305,7 @@ begin
           un_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
           utc                    <= utc_i;
           coarse_zero            <= '0';
-          if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
+          if acam_start_nb = 255 and unsigned(current_retrig_nb_i) = 0 then
             un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i)-1, 8);
           else
             un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i), 8);
@@ -336,19 +351,60 @@ begin
 
 
 
+  process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if gen_fake_ts_enable_i = '0' then
+        fake_cnt_coarse <= (others => '0');
+        fake_cnt_tai    <= (others => '0');
+        fake_cnt_period <= (others => '0');
+      else
+        if unsigned(gen_fake_ts_period_i) = fake_cnt_period then
+          fake_cnt_period <= (others => '0');
+          fake_ts_valid   <= '1';
+        else
+          fake_cnt_period <= fake_cnt_period + 1;
+          fake_ts_valid   <= '0';
+        end if;
+
+        if fake_cnt_coarse = 124999999 then
+          fake_cnt_coarse <= (others => '0');
+          fake_cnt_tai    <= fake_cnt_tai + 1;
+        else
+          fake_cnt_coarse <= fake_cnt_coarse + 1;
+        end if;
+      end if;
+    end if;
+  end process;
+
 
   process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if(timestamp_valid_int = '1') then
-        timestamp_o.slope   <= acam_slope;
-        timestamp_o.channel <= acam_channel;
-        timestamp_o.n_bins  <= fine_time(16 downto 0);
-        timestamp_o.coarse  <= coarse_time;
-        timestamp_o.tai     <= utc;
-        timestamp_valid_o   <= '1';
+      if rst_i = '1' then
+        raw_seq <= (others => '0');
+      else
+        if(gen_fake_ts_enable_i = '1' and fake_ts_valid = '1')then
+          timestamp_o.slope   <= '1';
+          timestamp_o.channel <= gen_fake_ts_channel_i;
+          timestamp_o.n_bins  <= (others => '0');
+          timestamp_o.coarse  <= std_logic_vector(resize(fake_cnt_coarse, 32));
+          timestamp_o.tai     <= std_logic_vector(fake_cnt_tai);
+          timestamp_o.seq     <= std_logic_vector(raw_seq);
+          timestamp_valid_o   <= '1';
+          raw_seq             <= raw_seq + 1;
+        elsif(timestamp_valid_int_d = '1') then
+          timestamp_o.slope   <= acam_slope;
+          timestamp_o.channel <= acam_channel;
+          timestamp_o.n_bins  <= fine_time(16 downto 0);
+          timestamp_o.coarse  <= coarse_time; 
+          timestamp_o.tai     <= utc; 
+          timestamp_o.seq     <= std_logic_vector(raw_seq);
+          timestamp_valid_o   <= '1';
+          raw_seq             <= raw_seq + 1;
       else
         timestamp_valid_o <= '0';
+        end if;
       end if;
     end if;
   end process;

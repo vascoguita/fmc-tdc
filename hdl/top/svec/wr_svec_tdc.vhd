@@ -576,7 +576,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                           VME CORE                                            --
 ---------------------------------------------------------------------------------------------------
-  U_VME_Core : xvme64x_core
+  U_VME_Core : entity work.xvme64x_core
   generic map (
     g_CLOCK_PERIOD    => 16,
     g_DECODE_AM       => True,
@@ -615,7 +615,8 @@ begin
      vme_o.addr_dir   => vme_addr_dir_int,
      vme_o.addr_oe_n  => vme_addr_oe_n_o,
      wb_o             => cnx_slave_in(c_MASTER_VME),
-     wb_i             => vme_wb_in);
+     wb_i             => vme_wb_in,
+     int_i => irq_to_vmecore);
  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   vme_berr_o <= not vme_berr_n;
   vme_irq_o  <= not vme_irq_n;
@@ -626,7 +627,6 @@ begin
   vme_wb_in.rty      <= cnx_slave_out(c_MASTER_VME).rty;
   vme_wb_in.stall    <= cnx_slave_out(c_MASTER_VME).stall;
   vme_wb_in.dat      <= cnx_slave_out(c_MASTER_VME).dat;
-  vme_wb_in.int      <= irq_to_vmecore;
 
   -- VME tri-state bufferes
   vme_data_b         <= vme_data_b_out    when vme_data_dir_int = '1' else (others => 'Z');
@@ -683,11 +683,6 @@ begin
       tdc_led_trig3_o      => tdc1_led_trig3_o,
       tdc_led_trig4_o      => tdc1_led_trig4_o,
       tdc_led_trig5_o      => tdc1_led_trig5_o,
-      tdc_in_fpga_1_i      => tdc1_in_fpga_1_i,
-      tdc_in_fpga_2_i      => tdc1_in_fpga_2_i,
-      tdc_in_fpga_3_i      => tdc1_in_fpga_3_i,
-      tdc_in_fpga_4_i      => tdc1_in_fpga_4_i,
-      tdc_in_fpga_5_i      => tdc1_in_fpga_5_i,
 
       mezz_scl_i           => tdc1_scl_in,
       mezz_sda_i           => tdc1_sda_in,
@@ -760,11 +755,6 @@ begin
       tdc_led_trig3_o      => tdc2_led_trig3_o,
       tdc_led_trig4_o      => tdc2_led_trig4_o,
       tdc_led_trig5_o      => tdc2_led_trig5_o,
-      tdc_in_fpga_1_i      => tdc2_in_fpga_1_i,
-      tdc_in_fpga_2_i      => tdc2_in_fpga_2_i,
-      tdc_in_fpga_3_i      => tdc2_in_fpga_3_i,
-      tdc_in_fpga_4_i      => tdc2_in_fpga_4_i,
-      tdc_in_fpga_5_i      => tdc2_in_fpga_5_i,
 
       mezz_scl_i           => tdc2_scl_in,
       mezz_sda_i           => tdc2_sda_in,
@@ -857,7 +847,6 @@ begin
   -- Unused wishbone signals
   cnx_master_in(c_SLAVE_SVEC_INFO).err   <= '0';
   cnx_master_in(c_SLAVE_SVEC_INFO).rty   <= '0';
-  cnx_master_in(c_SLAVE_SVEC_INFO).int   <= '0';
 
 
 ---------------------------------------------------------------------------------------------------
