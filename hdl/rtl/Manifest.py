@@ -29,7 +29,7 @@ files = [
     "tdc_dma_engine.vhd",
     "tdc_buffer_control_regs.vhd",
     "tdc_buffer_control_regs_wbgen2_pkg.vhd",
-    "tdc_ts_sub.vhd",
+    "tdc_ts_addsub.vhd",
     "wbgen2_eic_nomask.vhd",
     "dma_eic.vhd"
 ];

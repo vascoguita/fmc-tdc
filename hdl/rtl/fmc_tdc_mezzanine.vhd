@@ -276,6 +276,8 @@ architecture rtl of fmc_tdc_mezzanine is
   signal tick_1ms                                        : std_logic;
   signal counter_1ms                                     : unsigned(17 downto 0);
 
+  signal ts_offset : t_tdc_timestamp_array(4 downto 0);
+  signal reset_seq : std_logic_vector(4 downto 0);
 
   function f_wb_shift_address_word (w : t_wishbone_master_out) return t_wishbone_master_out is
     variable r : t_wishbone_master_out;
@@ -376,6 +378,9 @@ begin
       timestamp_valid_o => tdc_timestamp_valid,
       timestamp_ready_i => tdc_timestamp_ready,
 
+      ts_offset_i => ts_offset,
+      reset_seq_i => reset_seq,
+      
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
       channel_enable_o => channel_enable
@@ -428,7 +433,9 @@ begin
         irq_threshold_i   => irq_threshold,
         irq_timeout_i     => irq_timeout,
         timestamp_i       => timestamp,
-        timestamp_valid_i => timestamp_stb);
+        timestamp_valid_i => timestamp_stb,
+        ts_offset_o => ts_offset(i),
+        reset_seq_o => reset_seq(i));
 
     timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
   end generate gen_fifos;

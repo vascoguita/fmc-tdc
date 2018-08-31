@@ -48,7 +48,10 @@ entity timestamp_fifo is
     irq_timeout_i : in std_logic_vector(9 downto 0);
 
     timestamp_i       : in t_tdc_timestamp_array(4 downto 0);
-    timestamp_valid_i : in std_logic_vector(4 downto 0)
+    timestamp_valid_i : in std_logic_vector(4 downto 0);
+
+    ts_offset_o : out t_tdc_timestamp;
+    reset_seq_o : out std_logic
     );
 
 end entity;
@@ -68,30 +71,31 @@ architecture rtl of timestamp_fifo is
 
   signal timestamp_with_seq : std_logic_vector(127 downto 0);
 
-signal ref_valid : std_logic;
+  signal ref_valid : std_logic;
   signal ref_ts : t_tdc_timestamp;
   signal ref_channel : integer range 0 to 4;
   signal sub_valid : std_logic;
   signal sub_in_valid, sub_out_valid : std_logic;
   signal sub_result : t_tdc_timestamp;
-
+  signal sub_result_latched : t_tdc_timestamp;
+  signal sub_out_valid_latched : std_logic;
+  
 begin
 
 
-  --timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).tai), 32));
-  --timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).coarse), 32));
-  --timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).frac), 32));
-  --timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).channel;
-  --timestamp_with_seq(99)            <= timestamp_i(g_channel).slope;
-  --timestamp_with_seq(127 downto 100) <= timestamp_i(g_channel).seq(27 downto 0);
+  
+  ts_offset_o.tai <= regs_out.offset1_o;
+  ts_offset_o.coarse <= regs_out.offset2_o;
+  ts_offset_o.frac <= regs_out.offset3_o(11 downto 0);
+  reset_seq_o <= regs_out.csr_rst_seq_o;
 
-  timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).raw.tai), 32));
-  timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).raw.coarse), 32));
-  timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).raw.n_bins), 32));
-  timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).raw.channel;
-  timestamp_with_seq(99)            <= timestamp_i(g_channel).raw.slope;
+
+  timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).tai), 32));
+  timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).coarse), 32));
+  timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).frac), 32));
+  timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).channel;
+  timestamp_with_seq(99)            <= timestamp_i(g_channel).slope;
   timestamp_with_seq(127 downto 100) <= timestamp_i(g_channel).seq(27 downto 0);
-
 
 
   U_WB_Slave : entity work.timestamp_fifo_wb
@@ -155,7 +159,30 @@ begin
       b_i      => ref_ts,
       valid_o  => sub_out_valid,
       q_o      => sub_result);
-    
+
+  p_latch_deltas : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_sys_n_i = '0' or enable_i = '0' then
+        sub_out_valid_latched <= '0';
+      else
+        if regs_out.csr_delta_read_o = '1' then
+          sub_out_valid_latched <= '0';
+          regs_in.delta1_i <= sub_result_latched.tai;
+          regs_in.delta2_i <= sub_result_latched.coarse;
+          regs_in.delta3_i <= x"00000" & sub_result_latched.frac;
+        end if;
+        
+        if(sub_out_valid = '1') then
+          sub_out_valid_latched <= '1';
+          sub_result_latched <= sub_result;
+        end if;
+      end if;
+    end if;
+  end process;
+
+  regs_in.csr_delta_ready_i <= sub_out_valid_latched;
+  
   p_coalesce_irq : process(clk_sys_i)
   begin
     if rising_edge(clk_sys_i) then
