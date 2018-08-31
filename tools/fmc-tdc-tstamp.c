@@ -130,7 +130,10 @@ enum tstamp_testing_modes {
 	__TST_MODE_MAX,
 };
 
-/* Print help message */
+/**
+ * Print help message
+ * @param[in] name program name
+ */
 static void help(char *name)
 {
 	fprintf(stderr, "%s [options] <device> [channels]\n", basename(name));
@@ -153,6 +156,7 @@ static void help(char *name)
 	fprintf(stderr, "  -t <mode>:    It does some test of the incoming timestampts\n\n");
 	fprintf(stderr, "  -o <ms>:      IRQ coalescing milleseconds timeout\n\n");
 	fprintf(stderr, "  -e:           stop on error\n\n");
+	fprintf(stderr, "  -a <ch>       Enable raw-timestamps\n\n");
 
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
@@ -164,7 +168,10 @@ static void help(char *name)
 		TST_MODE_1, FMCTDC_CH_1);
 }
 
-
+/**
+ * It stops timestamps readout after a signal
+ * @param[in] signum signal number
+ */
 static void termination_handler(int signum)
 {
 	fprintf(stderr, "\nfmc-tdc-tstamp: killing application\n");
@@ -219,6 +226,10 @@ static int tstamp_testing_mode(struct fmctdc_time *ts, unsigned int n,
 	return err;
 }
 
+struct fmctdc_config_chan {
+	enum fmctdc_ts_mode mode;
+};
+
 int main(int argc, char **argv)
 {
 	struct fmctdc_board *brd;
@@ -239,6 +250,8 @@ int main(int argc, char **argv)
 	enum tstamp_testing_modes mode = 0;
 	int timeout_ms = -1;
 	int stop_on_err = 0;
+	struct fmctdc_config_chan ch_cfg[FMCTDC_NUM_CHANNELS];
+	int tmp;
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -258,11 +271,13 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i)
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		ch_cfg[i].mode = FMCTDC_TS_MODE_POST;
 		ref[i] = -1;
+	}
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:e")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:ea:")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
@@ -366,6 +381,15 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 			break;
+		case 'a':
+			ret = sscanf(optarg, "%d", &tmp);
+			if (ret != 1) {
+				fprintf(stderr, "Missing argument\n");
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+				break;
+			}
+			ch_cfg[tmp].mode = FMCTDC_TS_MODE_RAW;
 		}
 	}
 
@@ -386,6 +410,16 @@ int main(int argc, char **argv)
 	memset(p, 0, sizeof(p));
 	if (!chan_count)
 		chan_count = FMCTDC_NUM_CHANNELS;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
+		ret = fmctdc_ts_mode_set(brd, i, ch_cfg[i].mode);
+		if (ret) {
+			fprintf(stderr,
+				"%s: chan %d: cannot set time-stamp mode: %s. Use default\n",
+				argv[0], i, fmctdc_strerror(errno));
+		}
+	}
+
 	for (i = 0; i < chan_count; i++) {
 		ch = ch_valid[i];
 		if (flush) {

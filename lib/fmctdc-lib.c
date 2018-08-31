@@ -731,6 +731,7 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 	return i;
 }
 
+
 /**
  * this "fread" behaves like stdio: it reads all the samples. Read fmctdc_read()
  * for more details about the function.
@@ -1114,6 +1115,64 @@ int fmctdc_coalescing_timeout_get(struct fmctdc_board *userb,
 		return -1;
 
 	*timeout_ms = val;
+
+	return 0;
+}
+
+/**
+ * It sets the timestamp mode
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[in] mode time-stamp mode
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ *
+ */
+int fmctdc_ts_mode_set(struct fmctdc_board *userb,
+		       unsigned int channel,
+		       enum fmctdc_ts_mode mode)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	char path[64];
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(path, sizeof(path), "ft-ch%d/raw_readout_mode",
+		 channel + 1);
+	return fmctdc_sysfs_set(b, path, &mode);
+}
+
+/**
+ * It gets the timestamp mode
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[out] mode time-stamp mode
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ *
+ */
+int fmctdc_ts_mode_get(struct fmctdc_board *userb,
+		       unsigned int channel,
+		       enum fmctdc_ts_mode *mode)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	char path[64];
+	uint32_t val;
+	int err;
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(path, sizeof(path), "ft-ch%d/raw_readout_mode",
+		 channel + 1);
+	err = fmctdc_sysfs_get(b, path, &val);
+	if (err)
+		return -1;
+
+	*mode = val;
 
 	return 0;
 }

@@ -150,7 +150,6 @@ static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
 
 }
 
-
 /**
  * It configure the double buffers for a given channel
  * @param[in] ft FmcTdc device instance

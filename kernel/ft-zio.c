@@ -24,7 +24,7 @@
 #include <linux/fmc.h>
 
 #include "fmc-tdc.h"
-
+#include "hw/timestamp_fifo_regs.h"
 
 /* The sample size. Mandatory, device-wide */
 ZIO_ATTR_DEFINE_STD(ZIO_DEV, ft_zattr_dev_std) = {
@@ -52,6 +52,8 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
 	ZIO_ATTR_EXT("irq_coalescing_time", ZIO_RW_PERM,
 		     FT_ATTR_TDC_COALESCING_TIME, 10),
+	ZIO_ATTR_EXT("raw_readout_mode", ZIO_RW_PERM,
+		     FT_ATTR_TDC_RAW_READOUT_MODE, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -59,6 +61,27 @@ enum ft_devtype {
 	FT_TYPE_WHOLEDEV,
 	FT_TYPE_INPUT
 };
+
+/**
+ * It applies all calibration offsets to the hardware for a given channel.
+ */
+static void ft_update_offsets(struct fmctdc_dev *ft, int channel)
+{
+	struct ft_channel_state *st = &ft->channels[channel];
+	struct ft_hw_timestamp hw_offset = {0, 0, 0, 0};
+	uint32_t fifo_addr;
+
+	fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * channel;
+
+	ft_ts_apply_offset(&hw_offset, ft->calib.zero_offset[channel]);
+	ft_ts_apply_offset(&hw_offset, -ft->calib.wr_offset);
+	if (st->user_offset)
+		ft_ts_apply_offset(&hw_offset, st->user_offset);
+
+	ft_iowrite(ft, hw_offset.seconds, fifo_addr + TSF_REG_OFFSET1 );
+	ft_iowrite(ft, hw_offset.coarse, fifo_addr + TSF_REG_OFFSET2 );
+	ft_iowrite(ft, hw_offset.frac, fifo_addr + TSF_REG_OFFSET3 );
+}
 
 static enum ft_devtype __ft_get_type(struct device *dev)
 {
@@ -68,6 +91,76 @@ static enum ft_devtype __ft_get_type(struct device *dev)
 		return FT_TYPE_WHOLEDEV;
 	return FT_TYPE_INPUT;
 }
+
+
+/**
+ * It sets the channel reference for delta computation
+ * @ft FmcTdc instance
+ * @chan channel [0, 4]
+ * @ref reference channel [0, 4], use -1 to disable delta computation
+ */
+static void ft_delta_reference_set(struct fmctdc_dev *ft,
+				   unsigned int chan,
+				   int ref)
+{
+	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
+	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
+
+	if (ref < 0 || ref > ft->zdev->n_cset) {
+		csr &= ~TSF_CSR_DELTA_READ;
+	} else {
+		csr &= ~TSF_CSR_DELTA_REF_MASK;
+		csr |= (ref << TSF_CSR_DELTA_REF_SHIFT);
+		csr |= TSF_CSR_DELTA_READ;
+	}
+
+	ft_iowrite(ft, csr, fifo_addr + TSF_REG_CSR);
+}
+
+/**
+ * It gets the channel reference for delta computation
+ * @ft FmcTdc instance
+ * @chan channel [0, 4]
+ * Return: reference channel [0, 4], -1 when delta computation is disabled
+ */
+static int ft_delta_reference_get(struct fmctdc_dev *ft,
+				  unsigned int chan)
+{
+	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
+	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
+
+	if ((csr & TSF_CSR_DELTA_READ) == 0)
+		return -1;
+	return TSF_CSR_DELTA_REF_R(csr);
+}
+
+
+
+static void ft_raw_mode_set(struct fmctdc_dev *ft,
+			       unsigned int chan,
+			       unsigned int raw_enable)
+{
+	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
+	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
+
+	if (raw_enable)
+		csr |= TSF_CSR_RAW_MODE;
+	else
+		csr &= ~TSF_CSR_RAW_MODE;
+
+	ft_iowrite(ft, csr, fifo_addr + TSF_REG_CSR);
+}
+
+
+static int ft_raw_mode_get(struct fmctdc_dev *ft,
+			      unsigned int chan)
+{
+	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
+	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
+
+	return (csr & TSF_CSR_RAW_MODE) ? 1 : 0;
+}
+
 
 /* TDC input attributes: only the user offset is special */
 static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
@@ -92,13 +185,16 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		*usr_val = test_bit(FT_FLAG_CH_TERMINATED, &st->flags);
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
-		/* FIXME read from HW */
+		*usr_val = ft_delta_reference_get(ft, cset->index);
 		break;
 	case FT_ATTR_TDC_TRANSFER_MODE:
 		*usr_val = ft->mode;
 		break;
 	case FT_ATTR_TDC_COALESCING_TIME:
 		*usr_val = ft_irq_coalescing_timeout_get(ft, cset->index);
+		break;
+	case FT_ATTR_TDC_RAW_READOUT_MODE:
+		*usr_val = ft_raw_mode_get(ft, cset->index);
 		break;
 	}
 
@@ -172,15 +268,20 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 			return -EINVAL;
 		spin_lock(&ft->lock);
 		st->user_offset = usr_val;
+		ft_update_offsets(ft, cset->index);
+
 		spin_unlock(&ft->lock);
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
 		if (usr_val > FT_NUM_CHANNELS)
 			return -EINVAL;
-		/* FIXME write on HW */
+		ft_delta_reference_set(ft, cset->index, usr_val);
 		break;
 	case FT_ATTR_TDC_COALESCING_TIME:
 		ft_irq_coalescing_timeout_set(ft, cset->index, usr_val);
+		break;
+	case FT_ATTR_TDC_RAW_READOUT_MODE:
+		ft_raw_mode_set(ft, cset->index, !!usr_val);
 		break;
 	default:
 		return -EINVAL;
@@ -282,8 +383,9 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	struct zio_channel *chan;
 	struct ft_channel_state *st;
 	struct fmctdc_dev *ft;
-	uint32_t ien;
-
+	uint32_t ien, csr;
+	uint32_t fifo_addr;
+	
 	/* We manage only status flag */
 	if (!(mask & ZIO_STATUS))
 		return;
@@ -296,11 +398,17 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	if (chan->flags & ZIO_STATUS) {
 		/* DISABLED */
 		ft_disable(ft, chan->cset->index);
+		fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan->cset->index;
 
 		zio_trigger_abort_disable(chan->cset, 0);
-		/* Reset last time-stamp (seq number and valid)*/
-		//ft_iowrite(ft, TDC_FIFO_LAST_CSR_VALID | TDC_FIFO_LAST_CSR_RST_SEQ,
-		//	  TDC_FIFO_LAST_CSR);
+
+		csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
+
+		/* clear delta timestamp ready flag */
+		ft_iowrite(ft, csr | TSF_CSR_DELTA_READ, fifo_addr + TSF_REG_CSR);
+
+		csr = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_CSR);
+		ft_iowrite(ft, csr | TSF_FIFO_CSR_CLEAR_BUS, fifo_addr + TSF_REG_FIFO_CSR);
 	} else {
 		/* ENABLED */
 		ft_enable(ft, chan->cset->index);
@@ -380,23 +488,6 @@ enum ft_trig_options {
 	FT_TRIG_POST = 0,
 };
 
-
-/**
- * It applies all calibration offsets to the givne timestamp
- * @ft FmcTdc device instance
- * @ts timestamp
- */
-static void ft_timestamp_apply_offsets(struct fmctdc_dev *ft,
-				       struct ft_hw_timestamp *hwts)
-{
-	unsigned int chan = FT_HW_TS_META_CHN(hwts->metadata);
-	struct ft_channel_state *st = &ft->channels[chan];
-
-	ft_ts_apply_offset(hwts, ft->calib.zero_offset[chan]);
-	ft_ts_apply_offset(hwts, -ft->calib.wr_offset);
-	if (st->user_offset)
-		ft_ts_apply_offset(hwts, st->user_offset);
-}
 
 /**
  * It puts the given timestamp in the ZIO control
@@ -482,7 +573,6 @@ static void ft_trig_destroy(struct zio_ti *ti)
  */
 static int ft_trig_data_done(struct zio_cset *cset)
 {
-	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	struct ft_hw_timestamp *ts;
 	int i, ret;
 
@@ -508,7 +598,6 @@ static int ft_trig_data_done(struct zio_cset *cset)
 			__func__, i, cset->ti->nsamples,
 			ts[i].seconds,ts[i].coarse,
 			ts[i].frac, FT_HW_TS_META_SEQ(ts[i].metadata));
-		ft_timestamp_apply_offsets(ft, &ts[i]);
 	}
 	ft_zio_update_ctrl(cset, &ts[0]);
 
@@ -571,7 +660,7 @@ int ft_zio_init(struct fmctdc_dev *ft)
 {
 	int err = 0;
 	int dev_id;
-
+	int i;
 
 	ft->hwzdev = zio_allocate_device();
 	if (IS_ERR(ft->hwzdev))
@@ -586,6 +675,12 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	err = zio_register_device(ft->hwzdev, "tdc-1n5c", dev_id);
 	if (err)
 		goto err_dev_reg;
+
+	for(i = 0; i < FT_NUM_CHANNELS; i++) {
+		ft_delta_reference_set(ft, i, -1);
+		ft_raw_mode_set(ft, i, 0);
+		ft_update_offsets(ft, i);
+	}
 
 	return 0;
 

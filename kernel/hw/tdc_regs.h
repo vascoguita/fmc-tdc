@@ -45,6 +45,7 @@
 #define TDC_STAT_DMA BIT(0)
 #define TDC_STAT_FIFO BIT(1)
 
+#define TDC_FIFO_OFFSET 0x100
 
 #define TDC_WR_CTRL_ENABLE		BIT(0)
 
@@ -96,20 +97,6 @@
 #define TDC_EVENT_FIFO_LF_MASK		0xF00
 #define TDC_EVENT_FIFO_EF_MASK		0xF000
 #define TDC_EVENT_DACAPO_FLAG		BIT(0)
-
-/* FIFO registers */
-#define TDC_FIFO_OFFSET			0x100
-#define TDC_FIFO_LAST			0x0
-#define TDC_FIFO_LAST_N			4
-#define TDC_FIFO_LAST_CSR		0x10
-#define TDC_FIFO_LAST_CSR_VALID		BIT(0)
-#define TDC_FIFO_LAST_CSR_RST_SEQ	BIT(1)
-#define TDC_FIFO_OUT			0x14
-#define TDC_FIFO_OUT_N			4
-#define TDC_FIFO_CSR			0x24
-#define TDC_FIFO_CSR_EMPTY		BIT(17)
-#define TDC_FIFO_CSR_FULL		BIT(16)
-#define TDC_FIFO_CSR_USEDW
 
 /* Carrier CSRs */
 #define TDC_REG_CARRIER_CTL0		0x0 /* a.k.a. Carrier revision/PCB id reg */

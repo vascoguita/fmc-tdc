@@ -59,6 +59,14 @@ enum ft_transfer_mode {
 };
 
 /**
+ * Enumeration for all possible time-stmap mode
+ */
+enum fmctdc_ts_mode {
+	FMCTDC_TS_MODE_POST = 0, /**< after post-processing */
+	FMCTDC_TS_MODE_RAW, /**< directly from ACAM chip */
+};
+
+/**
  * Opaque data type used as token. Do not try to access.
  */
 struct fmctdc_board;
@@ -158,9 +166,25 @@ extern int fmctdc_coalescing_timeout_set(struct fmctdc_board *userb,
 extern int fmctdc_coalescing_timeout_get(struct fmctdc_board *userb,
 					 unsigned int channel,
 					 unsigned int *timeout_ms);
-
+extern int fmctdc_ts_mode_set(struct fmctdc_board *userb,
+			      unsigned int channel,
+			      enum fmctdc_ts_mode mode);
+extern int fmctdc_ts_mode_get(struct fmctdc_board *userb,
+			      unsigned int channel,
+			      enum fmctdc_ts_mode *mode);
 
 /**@}*/
+
+#if 0
+/* Hardware TDC timestamp */
+struct ft_hw_timestamp {
+uint32_t seconds;/* 1 second resolution */
+uint32_t coarse;/* 8 ns resolution */
+uint32_t frac;/* In ACAM bins (81 ps) */
+uint32_t metadata;/* channel, polarity, etc. */
+};
+#endif
+#include "fmctdc-lib-private.h"
 
 
 /**
@@ -176,6 +200,8 @@ extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
 extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);
 extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
 		       struct fmctdc_time *t, int n, int flags);
+extern int fmctdc_readhw(struct fmctdc_board *b, unsigned int channel,
+		       struct ft_hw_timestamp *t, int n, int flags);
 extern int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
 			    struct fmctdc_time *t);
 extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);

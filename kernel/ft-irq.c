@@ -26,6 +26,7 @@
 #include <linux/zio-buffer.h>
 
 #include "fmc-tdc.h"
+#include "hw/timestamp_fifo_regs.h"
 
 /* Module parameters */
 static int irq_timeout_ms_default = 10;
@@ -289,7 +290,6 @@ static void ft_dma_work(struct work_struct *work)
 			 "Expected DMA interrupt but got 0x%x\n", irq_stat);
 		goto err;
 	}
-	dev_err(ft->fmc->hwdev, "IRQ stat 0x%x", irq_stat);
 
 	irq_stat &= TDC_EIC_EIC_IMR_TDC_DMA_MASK;
 	irq_stat >>= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
@@ -304,8 +304,6 @@ static void ft_dma_work(struct work_struct *work)
 		base_cur[n_block] = st->buf_addr[transfer];
 
 		cset->ti->nsamples = ft_buffer_count(ft, i);
-		dev_err(&cset->head.dev, "%d ts to transfer\n",
-			cset->ti->nsamples);
 
 		zio_arm_trigger(cset->ti); /* actually arm'n'fire */
 		if (!zio_cset_can_acquire(cset)) {
@@ -357,28 +355,17 @@ err:
  * Get a time stamp from the fifo, if you set the 'last' flag it takes the last
  * recorded time-stamp
  */
-static int ft_timestap_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts,
-			   unsigned int last)
+static int ft_timestamp_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts)
 {
 	struct fmctdc_dev *ft = cset->zdev->priv_d;
 	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * cset->index;
-	uint32_t data[TDC_FIFO_OUT_N];
-	int i, valid = 1;
 
-	fifo_addr += last ? TDC_FIFO_LAST : TDC_FIFO_OUT;
-	for (i = 0; i < TDC_FIFO_OUT_N; ++i) {
-		data[i] = ft_ioread(ft, fifo_addr + i * 4);
-		dev_vdbg(&cset->head.dev, "FIFO read 0x%x from 0x%x\n",
-			 data[i], fifo_addr + i * 4);
-	}
+	hwts->seconds = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R0);
+	hwts->coarse = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R1);
+	hwts->frac = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R2);
+	hwts->metadata = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R3);
 
-	if (last) {
-		valid = !!(ft_ioread(ft, fifo_addr + TDC_FIFO_LAST_CSR) &
-			   TDC_FIFO_LAST_CSR_VALID);
-	}
-
-	memcpy(hwts, data, TDC_FIFO_OUT_N * 4);
-	return valid;
+	return 1;
 }
 
 /**
@@ -394,7 +381,7 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 		goto out;
 	hwts = cset->chan->active_block->data;
 
-	ft_timestap_get(cset, hwts, 0);
+	ft_timestamp_get(cset, hwts);
 out:
 	zio_trigger_data_done(cset);
 }
@@ -431,9 +418,9 @@ irq:
 			cset = &ft->zdev->cset[i];
 			ft_readout_fifo_one(cset);
 			fifo_csr_addr = ft->ft_fifo_base +
-				TDC_FIFO_OFFSET * cset->index + TDC_FIFO_CSR;
+				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
 			fifo_stat = ft_ioread(ft, fifo_csr_addr);
-			if (!(fifo_stat & TDC_FIFO_CSR_EMPTY))
+			if (!(fifo_stat & TSF_FIFO_CSR_EMPTY))
 				continue; /* Still something to read */
 
 			/* Ack the interrupt, nothing to read anymore */
