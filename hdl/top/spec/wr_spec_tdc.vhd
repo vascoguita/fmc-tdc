@@ -529,9 +529,7 @@ architecture rtl of wr_spec_tdc is
   signal cnx_slave_in              : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
   signal gn_wb_adr                 : std_logic_vector(31 downto 0);
   -- Carrier CSR info
-  signal gn4124_clk : std_logic;
   signal gn4124_status             : std_logic_vector(31 downto 0);
-  signal gn4124_ext_status             : std_logic_vector(31 downto 0);
   -- VIC
   signal irq_to_gn4124             : std_logic;
   -- WRabbit time
@@ -583,33 +581,8 @@ architecture rtl of wr_spec_tdc is
   signal dma_irq              : std_logic_vector(1 downto 0);
   signal ddr_wr_fifo_empty    : std_logic;
   signal dma_eic_irq : std_logic;
-  signal gn4124_dbg : std_logic_vector(127 downto 0);
   
-  component chipscope_icon
-    port (
-      CONTROL0 : inout std_logic_vector(35 downto 0));
-  end component;
-
-  component chipscope_ila
-    port (
-      CONTROL : inout std_logic_vector(35 downto 0);
-      CLK     : in    std_logic;
-      TRIG0   : in    std_logic_vector(31 downto 0);
-      TRIG1   : in    std_logic_vector(31 downto 0);
-      TRIG2   : in    std_logic_vector(31 downto 0);
-      TRIG3   : in    std_logic_vector(31 downto 0));
-  end component;
-
-  signal control0                   : std_logic_vector(35 downto 0);
-  signal trig0, trig1, trig2, trig3 : std_logic_vector(31 downto 0);
-
-
-  attribute keep : string;
-  attribute keep of trig0 : signal is "true";
-  attribute keep of trig1 : signal is "true";
-  attribute keep of trig2 : signal is "true";
-  attribute keep of trig3 : signal is "true";
-  
+ 
   signal ddr3_status : std_logic_vector(31 downto 0);
 
   function f_to_string(x : boolean) return string is
@@ -753,8 +726,6 @@ begin
       port map
       (rst_n_a_i    => gn_rst_n,
        status_o     => gn4124_status,
-       ext_status_o     => gn4124_ext_status,
-       sys_clk_o => gn4124_clk,
        ---------------------------------------------------------
        -- P2L Direction
        --
@@ -804,7 +775,6 @@ begin
        csr_stall_i => cnx_slave_out(c_MASTER_GENNUM).stall,
        csr_err_i   => '0',
        csr_rty_i   => '0',
-       csr_int_i   => '0',
 
        dma_clk_i   => clk_ref_125m,
        dma_adr_o   => wb_dma_adr,
@@ -818,7 +788,6 @@ begin
        dma_stall_i => wb_dma_stall,
        dma_err_i   => wb_dma_err,
        dma_rty_i   => wb_dma_rty,
-       dma_int_i   => wb_dma_int,
 
        -- DMA registers wishbone interface (slave classic)
        dma_reg_clk_i   => clk_sys_62m5,
@@ -830,10 +799,7 @@ begin
        dma_reg_cyc_i   => cnx_master_out(c_WB_SLAVE_DMA).cyc,
        dma_reg_dat_o   => cnx_master_in(c_WB_SLAVE_DMA).dat,
        dma_reg_ack_o   => cnx_master_in(c_WB_SLAVE_DMA).ack,
-       dma_reg_stall_o => cnx_master_in(c_WB_SLAVE_DMA).stall,
-
-       dbg_o => gn4124_dbg
-
+       dma_reg_stall_o => cnx_master_in(c_WB_SLAVE_DMA).stall
        );
 
     dma_reg_adr <= "00" & cnx_master_out(c_WB_SLAVE_DMA).adr(31 downto 2);
@@ -985,7 +951,7 @@ begin
      carrier_info_carrier_reserved_i   => (others => '0'),
      carrier_info_carrier_type_i       => c_CARRIER_TYPE,
      carrier_info_stat_fmc_pres_i      => prsnt_m2c_n_i,
-     carrier_info_stat_p2l_pll_lck_i   => '1', --gn4124_status(0),
+     carrier_info_stat_p2l_pll_lck_i   => gn4124_status(0),
      -- SPEC board wrapper releases rst_sys_62m5_n only when system clock pll is
      -- locked. Therefore we report here '1' - pll locked
      carrier_info_stat_sys_pll_lck_i   => '1',
@@ -1097,8 +1063,6 @@ begin
 
 
   ddr3_tdc_adr <= "00" & tdc_dma_out.adr(31 downto 2);
-
-
   ddr3_calib_done <= ddr3_status(0);
 
   -- unused Wishbone signals
