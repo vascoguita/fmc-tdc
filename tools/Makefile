@@ -15,6 +15,7 @@ TESTS = fmc-tdc-list \
 	fmc-tdc-temperature \
 	fmc-tdc-time \
 	fmc-tdc-tstamp \
+	fmc-tdc-perftest \
 	fmc-tdc-offset
 
 CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall -Werror $(EXTRACFLAGS)
@@ -23,7 +24,7 @@ CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
 
 COMMON_SRCS = test-common.c
 LDFLAGS = -L$(LIBTDC) 
-LDLIBS = -lfmctdc
+LDLIBS = -lfmctdc -lrt
 
 all: $(TESTS)
 
