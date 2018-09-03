@@ -322,11 +322,16 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata <= std_logic_vector(acam_start_nb(7 downto 0)) &  -- for debug
-              coarse_zero & std_logic_vector(un_retrig_nb_offset(7 downto 0)) &  -- for debug
-              std_logic_vector(roll_over_nb_i(2 downto 0)) &
-              std_logic_vector(un_clk_i_cycles_offset(6 downto 0)) &  -- for debug
-              acam_slope & roll_over_incr_recent_i & acam_channel;  -- 5 LSbits used for slope and acam_channel
+  -- for debug
+  metadata(31 downto 24) <= std_logic_vector(acam_start_nb(7 downto 0));
+  metadata(23)           <= coarse_zero;
+  metadata(22 downto 15) <= std_logic_vector(un_retrig_nb_offset(7 downto 0));
+  metadata(14 downto 12) <= std_logic_vector(roll_over_nb_i(2 downto 0));
+  metadata(11 downto 5)  <= std_logic_vector(un_clk_i_cycles_offset(6 downto 0));
+   -- 5 LSbits used for slope and acam_channel
+  metadata(4)            <= acam_slope;
+  metadata(3)            <= roll_over_incr_recent_i;
+  metadata(2 downto 0)   <= acam_channel;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   full_timestamp(31 downto 0)   <= fine_time;
