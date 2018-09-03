@@ -52,8 +52,11 @@ architecture rtl of fmc_tdc_direct_readout is
   type t_channel_state is record
     enable  : std_logic;
     timeout : unsigned(23 downto 0);
-    fifo_wr : std_logic;
+    ready   : std_logic;
   end record;
+
+  --  Bit is set when timestamp for channel has to be written in fifo.
+  signal fifo_wr : std_logic_vector(c_num_channels-1 downto 0);
 
   type t_channel_state_array is array(0 to c_num_channels-1) of t_channel_state;
 
@@ -69,7 +72,7 @@ architecture rtl of fmc_tdc_direct_readout is
   signal ts_channel : std_logic_vector(2 downto 0);
 
   signal direct_slave_out: t_wishbone_slave_out;
-  
+
 begin
 
 
@@ -106,56 +109,40 @@ begin
   regs_in.fifo_seconds_i <= ts_seconds;
   regs_in.fifo_channel_i <= '0'&ts_channel;
   regs_in.fifo_bins_i    <= ts_bins;
-
+  regs_in.fifo_wr_req_i  <= f_to_std_logic(fifo_wr /= (fifo_wr'range => '0')
+                                           and regs_out.fifo_wr_full_o = '0');
 
   gen_channels : for i in 0 to c_num_channels-1 generate
+
+    c(i).enable <= regs_out.chan_enable_o(i);
+    fifo_wr(i) <= f_to_std_logic(unsigned(ts_channel) = i
+                                 and ts_edge = '1'
+                                 and direct_timestamp_wr_i = '1'
+                                 and c(i).ready = '1');
 
     p_dead_time : process (clk_tdc_i)
     begin
       if rising_edge(clk_tdc_i) then
-        if rst_tdc_n_i = '0' then
+        if rst_tdc_n_i = '0' or c(i).enable = '0' then
           c(i).timeout <= (others => '0');
-          c(i).enable  <= '0';
-          c(i).fifo_wr <= '0';
+          c(i).ready <= '0';
         else
-          c(i).enable <= regs_out.chan_enable_o(i);
-
-          if c(i).enable = '1' then
-            if direct_timestamp_wr_i = '1' and unsigned(ts_channel) = i and ts_edge = '1' and c(i).timeout = 0 then
-              c(i).timeout <= unsigned(regs_out.dead_time_o);
-              c(i).fifo_wr <= '1';
-            elsif c(i).timeout /= 0 then
-              c(i).fifo_wr <= '0';
-              c(i).timeout <= c(i).timeout - 1;
-            end if;
-            
+          if fifo_wr(i) = '1' then
+            --  Ignore this channel for the dead time.
+            c(i).timeout <= unsigned(regs_out.dead_time_o);
+            c(i).ready <= '0';
+          elsif c(i).timeout /= 0 then
+            --  In dead time.
+            c(i).ready <= '0';
+            c(i).timeout <= c(i).timeout - 1;
           else
-            c(i).fifo_wr <= '0';
+            -- Waiting for the next timestamp.
+            c(i).ready <= '1';
             c(i).timeout <= (others => '0');
           end if;
         end if;
       end if;
     end process;
-    
   end generate gen_channels;
 
-  p_fifo_write : process(clk_tdc_i)
-  begin
-    if rising_edge(clk_tdc_i) then
-      if rst_tdc_n_i = '0' then
-        regs_in.fifo_wr_req_i <= '0';
-      else
-        regs_in.fifo_wr_req_i <= '0';
-
-        for i in 0 to c_num_channels-1 loop
-          if(c(i).fifo_wr = '1' and regs_out.fifo_wr_full_o = '0') then
-            regs_in.fifo_wr_req_i <= '1';
-          end if;
-        end loop;
-      end if;
-    end if;
-  end process;
-
 end rtl;
-
-
