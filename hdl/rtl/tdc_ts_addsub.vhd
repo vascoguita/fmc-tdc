@@ -6,7 +6,7 @@
 -- Author     : Tomasz Wlostowski
 -- Company    : CERN
 -- Created    : 2011-08-29
--- Last update: 2018-08-06
+-- Last update: 2018-09-03
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -102,15 +102,9 @@ begin  -- rtl
         sums(0).seq <= a_i.seq;
         sums(0).slope <= a_i.slope;
         
-        if( b_i.tai(31) = '1' ) then -- TAI negative, we subtract
-          sums(0).frac   <= signed( resize(unsigned(a_i.frac) - unsigned(b_i.frac), 16) );
-          sums(0).coarse <= resize(signed(a_i.coarse), sums(0).coarse'length) -
-                          resize(signed(b_i.coarse), sums(0).coarse'length);
-        else
-          sums(0).frac   <= signed( resize(unsigned(a_i.frac) + unsigned(b_i.frac), 16) );
-          sums(0).coarse <= resize(signed(a_i.coarse), sums(0).coarse'length) +
-                          resize(signed(b_i.coarse), sums(0).coarse'length);
-        end if;
+        sums(0).frac   <= signed( resize(unsigned(a_i.frac),16) + resize(unsigned(b_i.frac), 16) );
+        sums(0).coarse <= signed(resize(unsigned(a_i.coarse), sums(0).coarse'length) +
+                          resize(unsigned(b_i.coarse), sums(0).coarse'length));
 
       else
         pipe(0) <= '0';
