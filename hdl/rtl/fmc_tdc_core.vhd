@@ -267,10 +267,8 @@ architecture rtl of fmc_tdc_core is
   signal utc, wrabbit_ctrl_reg                               : std_logic_vector(g_width-1 downto 0);
 
   -- LEDs
-  signal acam_channel                                : std_logic_vector(5 downto 0);
   signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3 : std_logic_vector(1 downto 0);
   signal tdc_in_fpga_4, tdc_in_fpga_5                : std_logic_vector(1 downto 0);
-  signal acam_tstamp_channel                         : std_logic_vector(2 downto 0);
 
   signal rst_sys         : std_logic;
   signal timestamp_valid : std_logic;
@@ -539,7 +537,7 @@ begin
      rst_i            => rst_tdc_i,
      utc_p_i          => local_utc_p,
      acam_inputs_en_i => acam_inputs_en,
-     acam_channel_i   => acam_channel,
+     acam_channel_i   => timestamp(98 downto 96),
      tstamp_wr_p_i    => timestamp_valid,
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
@@ -547,8 +545,6 @@ begin
      tdc_led_trig3_o  => tdc_led_trig3_o,
      tdc_led_trig4_o  => tdc_led_trig4_o,
      tdc_led_trig5_o  => tdc_led_trig5_o);
-
-  acam_channel <= "000" & acam_tstamp_channel;
 
 ---------------------------------------------------------------------------------------------------
 --                                    ACAM start_dis, not used                                   --

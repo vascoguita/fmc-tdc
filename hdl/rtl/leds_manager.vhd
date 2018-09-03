@@ -108,7 +108,7 @@ entity leds_manager is
                                                                   -- activation comes through dedicated reg c_ACAM_INPUTS_EN_ADR
 
      -- Signal for debugging
-     acam_channel_i    : in std_logic_vector(5 downto 0);         -- identification of the channel for which a timestamp has arrived
+     acam_channel_i    : in std_logic_vector(2 downto 0);         -- identification of the channel for which a timestamp has arrived
      tstamp_wr_p_i     : in std_logic;                            -- pulse upon the writing of the timestamp in the circular buffer
 
 
@@ -131,12 +131,10 @@ architecture rtl of leds_manager is
 
   signal tdc_led_blink_done                 : std_logic;
   signal visible_blink_length               : std_logic_vector(g_width-1 downto 0);
-  signal rst_n, blink_led1, blink_led2      : std_logic;
-  signal ch1, ch2, ch3, ch4, ch5            : std_logic;
-  signal blink_led3, blink_led4, blink_led5 : std_logic;
-  signal tstamp_wr_p, blink_led             : std_logic;
-  signal acam_channel                       : std_logic_vector(5 downto 0);
-
+  signal rst_n                              : std_logic;
+  signal tstamp_wr_p                        : std_logic;
+  signal acam_channel                       : std_logic_vector(2 downto 0);
+  signal ch, blink_led, tdc_led_trig        : std_logic_vector(1 to 5);
 
 begin
 ---------------------------------------------------------------------------------------------------
@@ -176,37 +174,24 @@ begin
 ---------------------------------------------------------------------------------------------------
   rst_n <= not(rst_i);
 
+  tdc_led_trig1_o <= tdc_led_trig(1);
+  tdc_led_trig2_o <= tdc_led_trig(2);
+  tdc_led_trig3_o <= tdc_led_trig(3);
+  tdc_led_trig4_o <= tdc_led_trig(4);
+  tdc_led_trig5_o <= tdc_led_trig(5);
+
   led_1to5_outputs: process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if acam_inputs_en_i(0) = '1' then
-        tdc_led_trig1_o  <= blink_led1;
-      else
-        tdc_led_trig1_o  <= not blink_led1;
-      end if;
-      if acam_inputs_en_i(1) = '1' then
-        tdc_led_trig2_o  <= blink_led2;
-      else
-        tdc_led_trig2_o  <= not blink_led2;
-      end if;
-      if acam_inputs_en_i(2) = '1' then
-        tdc_led_trig3_o  <= blink_led3;
-      else
-        tdc_led_trig3_o  <= not blink_led3;
-      end if;
-      if acam_inputs_en_i(3) = '1' then
-        tdc_led_trig4_o  <= blink_led4;
-      else
-        tdc_led_trig4_o  <= not blink_led4;
-      end if;
-      if acam_inputs_en_i(4) = '1' then
-        tdc_led_trig5_o  <= blink_led5;
-      else
-        tdc_led_trig5_o  <= not blink_led5;
-      end if;
+      for i in tdc_led_trig'range loop
+        if acam_inputs_en_i(i - 1) = '1' then
+          tdc_led_trig (i)  <= blink_led(i);
+        else
+          tdc_led_trig (i)  <= not blink_led(i);
+        end if;
+      end loop;
     end if;
   end process;
-
 
   pulse_generator: process (clk_i)
   begin
@@ -214,105 +199,41 @@ begin
       if rst_i = '1' then
         acam_channel <= (others => '0');
         tstamp_wr_p  <= '0';
-        ch1          <= '0';
-        ch2          <= '0';
-        ch3          <= '0';
-        ch4          <= '0';
-        ch5          <= '0';
+        ch          <= (others => '0');
       else
         acam_channel <= acam_channel_i;
         tstamp_wr_p  <= tstamp_wr_p_i;
+
+        ch           <= (others => '0');
+
         if tstamp_wr_p = '1' and acam_inputs_en_i(7) = '1' then
-          if acam_channel(2 downto 0)    = "000" then
-            ch1      <= '1';
-            ch2      <= '0';
-            ch3      <= '0';
-            ch4      <= '0';
-            ch5      <= '0';
-          elsif acam_channel(2 downto 0) = "001" then
-            ch1      <= '0';
-            ch2      <= '1';
-            ch3      <= '0';
-            ch4      <= '0';
-            ch5      <= '0';
-          elsif acam_channel(2 downto 0) = "010" then
-            ch1      <= '0';
-            ch2      <= '0';
-            ch3      <= '1';
-            ch4      <= '0';
-            ch5      <= '0';
-          elsif acam_channel(2 downto 0) = "011" then
-            ch1      <= '0';
-            ch2      <= '0';
-            ch3      <= '0';
-            ch4      <= '1';
-            ch5      <= '0';
-          else
-            ch1      <= '0';
-            ch2      <= '0';
-            ch3      <= '0';
-            ch4      <= '0';
-            ch5      <= '1';
-          end if;
-        else
-          ch1      <= '0';
-          ch2      <= '0';
-          ch3      <= '0';
-          ch4      <= '0';
-          ch5      <= '0';
+          case acam_channel is
+            when "000" =>
+              ch(1) <= '1';
+            when "001" =>
+              ch(2) <= '1';
+            when "010" =>
+              ch(3) <= '1';
+            when "011" =>
+              ch(4) <= '1';
+            when "100" =>
+              ch(5) <= '1';
+            when others =>
+              null;
+          end case;
         end if;
       end if;
     end if;
   end process;
 
-  cmp_extend_ch1_pulse: gc_extend_pulse
-  generic map
-    (g_width    => 5000000)
-  port map
-    (clk_i      => clk_i,
-     rst_n_i    => rst_n,
-     pulse_i    => ch1,
-     extended_o => blink_led1);
-
-  cmp_extend_ch2_pulse: gc_extend_pulse
-  generic map
-    (g_width    => 5000000)
-  port map
-    (clk_i      => clk_i,
-     rst_n_i    => rst_n,
-     pulse_i    => ch2,
-     extended_o => blink_led2);
-
-  cmp_extend_ch3_pulse: gc_extend_pulse
-  generic map
-    (g_width    => 5000000)
-  port map
-    (clk_i      => clk_i,
-     rst_n_i    => rst_n,
-     pulse_i    => ch3,
-     extended_o => blink_led3);
-
-  cmp_extend_ch4_pulse: gc_extend_pulse
-  generic map
-    (g_width    => 5000000)
-  port map
-    (clk_i      => clk_i,
-     rst_n_i    => rst_n,
-     pulse_i    => ch4,
-     extended_o => blink_led4);
-
-  cmp_extend_ch5_pulse: gc_extend_pulse
-  generic map
-    (g_width    => 5000000)
-  port map
-    (clk_i      => clk_i,
-     rst_n_i    => rst_n,
-     pulse_i    => ch5,
-     extended_o => blink_led5);
-
-
-
+  g_pulse: for i in tdc_led_trig'range generate
+    cmp_extend_ch_pulse: gc_extend_pulse
+      generic map
+      (g_width    => 5000000)
+      port map
+      (clk_i      => clk_i,
+       rst_n_i    => rst_n,
+       pulse_i    => ch(i),
+       extended_o => blink_led(i));
+  end generate;
 end rtl;
-----------------------------------------------------------------------------------------------------
---  architecture ends
-----------------------------------------------------------------------------------------------------
