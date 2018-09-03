@@ -51,7 +51,8 @@ entity timestamp_fifo is
     timestamp_valid_i : in std_logic_vector(4 downto 0);
 
     ts_offset_o : out t_tdc_timestamp;
-    reset_seq_o : out std_logic
+    reset_seq_o : out std_logic;
+    raw_enable_o : out std_logic
     );
 
 end entity;
@@ -88,7 +89,7 @@ begin
   ts_offset_o.coarse <= regs_out.offset2_o;
   ts_offset_o.frac <= regs_out.offset3_o(11 downto 0);
   reset_seq_o <= regs_out.csr_rst_seq_o;
-
+  raw_enable_o <= regs_out.csr_raw_mode_o;
 
   timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).tai), 32));
   timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).coarse), 32));

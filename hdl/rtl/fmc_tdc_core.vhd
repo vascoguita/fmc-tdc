@@ -213,6 +213,7 @@ entity fmc_tdc_core is
 
       ts_offset_i : in t_tdc_timestamp_array(4 downto 0);
       reset_seq_i : in std_logic_vector(4 downto 0);
+      raw_enable_i : in std_logic_vector(4 downto 0);
       timestamp_o       : out t_tdc_timestamp_array(4 downto 0);
       timestamp_valid_o : out std_logic_vector(4 downto 0);
       timestamp_ready_i : in  std_logic_vector(4 downto 0);
@@ -551,7 +552,8 @@ begin
       ts_valid_o => final_timestamp_valid,
       ts_ready_i => final_timestamp_ready,
       ts_offset_i => ts_offset_i,
-      reset_seq_i => reset_seq_i
+      reset_seq_i => reset_seq_i,
+      raw_enable_i => raw_enable_i
       );
 
 

@@ -278,6 +278,7 @@ architecture rtl of fmc_tdc_mezzanine is
 
   signal ts_offset : t_tdc_timestamp_array(4 downto 0);
   signal reset_seq : std_logic_vector(4 downto 0);
+  signal raw_enable : std_logic_vector(4 downto 0);
 
   function f_wb_shift_address_word (w : t_wishbone_master_out) return t_wishbone_master_out is
     variable r : t_wishbone_master_out;
@@ -378,6 +379,7 @@ begin
       timestamp_valid_o => tdc_timestamp_valid,
       timestamp_ready_i => tdc_timestamp_ready,
 
+      raw_enable_i => raw_enable,
       ts_offset_i => ts_offset,
       reset_seq_i => reset_seq,
       
@@ -435,12 +437,11 @@ begin
         timestamp_i       => timestamp,
         timestamp_valid_i => timestamp_stb,
         ts_offset_o => ts_offset(i),
-        reset_seq_o => reset_seq(i));
+        reset_seq_o => reset_seq(i),
+        raw_enable_o => raw_enable(i));
 
     timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
   end generate gen_fifos;
-
-  timestamp_ready <= (others => '1');
 
   gen_with_dma_readout : if g_use_dma_readout generate
     U_DMA_Engine : entity work.tdc_dma_engine
@@ -452,7 +453,7 @@ begin
         enable_i => channel_enable,
         ts_i       => timestamp,
         ts_valid_i => timestamp_valid,
---        ts_ready_o => timestamp_ready,
+        ts_ready_o => timestamp_ready,
         slave_i    => cnx_master_out(c_WB_SLAVE_TDC_DMA),
         slave_o    => cnx_master_in(c_WB_SLAVE_TDC_DMA),
         irq_o      => irq_dma,

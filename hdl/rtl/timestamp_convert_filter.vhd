@@ -13,18 +13,19 @@ entity timestamp_convert_filter is
     clk_sys_i   : in std_logic;
     rst_sys_n_i : in std_logic;
 
-    enable_i    : in std_logic_vector(4 downto 0);
-    reset_seq_i : in std_logic_vector(4 downto 0);
+    enable_i     : in std_logic_vector(4 downto 0);
+    reset_seq_i  : in std_logic_vector(4 downto 0);
+    raw_enable_i : in std_logic_vector(4 downto 0);
 
     -- raw timestamp input, clk_tdc_i domain
     ts_i       : in t_raw_acam_timestamp;
     ts_valid_i : in std_logic;
 
     -- converted and filtered timestamp output, clk_sys_i domain
-    ts_offset_i : in  t_tdc_timestamp_array(4 downto 0);
-    ts_o        : out t_tdc_timestamp_array(4 downto 0);
+    ts_offset_i : in     t_tdc_timestamp_array(4 downto 0);
+    ts_o        : out    t_tdc_timestamp_array(4 downto 0);
     ts_valid_o  : buffer std_logic_vector(4 downto 0);
-    ts_ready_i  : in  std_logic_vector(4 downto 0)
+    ts_ready_i  : in     std_logic_vector(4 downto 0)
     );
 
 
@@ -243,14 +244,30 @@ begin
         if rst_sys_n_i = '0' or enable_i(i) = '0' then
           ts_valid_o(i) <= '0';
         else
+
           if ts_ready_i(i) = '1' then
             ts_valid_o(i) <= '0';
           end if;
 
-          if ts_valid_postoffset(i) = '1' then
-            ts_valid_o(i) <= '1';
-            ts_o(i)       <= ts_postoffset(i);
+          if raw_enable_i(i) = '1' then
+
+            if ts_valid_sys = '1' and unsigned(ts_latched.channel) = i then
+              ts_valid_o(i) <= '1';
+              ts_o(i).tai       <= ts_latched.tai;
+              ts_o(i).coarse       <= ts_latched.coarse;
+--              ts_o(i).frac       <= ts_latched.n_bins;
+              ts_o(i).seq <= "000000000000000" & ts_latched.n_bins;
+            end if;
+
+          else
+
+            if ts_valid_postoffset(i) = '1' then
+              ts_valid_o(i) <= '1';
+              ts_o(i)       <= ts_postoffset(i);
+            end if;
+
           end if;
+
 
         end if;
       end if;
