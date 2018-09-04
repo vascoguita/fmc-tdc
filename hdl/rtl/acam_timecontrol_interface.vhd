@@ -72,7 +72,7 @@ entity acam_timecontrol_interface is
      rst_i                   : in std_logic; -- reset
      acam_refclk_r_edge_p_i  : in std_logic; -- pulse upon ACAM RefClk rising edge
 
-    -- upc_p from the WRabbit or the local generator 
+    -- upc_p from the WRabbit or the local generator
      utc_p_i                 : in std_logic;
 
     -- Signals from the data_engine unit
@@ -81,7 +81,7 @@ entity acam_timecontrol_interface is
     -- Signals from the reg_ctrl unit
      activate_acq_p_i        : in std_logic; -- signal from GN4124/VME to start following the ACAM chip
                                              -- for tstamps aquisition
-	 deactivate_acq_p_i      : in std_logic; -- acquisition deactivated
+     deactivate_acq_p_i      : in std_logic; -- acquisition deactivated
 
     -- Signals from the ACAM chip
      err_flag_i              : in std_logic; -- ACAM error flag, active HIGH; through ACAM config
@@ -93,8 +93,8 @@ entity acam_timecontrol_interface is
     -- Signals to the ACAM chip
      start_from_fpga_o       : out std_logic;
 
-     stop_dis_o              : out std_logic; 	
-    -- Signals to the 
+     stop_dis_o              : out std_logic;
+    -- Signals to the
      acam_errflag_r_edge_p_o : out std_logic; -- ACAM ErrFlag rising edge
      acam_errflag_f_edge_p_o : out std_logic; -- ACAM ErrFlag falling edge
      acam_intflag_f_edge_p_o : out std_logic);-- ACAM IntFlag falling edge
@@ -118,7 +118,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                            IntFlag and ERRflag Input Synchronizers                            --
----------------------------------------------------------------------------------------------------   
+---------------------------------------------------------------------------------------------------
 
   sync_err_flag : gc_sync_ffs
     port map (
@@ -150,18 +150,19 @@ begin
         start_pulse             <= '0';
         wait_for_state_active   <= '0';
         stop_dis_o              <= '1';
-	  else
+      else
         if activate_acq_p_i = '1' then
           wait_for_utc          <= '1';
           start_pulse           <= '0';
         elsif utc_p_i = '1' and wait_for_utc = '1' then
           wait_for_utc          <= '0';
           start_pulse           <= '1';
-		  wait_for_state_active <= '1';
-		elsif wait_for_state_active = '1' and state_active_p_i = '1' then -- data_engine starts following ACAM EF
-          stop_dis_o            <= '0'; 
-		  wait_for_state_active <= '0';
-		else
+          wait_for_state_active <= '1';
+        elsif wait_for_state_active = '1' and state_active_p_i = '1' then
+          -- data_engine starts following ACAM EF
+          stop_dis_o            <= '0';
+          wait_for_state_active <= '0';
+        else
           start_pulse           <= '0';
         end if;
       end if;
