@@ -26,7 +26,6 @@
 char git_version[] = "git_version: " GIT_VERSION;
 
 /* Previous time stamp for each channel */
-struct fmctdc_time ts_prev[FMCTDC_NUM_CHANNELS];
 static unsigned int stop = 0, fmt_wr = 0;
 
 enum tstamp_print_format {
@@ -86,6 +85,11 @@ static void print_ts(struct fmctdc_time ts, enum tstamp_print_format fmt)
 
 void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 {
+	static struct fmctdc_time ts_prev_lst[FMCTDC_NUM_CHANNELS] = {{0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0}};
 	struct fmctdc_time ts_tmp;
 	uint64_t ns;
 	double s, hz;
@@ -96,9 +100,6 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	print_ts(*ts, fmt_wr);
 	fprintf(stdout, "\n");
 
-	ts_tmp = *ts;
-	fmctdc_ts_sub(&ts_tmp, &ts_prev[ch]);
-
 	if (diff_mode) {
 		fprintf(stdout, "    refer to board seq %-12u\n",
 			ts->ref_gseq_id);
@@ -106,6 +107,9 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	}
 
 	/* We are in normal mode, calculate the difference */
+	ts_tmp = *ts;
+	fmctdc_ts_sub(&ts_tmp, &ts_prev_lst[ch]);
+
 	fprintf(stdout, "    diff ");
 	print_ts(ts_tmp, fmt_wr);
 
@@ -114,6 +118,8 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	s = ts_tmp.seconds + ((double)ns/1000000000ULL);
 	hz = 1/s;
 	fprintf(stdout, " [%f Hz]\n", hz);
+
+	ts_prev_lst[ch] = *ts;
 }
 
 /* We could use print_version from test-common.c, but to avoid creating
@@ -521,7 +527,6 @@ int main(int argc, char **argv)
 
 			if (n % n_show == 0)
 				dump(i, &ts[0], ref[i] < 0 ? 0 : 1);
-			ts_prev[i] = ts[n_ts - 1];
 			n += n_ts;
 		}
 	}
