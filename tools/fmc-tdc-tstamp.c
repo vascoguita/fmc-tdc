@@ -100,11 +100,8 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	print_ts(*ts, fmt_wr);
 	fprintf(stdout, "\n");
 
-	if (diff_mode) {
-		fprintf(stdout, "    refer to board seq %-12u\n",
-			ts->ref_gseq_id);
+	if (diff_mode)
 		return;
-	}
 
 	/* We are in normal mode, calculate the difference */
 	ts_tmp = *ts;
@@ -149,8 +146,6 @@ static void help(char *name)
 	fprintf(stderr, "  -n          : non-blocking mode\n");
 	fprintf(stderr, "  -s n_samples: dump 'n_samples' timestamps\n");
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
-	fprintf(stderr, "  -d <ch_ref>,<ch_tar>: difference between a reference channel and\n");
-	fprintf(stderr, "                        a target channel (<ch_tar> - <ch_ref>)\n");
 	fprintf(stderr, "  -f:           flush buffer\n");
 	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
 	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
@@ -253,7 +248,6 @@ int main(int argc, char **argv)
 	unsigned int dev_id = 0xFFFFFFFF;
 	struct fmctdc_time *ts;
 	int channels[FMCTDC_NUM_CHANNELS];
-	int ref[FMCTDC_NUM_CHANNELS], a, b;
 	int chan_count = 0, i, n, ch, fd, n_ts, ret, n_boards;
 	int nblock = 0, buflen = 16;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
@@ -290,11 +284,10 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
 		ch_cfg[i].mode = FMCTDC_TS_MODE_POST;
-		ref[i] = -1;
 	}
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:d:frm:l:Lc:VS:t:o:ea:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:frm:l:Lc:VS:t:o:ea:")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
@@ -341,24 +334,6 @@ int main(int argc, char **argv)
 			break;
 		case 'e':
 			stop_on_err = 1;
-			break;
-		case 'd':
-			sscanf(optarg, "%i,%i", &a, &b);
-			if (a < 0 || a > FMCTDC_CH_LAST) {
-				fprintf(stderr,
-					"%s: invalid reference channel %d\n",
-					argv[0], a);
-				help(argv[0]);
-				exit(EXIT_FAILURE);
-			}
-			if (b < 0 || b > FMCTDC_CH_LAST) {
-				fprintf(stderr,
-					"%s: invalid target channel %d\n",
-					argv[0], b);
-				help(argv[0]);
-				exit(EXIT_FAILURE);
-			}
-			ref[b] = a;
 			break;
 		case 'L':
 			last = 1;
@@ -452,17 +427,6 @@ int main(int argc, char **argv)
 		p[ch].fd = channels[ch];
 		p[ch].events = POLLIN | POLLERR;
 
-		ret = fmctdc_reference_set(brd, ch, ref[ch]);
-		if (ret) {
-			fprintf(stderr,
-				"%s: cannot set reference mode: %s\n",
-				argv[0], fmctdc_strerror(errno));
-			fprintf(stderr,
-				"%s: continue in normal mode: %s\n",
-				argv[0], fmctdc_strerror(errno));
-			ref[ch] = -1;
-		}
-
 		if (timeout_ms > 0) {
 			ret = fmctdc_coalescing_timeout_set(brd, ch, timeout_ms);
 			if (ret) {
@@ -539,7 +503,7 @@ int main(int argc, char **argv)
 				stop = 1;
 
 			if (n % n_show == 0)
-				dump(chan, &ts[0], ref[chan] < 0 ? 0 : 1);
+				dump(chan, &ts[0], 0);
 			n += n_ts;
 		}
 	}
@@ -549,8 +513,6 @@ err_acq:
 out:
 	/* Restore default time-stamping */
 	for (i = 0; i <= FMCTDC_CH_LAST; i++) {
-		if (channels[i] > 0)
-			fmctdc_reference_clear(brd, -1);
 		if (!read)
 			ret = fmctdc_channel_disable(brd, i);
 		if (ret)
