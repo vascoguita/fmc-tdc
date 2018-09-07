@@ -185,45 +185,56 @@ static void termination_handler(int signum)
 }
 
 
-static int tstamp_testing_mode_1(struct fmctdc_time *ts, unsigned int n)
+static int tstamp_testing_mode_1(struct fmctdc_time *ts,
+				 unsigned int chan,
+				 unsigned int n)
 {
 	/* any previous timestamp , that's why I use static */
-	static struct fmctdc_time ts_prev = {0, 0, 0, -1, 0};
+	static struct fmctdc_time ts_prev_lst[FMCTDC_NUM_CHANNELS] = {{0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0},
+								      {0, 0, 0, -1, 0}};
+	struct fmctdc_time *ts_tmp;
 	uint64_t ns_p, ns_c;
 	int i;
 
-	for (i = 0; i < n; ts_prev = ts[i], ++i) {
-		if (ts_prev.seq_id == -1)
+	ts_tmp = &ts_prev_lst[chan];
+
+	for (i = 0; i < n; *ts_tmp = ts[i], ++i) {
+		if (ts_tmp->seq_id == -1)
 			continue;
-		if (ts_prev.seq_id + 1 != ts[i].seq_id && ts[i].seq_id != 0) {
+		if (ts_tmp->seq_id + 1 != ts[i].seq_id && ts[i].seq_id != 0) {
 			fprintf(stderr,
 				"*** Invalid sequence number. Previous %d, current %d, expected +1\n",
-				ts_prev.seq_id, ts[i].seq_id);
+				ts_tmp->seq_id, ts[i].seq_id);
 			goto err;
 		}
-		ns_p = fmctdc_ts_approx_ns(&ts_prev);
+		ns_p = fmctdc_ts_approx_ns(ts_tmp);
 		ns_c = fmctdc_ts_approx_ns(&ts[i]);
 		if (ns_p >= ns_c) {
 			fprintf(stderr,
 				"*** Invalid timestamp. Previous %d %"PRIu64"ns, current %d %"PRIu64"ns current one should be greater\n",
-				ts_prev.seq_id, ns_p, ts[i].seq_id, ns_c);
+				ts_tmp->seq_id, ns_p, ts[i].seq_id, ns_c);
 			goto err;
 		}
 	}
 	return 0;
 err:
-	ts_prev = ts[n - 1];
+	*ts_tmp = ts[n - 1];
 	return -EINVAL;
 }
 
-static int tstamp_testing_mode(struct fmctdc_time *ts, unsigned int n,
+static int tstamp_testing_mode(struct fmctdc_time *ts,
+			       unsigned int chan,
+			       unsigned int n,
 			       enum tstamp_testing_modes mode)
 {
 	int err = 0;
 
 	switch (mode) {
 	case TST_MODE_1:
-		err = tstamp_testing_mode_1(ts, n);
+		err = tstamp_testing_mode_1(ts, chan, n);
 		break;
 	default:
 		break;
@@ -503,17 +514,19 @@ int main(int argc, char **argv)
 
 		/* Now we can read the timestamp */
 		for (i = 0; i < chan_count; i++) {
-			fd = channels[ch_valid[i]];
+			unsigned int chan = ch_valid[i];
+
+			fd = channels[chan];
 			if (fd < 0)
 				continue;
 
 			/* Read from buffer */
 			if (last) {
-				n_ts = fmctdc_read_last(brd, i, ts);
+				n_ts = fmctdc_read_last(brd, chan, ts);
 			} else {
-				if (!(p[ch_valid[i]].revents & POLLIN))
+				if (!(p[chan].revents & POLLIN))
 					continue;
-				n_ts = fmctdc_read(brd, i, ts, n_show,
+				n_ts = fmctdc_read(brd, chan, ts, n_show,
 						   nblock ? O_NONBLOCK : 0);
 				if (n_ts < 0)
 					goto err_acq;
@@ -521,12 +534,12 @@ int main(int argc, char **argv)
 			if (n_ts == 0) /* no timestamp */
 				continue;
 
-			ret = tstamp_testing_mode(ts, n_ts, mode);
+			ret = tstamp_testing_mode(ts, chan, n_ts, mode);
 			if (ret && stop_on_err)
 				stop = 1;
 
 			if (n % n_show == 0)
-				dump(i, &ts[0], ref[i] < 0 ? 0 : 1);
+				dump(chan, &ts[0], ref[chan] < 0 ? 0 : 1);
 			n += n_ts;
 		}
 	}
