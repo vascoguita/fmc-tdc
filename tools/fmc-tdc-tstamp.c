@@ -238,7 +238,9 @@ static int tstamp_testing_mode(struct fmctdc_time *ts,
 	return err;
 }
 
+#define FMCTDC_CFG_VALID (1 << 0)
 struct fmctdc_config_chan {
+	unsigned long flags;
 	enum fmctdc_ts_mode mode;
 };
 
@@ -283,6 +285,7 @@ int main(int argc, char **argv)
 	}
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		ch_cfg[i].flags = 0;
 		ch_cfg[i].mode = FMCTDC_TS_MODE_POST;
 	}
 
@@ -345,7 +348,15 @@ int main(int argc, char **argv)
 					argv[0],  FMCTDC_NUM_CHANNELS);
 				break;
 			}
-			sscanf(optarg, "%i", &ch_valid[chan_count++]);
+			ret = sscanf(optarg, "%i", &tmp);
+			if (ret != 1 || tmp >= FMCTDC_NUM_CHANNELS) {
+				fprintf(stderr, "%s: invalid channel number %u\n",
+					argv[0], tmp);
+				help(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+			ch_valid[chan_count++] = tmp;
+			ch_cfg[tmp].flags |= FMCTDC_CFG_VALID;
 			break;
 		case 'S':
 			sscanf(optarg, "%i", &n_show);
@@ -400,14 +411,20 @@ int main(int argc, char **argv)
 	/* Open Channels from command line */
 	memset(channels, 0, sizeof(channels));
 	memset(p, 0, sizeof(p));
-	if (!chan_count)
+	if (!chan_count) {
 		chan_count = FMCTDC_NUM_CHANNELS;
+		for (i = 0; i < FMCTDC_NUM_CHANNELS; i++)
+			ch_cfg[i].flags |= FMCTDC_CFG_VALID;
+	}
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; i++) {
+		if ((ch_cfg[i].flags & FMCTDC_CFG_VALID) == 0)
+			continue;
+
 		ret = fmctdc_ts_mode_set(brd, i, ch_cfg[i].mode);
 		if (ret) {
 			fprintf(stderr,
-				"%s: chan %d: cannot set time-stamp mode: %s. Use default\n",
+				"%s: chan %d: cannot set time-stamp mode: %s.\n",
 				argv[0], i, fmctdc_strerror(errno));
 		}
 	}
