@@ -94,6 +94,7 @@ entity data_formatting is
      clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
      roll_over_nb_i          : in std_logic_vector(31 downto 0);
      retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
+     current_retrig_nb_i     : in std_logic_vector(31 downto 0);
 
      -- Signal from the WRabbit core or the one_hz_generator unit
      utc_p_i : in std_logic;
@@ -200,13 +201,13 @@ begin
         acam_channel        <= "0" & acam_tstamp1_i(27 downto 26);
         acam_fine_timestamp <= acam_tstamp1_i(16 downto 0);
         acam_slope          <= acam_tstamp1_i(17);
-        acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18))-1;
+        acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18));
 
       elsif acam_tstamp2_ok_p_i = '1' then
         acam_channel        <= "1" & acam_tstamp2_i(27 downto 26);
         acam_fine_timestamp <= acam_tstamp2_i(16 downto 0);
         acam_slope          <= acam_tstamp2_i(17);
-        acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18))-1;
+        acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18));
       end if;
     end if;
   end process;
@@ -290,7 +291,7 @@ begin
           un_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
           utc                    <= utc_i;
           coarse_zero            <= '0';
-          if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
+          if acam_start_nb = 255 and unsigned(current_retrig_nb_i) = 0 then
             un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i)-1, 8);
           else
             un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i), 8);

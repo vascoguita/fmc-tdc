@@ -509,6 +509,7 @@ begin
      clk_i_cycles_offset_i   => clk_i_cycles_offset,
      roll_over_nb_i          => roll_over_nb,
      retrig_nb_offset_i      => retrig_nb_offset,
+     current_retrig_nb_i     => current_retrig_nb,
      utc_p_i                 => utc_p,
      utc_i                   => utc,
      timestamp_o             => timestamp,

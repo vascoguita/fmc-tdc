@@ -718,6 +718,7 @@ package tdc_core_pkg is
       clk_i_cycles_offset_i   : in  std_logic_vector(31 downto 0);
       roll_over_nb_i          : in  std_logic_vector(31 downto 0);
       retrig_nb_offset_i      : in  std_logic_vector(31 downto 0);
+      current_retrig_nb_i     : in std_logic_vector(31 downto 0);
       utc_p_i                 : in  std_logic;
       timestamp_o             : out std_logic_vector(127 downto 0);
       timestamp_valid_o       : out std_logic);
