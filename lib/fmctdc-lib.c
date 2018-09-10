@@ -285,6 +285,11 @@ int fmctdc_close(struct fmctdc_board *userb)
 	__define_board(b, userb);
 	int j;
 
+	if (!b) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 		if (b->fdc[j] >= 0)
 			close(b->fdc[j]);
