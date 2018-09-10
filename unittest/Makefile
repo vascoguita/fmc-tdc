@@ -9,8 +9,9 @@ REPO_PARENT ?= ../..
 
 DESTDIR ?= /usr/local/
 LIBTDC = ../lib/
+LIBMAMMA = ../mamma/lib/
 
-CFLAGS = -ggdb -I. -I$(LIBTDC) -I../kernel -Wall -Werror $(EXTRACFLAGS)
+CFLAGS = -O0 -ggdb -I. -I$(LIBTDC) -I$(LIBMAMMA) -I../kernel -Wall -Werror $(EXTRACFLAGS)
 GIT_VERSION := $(shell git describe --dirty --long --tags)
 CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
 
@@ -19,7 +20,7 @@ LDLIBS = -lfmctdc -lrt
 
 all: fmctdc-ut
 
-fmctdc-ut: fmctdc-ut.c $(LIBTDC)/libfmctdc.a
+fmctdc-ut: fmctdc-ut.c $(LIBTDC)/libfmctdc.a $(LIBMAMMA)/libmamma.a
 
 clean:
 	rm -f $(TESTS) test-common.o

@@ -25,7 +25,7 @@ ZIO_VERSION = $(shell cd $(ZIO_ABS); git describe --always --dirty --long --tags
 export ZIO_VERSION
 
 
-DIRS = $(FMC_BUS_ABS) $(ZIO_ABS) kernel lib tools
+DIRS = $(FMC_BUS_ABS) $(ZIO_ABS) kernel lib tools mamma/lib unittest
 
 kernel: $(FMC_BUS_ABS) $(ZIO_ABS)
 lib: $(ZIO_ABS)
