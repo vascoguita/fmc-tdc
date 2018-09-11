@@ -196,33 +196,33 @@ entity wr_spec_tdc is
     -- GN4124 PCI bridge pins
     ------------------------------------------------------------------------
 
-    gn_rst_n      : in    std_logic;    -- reset from gn4124 (rstout18_n)
+    gn_rst_n      : in  std_logic;      -- reset from gn4124 (rstout18_n)
     -- general purpose interface
     gn_gpio       : out std_logic_vector(1 downto 0);  -- gpio[0] -> gn4124 gpio8
     -- pcie to local [inbound data] - rx
-    gn_p2l_rdy    : out   std_logic;    -- rx buffer full flag
-    gn_p2l_clkn   : in    std_logic;    -- receiver source synchronous clock-
-    gn_p2l_clkp   : in    std_logic;    -- receiver source synchronous clock+
-    gn_p2l_data   : in    std_logic_vector(15 downto 0);  -- parallel receive data
-    gn_p2l_dframe : in    std_logic;    -- receive frame
-    gn_p2l_valid  : in    std_logic;    -- receive data valid
+    gn_p2l_rdy    : out std_logic;      -- rx buffer full flag
+    gn_p2l_clkn   : in  std_logic;      -- receiver source synchronous clock-
+    gn_p2l_clkp   : in  std_logic;      -- receiver source synchronous clock+
+    gn_p2l_data   : in  std_logic_vector(15 downto 0);  -- parallel receive data
+    gn_p2l_dframe : in  std_logic;      -- receive frame
+    gn_p2l_valid  : in  std_logic;      -- receive data valid
     -- inbound buffer request/status
-    gn_p_wr_req   : in    std_logic_vector(1 downto 0);  -- pcie write request
-    gn_p_wr_rdy   : out   std_logic_vector(1 downto 0);  -- pcie write ready
-    gn_rx_error   : out   std_logic;    -- receive error
+    gn_p_wr_req   : in  std_logic_vector(1 downto 0);  -- pcie write request
+    gn_p_wr_rdy   : out std_logic_vector(1 downto 0);  -- pcie write ready
+    gn_rx_error   : out std_logic;      -- receive error
     -- local to parallel [outbound data] - tx
-    gn_l2p_data   : out   std_logic_vector(15 downto 0);  -- parallel transmit data
-    gn_l2p_dframe : out   std_logic;    -- transmit data frame
-    gn_l2p_valid  : out   std_logic;    -- transmit data valid
-    gn_l2p_clkn   : out   std_logic;  -- transmitter source synchronous clock-
-    gn_l2p_clkp   : out   std_logic;  -- transmitter source synchronous clock+
-    gn_l2p_edb    : out   std_logic;    -- packet termination and discard
+    gn_l2p_data   : out std_logic_vector(15 downto 0);  -- parallel transmit data
+    gn_l2p_dframe : out std_logic;      -- transmit data frame
+    gn_l2p_valid  : out std_logic;      -- transmit data valid
+    gn_l2p_clkn   : out std_logic;  -- transmitter source synchronous clock-
+    gn_l2p_clkp   : out std_logic;  -- transmitter source synchronous clock+
+    gn_l2p_edb    : out std_logic;      -- packet termination and discard
     -- outbound buffer status
-    gn_l2p_rdy    : in    std_logic;    -- tx buffer full flag
-    gn_l_wr_rdy   : in    std_logic_vector(1 downto 0);  -- local-to-pcie write
-    gn_p_rd_d_rdy : in    std_logic_vector(1 downto 0);  -- pcie-to-local read response data ready
-    gn_tx_error   : in    std_logic;    -- transmit error
-    gn_vc_rdy     : in    std_logic_vector(1 downto 0);  -- channel ready
+    gn_l2p_rdy    : in  std_logic;      -- tx buffer full flag
+    gn_l_wr_rdy   : in  std_logic_vector(1 downto 0);  -- local-to-pcie write
+    gn_p_rd_d_rdy : in  std_logic_vector(1 downto 0);  -- pcie-to-local read response data ready
+    gn_tx_error   : in  std_logic;      -- transmit error
+    gn_vc_rdy     : in  std_logic_vector(1 downto 0);  -- channel ready
 
     ------------------------------------------------------------------------
     -- Interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
@@ -293,8 +293,8 @@ entity wr_spec_tdc is
     sim_wb_i : in  t_wishbone_slave_in := cc_dummy_slave_in;
     sim_wb_o : out t_wishbone_slave_out;
 
-    sim_timestamp_i : in t_tdc_timestamp := c_dummy_timestamp;
-    sim_timestamp_valid_i : in std_logic := '0';
+    sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
+    sim_timestamp_valid_i : in  std_logic       := '0';
     sim_timestamp_ready_o : out std_logic
 -- synthesis translate_on
 
@@ -309,34 +309,34 @@ architecture rtl of wr_spec_tdc is
 
   component ddr3_ctrl is
     generic (
-          --! Bank and port size selection
-    g_BANK_PORT_SELECT   : string  := "SPEC_BANK3_32B_32B";
-    --! Core's clock period in ps
-    g_MEMCLK_PERIOD      : integer := 3000;
-    --! If TRUE, uses Xilinx calibration core (Input term, DQS centering)
-    g_CALIB_SOFT_IP      : string  := "TRUE";
-    --! User ports addresses maping (BANK_ROW_COLUMN or ROW_BANK_COLUMN)
-    g_MEM_ADDR_ORDER     : string  := "ROW_BANK_COLUMN";
-    --! Simulation mode
-    g_SIMULATION         : string  := "FALSE";
-    --! DDR3 data port width
-    g_NUM_DQ_PINS        : integer := 16;
-    --! DDR3 address port width
-    g_MEM_ADDR_WIDTH     : integer := 14;
-    --! DDR3 bank address width
-    g_MEM_BANKADDR_WIDTH : integer := 3;
-    --! Wishbone port 0 data mask size (8-bit granularity)
-    g_P0_MASK_SIZE       : integer := 4;
-    --! Wishbone port 0 data width
-    g_P0_DATA_PORT_SIZE  : integer := 32;
-    --! Port 0 byte address width
-    g_P0_BYTE_ADDR_WIDTH : integer := 30;
-    --! Wishbone port 1 data mask size (8-bit granularity)
-    g_P1_MASK_SIZE       : integer := 4;
-    --! Wishbone port 1 data width
-    g_P1_DATA_PORT_SIZE  : integer := 32;
-    --! Port 1 byte address width
-    g_P1_BYTE_ADDR_WIDTH : integer := 30);
+      --! Bank and port size selection
+      g_BANK_PORT_SELECT   : string  := "SPEC_BANK3_32B_32B";
+      --! Core's clock period in ps
+      g_MEMCLK_PERIOD      : integer := 3000;
+      --! If TRUE, uses Xilinx calibration core (Input term, DQS centering)
+      g_CALIB_SOFT_IP      : string  := "TRUE";
+      --! User ports addresses maping (BANK_ROW_COLUMN or ROW_BANK_COLUMN)
+      g_MEM_ADDR_ORDER     : string  := "ROW_BANK_COLUMN";
+      --! Simulation mode
+      g_SIMULATION         : string  := "FALSE";
+      --! DDR3 data port width
+      g_NUM_DQ_PINS        : integer := 16;
+      --! DDR3 address port width
+      g_MEM_ADDR_WIDTH     : integer := 14;
+      --! DDR3 bank address width
+      g_MEM_BANKADDR_WIDTH : integer := 3;
+      --! Wishbone port 0 data mask size (8-bit granularity)
+      g_P0_MASK_SIZE       : integer := 4;
+      --! Wishbone port 0 data width
+      g_P0_DATA_PORT_SIZE  : integer := 32;
+      --! Port 0 byte address width
+      g_P0_BYTE_ADDR_WIDTH : integer := 30;
+      --! Wishbone port 1 data mask size (8-bit granularity)
+      g_P1_MASK_SIZE       : integer := 4;
+      --! Wishbone port 1 data width
+      g_P1_DATA_PORT_SIZE  : integer := 32;
+      --! Port 1 byte address width
+      g_P1_BYTE_ADDR_WIDTH : integer := 30);
     port (
       clk_i            : in    std_logic;
       rst_n_i          : in    std_logic;
@@ -407,7 +407,7 @@ architecture rtl of wr_spec_tdc is
       p1_wr_underrun_o : out   std_logic;
       p1_wr_error_o    : out   std_logic);
   end component ddr3_ctrl;
-  
+
 
   function f_bool2int (x : boolean) return integer is
   begin
@@ -476,7 +476,7 @@ architecture rtl of wr_spec_tdc is
         date      => x"20121116",
         name      => "WB-DMA.Control     ")));
 
-    constant c_wb_dma_eic_sdb : t_sdb_device := (
+  constant c_wb_dma_eic_sdb : t_sdb_device := (
     abi_class     => x"0000",              -- undocumented device
     abi_ver_major => x"01",
     abi_ver_minor => x"01",
@@ -498,7 +498,7 @@ architecture rtl of wr_spec_tdc is
      1 => f_sdb_embed_device (c_xwb_vic_sdb, x"00030000"),  -- c_xwb_vic_sdb described in the wishbone_pkg
      2 => f_sdb_embed_bridge (c_FMC_TDC_SDB_BRIDGE, x"00040000"),
      3 => f_sdb_embed_device(c_wb_dma_ctrl_sdb, x"00050000"),
-     4 => f_sdb_embed_device(c_wb_dma_eic_sdb,  x"00060000"),
+     4 => f_sdb_embed_device(c_wb_dma_eic_sdb, x"00060000"),
      5 => f_sdb_embed_bridge (c_WRCORE_BRIDGE_SDB, x"00080000"),
      6 => f_sdb_embed_repo_url (c_SDB_REPO_URL),
      7 => f_sdb_embed_synthesis (c_sdb_synthesis_info));
@@ -515,11 +515,11 @@ architecture rtl of wr_spec_tdc is
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
   -- Clocks and resets
-  signal clk_sys_62m5              : std_logic;
-  signal rst_sys_62m5_n            : std_logic;
-  signal clk_ref_125m : std_logic;
-  signal rst_ref_125_n : std_logic;
-  
+  signal clk_sys_62m5   : std_logic;
+  signal rst_sys_62m5_n : std_logic;
+  signal clk_ref_125m   : std_logic;
+  signal rst_ref_125_n  : std_logic;
+
   -- DAC configuration through PCIe/VME
   -- WISHBONE from crossbar master port
   signal cnx_master_out            : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
@@ -576,13 +576,13 @@ architecture rtl of wr_spec_tdc is
   signal tdc_dma_out : t_wishbone_master_out;
   signal tdc_dma_in  : t_wishbone_master_in;
 
-  signal clk_ddr_333m : std_logic;
-  signal ddr3_calib_done      : std_logic;
-  signal dma_irq              : std_logic_vector(1 downto 0);
-  signal ddr_wr_fifo_empty    : std_logic;
-  signal dma_eic_irq : std_logic;
-  
- 
+  signal clk_ddr_333m      : std_logic;
+  signal ddr3_calib_done   : std_logic;
+  signal dma_irq           : std_logic_vector(1 downto 0);
+  signal ddr_wr_fifo_empty : std_logic;
+  signal dma_eic_irq       : std_logic;
+
+
   signal ddr3_status : std_logic_vector(31 downto 0);
 
   function f_to_string(x : boolean) return string is
@@ -596,21 +596,21 @@ architecture rtl of wr_spec_tdc is
   signal dma_reg_adr : std_logic_vector(31 downto 0);
 
   signal sim_ts_valid, sim_ts_ready : std_logic;
-  signal sim_ts : t_tdc_timestamp;
-  
-  
+  signal sim_ts                     : t_tdc_timestamp;
+
+
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
 
   -- synthesis translate_off
-  sim_ts <= sim_timestamp_i;
-  sim_ts_valid <= sim_timestamp_valid_i;
+  sim_ts                <= sim_timestamp_i;
+  sim_ts_valid          <= sim_timestamp_valid_i;
   sim_timestamp_ready_o <= sim_ts_ready;
   -- synthesis translate_on
-  
-  
+
+
 
   tdc0_soft_rst_n <= carrier_info_fmc_rst(0) and rst_sys_62m5_n;
 
@@ -625,7 +625,7 @@ begin
       g_aux_clks                  => 1,
       g_dpram_initf               => "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram",
       g_fabric_iface              => PLAIN,
-      g_enable_wr_core => false)
+      g_enable_wr_core            => true)
     port map (
       areset_n_i              => button1_i,
       areset_edge_n_i         => gn_rst_n,
@@ -634,12 +634,12 @@ begin
       clk_125m_pllref_n_i     => clk_125m_pllref_n_i,
       clk_125m_gtp_n_i        => clk_125m_gtp_n_i,
       clk_125m_gtp_p_i        => clk_125m_gtp_p_i,
-      clk_ddr_o => clk_ddr_333m,
-      clk_ref_125m_o => clk_ref_125m,
+      clk_ddr_o               => clk_ddr_333m,
+      clk_ref_125m_o          => clk_ref_125m,
       clk_sys_62m5_o          => clk_sys_62m5,
       clk_aux_i(0)            => tdc0_clk_125m,
       rst_sys_62m5_n_o        => rst_sys_62m5_n,
-      rst_ref_125m_n_o => rst_ref_125_n,
+      rst_ref_125m_n_o        => rst_ref_125_n,
       plldac_sclk_o           => wr_dac_sclk_o,
       plldac_din_o            => wr_dac_din_o,
       pll25dac_cs_n_o         => wr_25dac_cs_n_o,
@@ -822,9 +822,9 @@ begin
 
   cmp_tdc_mezzanine : entity work.fmc_tdc_wrapper
     generic map (
-      g_simulation          => g_simulation,
-      g_with_direct_readout => false,
-      g_use_dma_readout     => g_use_dma_readout,
+      g_simulation                  => g_simulation,
+      g_with_direct_readout         => false,
+      g_use_dma_readout             => g_use_dma_readout,
       g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
     port map (
       clk_sys_i            => clk_sys_62m5,
@@ -902,7 +902,7 @@ begin
      slave_i      => cnx_master_out(c_WB_SLAVE_VIC),
      slave_o      => cnx_master_in(c_WB_SLAVE_VIC),
      irqs_i(0)    => tdc0_irq,
-     irqs_i(1) => dma_eic_irq,
+     irqs_i(1)    => dma_eic_irq,
      irq_master_o => irq_to_gn4124);
 
   gn_gpio(0) <= irq_to_gn4124;
@@ -928,7 +928,7 @@ begin
       irq_dma_done_i  => dma_irq(0),
       irq_dma_error_i => dma_irq(1)
       );
-  
+
 ---------------------------------------------------------------------------------------------------
 --                                    Carrier CSR information                                    --
 ---------------------------------------------------------------------------------------------------
@@ -1062,7 +1062,7 @@ begin
       );
 
 
-  ddr3_tdc_adr <= "00" & tdc_dma_out.adr(31 downto 2);
+  ddr3_tdc_adr    <= "00" & tdc_dma_out.adr(31 downto 2);
   ddr3_calib_done <= ddr3_status(0);
 
   -- unused Wishbone signals

@@ -223,6 +223,8 @@ NET "pll_sdi_o" LOC = "AA18";
 NET "pll_sdi_o" IOSTANDARD = "LVCMOS25";
 NET "start_from_fpga_o" LOC = "W17";
 NET "start_from_fpga_o" IOSTANDARD = "LVCMOS25";
+NET "start_from_fpga_o" SLEW =  SLOW;
+NET "start_from_fpga_o" DRIVE = 4;
 NET "data_bus_io[27]" LOC = "AB4";
 NET "data_bus_io[27]" IOSTANDARD = "LVCMOS25";
 NET "data_bus_io[26]" LOC = "AA4";
@@ -289,10 +291,18 @@ NET "address_o[0]" LOC = "T12";
 NET "address_o[0]" IOSTANDARD = "LVCMOS25";
 NET "oe_n_o" LOC = "V13";
 NET "oe_n_o" IOSTANDARD = "LVCMOS25";
+NET "oe_n_o" SLEW =  SLOW;
+NET "oe_n_o" DRIVE = 4;
 NET "rd_n_o" LOC = "AB13";
 NET "rd_n_o" IOSTANDARD = "LVCMOS25";
+NET "rd_n_o" SLEW =  SLOW;
+NET "rd_n_o" DRIVE = 4;
 NET "wr_n_o" LOC = "Y13";
 NET "wr_n_o" IOSTANDARD = "LVCMOS25";
+NET "wr_n_o" SLEW =  SLOW;
+NET "wr_n_o" DRIVE = 4;
+
+
 NET "enable_inputs_o" LOC = "C19";
 NET "enable_inputs_o" IOSTANDARD = "LVCMOS25";
 NET "mezz_onewire_b" LOC = "A19";
@@ -532,15 +542,14 @@ TIMESPEC ts_ignore_xclock2 = FROM "clk_125m_pllref_p_i" TO "clk_sys_62m5" 10ns D
 TIMESPEC ts_x3 = FROM "clk_sys_62m5" TO "U_GTP_ch1_rx_divclk" 10ns DATAPATHONLY;
 TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_sys_62m5" 10ns DATAPATHONLY;
 
-
 #Created by Constraints Editor (xc6slx150t-fgg900-3) - 2017/12/06
 NET "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" TNM_NET = cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>;
 TIMESPEC TS_cmp_xwrc_board_spec_cmp_xwrc_platform_gen_phy_spartan6_cmp_gtp_ch1_gtp_clkout_int_1_ = PERIOD "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
 
-#INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
-#INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
+INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
+INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
 
-#TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 2 ns DATAPATHONLY;
+TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 2 ns DATAPATHONLY;
 
 NET "*/memc3_wrapper_inst/memc3_mcb_raw_wrapper_inst/selfrefresh_mcb_mode" TIG;
 NET "*/memc3_wrapper_inst/memc3_mcb_raw_wrapper_inst/hard_done_cal" TIG;
