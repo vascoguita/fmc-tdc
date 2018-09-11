@@ -63,7 +63,8 @@ enum ft_transfer_mode {
  */
 enum fmctdc_ts_mode {
 	FMCTDC_TS_MODE_POST = 0, /**< after post-processing */
-	FMCTDC_TS_MODE_RAW, /**< directly from ACAM chip */
+	FMCTDC_TS_MODE_RAW, /**< directly from ACAM chip. This should be used
+			       ONLY when debugging low level issues */
 };
 
 /**
