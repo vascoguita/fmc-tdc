@@ -6,7 +6,7 @@
 -- Author     : Tomasz Wlostowski
 -- Company    : CERN
 -- Created    : 2011-08-29
--- Last update: 2018-09-03
+-- Last update: 2018-09-10
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -74,6 +74,7 @@ architecture rtl of tdc_ts_addsub is
     coarse : signed(31 downto 0);
     frac   : signed(15 downto 0);
     seq : std_logic_vector(31 downto 0);
+    meta : std_logic_vector(31 downto 0);
     slope : std_logic;
   end record;
 
@@ -101,6 +102,7 @@ begin  -- rtl
         sums(0).tai <= signed( resize(unsigned(a_i.tai) + unsigned(b_i.tai), 33) );
         sums(0).seq <= a_i.seq;
         sums(0).slope <= a_i.slope;
+        sums(0).meta <= a_i.meta;
         
         sums(0).frac   <= signed( resize(unsigned(a_i.frac),16) + resize(unsigned(b_i.frac), 16) );
         sums(0).coarse <= signed(resize(unsigned(a_i.coarse), sums(0).coarse'length) +
@@ -127,6 +129,7 @@ begin  -- rtl
         pipe(1) <= pipe(0);
 
         sums(1).seq <= sums(0).seq;
+        sums(1).meta <= sums(0).meta;
         sums(1).slope <= sums(0).slope;
         
         
@@ -190,6 +193,7 @@ begin  -- rtl
         pipe(3) <= pipe(2);
         sums(3).seq <= sums(2).seq;
         sums(3).slope <= sums(2).slope;
+        sums(3).meta <= sums(2).meta;
 
         if(unf_coarse = "10") then
           sums(3).coarse <= sums(2).coarse + g_coarse_range;
@@ -221,5 +225,5 @@ begin  -- rtl
   q_o.frac  <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).frac(11 downto 0));
   q_o.seq <= sums(c_NUM_PIPELINE_STAGES-1).seq;
   q_o.slope <= sums(c_NUM_PIPELINE_STAGES-1).slope;
-  
+  q_o.meta <=  sums(c_NUM_PIPELINE_STAGES-1).meta;
 end rtl;

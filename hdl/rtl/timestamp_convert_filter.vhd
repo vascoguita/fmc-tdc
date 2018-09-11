@@ -5,6 +5,7 @@ use ieee.NUMERIC_STD.all;
 
 use work.tdc_core_pkg.all;
 use work.gencores_pkg.all;
+use work.genram_pkg.all;
 
 entity timestamp_convert_filter is
   port (
@@ -18,7 +19,7 @@ entity timestamp_convert_filter is
     raw_enable_i : in std_logic_vector(4 downto 0);
 
     -- raw timestamp input, clk_tdc_i domain
-    ts_i       : in t_raw_acam_timestamp;
+    ts_i       : in t_acam_timestamp;
     ts_valid_i : in std_logic;
 
     -- converted and filtered timestamp output, clk_sys_i domain
@@ -68,35 +69,62 @@ architecture rtl of timestamp_convert_filter is
 
   signal ts_valid_sys : std_logic;
 
-  signal ts_latched : t_raw_acam_timestamp;
+  signal fifo_we, fifo_rd, fifo_empty, fifo_full, fifo_rd_d : std_logic;
+  signal fifo_d, fifo_q : std_logic_vector(127 downto 0);
+  
+  signal ts_fifo_out : t_acam_timestamp;
 
   signal ts_valid_preoffset, ts_ready_preoffset, ts_valid_postoffset : std_logic_vector(4 downto 0);
   signal ts_preoffset, ts_postoffset                                 : t_tdc_timestamp_array(4 downto 0);
+  signal s1_meta, s2_meta, s3_meta                                      : std_logic_vector(31 downto 0);
 
-begin
-
-
-
-  U_Sync_TS_Valid : gc_pulse_synchronizer2
-    port map (
-      clk_in_i    => clk_tdc_i,
-      rst_in_n_i  => rst_tdc_n_i,
-      clk_out_i   => clk_sys_i,
-      rst_out_n_i => rst_sys_n_i,
-      d_ready_o   => open,
-      d_p_i       => ts_valid_i,
-      q_p_o       => ts_valid_sys);
-
-
-  process(clk_tdc_i)
+  function f_pack_acam_timestamp (ts : t_acam_timestamp) return std_logic_vector is
+    variable rv : std_logic_vector(127 downto 0);
   begin
-    if rising_edge(clk_tdc_i) then
-      if ts_valid_i = '1' then
-        ts_latched <= ts_i;
-      end if;
-    end if;
-  end process;
+    rv(31 downto 0)   := ts.tai;
+    rv(63 downto 32)  := ts.coarse;
+    rv(80 downto 64)  := ts.n_bins;
+    rv(83 downto 81)  := ts.channel;
+    rv(84)            := ts.slope;
+    rv(116 downto 85) := ts.meta;
+    return rv;
+  end f_pack_acam_timestamp;
 
+  function f_unpack_acam_timestamp ( p : std_logic_vector ) return t_acam_timestamp is
+    variable ts : t_acam_timestamp;
+  begin
+    ts.tai := p(31 downto 0);
+    ts.coarse := p(63 downto 32);
+    ts.n_bins := p(80 downto 64);
+    ts.channel := p(83 downto 81);
+    ts.slope := p(84);
+    ts.meta := p(116 downto 85);
+    return ts;
+  end f_unpack_acam_timestamp;
+
+  
+    begin
+
+  fifo_d <= f_pack_acam_timestamp(ts_i);
+  fifo_we <= ts_valid_i;
+
+  U_Sync_FIFO: generic_async_fifo
+    generic map (
+      g_data_width             => 128,
+      g_size                   => 16,
+      g_show_ahead             => false)
+    port map (
+      rst_n_i           => rst_sys_n_i,
+      clk_wr_i          => clk_tdc_i,
+      d_i               => fifo_d,
+      we_i              => fifo_we,
+      clk_rd_i          => clk_sys_i,
+      q_o               => fifo_q,
+      rd_i              => fifo_rd,
+      rd_empty_o        => fifo_empty);
+  
+  ts_fifo_out <= f_unpack_acam_timestamp(fifo_q);
+  fifo_rd <= not fifo_empty;
 
   process(clk_sys_i)
   begin
@@ -105,18 +133,22 @@ begin
         s1_valid <= '0';
         s2_valid <= '0';
         s3_valid <= '0';
+        fifo_rd_d <= '0';
       else
+
+        fifo_rd_d <= fifo_rd;
 
         -- 64/125 = 4096/8000: reduce fraction to avoid 64-bit division 
         -- frac = hwts->bins * 81 * 64 / 125;
 
         -- stage 1: scale frac
-        s1_frac_scaled <= resize ((unsigned(ts_i.n_bins) * c_FINE_SF) srl c_FINE_SHIFT, 32);
-        s1_coarse      <= unsigned(ts_i.coarse);
-        s1_tai         <= unsigned(ts_i.tai);
-        s1_edge        <= ts_i.slope;
-        s1_channel     <= ts_i.channel;
-        s1_valid       <= ts_valid_sys;
+        s1_frac_scaled <= resize ((unsigned(ts_fifo_out.n_bins) * c_FINE_SF) srl c_FINE_SHIFT, 32);
+        s1_coarse      <= unsigned(ts_fifo_out.coarse);
+        s1_tai         <= unsigned(ts_fifo_out.tai);
+        s1_edge        <= ts_fifo_out.slope;
+        s1_channel     <= ts_fifo_out.channel;
+        s1_meta        <= x"0000" & "000" & ts_fifo_out.n_bins(12 downto 0);
+        s1_valid       <= fifo_rd_d;
 
         -- stage 2: adjust coarse
         s2_frac    <= s1_frac_scaled(11 downto 0);
@@ -124,6 +156,7 @@ begin
         s2_tai     <= s1_tai;
         s2_edge    <= s1_edge;
         s2_channel <= s1_channel;
+        s2_meta     <= s1_meta;
         s2_valid   <= s1_valid;
 
         -- stage 3: roll-over coarse
@@ -138,6 +171,7 @@ begin
           s3_tai    <= s2_tai;
         end if;
 
+        s3_meta     <= s2_meta;
         s3_frac    <= s2_frac;
         s3_edge    <= s2_edge;
         s3_channel <= s2_channel;
@@ -151,7 +185,7 @@ begin
   s3_ts.tai     <= std_logic_vector(s3_tai);
   s3_ts.slope   <= s3_edge;
   s3_ts.channel <= s3_channel;
-
+  s3_ts.meta     <= s3_meta;
 
 
   gen_channels : for i in 0 to 4 generate
@@ -207,6 +241,7 @@ begin
               ts_preoffset(i).frac    <= channels(i).last_ts.frac;
               ts_preoffset(i).channel <= channels(i).last_ts.channel;
               ts_preoffset(i).slope   <= channels(i).last_ts.slope;
+              ts_preoffset(i).meta <= channels(i).last_ts.meta;
 
               ts_valid_preoffset(i) <= '1';
 
@@ -217,7 +252,8 @@ begin
                 channels(i).seq     <= channels(i).seq + 1;
                 ts_preoffset(i).seq <= std_logic_vector(channels(i).seq);
               end if;
-
+            else
+              ts_valid_preoffset(i) <= '0';
             end if;
           else
             ts_valid_preoffset(i) <= '0';
@@ -251,13 +287,10 @@ begin
 
           if raw_enable_i(i) = '1' then
 
-            if ts_valid_sys = '1' and unsigned(ts_latched.channel) = i then
-              ts_valid_o(i) <= '1';
-              ts_o(i).tai       <= ts_latched.tai;
-              ts_o(i).coarse       <= ts_latched.coarse;
---              ts_o(i).frac       <= ts_latched.n_bins;
-              ts_o(i).seq <= "000000000000000" & ts_latched.n_bins;
-            end if;
+            --if ts_valid_sys = '1' and unsigned(ts_latched.channel) = i then
+            --  ts_valid_o(i) <= '1';
+            --  ts_o(i).raw   <= ts_latched.raw;
+            --end if;
 
           else
 
