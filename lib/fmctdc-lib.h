@@ -147,7 +147,7 @@ extern int fmctdc_get_buffer_len(struct fmctdc_board *userb,
 				 unsigned int channel);
 extern int fmctdc_set_buffer_len(struct fmctdc_board *userb,
 				 unsigned int channel,
-				 unsigned int lenght);
+				 unsigned int length);
 extern int fmctdc_reference_set(struct fmctdc_board *userb,
 				unsigned int ch_target, int ch_reference);
 extern int fmctdc_reference_get(struct fmctdc_board *userb,
