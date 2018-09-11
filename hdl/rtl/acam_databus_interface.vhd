@@ -112,9 +112,7 @@ entity acam_databus_interface is
   -- OUTPUTS
      -- signals internal to the chip: interface with other modules
      ef1_o       : out std_logic;                      -- ACAM FIFO1 empty flag (bouble registered with clk_i)
-     ef1_meta_o  : out std_logic;                      -- ACAM FIFO1 empty flag (after 1 clk_i register)
      ef2_o       : out std_logic;                      -- ACAM FIFO2 empty flag (bouble registered with clk_i)
-     ef2_meta_o  : out std_logic;                      -- ACAM FIFO2 empty flag (after 1 clk_i register)
 
      -- Signals to ACAM interface
      adr_o       : out std_logic_vector(3 downto 0);   -- ACAM address

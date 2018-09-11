@@ -240,7 +240,7 @@ architecture rtl of fmc_tdc_core is
   signal acm_adr                                             : std_logic_vector(7 downto 0);
   signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
   signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_width-1 downto 0);
-  signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta    : std_logic;
+  signal acam_ef1, acam_ef2                                  : std_logic;
   signal acam_errflag_f_edge_p, acam_errflag_r_edge_p        : std_logic;
   signal acam_intflag_f_edge_p                               : std_logic;
   signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_width-1 downto 0);
@@ -420,9 +420,7 @@ begin
      rd_n_o      => rd_n_o,
      wr_n_o      => wr_n_o,
      ef1_o       => acam_ef1,
-     ef1_meta_o  => acam_ef1_meta,
      ef2_o       => acam_ef2,
-     ef2_meta_o  => acam_ef2_meta,
      clk_i       => clk_tdc_i,
      rst_i       => rst_tdc_i,
      adr_i       => acm_adr,
@@ -469,9 +467,7 @@ begin
      clk_i                 => clk_tdc_i,
      rst_i                 => rst_tdc_i,
      acam_ef1_i            => acam_ef1,
-     acam_ef1_meta_i       => acam_ef1_meta,
      acam_ef2_i            => acam_ef2,
-     acam_ef2_meta_i       => acam_ef2_meta,
      activate_acq_p_i      => activate_acq_p,
      deactivate_acq_p_i    => deactivate_acq_p,
      acam_wr_config_p_i    => load_acam_config,
