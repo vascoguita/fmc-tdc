@@ -25,6 +25,8 @@
 
 #include "fmc-tdc.h"
 #include "hw/timestamp_fifo_regs.h"
+#include "hw/tdc_onewire_regs.h"
+
 
 /* The sample size. Mandatory, device-wide */
 ZIO_ATTR_DEFINE_STD(ZIO_DEV, ft_zattr_dev_std) = {
@@ -169,6 +171,35 @@ static int ft_raw_mode_get(struct fmctdc_dev *ft,
 }
 
 
+
+static int ft_temperature_get(struct fmctdc_dev *ft, int *temp)
+{
+	int stat = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_CSR);
+
+	if (!(stat & TDC_OW_CSR_VALID))
+		return -EIO;
+
+	*temp = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_TEMP);
+
+	return 0;
+}
+
+static int ft_unique_id_get(struct fmctdc_dev *ft, uint64_t *id)
+{
+	int stat = ft_ioread( ft, ft->ft_owregs_base + TDC_OW_REG_CSR);
+	uint32_t tmp_l, tmp_h;
+
+	if( !( stat & TDC_OW_CSR_VALID ) )
+		return -EIO;
+
+	tmp_l = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_ID_L);
+	tmp_h = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_ID_H);
+	*id = ((uint64_t)tmp_h << 32) | tmp_l;
+
+	return 0;
+}
+
+
 /* TDC input attributes: only the user offset is special */
 static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 			       uint32_t *usr_val)
@@ -214,6 +245,7 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 	struct zio_device *zdev;
 	struct fmctdc_dev *ft;
 	struct zio_attribute *attr;
+	int ret;
 
 	if (__ft_get_type(dev) == FT_TYPE_INPUT)
 		return ft_zio_info_channel(dev, zattr, usr_val);
@@ -224,7 +256,9 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 
 	switch (zattr->id) {
 	case FT_ATTR_PARAM_TEMP:
-		ft_read_temp(ft, ft->verbose);
+		ret = ft_temperature_get(ft, &ft->temp);
+		if (ret < 0)
+			return ret;
 		*usr_val = ft->temp;
 		break;
 	case FT_ATTR_DEV_COARSE:
@@ -684,6 +718,8 @@ int ft_zio_init(struct fmctdc_dev *ft)
 		ft_raw_mode_set(ft, i, 0);
 		ft_update_offsets(ft, i);
 	}
+
+	ft_unique_id_get(ft, &ft->unique_id);
 
 	return 0;
 

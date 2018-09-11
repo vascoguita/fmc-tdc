@@ -242,7 +242,6 @@ struct ft_modlist {
 
 static struct ft_modlist init_subsystems[] = {
 	{"acam-tdc", ft_acam_init, ft_acam_exit},
-	{"onewire", ft_onewire_init, ft_onewire_exit},
 	{"time", ft_time_init, ft_time_exit},
 	{"channels", ft_channels_init, ft_channels_exit},
 	{"zio", ft_zio_init, ft_zio_exit}
