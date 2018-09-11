@@ -285,6 +285,11 @@ int fmctdc_close(struct fmctdc_board *userb)
 	__define_board(b, userb);
 	int j;
 
+	if (!b) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 		if (b->fdc[j] >= 0)
 			close(b->fdc[j]);
@@ -531,15 +536,15 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
 }
 
 /**
- * The function set the buffer lenght
+ * The function set the buffer length
  * @param[in] userb TDC board instance token
  * @param[in] channel to use
- * @param[in] lenght maximum number of timestamps to store
+ * @param[in] length maximum number of timestamps to store
  * @return 0 on success, otherwise a negative errno code is set
  *         appropriately
  */
 int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
-			  unsigned int lenght)
+			  unsigned int length)
 {
 	__define_board(b, userb);
 	uint32_t val;
@@ -552,7 +557,7 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 
 	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-len", channel + 1);
 
-	val = lenght;
+	val = length;
 	return fmctdc_sysfs_set(b, attr, &val);
 }
 
@@ -1122,7 +1127,6 @@ int fmctdc_coalescing_timeout_get(struct fmctdc_board *userb,
  * @param[in] channel target channel [0, 4]
  * @param[in] mode time-stamp mode
  * @return 0 on success, otherwise -1 and errno is set appropriately
- *
  */
 int fmctdc_ts_mode_set(struct fmctdc_board *userb,
 		       unsigned int channel,

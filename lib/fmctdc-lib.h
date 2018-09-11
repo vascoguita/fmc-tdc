@@ -63,7 +63,8 @@ enum ft_transfer_mode {
  */
 enum fmctdc_ts_mode {
 	FMCTDC_TS_MODE_POST = 0, /**< after post-processing */
-	FMCTDC_TS_MODE_RAW, /**< directly from ACAM chip */
+	FMCTDC_TS_MODE_RAW, /**< directly from ACAM chip. This should be used
+			       ONLY when debugging low level issues */
 };
 
 /**
@@ -147,7 +148,7 @@ extern int fmctdc_get_buffer_len(struct fmctdc_board *userb,
 				 unsigned int channel);
 extern int fmctdc_set_buffer_len(struct fmctdc_board *userb,
 				 unsigned int channel,
-				 unsigned int lenght);
+				 unsigned int length);
 extern int fmctdc_reference_set(struct fmctdc_board *userb,
 				unsigned int ch_target, int ch_reference);
 extern int fmctdc_reference_get(struct fmctdc_board *userb,
