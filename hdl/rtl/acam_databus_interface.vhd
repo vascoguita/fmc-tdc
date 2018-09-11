@@ -81,6 +81,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.gencores_pkg.all;
 
 
 --=================================================================================================
@@ -135,13 +136,13 @@ end acam_databus_interface;
 
 architecture rtl of acam_databus_interface is
 
-  type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_ACK, WR_START, WR_PUSH, WR_ACK);
+  type t_acam_interface is (IDLE, RD_START, RD_FETCH, RD_FETCH2, RD_FETCH3, RD_ACK, WR_START, WR_PUSH, WR_ACK);
   signal acam_data_st, nxt_acam_data_st : t_acam_interface;
 
-  signal ef1_synch, ef2_synch           : std_logic_vector(1 downto 0) := (others =>'1');
+  signal ef1_synch, ef2_synch           : std_logic;
   signal ack, rd, rd_extend             : std_logic;
   signal wr, wr_extend, wr_remove       : std_logic;
-
+  signal rst_n : std_logic;
 
 
 --=================================================================================================
@@ -153,19 +154,22 @@ begin
 --                                      Input Synchronizers                                      --
 ---------------------------------------------------------------------------------------------------   
     
-  input_registers: process (clk_i)
-  begin
-    if rising_edge (clk_i) then
-      if rst_i ='1' then
-        ef1_synch <= (others =>'1');
-        ef2_synch <= (others =>'1');
-      else
-        ef1_synch <= ef1_i & ef1_synch(1);
-        ef2_synch <= ef2_i & ef2_synch(1);
-      end if;
-    end if;
-  end process;
+  rst_n <= not rst_n;
 
+  cmp_sync_ef1: gc_sync_ffs
+    port map (
+      clk_i    => clk_i,
+      rst_n_i  => rst_n,
+      data_i   => ef1_i,
+      synced_o => ef1_synch);
+
+  cmp_sync_ef2: gc_sync_ffs
+    port map (
+      clk_i    => clk_i,
+      rst_n_i  => rst_n,
+      data_i   => ef2_i,
+      synced_o => ef2_synch);
+  
 
 ---------------------------------------------------------------------------------------------------
 --                                             FSM                                               --
@@ -224,6 +228,28 @@ begin
             
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when RD_FETCH =>
+                  -----------------------------------------------
+                        ack                  <= '0';
+                        rd_extend            <= '1';
+                        wr_extend            <= '0';
+                        wr_remove            <= '0';
+                  -----------------------------------------------
+
+                        nxt_acam_data_st     <= RD_FETCH2;
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RD_FETCH2 =>
+                  -----------------------------------------------
+                        ack                  <= '0';
+                        rd_extend            <= '1';
+                        wr_extend            <= '0';
+                        wr_remove            <= '0';
+                  -----------------------------------------------
+
+                        nxt_acam_data_st     <= RD_FETCH3;
+
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+      when RD_FETCH3 =>
                   -----------------------------------------------
                         ack                  <= '0';
                         rd_extend            <= '1';
@@ -298,7 +324,7 @@ begin
   ack_o  <= ack;
 
   -- to the 28 bits databus output we add the ef flags to arrive to a 32 bits word
-  dat_o  <= ef1_synch(0) & ef2_synch(0) & "00" & data_bus_io; 
+  dat_o  <= ef1_synch & ef2_synch & "00" & data_bus_io; 
 
 
 ---------------------------------------------------------------------------------------------------
@@ -332,12 +358,8 @@ output_registers: process (clk_i)
 --                                     EF to the data_engine                                     --
 ---------------------------------------------------------------------------------------------------
 
-  ef1_o        <= ef1_synch(0); -- ef1 after two synchronization registers
-  ef1_meta_o   <= ef1_synch(1); -- ef1 after one synchronization register
-
-  ef2_o        <= ef2_synch(0); -- ef1 after two synchronization registers
-  ef2_meta_o   <= ef2_synch(1); -- ef1 after one synchronization register
-
+  ef1_o        <= ef1_synch; -- ef1 after two synchronization registers
+  ef2_o        <= ef2_synch; -- ef1 after two synchronization registers
 
 end rtl;
 --=================================================================================================
