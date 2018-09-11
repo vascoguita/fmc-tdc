@@ -833,18 +833,13 @@ int fmctdc_set_host_time(struct fmctdc_board *userb)
  * It enables/disables the WhiteRabbit timing system on a TDC device
  * @param[in] userb TDC board instance token
  * @param[in] on white-rabbit status to set
- * @return 0 on successful ON, -ENOLINK on successful OFF, otherwise other
- *         erro codes
+ * @return 0 on success, otherwise -1 and errno is set appropriately
  */
 int fmctdc_wr_mode(struct fmctdc_board *userb, int on)
 {
 	__define_board(b, userb);
 
-	if (on)
-		__fmctdc_command(b, FT_CMD_WR_ENABLE);
-	else
-		__fmctdc_command(b, FT_CMD_WR_DISABLE);
-	return errno;
+	return __fmctdc_command(b, on ? FT_CMD_WR_ENABLE : FT_CMD_WR_DISABLE);
 }
 
 

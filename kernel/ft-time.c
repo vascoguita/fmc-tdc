@@ -136,7 +136,6 @@ void ft_set_vcxo_tune(struct fmctdc_dev *ft, int value)
 int ft_wr_mode(struct fmctdc_dev *ft, int on)
 {
 	unsigned long flags;
-	uint32_t wr_stat;
 
 	spin_lock_irqsave(&ft->lock, flags);
 
@@ -151,9 +150,6 @@ int ft_wr_mode(struct fmctdc_dev *ft, int on)
 
 	spin_unlock_irqrestore(&ft->lock, flags);
 
-	wr_stat = ft_readl(ft, TDC_REG_WR_STAT);
-	if (!(wr_stat & TDC_WR_STAT_LINK))
-		return -ENOLINK;
 	return 0;
 }
 

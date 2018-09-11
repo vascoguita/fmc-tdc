@@ -219,11 +219,13 @@ static void fmctdc_param_test7(struct m_test *m_test)
 
 	ret = fmctdc_wr_mode(tdc, 1);
 	m_assert_int_eq(0, ret);
+	sleep(2);
 	ret = fmctdc_check_wr_mode(tdc);
 	m_assert_int_eq(0, ret);
 
 	ret = fmctdc_wr_mode(tdc, 0);
-	m_assert_int_eq(ENOLINK, ret);
+	m_assert_int_eq(0, ret);
+	sleep(2);
 	ret = fmctdc_check_wr_mode(tdc);
 	m_assert_int_eq(ENODEV, ret);
 }
