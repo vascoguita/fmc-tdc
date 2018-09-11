@@ -107,9 +107,7 @@ entity data_engine is
 
      -- Signals from the acam_databus_interface unit: empty FIFO flags
      acam_ef1_i           : in std_logic;                     -- empty fifo 1 (fully synched signal; ef1 after 2 DFFs)
-     acam_ef1_meta_i      : in std_logic;                     -- empty fifo 1 (possibly metestable;  ef1 after 1 DFF)
      acam_ef2_i           : in std_logic;                     -- empty fifo 2 (fully synched signal; ef2 after 2 DFFs)
-     acam_ef2_meta_i      : in std_logic;                     -- empty fifo 2 (possibly metestable;  ef2 after 1 DFF)
 
      -- Signals from the acam_databus_interface unit: communication with ACAM for configuration or tstamps retreival
      acam_ack_i           : in std_logic;                     -- WISHBONE ack
@@ -198,7 +196,7 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- Combinatorial process
   data_engine_fsm_comb: process (engine_st, activate_acq_p_i, deactivate_acq_p_i, acam_ef1_i, acam_adr,
-                                 acam_ef2_i, acam_ef1_meta_i, acam_ef2_meta_i, acam_wr_config_p_i,
+                                 acam_ef2_i, acam_wr_config_p_i,
                                  acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
                                  acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i,
 											start_from_fpga_i, time_c, time_c_full_p)
@@ -400,9 +398,6 @@ begin
 
                           if acam_ef2_i = '0' then
                             nxt_engine_st <= GET_STAMP2;
-  
-                          elsif acam_ef1_meta_i ='0' then
-                            nxt_engine_st <= GET_STAMP1;
                           else
                             nxt_engine_st <= ACTIVE;
                           end if;
@@ -429,7 +424,7 @@ begin
                           if acam_ef1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
 
-                          elsif acam_ef2_meta_i ='0' then
+                          elsif acam_ef2_i ='0' then
                             nxt_engine_st <= GET_STAMP2;
                           else
                             nxt_engine_st <= ACTIVE;
