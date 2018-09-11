@@ -9,13 +9,17 @@ use work.genram_pkg.all;
 use work.tdc_buf_wbgen2_pkg.all;
 
 entity tdc_dma_channel is
+  generic(
+    g_channel : integer
+    );
   port (
 
-    clk_i : in std_logic;
-    rst_n_i   : in std_logic;
+    clk_i   : in std_logic;
+    rst_n_i : in std_logic;
 
-    enable_i : in std_logic;
-    
+    enable_i   : in std_logic;
+    raw_mode_i : in std_logic;
+
     ts_i       : in  t_tdc_timestamp;
     ts_valid_i : in  std_logic;
     ts_ready_o : out std_logic;
@@ -98,7 +102,6 @@ begin
       clk_sys_i => clk_i,
       slave_i   => slave_i,
       slave_o   => slave_o,
---      int_o     => int_o,
       regs_i    => regs_in,
       regs_o    => regs_out);
 
@@ -201,7 +204,7 @@ begin
             end if;
 
 
-            
+
             if enable_i = '1' and regs_out.tdc_buf_csr_enable_o = '1' and ts_valid_i = '1' then
 
               if cur_valid = '1' then
@@ -239,7 +242,7 @@ begin
               ts_ready_o <= '1';
             end if;
 
-          
+
 --word 0 TAI
 --word 1 coarse
 --word 2 frac
@@ -249,22 +252,40 @@ begin
 --  bit  2-0 chan  (mask: 0x7)
 
           when SER0 =>
-            fifo_in_data    <= ts.tai;
+            if raw_mode_i = '0' then
+              fifo_in_data <= ts.tai(31 downto 0);
+            else
+              fifo_in_data <= f_pack_raw_acam_timestamp (ts.raw)(31 downto 0);
+            end if;
+
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= SER1;
           when SER1 =>
-            fifo_in_data    <= ts.coarse;
+            if raw_mode_i = '0' then
+              fifo_in_data <= ts.coarse;
+            else
+              fifo_in_data <= f_pack_raw_acam_timestamp (ts.raw)(63 downto 32);
+            end if;
+
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= SER2;
           when SER2 =>
-            fifo_in_data    <= x"00000" & ts.frac;
+            if raw_mode_i = '0' then
+              fifo_in_data <= ts.meta(19 downto 0) & ts.frac;
+            else
+              fifo_in_data <= f_pack_raw_acam_timestamp (ts.raw)(95 downto 64);
+            end if;
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= SER3;
           when SER3 =>
-            fifo_in_data    <= ts.seq(27 downto 0) & ts.slope & ts.channel(2 downto 0);
+            if raw_mode_i = '0' then
+              fifo_in_data <= ts.seq(27 downto 0) & ts.slope & ts.channel(2 downto 0);
+            else
+              fifo_in_data <= f_pack_raw_acam_timestamp (ts.raw)(127 downto 96);
+            end if;
             fifo_in_is_addr <= '0';
             fifo_wr         <= '1';
             state           <= WAIT_NEXT_TS;
@@ -316,10 +337,10 @@ begin
   begin
     if rising_edge(clk_i) then
       if rst_n_i = '0' then
-        dma_wb_out.cyc          <= '0';
-        fifo_valid              <= '0';
-        burst_sub               <= '0';
-        dma_state               <= WAIT_BURST;
+        dma_wb_out.cyc             <= '0';
+        fifo_valid                 <= '0';
+        burst_sub                  <= '0';
+        dma_state                  <= WAIT_BURST;
         regs_in.tdc_buf_csr_done_i <= '0';
       else
 
