@@ -211,9 +211,9 @@ entity fmc_tdc_core is
       cfg_slave_i : in  t_wishbone_slave_in;
       cfg_slave_o : out t_wishbone_slave_out;
 
-      ts_offset_i : in t_tdc_timestamp_array(4 downto 0);
-      reset_seq_i : in std_logic_vector(4 downto 0);
-      raw_enable_i : in std_logic_vector(4 downto 0);
+      ts_offset_i       : in  t_tdc_timestamp_array(4 downto 0);
+      reset_seq_i       : in  std_logic_vector(4 downto 0);
+      raw_enable_i      : in  std_logic_vector(4 downto 0);
       timestamp_o       : out t_tdc_timestamp_array(4 downto 0);
       timestamp_valid_o : out std_logic_vector(4 downto 0);
       timestamp_ready_i : in  std_logic_vector(4 downto 0);
@@ -234,7 +234,7 @@ architecture rtl of fmc_tdc_core is
   signal acm_adr                                             : std_logic_vector(7 downto 0);
   signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
   signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_width-1 downto 0);
-  signal acam_ef1, acam_ef2, acam_ef1_meta, acam_ef2_meta    : std_logic;
+  signal acam_ef1, acam_ef2                                  : std_logic;
   signal acam_errflag_f_edge_p, acam_errflag_r_edge_p        : std_logic;
   signal acam_intflag_f_edge_p                               : std_logic;
   signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_width-1 downto 0);
@@ -265,7 +265,7 @@ architecture rtl of fmc_tdc_core is
   signal acam_tstamp_channel : std_logic_vector(2 downto 0);
 
   signal raw_timestamp_valid : std_logic;
-  signal raw_timestamp       : t_raw_acam_timestamp;
+  signal raw_timestamp       : t_acam_timestamp;
 
   signal final_timestamp_valid : std_logic_vector(4 downto 0);
   signal final_timestamp_ready : std_logic_vector(4 downto 0);
@@ -276,13 +276,12 @@ architecture rtl of fmc_tdc_core is
   signal channel_enable_sys : std_logic_vector(4 downto 0);
 
   signal rst_sys, rst_tdc : std_logic;
-  signal core_status : std_logic_vector(31 downto 0);
+  signal core_status      : std_logic_vector(31 downto 0);
 
-  
-  signal gen_fake_ts_enable : std_logic;
+
+  signal gen_fake_ts_enable  : std_logic;
   signal gen_fake_ts_channel : std_logic_vector(2 downto 0);
-  signal gen_fake_ts_period : std_logic_vector(27 downto 0);
-  
+  signal gen_fake_ts_period  : std_logic_vector(27 downto 0);
 
 --=================================================================================================
 --                                       architecture begin
@@ -298,7 +297,7 @@ begin
   core_status(0)           <= '1' when g_with_dma_readout  else '0';
   core_status(1)           <= '1' when g_with_fifo_readout else '0';
   core_status(31 downto 2) <= (others => '0');
-  
+
   reg_control_block : entity work.reg_ctrl
     generic map
     (g_span  => g_span,
@@ -341,9 +340,9 @@ begin
      send_dac_word_p_o      => send_dac_word_p_o,
      dac_word_o             => dac_word_o,
      one_hz_phase_o         => pulse_delay,
-     gen_fake_ts_period_o => gen_fake_ts_period,
-     gen_fake_ts_enable_o => gen_fake_ts_enable,
-     gen_fake_ts_channel_o => gen_fake_ts_channel
+     gen_fake_ts_period_o   => gen_fake_ts_period,
+     gen_fake_ts_enable_o   => gen_fake_ts_enable,
+     gen_fake_ts_channel_o  => gen_fake_ts_channel
      );
 
   process(clk_tdc_i)
@@ -438,9 +437,7 @@ begin
      rd_n_o      => rd_n_o,
      wr_n_o      => wr_n_o,
      ef1_o       => acam_ef1,
-     ef1_meta_o  => acam_ef1_meta,
      ef2_o       => acam_ef2,
-     ef2_meta_o  => acam_ef2_meta,
      clk_i       => clk_tdc_i,
      rst_i       => rst_tdc,
      adr_i       => acm_adr,
@@ -473,7 +470,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                          DATA ENGINE                                          --
 ---------------------------------------------------------------------------------------------------
-  data_engine_block : data_engine
+  data_engine_block : entity work.data_engine
     generic map(
       g_simulation => g_simulation)
     port map
@@ -487,9 +484,7 @@ begin
      clk_i                 => clk_tdc_i,
      rst_i                 => rst_tdc,
      acam_ef1_i            => acam_ef1,
-     acam_ef1_meta_i       => acam_ef1_meta,
      acam_ef2_i            => acam_ef2,
-     acam_ef2_meta_i       => acam_ef2_meta,
      activate_acq_p_i      => activate_acq_p,
      deactivate_acq_p_i    => deactivate_acq_p,
      acam_wr_config_p_i    => load_acam_config,
@@ -527,12 +522,12 @@ begin
      clk_i_cycles_offset_i   => clk_i_cycles_offset,
      roll_over_nb_i          => roll_over_nb,
      retrig_nb_offset_i      => retrig_nb_offset,
-     current_retrig_nb_i => current_retrig_nb,
+     current_retrig_nb_i     => current_retrig_nb,
      utc_p_i                 => utc_p,
      utc_i                   => utc,
-     gen_fake_ts_period_i => gen_fake_ts_period,
-     gen_fake_ts_enable_i => gen_fake_ts_enable,
-     gen_fake_ts_channel_i => gen_fake_ts_channel,
+     gen_fake_ts_period_i    => gen_fake_ts_period,
+     gen_fake_ts_enable_i    => gen_fake_ts_enable,
+     gen_fake_ts_channel_i   => gen_fake_ts_channel,
      timestamp_o             => raw_timestamp,
      timestamp_valid_o       => raw_timestamp_valid
      );
@@ -545,14 +540,14 @@ begin
       clk_sys_i   => clk_sys_i,
       rst_sys_n_i => rst_sys_n_i,
 
-      enable_i   => channel_enable_sys,
-      ts_i       => raw_timestamp,
-      ts_valid_i => raw_timestamp_valid,
-      ts_o       => final_timestamp,
-      ts_valid_o => final_timestamp_valid,
-      ts_ready_i => final_timestamp_ready,
-      ts_offset_i => ts_offset_i,
-      reset_seq_i => reset_seq_i,
+      enable_i     => channel_enable_sys,
+      ts_i         => raw_timestamp,
+      ts_valid_i   => raw_timestamp_valid,
+      ts_o         => final_timestamp,
+      ts_valid_o   => final_timestamp_valid,
+      ts_ready_i   => final_timestamp_ready,
+      ts_offset_i  => ts_offset_i,
+      reset_seq_i  => reset_seq_i,
       raw_enable_i => raw_enable_i
       );
 
@@ -570,7 +565,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                              TDC LEDs                                         --
 ---------------------------------------------------------------------------------------------------  
-  TDCboard_leds : leds_manager
+  TDCboard_leds : entity work.leds_manager
     generic map
     (g_width      => 32,
      g_simulation => g_simulation)
@@ -578,9 +573,16 @@ begin
     (clk_i            => clk_tdc_i,
      rst_i            => rst_tdc,
      utc_p_i          => local_utc_p,
-     acam_inputs_en_i => acam_inputs_en,
-     acam_channel_i   => acam_channel,
-     tstamp_wr_p_i    => final_timestamp_valid(0),
+     tstamp_wr1_p_i   => final_timestamp_valid(0),
+     tstamp_wr2_p_i   => final_timestamp_valid(1),
+     tstamp_wr3_p_i   => final_timestamp_valid(2),
+     tstamp_wr4_p_i   => final_timestamp_valid(3),
+     tstamp_wr5_p_i   => final_timestamp_valid(4),
+     term_en_5_i      => acam_inputs_en(4),
+     term_en_4_i      => acam_inputs_en(3),
+     term_en_3_i      => acam_inputs_en(2),
+     term_en_2_i      => acam_inputs_en(1),
+     term_en_1_i      => acam_inputs_en(0),
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
      tdc_led_trig2_o  => tdc_led_trig2_o,
@@ -595,7 +597,7 @@ begin
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
 
-  U_Sync_ChannelEnable: entity work.gc_sync_register
+  U_Sync_ChannelEnable : entity work.gc_sync_register
     generic map (
       g_width => 5)
     port map (
@@ -603,7 +605,7 @@ begin
       rst_n_a_i => rst_sys_n_i,
       d_i       => channel_enable_tdc,
       q_o       => channel_enable_sys);
-  
+
   channel_enable_tdc <= acam_inputs_en(20 downto 16);
   channel_enable_o   <= channel_enable_sys;
 

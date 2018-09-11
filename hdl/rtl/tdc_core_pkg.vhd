@@ -61,15 +61,48 @@ use work.gencores_pkg.all;
 package tdc_core_pkg is
 
 
+
   type t_raw_acam_timestamp is record
-    slope : std_logic;
-    channel : std_logic_vector(2 downto 0);
-    n_bins : std_logic_vector(16 downto 0);
-    coarse : std_logic_vector(31 downto 0);
-    tai : std_logic_vector(31 downto 0);
-    seq : std_logic_vector(27 downto 0);
+    seconds               : std_logic_vector(31 downto 0);  -- 32
+    acam_bins             : std_logic_vector(16 downto 0);  -- 32 + 17 = 49
+    acam_start_nb : std_logic_vector(7 downto 0);      
+    roll_over_incr_recent : std_logic;
+    clk_i_cycles_offset   : std_logic_vector(7 downto 0);   -- 60 + 8 = 68
+    roll_over_nb          : std_logic_vector(15 downto 0);  -- 68 + 16 = 84
+    retrig_nb_offset      : std_logic_vector(8 downto 0);   -- 84 + 9 = 93
+    current_retrig_nb     : std_logic_vector(8 downto 0);   -- 93 + 9 = 102
+    channel               : std_logic_vector(2 downto 0);   -- 102 + 3 = 105
+    slope                 : std_logic;                      -- 105 + 1 = 106
+    seq                   : std_logic_vector(23 downto 0);  -- 106 + 22 = 128
+                                     -- (raw mode data)
   end record;
 
+  type t_acam_timestamp is record
+    raw : t_raw_acam_timestamp;
+    tai : std_logic_vector(31 downto 0);
+    coarse : std_logic_vector( 31 downto 0);
+    n_bins : std_logic_vector(16 downto 0);
+    channel : std_logic_vector(2 downto 0);
+    slope : std_logic;
+    meta : std_logic_vector(31 downto 0);
+  end record;
+  
+  
+  constant c_dummy_raw_acam_timestamp : t_raw_acam_timestamp :=
+    (
+      x"00000000",
+      "00000000000000000",
+      x"00",
+      '0',
+      x"00",
+      x"0000",
+      "000000000",
+      "000000000",
+      "000",
+      '0',
+      "000000000000000000000000"
+      );
+  
   type t_tdc_timestamp is record
     raw : t_raw_acam_timestamp;
     slope : std_logic;
@@ -78,10 +111,11 @@ package tdc_core_pkg is
     coarse : std_logic_vector(31 downto 0);
     tai : std_logic_vector(31 downto 0);
     seq : std_logic_vector(31 downto 0);
+    meta : std_logic_vector(31 downto 0);
   end record;
 
   constant c_dummy_timestamp : t_tdc_timestamp :=
-    ( ( '0', "000", "00000000000000000", x"00000000", x"00000000", x"0000000" ), '0', "000", x"000", x"00000000", x"00000000", x"00000000" );
+    ( c_dummy_raw_acam_timestamp, '0', "000", x"000", x"00000000", x"00000000", x"00000000", x"00000000" );
   
   type t_tdc_timestamp_array is array(integer range<>) of t_tdc_timestamp;
   
@@ -98,7 +132,7 @@ package tdc_core_pkg is
 -- Note: All address in sdb and crossbar are BYTE addresses!
 
   -- Devices sdb description
-  constant c_ONEWIRE_SDB_DEVICE : t_sdb_device :=
+  constant c_TDC_ONEWIRE_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -109,10 +143,10 @@ package tdc_core_pkg is
         addr_last   => x"0000000000000007",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000602",         -- "WB-Onewire.Control " | md5sum | cut -c1-8
+           device_id => x"00006602",         -- "WB-Onewire.Control " | md5sum | cut -c1-8
            version   => x"00000001",
-           date      => x"20121116",
-           name      => "WB-Onewire.Control ")));
+           date      => x"20180910",
+           name      => "TDC-Onewire-Regs   ")));
 
   constant c_SPEC_INFO_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
@@ -634,47 +668,6 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-  component data_engine
-    generic (
-      g_simulation : boolean );
-    port
-      (acam_ack_i            : in std_logic;
-       acam_dat_i            : in std_logic_vector(31 downto 0);
-       clk_i                 : in std_logic;
-       rst_i                 : in std_logic;
-       acam_ef1_i            : in std_logic;
-       acam_ef1_meta_i       : in std_logic;
-       acam_ef2_i            : in std_logic;
-       acam_ef2_meta_i       : in std_logic;
-       activate_acq_p_i      : in std_logic;
-       deactivate_acq_p_i    : in std_logic;
-       acam_wr_config_p_i    : in std_logic;
-       acam_rdbk_config_p_i  : in std_logic;
-       acam_rdbk_status_p_i  : in std_logic;
-       acam_rdbk_ififo1_p_i  : in std_logic;
-       acam_rdbk_ififo2_p_i  : in std_logic;
-       acam_rdbk_start01_p_i : in std_logic;
-       acam_rst_p_i          : in std_logic;
-       acam_config_i         : in config_vector;
-	   start_from_fpga_i     : in  std_logic;
-      ----------------------------------------------------------------------
-       state_active_p_o      : out std_logic;
-	   acam_adr_o            : out std_logic_vector(7 downto 0);
-       acam_cyc_o            : out std_logic;
-       acam_dat_o            : out std_logic_vector(31 downto 0);
-       acam_stb_o            : out std_logic;
-       acam_we_o             : out std_logic;
-       acam_config_rdbk_o    : out config_vector;
-       acam_ififo1_o         : out std_logic_vector(31 downto 0);
-       acam_ififo2_o         : out std_logic_vector(31 downto 0);
-       acam_start01_o        : out std_logic_vector(31 downto 0);
-       acam_tstamp1_o        : out std_logic_vector(31 downto 0);
-       acam_tstamp1_ok_p_o   : out std_logic;
-       acam_tstamp2_o        : out std_logic_vector(31 downto 0);
-       acam_tstamp2_ok_p_o   : out std_logic);
-      ----------------------------------------------------------------------
-  end component;
-
 
 ---------------------------------------------------------------------------------------------------
   component reg_ctrl is
@@ -851,28 +844,6 @@ package tdc_core_pkg is
   end component carrier_info;
 
 
----------------------------------------------------------------------------------------------------
-  component leds_manager is
-    generic
-      (g_width          : integer := 32;
-       g_simulation : boolean := FALSE);
-    port
-      (clk_i            : in std_logic;
-       rst_i            : in std_logic;
-       utc_p_i          : in std_logic;
-       acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
-       acam_channel_i       : in std_logic_vector(5 downto 0);
-       tstamp_wr_p_i    : in std_logic;
-      ----------------------------------------------------------------------
-       tdc_led_status_o : out std_logic;
-       tdc_led_trig1_o  : out std_logic;
-       tdc_led_trig2_o  : out std_logic;
-       tdc_led_trig3_o  : out std_logic;
-       tdc_led_trig4_o  : out std_logic;
-       tdc_led_trig5_o  : out std_logic);
-      ----------------------------------------------------------------------
-  end component;
-
 
 ---------------------------------------------------------------------------------------------------
   component acam_databus_interface
@@ -974,6 +945,10 @@ package tdc_core_pkg is
   
 
   function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector;
+
+  function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector;
+  
+
   
   
 end tdc_core_pkg;
@@ -990,7 +965,25 @@ package body tdc_core_pkg is
           return if_false;
           end if;
       end f_pick;
-  
+
+  function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector is
+    variable rv : std_logic_vector(127 downto 0);
+  begin
+    rv(31 downto 0) := ts.seconds;
+    rv(48 downto 32) := ts.acam_bins(16 downto 0);
+    rv(56 downto 49) := ts.acam_start_nb;
+    rv(57) := ts.roll_over_incr_recent;
+    rv(65 downto 58) := ts.clk_i_cycles_offset;
+    rv(81 downto 66) := ts.roll_over_nb;
+    rv(90 downto 82) := ts.retrig_nb_offset;
+    rv(99 downto 91) := ts.current_retrig_nb;
+    rv(102 downto 100) := ts.channel;
+    rv(103) := ts.slope;
+    rv(127 downto 104) := ts.seq;
+    
+    return rv;
+  end f_pack_raw_acam_timestamp;
+
 end tdc_core_pkg;
 --=================================================================================================
 --                                         package end

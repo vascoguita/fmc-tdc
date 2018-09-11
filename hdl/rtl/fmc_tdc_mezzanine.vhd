@@ -99,18 +99,18 @@ use IEEE.numeric_std.all;
 use work.tdc_core_pkg.all;
 use work.gencores_pkg.all;
 use work.wishbone_pkg.all;
-
+use work.TDC_OW_wbgen2_pkg.all;
 
 --=================================================================================================
 --                                Entity declaration for fmc_tdc_mezzanine
 --=================================================================================================
 entity fmc_tdc_mezzanine is
   generic
-    (g_with_wrabbit_core : boolean := false;
-     g_span              : integer := 32;
-     g_width             : integer := 32;
-     g_simulation        : boolean := false;
-     g_use_dma_readout   : boolean := true;
+    (g_with_wrabbit_core           : boolean := false;
+     g_span                        : integer := 32;
+     g_width                       : integer := 32;
+     g_simulation                  : boolean := false;
+     g_use_dma_readout             : boolean := true;
      g_use_fake_timestamps_for_sim : boolean := false);
   port
     -- TDC core
@@ -189,8 +189,8 @@ entity fmc_tdc_mezzanine is
       direct_timestamp_o     : out   std_logic_vector(127 downto 0);
       direct_timestamp_stb_o : out   std_logic;
 
-      sim_timestamp_i : in t_tdc_timestamp := c_dummy_timestamp;
-      sim_timestamp_valid_i : in std_logic := '0';
+      sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
+      sim_timestamp_valid_i : in  std_logic       := '0';
       sim_timestamp_ready_o : out std_logic
 
       );
@@ -228,7 +228,7 @@ architecture rtl of fmc_tdc_mezzanine is
 
   -- WISHBONE crossbar layout
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(c_NUM_WB_MASTERS-1 downto 0) :=
-    (0 => f_sdb_embed_device(c_ONEWIRE_SDB_DEVICE, x"00001000"),
+    (0 => f_sdb_embed_device(c_TDC_ONEWIRE_SDB_DEVICE, x"00001000"),
      1 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00002000"),
      2 => f_sdb_embed_device(c_TDC_EIC_DEVICE, x"00003000"),
      3 => f_sdb_embed_device(c_I2C_SDB_DEVICE, x"00004000"),
@@ -269,15 +269,15 @@ architecture rtl of fmc_tdc_mezzanine is
 
   signal timestamp                                       : t_tdc_timestamp_array(4 downto 0);
   signal timestamp_valid, timestamp_ready, timestamp_stb : std_logic_vector(4 downto 0);
-  signal tdc_timestamp                                       : t_tdc_timestamp_array(4 downto 0);
-  signal tdc_timestamp_valid, tdc_timestamp_ready : std_logic_vector(4 downto 0);
+  signal tdc_timestamp                                   : t_tdc_timestamp_array(4 downto 0);
+  signal tdc_timestamp_valid, tdc_timestamp_ready        : std_logic_vector(4 downto 0);
   signal channel_enable                                  : std_logic_vector(4 downto 0);
   signal irq_threshold, irq_timeout                      : std_logic_vector(9 downto 0);
   signal tick_1ms                                        : std_logic;
   signal counter_1ms                                     : unsigned(17 downto 0);
 
-  signal ts_offset : t_tdc_timestamp_array(4 downto 0);
-  signal reset_seq : std_logic_vector(4 downto 0);
+  signal ts_offset  : t_tdc_timestamp_array(4 downto 0);
+  signal reset_seq  : std_logic_vector(4 downto 0);
   signal raw_enable : std_logic_vector(4 downto 0);
 
   function f_wb_shift_address_word (w : t_wishbone_master_out) return t_wishbone_master_out is
@@ -291,6 +291,10 @@ architecture rtl of fmc_tdc_mezzanine is
     r.sel := w.sel;
     return r;
   end f_wb_shift_address_word;
+
+  signal regs_ow_out : t_TDC_OW_out_registers;
+  signal regs_ow_in  : t_TDC_OW_in_registers;
+
 
 --=================================================================================================
 --                                       architecture begin
@@ -380,9 +384,10 @@ begin
       timestamp_ready_i => tdc_timestamp_ready,
 
       raw_enable_i => raw_enable,
-      ts_offset_i => ts_offset,
-      reset_seq_i => reset_seq,
-      
+      ts_offset_i  => ts_offset,
+      reset_seq_i  => reset_seq,
+
+
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
       channel_enable_o => channel_enable
@@ -390,34 +395,34 @@ begin
 
 
 
-  gen_use_fake_timestamps: if g_use_fake_timestamps_for_sim generate
+  gen_use_fake_timestamps : if g_use_fake_timestamps_for_sim generate
 
     process(sim_timestamp_i, sim_timestamp_valid_i)
     begin
 
-      timestamp_valid <=(others => '0');
+      timestamp_valid <= (others => '0');
 
       for i in 0 to 4 loop
         if unsigned(sim_timestamp_i.channel) = i then
-          timestamp(i) <= sim_timestamp_i;
-          timestamp_valid(i) <=  sim_timestamp_valid_i;
+          timestamp(i)       <= sim_timestamp_i;
+          timestamp_valid(i) <= sim_timestamp_valid_i;
         end if;
       end loop;
 
     end process;
     timestamp_ready <= (others => '1');
-    
+
   end generate gen_use_fake_timestamps;
 
-  gen_use_real_timestamps: if not g_use_fake_timestamps_for_sim generate
-    timestamp <= tdc_timestamp;
-    timestamp_valid <= tdc_timestamp_valid;
+  gen_use_real_timestamps : if not g_use_fake_timestamps_for_sim generate
+    timestamp           <= tdc_timestamp;
+    timestamp_valid     <= tdc_timestamp_valid;
     tdc_timestamp_ready <= timestamp_ready;
   end generate gen_use_real_timestamps;
-  
 
-                             
-  
+
+
+
 
   gen_fifos : for i in 0 to 4 generate
 
@@ -436,9 +441,9 @@ begin
         irq_timeout_i     => irq_timeout,
         timestamp_i       => timestamp,
         timestamp_valid_i => timestamp_stb,
-        ts_offset_o => ts_offset(i),
-        reset_seq_o => reset_seq(i),
-        raw_enable_o => raw_enable(i));
+        ts_offset_o       => ts_offset(i),
+        reset_seq_o       => reset_seq(i),
+        raw_enable_o      => raw_enable(i));
 
     timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
   end generate gen_fifos;
@@ -450,7 +455,8 @@ begin
       port map (
         clk_i      => clk_sys_i,
         rst_n_i    => rst_sys_n_i,
-        enable_i => channel_enable,
+        enable_i   => channel_enable,
+        raw_mode_i => raw_enable,
         ts_i       => timestamp,
         ts_valid_i => timestamp_valid,
         ts_ready_o => timestamp_ready,
@@ -538,26 +544,15 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                        TDC Mezzanine Board UniqueID&Thermometer OneWire                       --
 ---------------------------------------------------------------------------------------------------
-  cmp_fmc_onewire : xwb_onewire_master
-    generic map
-    (g_interface_mode      => PIPELINED,
-     g_address_granularity => BYTE,
-     g_num_ports           => 1,
-     g_ow_btp_normal       => "5.0",
-     g_ow_btp_overdrive    => "1.0")
-    port map
-    (clk_sys_i   => clk_sys_i,
-     rst_n_i     => rst_sys_n_i,
-     slave_i     => cnx_master_out(c_WB_SLAVE_TDC_ONEWIRE),
-     slave_o     => cnx_master_in(c_WB_SLAVE_TDC_ONEWIRE),
-     desc_o      => open,
-     owr_pwren_o => open,
-     owr_en_o    => mezz_owr_en,
-     owr_i       => mezz_owr_i);
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  onewire_b     <= '0' when mezz_owr_en(0) = '1' else 'Z';
-  mezz_owr_i(0) <= onewire_b;
 
+  U_Onewire : entity work.tdc_onewire_wb
+    port map (
+      rst_n_i   => rst_sys_n_i,
+      clk_sys_i => clk_sys_i,
+      slave_i   => cnx_master_out(c_WB_SLAVE_TDC_ONEWIRE),
+      slave_o   => cnx_master_in(c_WB_SLAVE_TDC_ONEWIRE),
+      regs_i    => regs_ow_in,
+      regs_o    => regs_ow_out);
 
 ---------------------------------------------------------------------------------------------------
 --                             WBGEN2 EMBEDDED INTERRUPTS CONTROLLER                             --
@@ -624,6 +619,19 @@ begin
   i2c_scl_oen_o <= sys_scl_oe_n;
   i2c_scl_o     <= sys_scl_out;
 
+  U_OnewireIF : gc_ds182x_interface
+    generic map (
+      g_CLOCK_FREQ_KHZ   => 62500,
+      g_USE_INTERNAL_PPS => true)
+    port map (
+      clk_i              => clk_sys_i,
+      rst_n_i            => rst_sys_n_i,
+      pps_p_i            => '0',
+      onewire_b          => onewire_b,
+      id_o(63 downto 32) => regs_ow_in.tdc_ow_id_h_i,
+      id_o(31 downto 0)  => regs_ow_in.tdc_ow_id_l_i,
+      temper_o           => regs_ow_in.tdc_ow_temp_i,
+      id_read_o          => regs_ow_in.tdc_ow_csr_valid_i);
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

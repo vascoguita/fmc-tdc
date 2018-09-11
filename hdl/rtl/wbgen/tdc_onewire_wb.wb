@@ -1,0 +1,64 @@
+-- -*- Mode: LUA; tab-width: 2 -*-
+
+peripheral {
+	 name = "TDC Onewire Master";
+	 prefix="TDC_OW";
+
+	 hdl_entity="tdc_onewire_wb";
+	 
+	 reg {
+			name = "Status Register";
+			prefix = "CSR";
+
+			field {
+				 name = "Temperature & ID valid";
+				 prefix = "VALID";
+				 description = "read 1: the values in the TEMP, ID_H, ID_L registers contain a valid readout from the DS18xx chip";
+				 type = BIT;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+                
+			};
+
+	 };
+	 
+	 reg {
+			name = "Board Temperature";
+			prefix = "TEMP";
+
+			field {
+				 name = "Temperature";
+				 size = 16;
+				 type = SLV;
+				 access_dev = WRITE_ONLY;
+				 access_bus = READ_ONLY;
+			};
+	 };
+
+	 reg {
+			name = "Board Unique ID (MSW)";
+			prefix = "ID_H";
+
+			field {
+				 name = "Unique ID (32 highest bits)";
+				 size = 32;
+				 type = SLV;
+				 access_dev = WRITE_ONLY;
+				 access_bus = READ_ONLY;
+			};
+	 };
+
+	 reg {
+			name = "Board Unique ID (LSW)";
+			prefix = "ID_L";
+
+			field {
+				 name = "Unique ID (32 lowest bits)";
+				 size = 32;
+				 type = SLV;
+				 access_dev = WRITE_ONLY;
+				 access_bus = READ_ONLY;
+			};
+	 };
+};

@@ -30,7 +30,10 @@ files = [
     "tdc_buffer_control_regs.vhd",
     "tdc_buffer_control_regs_wbgen2_pkg.vhd",
     "tdc_ts_addsub.vhd",
+    "tdc_ts_sub.vhd",
     "wbgen2_eic_nomask.vhd",
-    "dma_eic.vhd"
+    "dma_eic.vhd",
+    "tdc_onewire_wb.vhd",
+    "tdc_onewire_wbgen2_pkg.vhd"
 ];
 
