@@ -357,6 +357,63 @@ static void fmctdc_op_test5(struct m_test *m_test)
 static const char *fmctdc_op_test5_desc =
 	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We check that they all arrives and the timestamp is the same (ignore fine field)";
 
+static void fmctdc_op_test6(struct m_test *m_test)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	struct pollfd p;
+	const unsigned int timeout = 10;
+	int i, err, ret;
+
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
+		err = fmctdc_coalescing_timeout_set(tdc, i, timeout);
+		m_assert_int_eq(0, err);
+
+		err = fmctdc_channel_enable(tdc, i);
+		m_assert_int_eq(0, err);
+
+		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+						      i, 1, 0, 1000000);
+		m_assert_int_eq(0, err);
+
+		p.fd = fmctdc_fileno_channel(tdc, i);
+		p.events = POLLIN | POLLERR;
+		ret = poll(&p, 1, timeout / 2);
+		m_assert_int_eq(0, ret);
+	}
+}
+static const char *fmctdc_op_test6_desc =
+	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRq coalesing timeout. We expect to not receive timestamp before the timeout";
+
+static void fmctdc_op_test7(struct m_test *m_test)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	struct pollfd p;
+	const unsigned int timeout = 10;
+	int i, err, ret;
+
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
+		err = fmctdc_coalescing_timeout_set(tdc, i, timeout);
+		m_assert_int_eq(0, err);
+
+		err = fmctdc_channel_enable(tdc, i);
+		m_assert_int_eq(0, err);
+
+		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+						      i, 1, 0, 1000000);
+		m_assert_int_eq(0, err);
+
+		p.fd = fmctdc_fileno_channel(tdc, i);
+		p.events = POLLIN | POLLERR;
+		ret = poll(&p, 1, timeout + 1);
+		m_assert_int_eq(0, ret);
+	}
+}
+static const char *fmctdc_op_test7_desc =
+	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRq coalesing timeout. We expect to receive timestamp after the timeout";
 
 
 int main(int argc, char *argv[])
@@ -403,6 +460,14 @@ int main(int argc, char *argv[])
 			    fmctdc_op_test5,
 			    fmctdc_op_test_tear_down,
 			    fmctdc_op_test5_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test6,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test6_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test7,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test7_desc),
 	};
 	struct m_suite fmctdc_suite_op = m_suite("FMC TDC test: operation",
 						 M_VERBOSE,
