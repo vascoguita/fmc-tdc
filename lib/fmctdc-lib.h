@@ -17,6 +17,12 @@ extern "C" {
 
 #include <stdint.h>
 
+#define __FMCTDC_ERR_MIN 4096
+enum fmctdc_error_numbers {
+	FMCTDC_ERR_VMALLOC = __FMCTDC_ERR_MIN,
+	__FMCTDC_ERR_MAX,
+};
+
 /**
  * Enumeration for all TDC channels
  */
@@ -99,7 +105,7 @@ struct fmctdc_time {
  * Set of library utilities
  * @{
  */
-extern char *fmctdc_strerror(int err);
+extern const char *fmctdc_strerror(int err);
 extern int fmctdc_init(void);
 extern void fmctdc_exit(void);
 /**@}*/

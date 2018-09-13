@@ -491,6 +491,7 @@ static struct zio_cset ft_cset[] = {
 static struct zio_device ft_tmpl = {
 	.owner = THIS_MODULE,
 	.preferred_trigger = FT_ZIO_TRIG_TYPE_NAME,
+	.preferred_buffer = "vmalloc",
 	.s_op = &ft_zio_sysfs_ops,
 	.cset = ft_cset,
 	.n_cset = ARRAY_SIZE(ft_cset),

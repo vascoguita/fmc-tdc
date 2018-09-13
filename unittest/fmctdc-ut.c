@@ -200,9 +200,15 @@ static void fmctdc_param_test6(struct m_test *m_test)
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
 		for (len = 1; len < 64; len <<= 1) {
 			err = fmctdc_set_buffer_len(tdc, i, len);
+			m_assert_int_eq(-1, err);
+
+		}
+
+		for (len = 64; len < (64 << 20); len <<= 1) {
+			err = fmctdc_set_buffer_len(tdc, i, len);
 			m_assert_int_eq(0, err);
 			ret = fmctdc_get_buffer_len(tdc, i);
-			m_assert_int_eq(len, ret);
+			m_assert_int_le(len, ret);
 		}
 	}
 }
@@ -247,7 +253,7 @@ static void fmctdc_op_test_setup(struct m_test *m_test)
 		ret = fmctdc_channel_status_get(tdc, i);
 		m_assert_int_eq(FMCTDC_STATUS_DISABLE, ret);
 
-		err = fmctdc_set_buffer_len(tdc, i, 16);
+		err = fmctdc_set_buffer_len(tdc, i, 1000000);
 		m_assert_int_eq(0, err);
 		err = fmctdc_ts_mode_set(tdc, i, FMCTDC_TS_MODE_POST);
 		m_assert_int_eq(0, err);

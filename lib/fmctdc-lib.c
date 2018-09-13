@@ -38,13 +38,20 @@ static int ft_nboards; /**< number of available boards */
 static char *names[] = { "seconds", "coarse" }; /**< names used to retrive
 						   time-stamps from sysfs */
 
+static const char *fmctdc_error_string[] = {
+	[FMCTDC_ERR_VMALLOC - __FMCTDC_ERR_MIN] =
+		"Missing ZIO vmalloc support",
+};
+
 /**
  * It returns the error message associated to the given error code
  * @param[in] err error code
  */
-char *fmctdc_strerror(int err)
+const char *fmctdc_strerror(int err)
 {
-	return strerror(err);
+	if (err < __FMCTDC_ERR_MIN || err > __FMCTDC_ERR_MAX)
+		return strerror(err);
+	return fmctdc_error_string[err - __FMCTDC_ERR_MIN];
 }
 
 
@@ -227,6 +234,14 @@ found:
 		b->fdcc[i] = open(path, O_RDONLY);
 		if (b->fdcc[i] < 0)
 			goto error;
+
+		snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/buffer/max-buffer-kb",
+			 b->sysbase, i + 1);
+		if (access(path, R_OK | W_OK)) {
+			errno = FMCTDC_ERR_VMALLOC;
+			goto error;
+		}
+
 	}
 
 	return (void *)b;
@@ -526,12 +541,15 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-len",
+	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-kb",
 		 channel + 1);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
 	if (ret)
 		return ret;
+
+	val = (val * 1024) / sizeof(struct ft_hw_timestamp);
+
 	return val;
 }
 
@@ -539,9 +557,14 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
  * The function set the buffer length
  * @param[in] userb TDC board instance token
  * @param[in] channel to use
- * @param[in] length maximum number of timestamps to store
+ * @param[in] length maximum number of timestamps to store (min: 64)
  * @return 0 on success, otherwise a negative errno code is set
  *         appropriately
+ *
+ * Internally, the buffer allocates memory in chunks of minimun 1KiB. This
+ * means, for example, that if you ask for 65 timestamp the buffer will
+ * allocate space for 128. This because 64 timestamps fit in 1KiB, to store
+ * 65 we need 2KiB (128 timestamps)
  */
 int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 			  unsigned int length)
@@ -554,10 +577,15 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 		errno = EINVAL;
 		return -1;
 	}
+	if (length < 64) {
+		errno = EINVAL;
+		return -1;
+	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-len", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-kb",
+		 channel + 1);
 
-	val = length;
+	val = ((length * sizeof(struct ft_hw_timestamp)) / 1024) + 1;
 	return fmctdc_sysfs_set(b, attr, &val);
 }
 
