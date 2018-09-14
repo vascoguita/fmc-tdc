@@ -409,7 +409,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 	}
 }
 static const char *fmctdc_op_test6_desc =
-	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRq coalesing timeout. We expect to not receive timestamp before the timeout";
+	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to not receive timestamp before the timeout";
 
 static void fmctdc_op_test7(struct m_test *m_test)
 {
