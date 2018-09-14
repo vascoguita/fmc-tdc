@@ -44,11 +44,31 @@ uint64_t fmctdc_ts_ps(struct fmctdc_time *a)
 	return ps;
 }
 
+/**
+ * It normalizes the timestamp
+ * @param[in,out] a timestamp
+ */
+void fmctdc_ts_norm(struct fmctdc_time *a)
+{
+	uint64_t tmp;
+
+	if (a->frac >= 4096) {
+		tmp = a->frac / 4096UL;
+		a->coarse += tmp;
+		a->frac -= tmp * 4096UL;
+	}
+
+	if (a->coarse >= 125000000) {
+		tmp = a->coarse / 125000000UL;
+		a->seconds += tmp;
+		a->coarse -= tmp * 125000000UL;
+	}
+}
 
 /**
  * It perform the subtraction: a = a - b
- * @param[in] a timestamp
- * @param[in] b timestamp
+ * @param[in] a normalized timestamp
+ * @param[in] b normalized timestamp
  */
 void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
 {
@@ -76,8 +96,8 @@ void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
 
 /**
  * It perform an addiction: a = a + b
- * @param[in] a timestamp
- * @param[in] b timestamp
+ * @param[in] a normalized timestamp
+ * @param[in] b normalized timestamp
  */
 void fmctdc_ts_add(struct fmctdc_time *a, struct fmctdc_time *b)
 {
