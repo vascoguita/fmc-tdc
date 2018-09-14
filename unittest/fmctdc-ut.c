@@ -422,6 +422,70 @@ static const char *fmctdc_op_test7_desc =
 	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRq coalesing timeout. We expect to receive timestamp after the timeout";
 
 
+static void fmctdc_math_test1(struct m_test *m_test)
+{
+	struct fmctdc_time t;
+	int i;
+
+	for (i = 0; i < 30; ++i) { /* 30 to not overflow coarse (32bit) */
+		t.seconds = i;
+		t.coarse = 125000000 * i + 31;
+		t.frac = 4096 * i + 13;
+		fmctdc_ts_norm(&t);
+
+		m_assert_int_eq(t.seconds, i * 2);
+		m_assert_int_eq(t.coarse, 31 + i);
+		m_assert_int_eq(t.frac, 13);
+	}
+
+}
+static const char *fmctdc_math_test1_desc =
+	"Validate timestamp normalization";
+
+
+static void fmctdc_math_test2(struct m_test *m_test)
+{
+	struct fmctdc_time ret, t1, t2;
+
+	t1.seconds = random();
+	t1.coarse = random();
+	t1.frac = random();
+	fmctdc_ts_norm(&t1);
+
+	t2.seconds = t1.seconds + 1;
+	t2.coarse = random();
+	t2.frac = random();
+	fmctdc_ts_norm(&t2);
+
+	ret = t1;
+	fmctdc_ts_add(&ret, &t2);
+	fmctdc_ts_sub(&ret, &t2);
+	m_assert_mem_eq(&ret, &t1, sizeof(ret));
+
+}
+static const char *fmctdc_math_test2_desc =
+	"Validate timestamp albegra (t1 < t2 : t1 = t1 + t2 - t2)";
+
+static void fmctdc_math_test3(struct m_test *m_test)
+{
+	struct fmctdc_time ret, t1;
+
+	t1.seconds = random();
+	t1.coarse = random();
+	t1.frac = random();
+	fmctdc_ts_norm(&t1);
+
+	ret = t1;
+	fmctdc_ts_sub(&ret, &t1);
+	m_assert_int_eq(0, ret.seconds);
+	m_assert_int_eq(0, ret.coarse);
+	m_assert_int_eq(0, ret.frac);
+}
+static const char *fmctdc_math_test3_desc =
+	"Validate timestamp albegra (t1 - t1 = 0)";
+
+
+
 int main(int argc, char *argv[])
 {
 	struct m_test fmctdc_param_tests[] = {
@@ -480,6 +544,21 @@ int main(int argc, char *argv[])
 						 fmctdc_op_tests,
 						 fmctdc_set_up,
 						 fmctdc_tear_down);
+	struct m_test fmctdc_math_tests[] = {
+		m_test_desc(NULL, fmctdc_math_test1, NULL,
+			    fmctdc_math_test1_desc),
+		m_test_desc_loop(NULL, fmctdc_math_test2, NULL,
+				 fmctdc_math_test2_desc,
+				 100),
+		m_test_desc_loop(NULL, fmctdc_math_test3, NULL,
+				 fmctdc_math_test3_desc,
+				 100),
+	};
+	struct m_suite fmctdc_suite_math = m_suite("FMC TDC test: math",
+						   M_VERBOSE,
+						   fmctdc_math_tests,
+						   NULL,
+						   NULL);
 
 	char opt;
 	int ret;
@@ -507,6 +586,8 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
+
+	m_suite_run(&fmctdc_suite_math);
 
 	if (!fmctdc_dev_id) {
 		fprintf(stderr, "Missing TDC device ID options\n");
