@@ -47,6 +47,20 @@ static int fmctdc_execute_fmc_fdelay_pulse(unsigned int devid,
 }
 
 /**
+ * It sets the fine-delay to work with White-Rabbit
+ */
+static int fmcdc_execute_fmc_fdelay_wr(unsigned int devid)
+{
+	char cmd[CMD_LEN];
+
+	snprintf(cmd, CMD_LEN,
+		 "fmc-fdelay-board-time -d 0x%x wr > /dev/null",
+		 devid);
+
+	return system(cmd);
+}
+
+/**
  * Print help message
  * @param[in] name program name
  */
@@ -273,6 +287,19 @@ static void fmctdc_op_test_setup(struct m_test *m_test)
 		err = fmctdc_flush(tdc, i);
 		m_assert_int_eq(0, err);
 	}
+
+	err = fmcdc_execute_fmc_fdelay_wr(fmcfd_dev_id);
+	m_assert_int_eq(0, err);
+
+	ret = fmctdc_wr_mode(tdc, 0);
+	m_assert_int_eq(0, ret);
+
+	/* wait maximum ~10seconds for white-rabbit to sync */
+	for (i = 0; err && i < 10; ++i) {
+		err = fmctdc_check_wr_mode(tdc);
+		sleep(1);
+	}
+	m_assert_int_eq(0, err);
 }
 
 static void fmctdc_op_test_tear_down(struct m_test *m_test)
