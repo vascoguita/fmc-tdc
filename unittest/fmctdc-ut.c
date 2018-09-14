@@ -6,6 +6,7 @@
  */
 #include <errno.h>
 #include <getopt.h>
+#include <inttypes.h>
 #include <libgen.h>
 #include <poll.h>
 #include <stdlib.h>
@@ -25,18 +26,25 @@ static int fmcfd_dev_id;
 static int fmctdc_execute_fmc_fdelay_pulse(unsigned int devid,
 					   unsigned int channel,
 					   unsigned int period_us,
-					   unsigned int delay_us,
-					   unsigned int count)
+					   unsigned int relative_us,
+					   unsigned int count,
+					   struct fmctdc_time t)
 {
 	char cmd[CMD_LEN];
 
-	snprintf(cmd, CMD_LEN,
-		"fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %du -c %d > /dev/null",
-		devid, channel + 1, period_us, delay_us, count);
+	if (t.seconds)
+		snprintf(cmd, CMD_LEN,
+			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -D %"PRId64":0 -c %d > /dev/null",
+			 devid, channel + 1, period_us, t.seconds, count);
+	else
+		snprintf(cmd, CMD_LEN,
+			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %du -c %d > /dev/null",
+			 devid, channel + 1, period_us, relative_us, count);
 
+	printf("%s\n", cmd);
+	system("fmc-fdelay-board-time -d 0x700 get\n");
 	return system(cmd);
 }
-
 
 /**
  * Print help message
@@ -287,7 +295,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 {
 	struct fmctdc_test_desc *d = m_test->suite->private;
 	struct fmctdc_board *tdc = d->tdc;
-	struct fmctdc_time t[FMCTDC_NUM_CHANNELS], tmp;
+	struct fmctdc_time t[FMCTDC_NUM_CHANNELS], tmp, start;
 	struct pollfd p;
 	int i, k, err, ret;
 
@@ -296,11 +304,21 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 		m_assert_int_eq(0, err);
 	}
 
+	/* Generate pulses 2_pulses in the future */
+	err = fmctdc_get_time(tdc, &start);
+	m_assert_int_eq(0, err);
+	start.seconds += 2;
+	start.coarse = 0;
+	start.frac = 0;
 	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, period, 0, count);
+						      i, period,
+						      0,
+						      count,
+						      start);
 		m_assert_int_eq(0, err);
 	}
+	sleep(3);
 
 	for (k = 0; k < count; ++k) {
 		for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
@@ -370,7 +388,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 	struct pollfd p;
 	const unsigned int timeout = 10;
 	int i, err, ret;
-
+	struct fmctdc_time t = {0, 0, 0, 0, 0};
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
 		err = fmctdc_coalescing_timeout_set(tdc, i, timeout);
@@ -380,7 +398,8 @@ static void fmctdc_op_test6(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 1000000);
+						      i, 1, 0, 1000000,
+						      t);
 		m_assert_int_eq(0, err);
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
@@ -399,6 +418,7 @@ static void fmctdc_op_test7(struct m_test *m_test)
 	struct pollfd p;
 	const unsigned int timeout = 10;
 	int i, err, ret;
+	struct fmctdc_time t = {0, 0, 0, 0, 0};
 
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
@@ -409,7 +429,8 @@ static void fmctdc_op_test7(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 1000000);
+						      i, 1, 0, 1000000,
+						      t);
 		m_assert_int_eq(0, err);
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
