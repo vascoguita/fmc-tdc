@@ -154,7 +154,7 @@ begin
 --                                      Input Synchronizers                                      --
 ---------------------------------------------------------------------------------------------------   
     
-  rst_n <= not rst_n;
+  rst_n <= not rst_i;
 
   cmp_sync_ef1: gc_sync_ffs
     port map (
