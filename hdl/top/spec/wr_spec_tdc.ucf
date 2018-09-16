@@ -534,13 +534,13 @@ NET "gn_rst_n" TIG;
 #NET "gen_with_gennum/cmp_gn4124_core/rst_*" TIG;
 #NET "gen_with_gennum/cmp_gn4124_core/cmp_clk_in/P_clk" TNM_NET = cmp_gn4124_core/cmp_clk_in/P_clk;
 NET "clk_sys_62m5" TNM_NET = clk_sys_62m5;
-TIMESPEC ts_ignore_crossclock = FROM "clk_sys_62m5" TO "tdc_clk_125m_p_i" 10ns DATAPATHONLY;
-TIMESPEC ts_ignore_crossclock2 = FROM "tdc_clk_125m_p_i" TO "clk_sys_62m5" 10ns  DATAPATHONLY;
-TIMESPEC ts_ignore_xclock1 = FROM "clk_sys_62m5" TO "clk_125m_pllref_n_i" 10ns DATAPATHONLY;
-TIMESPEC ts_ignore_xclock2 = FROM "clk_125m_pllref_p_i" TO "clk_sys_62m5" 10ns DATAPATHONLY;
+TIMESPEC ts_ignore_crossclock = FROM "clk_sys_62m5" TO "tdc_clk_125m_p_i" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_crossclock2 = FROM "tdc_clk_125m_p_i" TO "clk_sys_62m5" 20ns  DATAPATHONLY;
+TIMESPEC ts_ignore_xclock1 = FROM "clk_sys_62m5" TO "clk_125m_pllref_n_i" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "clk_125m_pllref_p_i" TO "clk_sys_62m5" 20ns DATAPATHONLY;
 
-TIMESPEC ts_x3 = FROM "clk_sys_62m5" TO "U_GTP_ch1_rx_divclk" 10ns DATAPATHONLY;
-TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_sys_62m5" 10ns DATAPATHONLY;
+TIMESPEC ts_x3 = FROM "clk_sys_62m5" TO "U_GTP_ch1_rx_divclk" 20ns DATAPATHONLY;
+TIMESPEC TS_x4 = FROM "U_GTP_ch1_rx_divclk" TO "clk_sys_62m5" 20ns DATAPATHONLY;
 
 #Created by Constraints Editor (xc6slx150t-fgg900-3) - 2017/12/06
 NET "cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" TNM_NET = cmp_xwrc_board_spec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>;
