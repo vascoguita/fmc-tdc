@@ -235,7 +235,6 @@ architecture rtl of fmc_tdc_core is
   signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
   signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_width-1 downto 0);
   signal acam_ef1, acam_ef2                                  : std_logic;
-  signal acam_errflag_f_edge_p, acam_errflag_r_edge_p        : std_logic;
   signal acam_intflag_f_edge_p                               : std_logic;
   signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_width-1 downto 0);
   signal acam_tstamp1_ok_p, acam_tstamp2_ok_p                : std_logic;
@@ -282,6 +281,9 @@ architecture rtl of fmc_tdc_core is
   signal gen_fake_ts_enable  : std_logic;
   signal gen_fake_ts_channel : std_logic_vector(2 downto 0);
   signal gen_fake_ts_period  : std_logic_vector(27 downto 0);
+  signal r_int_flag_dly_ce : std_logic;
+  signal r_int_flag_dly_inc : std_logic;
+  signal r_int_flag_dly_rst : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
@@ -342,7 +344,10 @@ begin
      one_hz_phase_o         => pulse_delay,
      gen_fake_ts_period_o   => gen_fake_ts_period,
      gen_fake_ts_enable_o   => gen_fake_ts_enable,
-     gen_fake_ts_channel_o  => gen_fake_ts_channel
+     gen_fake_ts_channel_o  => gen_fake_ts_channel,
+     int_flag_dly_ce_o => r_int_flag_dly_ce,
+     int_flag_dly_inc_o => r_int_flag_dly_inc,
+     int_flag_dly_rst_o => r_int_flag_dly_rst
      );
 
   process(clk_tdc_i)
@@ -385,7 +390,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                   LOCAL ONE HZ GENERATOR                                      --
 ---------------------------------------------------------------------------------------------------
-  local_one_second_block : local_pps_gen
+  local_one_second_block : entity work.local_pps_gen
     generic map
     (g_width => g_width)
     port map
@@ -403,30 +408,26 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                   ACAM TIMECONTROL INTERFACE                                  --
 ---------------------------------------------------------------------------------------------------
-  acam_timing_block : acam_timecontrol_interface
+  acam_timing_block : entity work.acam_timecontrol_interface
     port map
-    (err_flag_i              => err_flag_i,
-     int_flag_i              => int_flag_i,
+    (
      start_from_fpga_o       => start_from_fpga,
      stop_dis_o              => stop_dis_o,
-     acam_refclk_r_edge_p_i  => acam_refclk_r_edge_p_i,
      utc_p_i                 => utc_p,
      clk_i                   => clk_tdc_i,
      activate_acq_p_i        => activate_acq_p,
      state_active_p_i        => state_active_p,
      deactivate_acq_p_i      => deactivate_acq_p,
-     rst_i                   => rst_tdc,
-     acam_errflag_f_edge_p_o => acam_errflag_f_edge_p,
-     acam_errflag_r_edge_p_o => acam_errflag_r_edge_p,
-     acam_intflag_f_edge_p_o => acam_intflag_f_edge_p);
+     rst_i                   => rst_tdc);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+
   start_from_fpga_o <= start_from_fpga;
 
 
 ---------------------------------------------------------------------------------------------------
 --                                     ACAM DATABUS INTERFACE                                    --
 ---------------------------------------------------------------------------------------------------
-  acam_data_block : acam_databus_interface
+  acam_data_block : entity work.acam_databus_interface
     port map
     (ef1_i       => ef1_i,
      ef2_i       => ef2_i,
@@ -452,11 +453,13 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                ACAM START RETRIGGER CONTROLLER                                --
 ---------------------------------------------------------------------------------------------------
-  start_retrigger_block : start_retrig_ctrl
-    generic map
-    (g_width => g_width)
+  start_retrigger_block : entity work.start_retrig_ctrl
     port map
-    (acam_intflag_f_edge_p_i => acam_intflag_f_edge_p,
+    (
+     r_int_flag_dly_rst_i       => r_int_flag_dly_rst,
+     r_int_flag_dly_inc_i       => r_int_flag_dly_inc,
+     r_int_flag_dly_ce_i        => r_int_flag_dly_ce,
+      int_flag_i => int_flag_i,
      clk_i                   => clk_tdc_i,
      utc_p_i                 => utc_p,
      rst_i                   => rst_tdc,
@@ -572,7 +575,7 @@ begin
     port map
     (clk_i            => clk_tdc_i,
      rst_i            => rst_tdc,
-     utc_p_i          => local_utc_p,
+     utc_p_i          => utc_p,
      tstamp_wr1_p_i   => final_timestamp_valid(0),
      tstamp_wr2_p_i   => final_timestamp_valid(1),
      tstamp_wr3_p_i   => final_timestamp_valid(2),

@@ -151,7 +151,12 @@ entity reg_ctrl is
       wrabbit_ctrl_reg_o : out std_logic_vector(g_width-1 downto 0);  -- 
 
       -- Signal to the acam_timecontrol_interface unit -- eva: i think it s not needed
-      start_phase_o : out std_logic_vector(g_width-1 downto 0));
+      start_phase_o : out std_logic_vector(g_width-1 downto 0);
+
+      int_flag_dly_ce_o : out std_logic;
+      int_flag_dly_inc_o : out std_logic;
+      int_flag_dly_rst_o : out std_logic
+      );
 
 end reg_ctrl;
 
@@ -181,6 +186,7 @@ architecture rtl of reg_ctrl is
   signal dat_out_pipe2, dat_out_pipe3 : std_logic_vector(g_span-1 downto 0);
 
   signal cyc_in_progress : std_logic;
+  signal cyc2_in_progress : std_logic;
 
   signal wb_in     : t_wishbone_slave_in;
   signal wb_out    : t_wishbone_slave_out;
@@ -357,9 +363,15 @@ begin
         dac_word             <= c_DEFAULT_DAC_WORD;  -- default DAC Vout = 1.65
 
         gen_fake_ts_enable_o <= '0';
-        
-      elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
 
+        int_flag_dly_rst_o <= '0';
+        int_flag_dly_ce_o <= '0';
+        int_flag_dly_inc_o <= '0';
+        cyc2_in_progress <= '0';
+      elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
+        cyc2_in_progress <= '1';
+        
+        
         if reg_adr = c_STARTING_UTC_ADR then
           starting_utc <= wb_in.dat;
         end if;
@@ -398,7 +410,17 @@ begin
           gen_fake_ts_period_o <= wb_in.dat(27 downto 0);
         end if;
 
+        int_flag_dly_ce_o <= '0';
+        
+        if reg_adr = c_TEST1_ADR then
+          int_flag_dly_ce_o <= wb_in.dat(0) and not cyc2_in_progress;
+          int_flag_dly_inc_o <= wb_in.dat(1);
+          int_flag_dly_rst_o <= wb_in.dat(2);
+        end if;
 
+      else
+        int_flag_dly_ce_o <= '0';
+        cyc2_in_progress <= '0';
       end if;
     end if;
   end process;

@@ -106,7 +106,7 @@ use work.TDC_OW_wbgen2_pkg.all;
 --=================================================================================================
 entity fmc_tdc_mezzanine is
   generic
-    (g_with_wrabbit_core           : boolean := false;
+    (g_with_wrabbit_core           : boolean := true;
      g_span                        : integer := 32;
      g_width                       : integer := 32;
      g_simulation                  : boolean := false;
@@ -115,7 +115,6 @@ entity fmc_tdc_mezzanine is
   port
     -- TDC core
     (
-
       -- System clock & reset (Wishbone)
       clk_sys_i   : in std_logic;       -- 62.5 MHz clock
       rst_sys_n_i : in std_logic;       -- reset for 62.5 MHz logic

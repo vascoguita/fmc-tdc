@@ -360,6 +360,7 @@ package tdc_core_pkg is
   constant c_WRABBIT_CTRL_ADR     : std_logic_vector(7 downto 0) := x"2D"; -- address 0x510B4 of GN4124 BAR 0
 
   constant c_TEST0_ADR     : std_logic_vector(7 downto 0) := x"2E"; -- address 0x510B4 of GN4124 BAR 0
+  constant c_TEST1_ADR     : std_logic_vector(7 downto 0) := x"2f"; -- address 0x510B4 of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Address of TDC core Control register
