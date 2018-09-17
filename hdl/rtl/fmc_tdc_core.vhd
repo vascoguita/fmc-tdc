@@ -17,12 +17,6 @@
 --                                                                                                |
 --              Figure 1 shows the architecture of this core.                                     |
 --                                                                                                |
---              Each timestamp is a 128-bit word with the following structure:                    |
---                [31:0]   Fine time                             | each bit represents 81.03 ps   |
---                [63:32]  Coarse time within the current second | each bit represents 8 ns       |
---                [95:64]  Local UTC time                        | each bit represents 1 s        |
---                [127:96] Metadata                              | rising/falling tstamp, Channel |
---                                                                                                |
 --              As the structure indicates, each timestamp is referred to a UTC second; the coarse|
 --              and fine time indicate with 81.03 ps resolution the amount of time passed after   |
 --              the last UTC second.                                                              |
@@ -156,17 +150,19 @@ use work.genram_pkg.all;
 --=================================================================================================
 entity fmc_tdc_core is
   generic
-    (g_span       : integer := 32;      -- address span in bus interfaces
-     g_width      : integer := 32;      -- data width in bus interfaces
-     g_simulation : boolean := false);  -- this generic is set to TRUE
+    (g_span              : integer := 32;  -- address span in bus interfaces
+     g_width             : integer := 32;  -- data width in bus interfaces
+     g_simulation        : boolean := false;
+     g_with_dma_readout  : boolean := false;
+     g_with_fifo_readout : boolean := false);  -- this generic is set to TRUE
                                         -- when instantiated in a test-bench
   port
     (
       clk_sys_i   : in std_logic;
-      rst_n_sys_i : in std_logic;
+      rst_sys_n_i : in std_logic;
 
-      clk_tdc_i : in std_logic;         -- 125 MHz reference from the PLL 
-      rst_tdc_i : in std_logic;         -- global reset, synched to clk_tdc_i
+      clk_tdc_i   : in std_logic;       -- 125 MHz reference from the PLL 
+      rst_tdc_n_i : in std_logic;       -- global reset, synched to clk_tdc_i
 
       acam_refclk_r_edge_p_i : in    std_logic;  -- rising edge on 31.25MHz ACAM reference clock
       send_dac_word_p_o      : out   std_logic;  -- command from GN4124/VME to reconfigure the TDC mezz DAC with dac_word_o
@@ -200,12 +196,6 @@ entity fmc_tdc_core is
       tdc_led_trig3_o        : out   std_logic;  -- amber led on front pannel, Ch.3 termination
       tdc_led_trig4_o        : out   std_logic;  -- amber led on front pannel, Ch.4 termination
       tdc_led_trig5_o        : out   std_logic;  -- amber led on front pannel, Ch.5 termination
-      -- TDC input signals, also arriving to the FPGA; not used currently
-      tdc_in_fpga_1_i        : in    std_logic;  -- TDC input Ch.1, not used
-      tdc_in_fpga_2_i        : in    std_logic;  -- TDC input Ch.2, not used
-      tdc_in_fpga_3_i        : in    std_logic;  -- TDC input Ch.3, not used
-      tdc_in_fpga_4_i        : in    std_logic;  -- TDC input Ch.4, not used
-      tdc_in_fpga_5_i        : in    std_logic;  -- TDC input Ch.5, not used
 
 
 -- White Rabbit control and status registers
@@ -221,8 +211,12 @@ entity fmc_tdc_core is
       cfg_slave_i : in  t_wishbone_slave_in;
       cfg_slave_o : out t_wishbone_slave_out;
 
-      timestamp_o     : out std_logic_vector(127 downto 0);
-      timestamp_stb_o : out std_logic;
+      ts_offset_i       : in  t_tdc_timestamp_array(4 downto 0);
+      reset_seq_i       : in  std_logic_vector(4 downto 0);
+      raw_enable_i      : in  std_logic_vector(4 downto 0);
+      timestamp_o       : out t_tdc_timestamp_array(4 downto 0);
+      timestamp_valid_o : out std_logic_vector(4 downto 0);
+      timestamp_ready_i : in  std_logic_vector(4 downto 0);
 
       channel_enable_o : out std_logic_vector(4 downto 0);
       irq_threshold_o  : out std_logic_vector(9 downto 0);
@@ -241,7 +235,6 @@ architecture rtl of fmc_tdc_core is
   signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
   signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_width-1 downto 0);
   signal acam_ef1, acam_ef2                                  : std_logic;
-  signal acam_errflag_f_edge_p, acam_errflag_r_edge_p        : std_logic;
   signal acam_intflag_f_edge_p                               : std_logic;
   signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_width-1 downto 0);
   signal acam_tstamp1_ok_p, acam_tstamp2_ok_p                : std_logic;
@@ -267,33 +260,55 @@ architecture rtl of fmc_tdc_core is
   signal utc, wrabbit_ctrl_reg                               : std_logic_vector(g_width-1 downto 0);
 
   -- LEDs
-  signal tdc_in_fpga_1, tdc_in_fpga_2, tdc_in_fpga_3 : std_logic_vector(1 downto 0);
-  signal tdc_in_fpga_4, tdc_in_fpga_5                : std_logic_vector(1 downto 0);
+  signal acam_channel        : std_logic_vector(5 downto 0);
+  signal acam_tstamp_channel : std_logic_vector(2 downto 0);
 
-  signal rst_sys         : std_logic;
-  signal timestamp_valid : std_logic;
-  signal timestamp       : std_logic_vector(127 downto 0);
+  signal raw_timestamp_valid : std_logic;
+  signal raw_timestamp       : t_acam_timestamp;
 
+  signal final_timestamp_valid : std_logic_vector(4 downto 0);
+  signal final_timestamp_ready : std_logic_vector(4 downto 0);
+  signal final_timestamp       : t_tdc_timestamp_array(4 downto 0);
+
+
+  signal channel_enable_tdc : std_logic_vector(4 downto 0);
+  signal channel_enable_sys : std_logic_vector(4 downto 0);
+
+  signal rst_sys, rst_tdc : std_logic;
+  signal core_status      : std_logic_vector(31 downto 0);
+
+
+  signal gen_fake_ts_enable  : std_logic;
+  signal gen_fake_ts_channel : std_logic_vector(2 downto 0);
+  signal gen_fake_ts_period  : std_logic_vector(27 downto 0);
+  signal r_int_flag_dly_ce : std_logic;
+  signal r_int_flag_dly_inc : std_logic;
+  signal r_int_flag_dly_rst : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
 
-  rst_sys <= not rst_n_sys_i;
-
+  rst_sys <= not rst_sys_n_i;
+  rst_tdc <= not rst_tdc_n_i;
 ---------------------------------------------------------------------------------------------------
 --                                   TDC REGISTERS CONTROLLER                                    --
 ---------------------------------------------------------------------------------------------------
-  reg_control_block : reg_ctrl
+
+  core_status(0)           <= '1' when g_with_dma_readout  else '0';
+  core_status(1)           <= '1' when g_with_fifo_readout else '0';
+  core_status(31 downto 2) <= (others => '0');
+
+  reg_control_block : entity work.reg_ctrl
     generic map
     (g_span  => g_span,
      g_width => g_width)
     port map
     (clk_tdc_i   => clk_tdc_i,
-     rst_tdc_i   => rst_tdc_i,
+     rst_tdc_n_i => rst_tdc_n_i,
      clk_sys_i   => clk_sys_i,
-     rst_n_sys_i => rst_n_sys_i,
+     rst_sys_n_i => rst_sys_n_i,
 
 
      slave_i => cfg_slave_i,
@@ -315,7 +330,7 @@ begin
      acam_start01_i         => acam_start01,
      local_utc_i            => utc,
      irq_code_i             => x"00000000",
-     core_status_i          => x"00000000",
+     core_status_i          => core_status,
      wrabbit_status_reg_i   => wrabbit_status_reg_i,
      wrabbit_ctrl_reg_o     => wrabbit_ctrl_reg,
      acam_config_o          => acam_config,
@@ -326,7 +341,14 @@ begin
      irq_time_threshold_o   => irq_time_threshold,
      send_dac_word_p_o      => send_dac_word_p_o,
      dac_word_o             => dac_word_o,
-     one_hz_phase_o         => pulse_delay);
+     one_hz_phase_o         => pulse_delay,
+     gen_fake_ts_period_o   => gen_fake_ts_period,
+     gen_fake_ts_enable_o   => gen_fake_ts_enable,
+     gen_fake_ts_channel_o  => gen_fake_ts_channel,
+     int_flag_dly_ce_o => r_int_flag_dly_ce,
+     int_flag_dly_inc_o => r_int_flag_dly_inc,
+     int_flag_dly_rst_o => r_int_flag_dly_rst
+     );
 
   process(clk_tdc_i)
   begin
@@ -346,7 +368,7 @@ begin
   term_enable_regs : process (clk_tdc_i)
   begin
     if rising_edge (clk_tdc_i) then
-      if rst_tdc_i = '1' then
+      if rst_tdc_n_i = '0' then
         enable_inputs_o <= '0';
         term_en_5_o     <= '0';
         term_en_4_o     <= '0';
@@ -368,7 +390,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                   LOCAL ONE HZ GENERATOR                                      --
 ---------------------------------------------------------------------------------------------------
-  local_one_second_block : local_pps_gen
+  local_one_second_block : entity work.local_pps_gen
     generic map
     (g_width => g_width)
     port map
@@ -377,39 +399,35 @@ begin
      clk_period_i           => clk_period,
      load_utc_p_i           => load_utc,
      pulse_delay_i          => pulse_delay,
-     rst_i                  => rst_tdc_i,
+     rst_i                  => rst_tdc,
      starting_utc_i         => starting_utc,
      local_utc_o            => local_utc,
      local_utc_p_o          => local_utc_p);
 
-  clk_period <= f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
+  clk_period <= work.tdc_core_pkg.f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
 ---------------------------------------------------------------------------------------------------
 --                                   ACAM TIMECONTROL INTERFACE                                  --
 ---------------------------------------------------------------------------------------------------
-  acam_timing_block : acam_timecontrol_interface
+  acam_timing_block : entity work.acam_timecontrol_interface
     port map
-    (err_flag_i              => err_flag_i,
-     int_flag_i              => int_flag_i,
+    (
      start_from_fpga_o       => start_from_fpga,
      stop_dis_o              => stop_dis_o,
-     acam_refclk_r_edge_p_i  => acam_refclk_r_edge_p_i,
      utc_p_i                 => utc_p,
      clk_i                   => clk_tdc_i,
      activate_acq_p_i        => activate_acq_p,
      state_active_p_i        => state_active_p,
      deactivate_acq_p_i      => deactivate_acq_p,
-     rst_i                   => rst_tdc_i,
-     acam_errflag_f_edge_p_o => acam_errflag_f_edge_p,
-     acam_errflag_r_edge_p_o => acam_errflag_r_edge_p,
-     acam_intflag_f_edge_p_o => acam_intflag_f_edge_p);
+     rst_i                   => rst_tdc);
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+
   start_from_fpga_o <= start_from_fpga;
 
 
 ---------------------------------------------------------------------------------------------------
 --                                     ACAM DATABUS INTERFACE                                    --
 ---------------------------------------------------------------------------------------------------
-  acam_data_block : acam_databus_interface
+  acam_data_block : entity work.acam_databus_interface
     port map
     (ef1_i       => ef1_i,
      ef2_i       => ef2_i,
@@ -422,7 +440,7 @@ begin
      ef1_o       => acam_ef1,
      ef2_o       => acam_ef2,
      clk_i       => clk_tdc_i,
-     rst_i       => rst_tdc_i,
+     rst_i       => rst_tdc,
      adr_i       => acm_adr,
      cyc_i       => acm_cyc,
      dat_i       => acm_dat_w,
@@ -435,14 +453,16 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                ACAM START RETRIGGER CONTROLLER                                --
 ---------------------------------------------------------------------------------------------------
-  start_retrigger_block : start_retrig_ctrl
-    generic map
-    (g_width => g_width)
+  start_retrigger_block : entity work.start_retrig_ctrl
     port map
-    (acam_intflag_f_edge_p_i => acam_intflag_f_edge_p,
+    (
+     r_int_flag_dly_rst_i       => r_int_flag_dly_rst,
+     r_int_flag_dly_inc_i       => r_int_flag_dly_inc,
+     r_int_flag_dly_ce_i        => r_int_flag_dly_ce,
+      int_flag_i => int_flag_i,
      clk_i                   => clk_tdc_i,
      utc_p_i                 => utc_p,
-     rst_i                   => rst_tdc_i,
+     rst_i                   => rst_tdc,
      current_retrig_nb_o     => current_retrig_nb,  -- for debug
      roll_over_incr_recent_o => roll_over_incr_recent,
      clk_i_cycles_offset_o   => clk_i_cycles_offset,
@@ -453,7 +473,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                          DATA ENGINE                                          --
 ---------------------------------------------------------------------------------------------------
-  data_engine_block : data_engine
+  data_engine_block : entity work.data_engine
     generic map(
       g_simulation => g_simulation)
     port map
@@ -465,7 +485,7 @@ begin
      acam_stb_o            => acm_stb,
      acam_we_o             => acm_we,
      clk_i                 => clk_tdc_i,
-     rst_i                 => rst_tdc_i,
+     rst_i                 => rst_tdc,
      acam_ef1_i            => acam_ef1,
      acam_ef2_i            => acam_ef2,
      activate_acq_p_i      => activate_acq_p,
@@ -493,10 +513,10 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                       DATA FORMATTING                                         --
 ---------------------------------------------------------------------------------------------------
-  data_formatting_block : data_formatting
+  data_formatting_block : entity work.data_formatting
     port map
     (clk_i                   => clk_tdc_i,
-     rst_i                   => rst_tdc_i,
+     rst_i                   => rst_tdc,
      acam_tstamp1_i          => acam_tstamp1,
      acam_tstamp1_ok_p_i     => acam_tstamp1_ok_p,
      acam_tstamp2_i          => acam_tstamp2,
@@ -508,9 +528,31 @@ begin
      current_retrig_nb_i     => current_retrig_nb,
      utc_p_i                 => utc_p,
      utc_i                   => utc,
-     timestamp_o             => timestamp,
-     timestamp_valid_o       => timestamp_valid
+     gen_fake_ts_period_i    => gen_fake_ts_period,
+     gen_fake_ts_enable_i    => gen_fake_ts_enable,
+     gen_fake_ts_channel_i   => gen_fake_ts_channel,
+     timestamp_o             => raw_timestamp,
+     timestamp_valid_o       => raw_timestamp_valid
      );
+
+
+  U_FilterAndConvert : entity work.timestamp_convert_filter
+    port map (
+      clk_tdc_i   => clk_tdc_i,
+      rst_tdc_n_i => rst_tdc_n_i,
+      clk_sys_i   => clk_sys_i,
+      rst_sys_n_i => rst_sys_n_i,
+
+      enable_i     => channel_enable_sys,
+      ts_i         => raw_timestamp,
+      ts_valid_i   => raw_timestamp_valid,
+      ts_o         => final_timestamp,
+      ts_valid_o   => final_timestamp_valid,
+      ts_ready_i   => final_timestamp_ready,
+      ts_offset_i  => ts_offset_i,
+      reset_seq_i  => reset_seq_i,
+      raw_enable_i => raw_enable_i
+      );
 
 
 ---------------------------------------------------------------------------------------------------
@@ -519,23 +561,31 @@ begin
   utc   <= wrabbit_tai_i   when wrabbit_synched_i = '1' else local_utc;
   utc_p <= wrabbit_tai_p_i when wrabbit_synched_i = '1' else local_utc_p;
 
-  timestamp_stb_o <= timestamp_valid;
-  timestamp_o     <= timestamp;
+  timestamp_valid_o     <= final_timestamp_valid;
+  final_timestamp_ready <= timestamp_ready_i;
+  timestamp_o           <= final_timestamp;
 
 ---------------------------------------------------------------------------------------------------
 --                                              TDC LEDs                                         --
 ---------------------------------------------------------------------------------------------------  
-  TDCboard_leds : leds_manager
+  TDCboard_leds : entity work.leds_manager
     generic map
     (g_width      => 32,
      g_simulation => g_simulation)
     port map
     (clk_i            => clk_tdc_i,
-     rst_i            => rst_tdc_i,
-     utc_p_i          => local_utc_p,
-     acam_inputs_en_i => acam_inputs_en,
-     acam_channel_i   => timestamp(98 downto 96),
-     tstamp_wr_p_i    => timestamp_valid,
+     rst_i            => rst_tdc,
+     utc_p_i          => utc_p,
+     tstamp_wr1_p_i   => final_timestamp_valid(0),
+     tstamp_wr2_p_i   => final_timestamp_valid(1),
+     tstamp_wr3_p_i   => final_timestamp_valid(2),
+     tstamp_wr4_p_i   => final_timestamp_valid(3),
+     tstamp_wr5_p_i   => final_timestamp_valid(4),
+     term_en_5_i      => acam_inputs_en(4),
+     term_en_4_i      => acam_inputs_en(3),
+     term_en_3_i      => acam_inputs_en(2),
+     term_en_2_i      => acam_inputs_en(1),
+     term_en_1_i      => acam_inputs_en(0),
      tdc_led_status_o => tdc_led_status_o,
      tdc_led_trig1_o  => tdc_led_trig1_o,
      tdc_led_trig2_o  => tdc_led_trig2_o,
@@ -543,13 +593,25 @@ begin
      tdc_led_trig4_o  => tdc_led_trig4_o,
      tdc_led_trig5_o  => tdc_led_trig5_o);
 
+  acam_channel <= "000" & acam_tstamp_channel;
+
 ---------------------------------------------------------------------------------------------------
 --                                    ACAM start_dis, not used                                   --
 --------------------------------------------------------------------------------------------------- 
   start_dis_o <= '0';
 
-  channel_enable_o <= acam_inputs_en(20 downto 16);
-  
+  U_Sync_ChannelEnable : entity work.gc_sync_register
+    generic map (
+      g_width => 5)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_sys_n_i,
+      d_i       => channel_enable_tdc,
+      q_o       => channel_enable_sys);
+
+  channel_enable_tdc <= acam_inputs_en(20 downto 16);
+  channel_enable_o   <= channel_enable_sys;
+
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

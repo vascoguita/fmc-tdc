@@ -12,3 +12,4 @@ syn_tool = "ise"
 top_module = "wr_spec_tdc"
 
 modules = { "local" : [ "../../top/spec" ] }
+ctrls = ["bank3_32b_32b"]

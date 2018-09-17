@@ -60,6 +60,65 @@ use work.gencores_pkg.all;
 --=================================================================================================
 package tdc_core_pkg is
 
+
+
+  type t_raw_acam_timestamp is record
+    seconds               : std_logic_vector(31 downto 0);  -- 32
+    acam_bins             : std_logic_vector(16 downto 0);  -- 32 + 17 = 49
+    acam_start_nb : std_logic_vector(7 downto 0);      
+    roll_over_incr_recent : std_logic;
+    clk_i_cycles_offset   : std_logic_vector(7 downto 0);   -- 60 + 8 = 68
+    roll_over_nb          : std_logic_vector(15 downto 0);  -- 68 + 16 = 84
+    retrig_nb_offset      : std_logic_vector(8 downto 0);   -- 84 + 9 = 93
+    current_retrig_nb     : std_logic_vector(8 downto 0);   -- 93 + 9 = 102
+    channel               : std_logic_vector(2 downto 0);   -- 102 + 3 = 105
+    slope                 : std_logic;                      -- 105 + 1 = 106
+    seq                   : std_logic_vector(23 downto 0);  -- 106 + 22 = 128
+                                     -- (raw mode data)
+  end record;
+
+  type t_acam_timestamp is record
+    raw : t_raw_acam_timestamp;
+    tai : std_logic_vector(31 downto 0);
+    coarse : std_logic_vector( 31 downto 0);
+    n_bins : std_logic_vector(16 downto 0);
+    channel : std_logic_vector(2 downto 0);
+    slope : std_logic;
+    meta : std_logic_vector(31 downto 0);
+  end record;
+  
+  
+  constant c_dummy_raw_acam_timestamp : t_raw_acam_timestamp :=
+    (
+      x"00000000",
+      "00000000000000000",
+      x"00",
+      '0',
+      x"00",
+      x"0000",
+      "000000000",
+      "000000000",
+      "000",
+      '0',
+      "000000000000000000000000"
+      );
+  
+  type t_tdc_timestamp is record
+    raw : t_raw_acam_timestamp;
+    slope : std_logic;
+    channel : std_logic_vector(2 downto 0);
+    frac : std_logic_vector(11 downto 0);
+    coarse : std_logic_vector(31 downto 0);
+    tai : std_logic_vector(31 downto 0);
+    seq : std_logic_vector(31 downto 0);
+    meta : std_logic_vector(31 downto 0);
+  end record;
+
+  constant c_dummy_timestamp : t_tdc_timestamp :=
+    ( c_dummy_raw_acam_timestamp, '0', "000", x"000", x"00000000", x"00000000", x"00000000", x"00000000" );
+  
+  type t_tdc_timestamp_array is array(integer range<>) of t_tdc_timestamp;
+  
 ---------------------------------------------------------------------------------------------------
 --                      Constant regarding the Mezzanine DAC configuration                       --
 ---------------------------------------------------------------------------------------------------
@@ -73,7 +132,7 @@ package tdc_core_pkg is
 -- Note: All address in sdb and crossbar are BYTE addresses!
 
   -- Devices sdb description
-  constant c_ONEWIRE_SDB_DEVICE : t_sdb_device :=
+  constant c_TDC_ONEWIRE_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
      abi_ver_major => x"01",
      abi_ver_minor => x"01",
@@ -84,10 +143,10 @@ package tdc_core_pkg is
         addr_last   => x"0000000000000007",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
-           device_id => x"00000602",         -- "WB-Onewire.Control " | md5sum | cut -c1-8
+           device_id => x"00006602",         -- "WB-Onewire.Control " | md5sum | cut -c1-8
            version   => x"00000001",
-           date      => x"20121116",
-           name      => "WB-Onewire.Control ")));
+           date      => x"20180910",
+           name      => "TDC-Onewire-Regs   ")));
 
   constant c_SPEC_INFO_SDB_DEVICE : t_sdb_device :=
     (abi_class     => x"0000",               -- undocumented device
@@ -187,6 +246,23 @@ package tdc_core_pkg is
            name      => "WB-TDC-TsFIFO      ")));
 
 
+    constant c_TDC_DMA_SDB_DEVICE : t_sdb_device :=
+    (abi_class     => x"0000",               -- undocumented device
+     abi_ver_major => x"01",
+     abi_ver_minor => x"01",
+     wbd_endian    => c_sdb_endian_big,
+     wbd_width     => x"4",                  -- 32-bit port granularity
+     sdb_component =>
+       (addr_first  => x"0000000000000000",
+        addr_last   => x"00000000000001FF",
+        product     =>
+          (vendor_id => x"000000000000CE42", -- CERN
+           device_id => x"00000623",         -- "WB-TDC-Mem         " | md5sum | cut -c1-8
+           version   => x"00000001",
+           date      => x"20150415",
+           name      => "WB-TDC-TsDMAEngine ")));
+
+
 ---------------------------------------------------------------------------------------------------
 --                           Constants regarding 1 Hz pulse generation                           --
 ---------------------------------------------------------------------------------------------------
@@ -194,8 +270,8 @@ package tdc_core_pkg is
   -- for synthesis: 1 sec = x"07735940" clk_i cycles (1 clk_i cycle = 8ns)
   constant c_SYN_CLK_PERIOD : std_logic_vector(31 downto 0) := x"07735940";
 
-  -- for simulation: 100 usec = x"000030d4" clk_i cycles (1 clk_i cycle = 8ns)
-  constant c_SIM_CLK_PERIOD : std_logic_vector(31 downto 0) := x"000030d4";
+  -- for simulation: 1 msec = x"0001E848" clk_i cycles (1 clk_i cycle = 8ns)
+  constant c_SIM_CLK_PERIOD : std_logic_vector(31 downto 0) := x"00001000";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -282,6 +358,9 @@ package tdc_core_pkg is
 
   constant c_WRABBIT_STATUS_ADR   : std_logic_vector(7 downto 0) := x"2C"; -- address 0x510B0 of GN4124 BAR 0
   constant c_WRABBIT_CTRL_ADR     : std_logic_vector(7 downto 0) := x"2D"; -- address 0x510B4 of GN4124 BAR 0
+
+  constant c_TEST0_ADR     : std_logic_vector(7 downto 0) := x"2E"; -- address 0x510B4 of GN4124 BAR 0
+  constant c_TEST1_ADR     : std_logic_vector(7 downto 0) := x"2f"; -- address 0x510B4 of GN4124 BAR 0
 
 ---------------------------------------------------------------------------------------------------
 -- Address of TDC core Control register
@@ -396,12 +475,6 @@ package tdc_core_pkg is
      tdc_led_trig3_o           : out   std_logic;
      tdc_led_trig4_o           : out   std_logic;
      tdc_led_trig5_o           : out   std_logic;
-     -- Input pulses arriving also to the FPGA, currently not treated
-     tdc_in_fpga_1_i           : in    std_logic;
-     tdc_in_fpga_2_i           : in    std_logic;
-     tdc_in_fpga_3_i           : in    std_logic;
-     tdc_in_fpga_4_i           : in    std_logic;
-     tdc_in_fpga_5_i           : in    std_logic;
      -- White Rabbit core
      wrabbit_link_up_i         : in    std_logic;
      wrabbit_time_valid_i      : in    std_logic;
@@ -470,11 +543,6 @@ package tdc_core_pkg is
       tdc_led_trig3_o        : out   std_logic;
       tdc_led_trig4_o        : out   std_logic;
       tdc_led_trig5_o        : out   std_logic;
-      tdc_in_fpga_1_i        : in    std_logic;
-      tdc_in_fpga_2_i        : in    std_logic;
-      tdc_in_fpga_3_i        : in    std_logic;
-      tdc_in_fpga_4_i        : in    std_logic;
-      tdc_in_fpga_5_i        : in    std_logic;
       wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
       wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
       wrabbit_synched_i      : in    std_logic;
@@ -482,7 +550,7 @@ package tdc_core_pkg is
       wrabbit_tai_i          : in    std_logic_vector(31 downto 0);
       cfg_slave_i            : in    t_wishbone_slave_in;
       cfg_slave_o            : out   t_wishbone_slave_out;
-      timestamp_o            : out   std_logic_vector(127 downto 0);
+      timestamp_o            : out   t_tdc_timestamp;
       timestamp_stb_o        : out   std_logic;
       channel_enable_o       : out   std_logic_vector(4 downto 0);
       irq_threshold_o        : out   std_logic_vector(9 downto 0);
@@ -601,45 +669,6 @@ package tdc_core_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
-  component data_engine
-    generic (
-      g_simulation : boolean );
-    port
-      (acam_ack_i            : in std_logic;
-       acam_dat_i            : in std_logic_vector(31 downto 0);
-       clk_i                 : in std_logic;
-       rst_i                 : in std_logic;
-       acam_ef1_i            : in std_logic;
-       acam_ef2_i            : in std_logic;
-       activate_acq_p_i      : in std_logic;
-       deactivate_acq_p_i    : in std_logic;
-       acam_wr_config_p_i    : in std_logic;
-       acam_rdbk_config_p_i  : in std_logic;
-       acam_rdbk_status_p_i  : in std_logic;
-       acam_rdbk_ififo1_p_i  : in std_logic;
-       acam_rdbk_ififo2_p_i  : in std_logic;
-       acam_rdbk_start01_p_i : in std_logic;
-       acam_rst_p_i          : in std_logic;
-       acam_config_i         : in config_vector;
-	   start_from_fpga_i     : in  std_logic;
-      ----------------------------------------------------------------------
-       state_active_p_o      : out std_logic;
-	   acam_adr_o            : out std_logic_vector(7 downto 0);
-       acam_cyc_o            : out std_logic;
-       acam_dat_o            : out std_logic_vector(31 downto 0);
-       acam_stb_o            : out std_logic;
-       acam_we_o             : out std_logic;
-       acam_config_rdbk_o    : out config_vector;
-       acam_ififo1_o         : out std_logic_vector(31 downto 0);
-       acam_ififo2_o         : out std_logic_vector(31 downto 0);
-       acam_start01_o        : out std_logic_vector(31 downto 0);
-       acam_tstamp1_o        : out std_logic_vector(31 downto 0);
-       acam_tstamp1_ok_p_o   : out std_logic;
-       acam_tstamp2_o        : out std_logic_vector(31 downto 0);
-       acam_tstamp2_ok_p_o   : out std_logic);
-      ----------------------------------------------------------------------
-  end component;
-
 
 ---------------------------------------------------------------------------------------------------
   component reg_ctrl is
@@ -680,7 +709,11 @@ package tdc_core_pkg is
       one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0);
       acam_inputs_en_o       : out std_logic_vector(g_width-1 downto 0);
       wrabbit_ctrl_reg_o     : out std_logic_vector(g_width-1 downto 0);
-      start_phase_o          : out std_logic_vector(g_width-1 downto 0));
+      start_phase_o          : out std_logic_vector(g_width-1 downto 0);
+      gen_fake_ts_enable_o  : out std_logic;
+      gen_fake_ts_period_o  : out std_logic_vector(27 downto 0);
+      gen_fake_ts_channel_o : out std_logic_vector(2 downto 0)
+    );
   end component reg_ctrl;
 ---------------------------------------------------------------------------------------------------
   component acam_timecontrol_interface
@@ -716,8 +749,10 @@ package tdc_core_pkg is
       clk_i_cycles_offset_i   : in  std_logic_vector(31 downto 0);
       roll_over_nb_i          : in  std_logic_vector(31 downto 0);
       retrig_nb_offset_i      : in  std_logic_vector(31 downto 0);
-      current_retrig_nb_i     : in std_logic_vector(31 downto 0);
       utc_p_i                 : in  std_logic;
+      gen_fake_ts_enable_i  : in std_logic;
+      gen_fake_ts_period_i  : in std_logic_vector(27 downto 0);
+      gen_fake_ts_channel_i : in std_logic_vector(2 downto 0);
       timestamp_o             : out std_logic_vector(127 downto 0);
       timestamp_valid_o       : out std_logic);
   end component data_formatting;
@@ -810,28 +845,6 @@ package tdc_core_pkg is
   end component carrier_info;
 
 
----------------------------------------------------------------------------------------------------
-  component leds_manager is
-    generic
-      (g_width          : integer := 32;
-       g_simulation : boolean := FALSE);
-    port
-      (clk_i            : in std_logic;
-       rst_i            : in std_logic;
-       utc_p_i          : in std_logic;
-       acam_inputs_en_i : in std_logic_vector(g_width-1 downto 0);
-       acam_channel_i   : in std_logic_vector(2 downto 0);
-       tstamp_wr_p_i    : in std_logic;
-      ----------------------------------------------------------------------
-       tdc_led_status_o : out std_logic;
-       tdc_led_trig1_o  : out std_logic;
-       tdc_led_trig2_o  : out std_logic;
-       tdc_led_trig3_o  : out std_logic;
-       tdc_led_trig4_o  : out std_logic;
-       tdc_led_trig5_o  : out std_logic);
-      ----------------------------------------------------------------------
-  end component;
-
 
 ---------------------------------------------------------------------------------------------------
   component acam_databus_interface
@@ -854,7 +867,9 @@ package tdc_core_pkg is
        wr_n_o       : out std_logic;
        ack_o        : out std_logic;
        ef1_o        : out std_logic;
+       ef1_meta_o   : out std_logic;
        ef2_o        : out std_logic;
+       ef2_meta_o   : out std_logic;
        dat_o        : out std_logic_vector(31 downto 0));
       ----------------------------------------------------------------------
   end component;
@@ -907,11 +922,6 @@ package tdc_core_pkg is
       tdc_led_trig3_o      : out   std_logic;
       tdc_led_trig4_o      : out   std_logic;
       tdc_led_trig5_o      : out   std_logic;
-      tdc_in_fpga_1_i      : in    std_logic;
-      tdc_in_fpga_2_i      : in    std_logic;
-      tdc_in_fpga_3_i      : in    std_logic;
-      tdc_in_fpga_4_i      : in    std_logic;
-      tdc_in_fpga_5_i      : in    std_logic;
       mezz_scl_o           : out std_logic;
       mezz_sda_o           : out std_logic;
       mezz_scl_i           : in std_logic;
@@ -933,9 +943,53 @@ package tdc_core_pkg is
       irq_o                : out   std_logic;
       clk_125m_tdc_o       : out   std_logic);
   end component fmc_tdc_wrapper;
+  
+
+  function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector;
+
+  function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector;
+  
+
+  
+  
+end tdc_core_pkg;
+--=================================================================================================
+--                                        package body
+--=================================================================================================
+package body tdc_core_pkg is
+
+  function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector is
+    begin
+      if(cond) then
+        return if_true;
+        else
+          return if_false;
+          end if;
+      end f_pick;
+
+  function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector is
+    variable rv : std_logic_vector(127 downto 0);
+  begin
+    rv(31 downto 0) := ts.seconds;
+    rv(48 downto 32) := ts.acam_bins(16 downto 0);
+    rv(56 downto 49) := ts.acam_start_nb;
+    rv(57) := ts.roll_over_incr_recent;
+    rv(65 downto 58) := ts.clk_i_cycles_offset;
+    rv(81 downto 66) := ts.roll_over_nb;
+    rv(90 downto 82) := ts.retrig_nb_offset;
+    rv(99 downto 91) := ts.current_retrig_nb;
+    rv(102 downto 100) := ts.channel;
+    rv(103) := ts.slope;
+    rv(127 downto 104) := ts.seq;
+    
+    return rv;
+  end f_pack_raw_acam_timestamp;
 
 end tdc_core_pkg;
-
+--=================================================================================================
+--                                         package end
+--=================================================================================================
 ---------------------------------------------------------------------------------------------------
 --                                      E N D   O F   F I L E
 ---------------------------------------------------------------------------------------------------
+

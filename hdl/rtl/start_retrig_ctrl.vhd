@@ -123,36 +123,40 @@
 
 -- Standard library
 library IEEE;
-use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
-use IEEE.NUMERIC_STD.all;    -- conversion functions-- Specific library
+use IEEE.STD_LOGIC_1164.all;            -- std_logic definitions
+use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific library
 library work;
-use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
 
 
+library unisim;
+use unisim.vcomponents.all;
+ 
 --=================================================================================================
 --                            Entity declaration for start_retrig_ctrl
 --=================================================================================================
 
 entity start_retrig_ctrl is
-  generic
-    (g_width                 : integer := 32);
   port
-  -- INPUTS
-     -- Signal from the clk_rst_manager
-    (clk_i                   : in std_logic;
-     rst_i                   : in std_logic;
+    -- INPUTS
+    -- Signal from the clk_rst_manager
+    (clk_i               : in  std_logic;
+     rst_i             : in  std_logic;
      -- Signal from the acam_timecontrol_interface
-     acam_intflag_f_edge_p_i : in std_logic;
+     int_flag_i              : in  std_logic;
+     r_int_flag_dly_rst_i       : in  std_logic;
+     r_int_flag_dly_inc_i       : in  std_logic;
+     r_int_flag_dly_ce_i       : in  std_logic;
      -- Signal from the one_hz_generator unit
-     utc_p_i                 : in std_logic;
-  -- OUTPUTS
+     utc_p_i                 : in  std_logic;
+     -- OUTPUTS
      -- Signals to the data_formatting unit
-	 current_retrig_nb_o     : out std_logic_vector(g_width-1 downto 0);
+     current_retrig_nb_o     : out std_logic_vector(31 downto 0);
      roll_over_incr_recent_o : out std_logic;
-     clk_i_cycles_offset_o   : out std_logic_vector(g_width-1 downto 0);
-     roll_over_nb_o          : out std_logic_vector(g_width-1 downto 0);
-     retrig_nb_offset_o      : out std_logic_vector(g_width-1 downto 0));
+     clk_i_cycles_offset_o   : out std_logic_vector(31 downto 0);
+     roll_over_nb_o          : out std_logic_vector(31 downto 0);
+     retrig_nb_offset_o      : out std_logic_vector(31 downto 0));
 end start_retrig_ctrl;
 
 
@@ -163,13 +167,14 @@ end start_retrig_ctrl;
 
 architecture rtl of start_retrig_ctrl is
 
-  signal clk_i_cycles_offset : std_logic_vector(g_width-1 downto 0);
-  signal current_cycles      : std_logic_vector(g_width-1 downto 0);
-  signal current_retrig_nb   : std_logic_vector(g_width-1 downto 0);
-  signal retrig_nb_offset    : std_logic_vector(g_width-1 downto 0);
+  signal clk_i_cycles_offset : std_logic_vector(31 downto 0);
+  signal current_cycles      : std_logic_vector(31 downto 0);
+  signal current_retrig_nb   : std_logic_vector(31 downto 0);
+  signal retrig_nb_offset    : std_logic_vector(31 downto 0);
   signal retrig_p            : std_logic;
-  signal roll_over_c         : unsigned(g_width-1 downto 0);
+  signal roll_over_c         : unsigned(31 downto 0);
 
+  signal int_flag_stb_p, int_flag_dly, int_flag, int_flag_d, int_flag_p : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
@@ -233,46 +238,94 @@ begin
 
 -- These two counters keep a track of the current internal start retrigger
 -- of the ACAM in parallel with the ACAM itself. Counting up to c_ACAM_RETRIG_PERIOD = 64
- retrig_period_counter: free_counter  -- retrigger periods
-   generic map
-     (width             => g_width)
-   port map
-     (clk_i             => clk_i,
-      rst_i             => acam_intflag_f_edge_p_i,
-      counter_en_i      => '1',
-      counter_top_i     => c_ACAM_RETRIG_PERIOD,
-     -------------------------------------------
-      counter_is_zero_o => retrig_p,
-      counter_o         => current_cycles);
-     -------------------------------------------
 
-  retrig_nb_counter: incr_counter    -- number of retriggers counting from 0 to 255 and restarting
-    generic map                      -- through the acam_intflag_f_edge_p_i
-      (width             => g_width)
+
+
+  iodelay2_bus : IODELAY2
+    generic map (
+      DATA_RATE                => "SDR",
+      IDELAY_VALUE             => 0,
+      IDELAY_TYPE              => "VARIABLE_FROM_ZERO",
+      COUNTER_WRAPAROUND       => "STAY_AT_LIMIT",
+      DELAY_SRC                => "IDATAIN",
+      SERDES_MODE              => "NONE",
+      SIM_TAPDELAY_VALUE       => 75)
+    port map (
+      -- required datapath
+      IDATAIN                => int_flag_i,
+      DATAOUT                => int_flag_dly,
+      T                      => '1',
+      -- inactive data connections
+      DATAOUT2               => open,
+      DOUT                   => open,
+      ODATAIN                => '0',
+      TOUT                   =>  open,
+       -- connect up the clocks
+      IOCLK0                => clk_i,      -- High speed clock for calibration for SDR/DDR
+      IOCLK1                => '0',                 -- High speed clock for calibration for DDR
+      CLK                   => clk_i,
+      CAL                   => '0',
+      INC                   => r_int_flag_dly_inc_i,
+      CE                    => r_int_flag_dly_ce_i,
+      BUSY                  => open,
+      RST                   => r_int_flag_dly_rst_i);
+
+  p_sample_int_flag : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if rst_i = '1' then
+        int_flag_d <= '0';
+        int_flag <= '0';
+      else
+        int_flag <= int_flag_dly;
+        int_flag_d <= int_flag;
+      end if;
+    end if;
+  end process;
+
+
+  int_flag_p <= not int_flag and int_flag_d;
+
+  retrig_period_counter : free_counter  -- retrigger periods
+    generic map
+    (width => 32)
     port map
-      (clk_i             => clk_i,
-       rst_i             => acam_intflag_f_edge_p_i,  
-       counter_top_i     => x"00000100",
-       counter_incr_en_i => retrig_p,
-       counter_is_full_o => open,
+    (clk_i             => clk_i,
+     rst_i             => int_flag_p,
+     counter_en_i      => '1',
+     counter_top_i     => c_ACAM_RETRIG_PERIOD,
      -------------------------------------------
-       counter_o         => current_retrig_nb);
+     counter_is_zero_o => retrig_p,
+     counter_o         => current_cycles);
+  -------------------------------------------
+
+  retrig_nb_counter : incr_counter  -- number of retriggers counting from 0 to 255 and restarting
+    generic map                         -- through the acam_intflag_f_edge_p_i
+    (width => 32)
+    port map
+    (clk_i             => clk_i,
+     rst_i             => int_flag_p,
+     counter_top_i     => x"00000100",
+     counter_incr_en_i => retrig_p,
+     counter_is_full_o => open,
      -------------------------------------------
+     counter_o         => current_retrig_nb);
+  -------------------------------------------
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- This counter keeps track of the number of overflows of the ACAM counter within one second
-  roll_over_counter: process (clk_i)
+  roll_over_counter : process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if utc_p_i = '1' and acam_intflag_f_edge_p_i = '0' then
-        roll_over_c   <= x"00000000";
+      if utc_p_i = '1' and int_flag_p = '0' then
+        roll_over_c <= x"00000000";
 
-       -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
-       -- arrive on the exact same moment 
-	   elsif utc_p_i = '1' and acam_intflag_f_edge_p_i = '1' then
-        roll_over_c   <= x"00000001";
-		
-      elsif acam_intflag_f_edge_p_i = '1' then
+      -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
+      -- arrive on the exact same moment 
+      elsif utc_p_i = '1' and int_flag_p = '1' then
+        roll_over_c <= x"00000001";
+
+      elsif int_flag_p = '1' then
         roll_over_c <= roll_over_c + "1";
       end if;
     end if;
@@ -282,12 +335,12 @@ begin
   -- When a new second starts, all values are captured and stored as offsets.
   -- when a timestamp arrives, these offsets will be subtracted in order
   -- to base the final timestamp with respect to the current second.
-  capture_offset: process (clk_i)
+  capture_offset : process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if rst_i ='1' then
-        clk_i_cycles_offset <= (others=>'0');
-        retrig_nb_offset    <= (others=>'0');
+      if rst_i = '1' then
+        clk_i_cycles_offset <= (others => '0');
+        retrig_nb_offset    <= (others => '0');
 
       elsif utc_p_i = '1' then
         clk_i_cycles_offset <= current_cycles;
@@ -302,7 +355,7 @@ begin
   clk_i_cycles_offset_o   <= clk_i_cycles_offset;
   retrig_nb_offset_o      <= retrig_nb_offset;
   roll_over_nb_o          <= std_logic_vector(roll_over_c);
-  current_retrig_nb_o     <= current_retrig_nb; -- for debug
+  current_retrig_nb_o     <= current_retrig_nb;  -- for debug
 
 end architecture rtl;
 

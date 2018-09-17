@@ -1,0 +1,171 @@
+-- -*- Mode: LUA; tab-width: 2 -*-
+
+peripheral {
+	 name = "TDC DMA Buffer Control Registers";
+	 prefix="TDC_BUF";
+
+	 hdl_entity="tdc_buffer_control_wb";
+	 
+	 reg {
+			name = "Control/Status register";
+			prefix = "CSR";
+
+			field {
+				 name = "Enable acquisition";
+				 description = "1: timestamps of the given channel will be sequentially written to the current buffer, provided it's valid (CUR_SIZE.VALID=1) \
+0: acquisition off";
+				 prefix = "ENABLE";
+				 type = BIT;
+				 access_dev = READ_ONLY;
+				 access_bus = READ_WRITE;
+			};
+
+			field {
+				 name = "IRQ Timeout (ms)";
+				 prefix = "IRQ_TIMEOUT";
+				 description = "Interrupt coalescing timeout in milliseconds. Pick a high enough value to avoid too frequent interrupts and a low enough one to prevent buffer contention. 10 ms should be OK for most of the cases";
+				 size = 10;
+				 type = SLV;
+				 access_dev = READ_ONLY;
+				 access_bus = READ_WRITE;
+			};
+
+			field {
+				 name = "Burst size (timestamps)";
+				 prefix = "BURST_SIZE";
+				 description = "Number of timestamps in a single burst to the DDR memory. Default = 16";
+				 size = 10;
+				 type = SLV;
+				 access_dev = READ_ONLY;
+				 access_bus = READ_WRITE;
+			};
+
+			field {
+				 name = "Switch buffers";
+				 description = "write 1: atomically switches the acquisition buffer from the current one (base/size in CUR_BASE/CUR_SIZE) to the next one (described in NEXT_BASE/NEXT_SIZE registers)\
+write 0: no action";
+				 
+				 prefix = "SWITCH_BUFFERS";
+				 type = MONOSTABLE;
+			};
+
+			field {
+				 name = "Burst complete";
+				 prefix = "DONE";
+				 description = "read 1: the current buffer has been fully committed to the DDR memory after writing 1 to SWITCH_BUFFERS field.\
+read 0: still some transfers pending";
+				 type = BIT;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+
+			field {
+				 name = "DMA overflow";
+				 prefix = "OVERFLOW";
+				 description = "read 1: both the current and the next buffer have been filled with timestamps. Dropping all new incoming TS.";
+				 type = BIT;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+	 };
+	 
+	 reg {
+			name = "Current buffer base address register";
+			prefix = "CUR_BASE";
+
+			field {
+				 name = "Base address";
+				 description = "Base address of the current buffer (in bytes) relative to the DDR3 chip (0 = first word in the memory)";
+				 size = 32;
+				 type = SLV;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+	 };
+
+	 reg {
+			name = "Current buffer base count register";
+			prefix = "CUR_COUNT";
+
+			field {
+				 name = "Number of data samples";
+				 description="Number of data samples in the buffer (1 sample = 1 timestamp)";
+				 size = 32;
+				 type = SLV;
+				 access_dev = WRITE_ONLY;
+				 access_bus = READ_ONLY;
+			};
+	 };
+
+	 reg {
+			name = "Current buffer base size/valid flag register";
+			prefix = "CUR_SIZE";
+
+			field {
+				 name = "Size";
+				 description="Number of data samples the buffer can hold (1 sample = 1 timestamp)";
+				 prefix = "SIZE";
+				 size = 30;
+				 type = SLV;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+
+			field {
+				 name = "Valid flag";
+				 prefix = "VALID";
+				 description="write 1: indicate that this buffer is ready for acquisition and correctly configured";
+				 size = 30;
+				 type = BIT;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+	 };
+
+
+	 reg {
+			name = "Next buffer base address register";
+			prefix = "NEXT_BASE";
+
+			field {
+				 name = "Base address";
+				 size = 32;
+				 type = SLV;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+	 };
+
+	 reg {
+			name = "Next buffer base size/valid flag register";
+			prefix = "NEXT_SIZE";
+
+			field {
+				 name = "Size (in transfers)";
+				 prefix = "SIZE";
+				 size = 30;
+				 type = SLV;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+
+			field {
+				 name = "Valid flag";
+				 prefix = "VALID";
+				 size = 30;
+				 type = BIT;
+				 access_dev = READ_WRITE;
+				 access_bus = READ_WRITE;
+				 load = LOAD_EXT;
+			};
+	 };
+
+
+};

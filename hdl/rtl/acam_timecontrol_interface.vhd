@@ -52,11 +52,11 @@
 
 -- Standard library
 library IEEE;
-use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
-use IEEE.NUMERIC_STD.all;    -- conversion functions-- Specific library
+use IEEE.STD_LOGIC_1164.all;            -- std_logic definitions
+use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific library
 library work;
-use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
 use work.gencores_pkg.all;
 
 
@@ -66,74 +66,47 @@ use work.gencores_pkg.all;
 
 entity acam_timecontrol_interface is
   port
-  -- INPUTS
+    -- INPUTS
     -- Signals from the clk_rst_manager unit
-    (clk_i                   : in std_logic; -- 125 MHz clock
-     rst_i                   : in std_logic; -- reset
-     acam_refclk_r_edge_p_i  : in std_logic; -- pulse upon ACAM RefClk rising edge
+    (clk_i                  : in std_logic;  -- 125 MHz clock
+     rst_i                  : in std_logic;  -- reset
 
-    -- upc_p from the WRabbit or the local generator
-     utc_p_i                 : in std_logic;
+     -- upc_p from the WRabbit or the local generator 
+     utc_p_i : in std_logic;
 
-    -- Signals from the data_engine unit
-     state_active_p_i        : in std_logic; -- the core ready to follow the ACAM EF
+     -- Signals from the data_engine unit
+     state_active_p_i : in std_logic;   -- the core ready to follow the ACAM EF
 
-    -- Signals from the reg_ctrl unit
-     activate_acq_p_i        : in std_logic; -- signal from GN4124/VME to start following the ACAM chip
-                                             -- for tstamps aquisition
-     deactivate_acq_p_i      : in std_logic; -- acquisition deactivated
+     -- Signals from the reg_ctrl unit
+     activate_acq_p_i   : in std_logic;  -- signal from GN4124/VME to start following the ACAM chip
+                                         -- for tstamps aquisition
+     deactivate_acq_p_i : in std_logic;  -- acquisition deactivated
 
-    -- Signals from the ACAM chip
-     err_flag_i              : in std_logic; -- ACAM error flag, active HIGH; through ACAM config
-                                             -- reg 11 is set to report for any HitFIFOs full flags
-     int_flag_i              : in std_logic; -- ACAM interrupt flag, active HIGH; through ACAM config
-                                             -- reg 12 it is set to the MSB of Start#
 
-  -- OUTPUTS
-    -- Signals to the ACAM chip
-     start_from_fpga_o       : out std_logic;
+     -- OUTPUTS
+     -- Signals to the ACAM chip
+     start_from_fpga_o : out std_logic;
 
-     stop_dis_o              : out std_logic;
-    -- Signals to the
-     acam_errflag_r_edge_p_o : out std_logic; -- ACAM ErrFlag rising edge
-     acam_errflag_f_edge_p_o : out std_logic; -- ACAM ErrFlag falling edge
-     acam_intflag_f_edge_p_o : out std_logic);-- ACAM IntFlag falling edge
+     stop_dis_o              : out std_logic);
 
-end acam_timecontrol_interface;
-
---=================================================================================================
---                                    architecture declaration
+end entity;
+  
 --=================================================================================================
 architecture rtl of acam_timecontrol_interface is
 
+  signal acam_intflag_f_edge_p                                   : std_logic;
   signal start_pulse, wait_for_utc, rst_n, wait_for_state_active : std_logic;
-
 
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
 
- rst_n <= not(rst_i);
-
 ---------------------------------------------------------------------------------------------------
 --                            IntFlag and ERRflag Input Synchronizers                            --
----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------   
 
-  sync_err_flag : gc_sync_ffs
-    port map (
-      clk_i    => clk_i,
-      rst_n_i  => '1',
-      data_i   => err_flag_i,
-      ppulse_o => acam_errflag_r_edge_p_o,
-      npulse_o => acam_errflag_f_edge_p_o);
-
-  sync_int_flag : gc_sync_ffs
-    port map (
-      clk_i    => clk_i,
-      rst_n_i  => '1',
-      data_i   => int_flag_i,
-      npulse_o => acam_intflag_f_edge_p_o);
+  rst_n <= not(rst_i);
 
 ---------------------------------------------------------------------------------------------------
 --                                  start_from_fpga_o generation                                 --
@@ -142,18 +115,18 @@ begin
 -- after the state_active_p_i (coming from the data_engine unit).
 -- The pulse is synchronous to the utc_p_i
 
-  start_pulse_from_fpga: process (clk_i)
+  start_pulse_from_fpga : process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if rst_i ='1' or deactivate_acq_p_i = '1' then
-        wait_for_utc            <= '0';
-        start_pulse             <= '0';
-        wait_for_state_active   <= '0';
-        stop_dis_o              <= '1';
+      if rst_i = '1' or deactivate_acq_p_i = '1' then
+        wait_for_utc          <= '0';
+        start_pulse           <= '0';
+        wait_for_state_active <= '0';
+        stop_dis_o            <= '1';
       else
         if activate_acq_p_i = '1' then
-          wait_for_utc          <= '1';
-          start_pulse           <= '0';
+          wait_for_utc <= '1';
+          start_pulse  <= '0';
         elsif utc_p_i = '1' and wait_for_utc = '1' then
           wait_for_utc          <= '0';
           start_pulse           <= '1';
@@ -163,7 +136,7 @@ begin
           stop_dis_o            <= '0';
           wait_for_state_active <= '0';
         else
-          start_pulse           <= '0';
+          start_pulse <= '0';
         end if;
       end if;
     end if;
@@ -171,8 +144,8 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   extend_pulse : gc_extend_pulse
-  generic map (g_width => 4)
-  port map
+    generic map (g_width => 4)
+    port map
     (clk_i      => clk_i,
      rst_n_i    => rst_n,
      pulse_i    => start_pulse,

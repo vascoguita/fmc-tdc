@@ -683,11 +683,6 @@ begin
       tdc_led_trig3_o      => tdc1_led_trig3_o,
       tdc_led_trig4_o      => tdc1_led_trig4_o,
       tdc_led_trig5_o      => tdc1_led_trig5_o,
-      tdc_in_fpga_1_i      => tdc1_in_fpga_1_i,
-      tdc_in_fpga_2_i      => tdc1_in_fpga_2_i,
-      tdc_in_fpga_3_i      => tdc1_in_fpga_3_i,
-      tdc_in_fpga_4_i      => tdc1_in_fpga_4_i,
-      tdc_in_fpga_5_i      => tdc1_in_fpga_5_i,
 
       mezz_scl_i           => tdc1_scl_in,
       mezz_sda_i           => tdc1_sda_in,
@@ -760,11 +755,6 @@ begin
       tdc_led_trig3_o      => tdc2_led_trig3_o,
       tdc_led_trig4_o      => tdc2_led_trig4_o,
       tdc_led_trig5_o      => tdc2_led_trig5_o,
-      tdc_in_fpga_1_i      => tdc2_in_fpga_1_i,
-      tdc_in_fpga_2_i      => tdc2_in_fpga_2_i,
-      tdc_in_fpga_3_i      => tdc2_in_fpga_3_i,
-      tdc_in_fpga_4_i      => tdc2_in_fpga_4_i,
-      tdc_in_fpga_5_i      => tdc2_in_fpga_5_i,
 
       mezz_scl_i           => tdc2_scl_in,
       mezz_sda_i           => tdc2_sda_in,
