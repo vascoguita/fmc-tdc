@@ -480,7 +480,7 @@ begin
                           -- 1-Wire on TDC mezzanine
                           onewire_b              => mezz_one_wire_b,
                           direct_timestamp_o     => direct_timestamp,
-                          direct_timestamp_stb_o => direct_timestamp_wr,
+                          direct_timestamp_valid_o => direct_timestamp_wr,
 
                           sim_timestamp_ready_o => sim_timestamp_ready_o,
                           sim_timestamp_valid_i => sim_timestamp_valid_i,

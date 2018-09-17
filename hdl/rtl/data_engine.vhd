@@ -804,7 +804,7 @@ begin
   port map
     (clk_i             => clk_i,
      rst_i             => time_c_rst,
-     counter_top_i     => f_pick(g_simulation, x"00005000", x"0EE6B280"),
+     counter_top_i     => work.tdc_core_pkg.f_pick(g_simulation, x"00005000", x"0EE6B280"),
      counter_incr_en_i => time_c_en,
      counter_is_full_o => time_c_full_p,
      counter_o         => time_c);

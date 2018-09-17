@@ -77,6 +77,7 @@ use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific libraries
 library work;
 use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
+use work.gencores_pkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
@@ -162,9 +163,9 @@ architecture rtl of clks_rsts_manager is
   signal send_dac_word_r_edge_p, dac_only           : std_logic;
   signal pll_cs_n, dac_cs_n                         : std_logic;
   -- Synchronizers
-  signal pll_status_synch, internal_rst_synch       : std_logic_vector (1 downto 0);
-  signal rst_in_synch                               : std_logic_vector (1 downto 0) := "11";
-  signal acam_refclk_synch, send_dac_word_p_synch   : std_logic_vector (2 downto 0);
+  signal pll_status_synch, internal_rst_synch       : std_logic;
+  signal rst_in_synch                               : std_logic;
+  signal acam_refclk_synch, send_dac_word_p_synch   : std_logic;
   -- Clock buffers
   signal tdc_clk_buf                                : std_logic;
   signal tdc_clk, acam_refclk                       : std_logic;

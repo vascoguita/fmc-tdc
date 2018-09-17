@@ -186,7 +186,7 @@ entity fmc_tdc_mezzanine is
       -- 1-Wire interface
       onewire_b              : inout std_logic;
       direct_timestamp_o     : out   std_logic_vector(127 downto 0);
-      direct_timestamp_stb_o : out   std_logic;
+      direct_timestamp_valid_o : out   std_logic;
 
       sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
       sim_timestamp_valid_i : in  std_logic       := '0';
@@ -386,6 +386,8 @@ begin
       ts_offset_i  => ts_offset,
       reset_seq_i  => reset_seq,
 
+      direct_timestamp_valid_o => direct_timestamp_valid_o,
+      direct_timestamp_o => direct_timestamp_o,
 
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
