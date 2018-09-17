@@ -112,9 +112,7 @@ entity acam_databus_interface is
   -- OUTPUTS
      -- signals internal to the chip: interface with other modules
      ef1_o       : out std_logic;                      -- ACAM FIFO1 empty flag (bouble registered with clk_i)
-     ef1_meta_o  : out std_logic;                      -- ACAM FIFO1 empty flag (after 1 clk_i register)
      ef2_o       : out std_logic;                      -- ACAM FIFO2 empty flag (bouble registered with clk_i)
-     ef2_meta_o  : out std_logic;                      -- ACAM FIFO2 empty flag (after 1 clk_i register)
 
      -- Signals to ACAM interface
      adr_o       : out std_logic_vector(3 downto 0);   -- ACAM address
@@ -124,7 +122,7 @@ entity acam_databus_interface is
      wr_n_o      : out std_logic;                      -- ACAM write enable, active low
 
      -- Signals to the data_engine unit
-     ack_o       : out std_logic;                      -- WISHBONE ack 
+     ack_o       : out std_logic;                      -- WISHBONE ack
      dat_o       : out std_logic_vector(31 downto 0)); -- ef1 & ef2 & 0 & 0 & 28 bits ACAM data_bus_io
 
 end acam_databus_interface;
@@ -142,8 +140,7 @@ architecture rtl of acam_databus_interface is
   signal ef1_synch, ef2_synch           : std_logic;
   signal ack, rd, rd_extend             : std_logic;
   signal wr, wr_extend, wr_remove       : std_logic;
-  signal rst_n : std_logic;
-
+  signal rst_n                          : std_logic;
 
 --=================================================================================================
 --                                       architecture begin
@@ -152,8 +149,8 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                                      Input Synchronizers                                      --
----------------------------------------------------------------------------------------------------   
-    
+---------------------------------------------------------------------------------------------------
+
   rst_n <= not rst_i;
 
   cmp_sync_ef1: gc_sync_ffs
@@ -169,15 +166,14 @@ begin
       rst_n_i  => rst_n,
       data_i   => ef2_i,
       synced_o => ef2_synch);
-  
 
 ---------------------------------------------------------------------------------------------------
 --                                             FSM                                               --
----------------------------------------------------------------------------------------------------    
+---------------------------------------------------------------------------------------------------
 -- The following state machine implements the slave side of the WISHBONE interface
 -- and converts the signals for the ACAM proprietary bus interface. The interface respects the
 -- timings specified in page 7 of the ACAM datasheet.
-    
+
   databus_access_seq_fsm: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -214,18 +210,18 @@ begin
                           nxt_acam_data_st   <= IDLE;
                         end if;
 
-      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --           
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when RD_START =>
                   -----------------------------------------------
                         ack                  <= '0';
                         rd_extend            <= '1';
                         wr_extend            <= '0';
                         wr_remove            <= '0';
-                  ----------------------------------------------- 
+                  -----------------------------------------------
 
                         nxt_acam_data_st     <= RD_FETCH;
 
-            
+
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when RD_FETCH =>
                   -----------------------------------------------
@@ -272,7 +268,7 @@ begin
                         nxt_acam_data_st     <= IDLE;
 
 
-      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --            
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when WR_START =>
                   -----------------------------------------------
                         ack                  <= '0';
@@ -282,7 +278,7 @@ begin
                   -----------------------------------------------
 
                         nxt_acam_data_st     <= WR_PUSH;
-            
+
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when WR_PUSH =>
 
@@ -294,7 +290,7 @@ begin
                   -----------------------------------------------
 
                         nxt_acam_data_st     <= WR_ACK;
-            
+
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when WR_ACK =>
 
@@ -306,7 +302,7 @@ begin
                   -----------------------------------------------
 
                         nxt_acam_data_st     <= IDLE;
-            
+
       --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when others =>
                   -----------------------------------------------
@@ -324,12 +320,12 @@ begin
   ack_o  <= ack;
 
   -- to the 28 bits databus output we add the ef flags to arrive to a 32 bits word
-  dat_o  <= ef1_synch & ef2_synch & "00" & data_bus_io; 
+  dat_o  <= ef1_synch & ef2_synch & "00" & data_bus_io;
 
 
 ---------------------------------------------------------------------------------------------------
 --                                        Outputs to ACAM                                        --
----------------------------------------------------------------------------------------------------  
+---------------------------------------------------------------------------------------------------
 
 output_registers: process (clk_i)
   begin
@@ -348,7 +344,7 @@ output_registers: process (clk_i)
 
   oe_n_o       <= '1';
   rd           <= ((stb_i and cyc_i and not(we_i)) or rd_extend) and (not(ack));
-  wr           <= ((stb_i and cyc_i and we_i)      or wr_extend) and (not(wr_remove)) and (not(ack)); 
+  wr           <= ((stb_i and cyc_i and we_i)      or wr_extend) and (not(wr_remove)) and (not(ack));
                -- the wr signal has to be removed to respect the ACAM specs
   data_bus_io  <= dat_i(27 downto 0) when we_i='1' else (others =>'Z');
   adr_o        <= adr_i(3 downto 0);
