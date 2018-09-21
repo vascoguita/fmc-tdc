@@ -823,8 +823,9 @@ begin
   cmp_tdc_mezzanine : entity work.fmc_tdc_wrapper
     generic map (
       g_simulation                  => g_simulation,
-      g_with_direct_readout         => true,
+      g_with_direct_readout         => false,
       g_use_dma_readout             => g_use_dma_readout,
+      g_use_fifo_readout            => true,
       g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
     port map (
       clk_sys_i            => clk_sys_62m5,
