@@ -111,6 +111,7 @@ entity fmc_tdc_mezzanine is
      g_width                       : integer := 32;
      g_simulation                  : boolean := false;
      g_use_dma_readout             : boolean := true;
+     g_use_fifo_readout            : boolean := true;
      g_use_fake_timestamps_for_sim : boolean := false);
   port
     -- TDC core
@@ -177,15 +178,15 @@ entity fmc_tdc_mezzanine is
       wb_irq_o : out std_logic;
 
       -- I2C EEPROM interface
-      i2c_scl_o              : out   std_logic;
-      i2c_scl_oen_o          : out   std_logic;
-      i2c_scl_i              : in    std_logic;
-      i2c_sda_oen_o          : out   std_logic;
-      i2c_sda_o              : out   std_logic;
-      i2c_sda_i              : in    std_logic;
+      i2c_scl_o                : out   std_logic;
+      i2c_scl_oen_o            : out   std_logic;
+      i2c_scl_i                : in    std_logic;
+      i2c_sda_oen_o            : out   std_logic;
+      i2c_sda_o                : out   std_logic;
+      i2c_sda_i                : in    std_logic;
       -- 1-Wire interface
-      onewire_b              : inout std_logic;
-      direct_timestamp_o     : out   std_logic_vector(127 downto 0);
+      onewire_b                : inout std_logic;
+      direct_timestamp_o       : out   std_logic_vector(127 downto 0);
       direct_timestamp_valid_o : out   std_logic;
 
       sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
@@ -326,7 +327,7 @@ begin
      g_width             => g_width,
      g_simulation        => g_simulation,
      g_with_dma_readout  => g_use_dma_readout,
-     g_with_fifo_readout => true)
+     g_with_fifo_readout => g_use_fifo_readout)
     port map
     (                                   -- clks, rst
       clk_tdc_i   => clk_tdc_i,
@@ -387,7 +388,7 @@ begin
       reset_seq_i  => reset_seq,
 
       direct_timestamp_valid_o => direct_timestamp_valid_o,
-      direct_timestamp_o => direct_timestamp_o,
+      direct_timestamp_o       => direct_timestamp_o,
 
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
@@ -424,30 +425,44 @@ begin
 
 
 
+  gen_enable_fifo_readout : if g_use_fifo_readout generate
+    gen_fifos : for i in 0 to 4 generate
 
-  gen_fifos : for i in 0 to 4 generate
+      U_TheFifo : entity work.timestamp_fifo
+        generic map (
+          g_channel => i)
+        port map (
+          clk_sys_i         => clk_sys_i,
+          rst_sys_n_i       => rst_sys_n_i,
+          slave_i           => cnx_master_out(c_WB_SLAVE_TDC_FIFO0 + i),
+          slave_o           => cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i),
+          irq_o             => irq_fifo(i),
+          enable_i          => channel_enable(i),
+          tick_i            => tick_1ms,
+          irq_threshold_i   => irq_threshold,
+          irq_timeout_i     => irq_timeout,
+          timestamp_i       => timestamp,
+          timestamp_valid_i => timestamp_stb,
+          ts_offset_o       => ts_offset(i),
+          reset_seq_o       => reset_seq(i),
+          raw_enable_o      => raw_enable(i));
 
-    U_TheFifo : entity work.timestamp_fifo
-      generic map (
-        g_channel => i)
-      port map (
-        clk_sys_i         => clk_sys_i,
-        rst_sys_n_i       => rst_sys_n_i,
-        slave_i           => cnx_master_out(c_WB_SLAVE_TDC_FIFO0 + i),
-        slave_o           => cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i),
-        irq_o             => irq_fifo(i),
-        enable_i          => channel_enable(i),
-        tick_i            => tick_1ms,
-        irq_threshold_i   => irq_threshold,
-        irq_timeout_i     => irq_timeout,
-        timestamp_i       => timestamp,
-        timestamp_valid_i => timestamp_stb,
-        ts_offset_o       => ts_offset(i),
-        reset_seq_o       => reset_seq(i),
-        raw_enable_o      => raw_enable(i));
+      timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
+    end generate gen_fifos;
+  end generate gen_enable_fifo_readout;
 
-    timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
-  end generate gen_fifos;
+
+  gen_disable_fifo_readout : if not g_use_fifo_readout generate
+    gen_fifos : for i in 0 to 4 generate
+      timestamp_ready(i) <= '1';
+      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).ack <= '1';
+      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).stall <= '0';
+      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).err <= '0';
+      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).rty <= '0';
+    end generate gen_fifos;
+  end generate gen_disable_fifo_readout;
+  
+
 
   gen_with_dma_readout : if g_use_dma_readout generate
     U_DMA_Engine : entity work.tdc_dma_engine
@@ -555,6 +570,8 @@ begin
       regs_i    => regs_ow_in,
       regs_o    => regs_ow_out);
 
+  gen_enable_eic : if g_use_fifo_readout or g_use_dma_readout generate
+
 ---------------------------------------------------------------------------------------------------
 --                             WBGEN2 EMBEDDED INTERRUPTS CONTROLLER                             --
 ---------------------------------------------------------------------------------------------------
@@ -562,31 +579,39 @@ begin
 -- 0 -> number of accumulated timestamps reached threshold
 -- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
 -- 2 -> ACAM error
-  cmp_tdc_eic : entity work.tdc_eic
-    port map
-    (clk_sys_i       => clk_sys_i,
-     rst_n_i         => rst_sys_n_i,
-     wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(5 downto 2),
-     wb_dat_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
-     wb_dat_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
-     wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
-     wb_sel_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
-     wb_stb_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
-     wb_we_i         => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
-     wb_ack_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
-     wb_stall_o      => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
-     wb_int_o        => wb_irq_o,
-     irq_tdc_fifo1_i => irq_fifo(0),
-     irq_tdc_fifo2_i => irq_fifo(1),
-     irq_tdc_fifo3_i => irq_fifo(2),
-     irq_tdc_fifo4_i => irq_fifo(3),
-     irq_tdc_fifo5_i => irq_fifo(4),
-     irq_tdc_dma1_i  => irq_dma(0),
-     irq_tdc_dma2_i  => irq_dma(1),
-     irq_tdc_dma3_i  => irq_dma(2),
-     irq_tdc_dma4_i  => irq_dma(3),
-     irq_tdc_dma5_i  => irq_dma(4)
-     );
+    cmp_tdc_eic : entity work.tdc_eic
+      port map
+      (clk_sys_i       => clk_sys_i,
+       rst_n_i         => rst_sys_n_i,
+       wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(5 downto 2),
+       wb_dat_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
+       wb_dat_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
+       wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
+       wb_sel_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
+       wb_stb_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
+       wb_we_i         => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
+       wb_ack_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
+       wb_stall_o      => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
+       wb_int_o        => wb_irq_o,
+       irq_tdc_fifo1_i => irq_fifo(0),
+       irq_tdc_fifo2_i => irq_fifo(1),
+       irq_tdc_fifo3_i => irq_fifo(2),
+       irq_tdc_fifo4_i => irq_fifo(3),
+       irq_tdc_fifo5_i => irq_fifo(4),
+       irq_tdc_dma1_i  => irq_dma(0),
+       irq_tdc_dma2_i  => irq_dma(1),
+       irq_tdc_dma3_i  => irq_dma(2),
+       irq_tdc_dma4_i  => irq_dma(3),
+       irq_tdc_dma5_i  => irq_dma(4)
+       );
+
+  end generate gen_enable_eic;
+
+  gen_disable_eic : if not g_use_fifo_readout and not g_use_dma_readout generate
+    cnx_master_in(c_WB_SLAVE_TDC_EIC).ack   <= '1';
+    cnx_master_in(c_WB_SLAVE_TDC_EIC).stall <= '0';
+    wb_irq_o                                <= '0';
+  end generate gen_disable_eic;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Unused wishbone signals
