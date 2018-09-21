@@ -167,16 +167,10 @@ end start_retrig_ctrl;
 architecture rtl of start_retrig_ctrl is
 
   signal clk_i_cycles_offset : std_logic_vector(31 downto 0);
-  signal clk_i_cycles_offset2 : std_logic_vector(31 downto 0);
   signal current_cycles      : std_logic_vector(31 downto 0);
-  signal current_cycles2     : std_logic_vector(31 downto 0);
   signal current_retrig_nb   : std_logic_vector(31 downto 0);
-  signal current_retrig_nb2  : std_logic_vector(31 downto 0);
   signal retrig_nb_offset    : std_logic_vector(31 downto 0);
-  signal retrig_nb_offset2   : std_logic_vector(31 downto 0);
-  signal retrig_p            : std_logic;
   signal roll_over_c         : unsigned(31 downto 0);
-  signal roll_over_c2         : unsigned(31 downto 0);
 
   signal int_flag_r, int_flag_f, int_flag, int_flag_d, int_flag_p : std_logic;
 
@@ -184,12 +178,11 @@ architecture rtl of start_retrig_ctrl is
 
   signal retrig_cnt : unsigned(15 downto 0);
 
-  signal oldnew_equal : std_logic;
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
-
+  
 -- retrigger #      :   0    1          127  128        255  256  257        383  384  385         511  512  513
 -- retriggers       :  _|____|____...____|____|____...____|____|____|____...___|____|____|____...____|____|____|___
 -- IrFlag           :  __________________|---------------------|____________________|---------------------|________
@@ -244,10 +237,6 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
-
--- These two counters keep a track of the current internal start retrigger
--- of the ACAM in parallel with the ACAM itself. Counting up to c_ACAM_RETRIG_PERIOD = 64
-
   p_sample_int_flag_r : process(clk_i)
   begin
     if rising_edge(clk_i) then
@@ -298,66 +287,21 @@ begin
     end if;
   end process;
 
-  current_cycles2 <= std_logic_vector(resize(63 - retrig_cnt(5 downto 0), 32));
-  current_retrig_nb2 <= std_logic_vector(resize(retrig_cnt(13 downto 6), 32));
+  current_cycles <= std_logic_vector(resize(63 - retrig_cnt(5 downto 0), 32));
+  current_retrig_nb <= std_logic_vector(resize(retrig_cnt(13 downto 6), 32));
 
-  retrig_period_counter : free_counter  -- retrigger periods
-    generic map
-    (width => 32)
-    port map
-    (clk_i             => clk_i,
-     rst_i             => int_flag_p,
-     counter_en_i      => '1',
-     counter_top_i     => c_ACAM_RETRIG_PERIOD,
-     -------------------------------------------
-     counter_is_zero_o => retrig_p,
-     counter_o         => current_cycles);
-  -------------------------------------------
-
-  retrig_nb_counter : incr_counter  -- number of retriggers counting from 0 to 255 and restarting
-    generic map                         -- through the acam_intflag_f_edge_p_i
-    (width => 32)
-    port map
-    (clk_i             => clk_i,
-     rst_i             => int_flag_p,
-     counter_top_i     => x"00000100",
-     counter_incr_en_i => retrig_p,
-     counter_is_full_o => open,
-     -------------------------------------------
-     counter_o         => current_retrig_nb);
-  -------------------------------------------
-
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- This counter keeps track of the number of overflows of the ACAM counter within one second
   roll_over_counter : process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if utc_p_i = '1' and int_flag_p = '0' then
+      if utc_p_i = '1' and retrig_cnt /= (c_full_retrig_period- 1) then
         roll_over_c <= x"00000000";
 
                                         -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
                                         -- arrive on the exact same moment 
-      elsif utc_p_i = '1' and int_flag_p = '1' then
-        roll_over_c <= x"00000001";
-
-      elsif int_flag_p = '1' then
-        roll_over_c <= roll_over_c + "1";
-      end if;
-    end if;
-  end process;
-
-  roll_over_counter2 : process (clk_i)
-  begin
-    if rising_edge (clk_i) then
-      if utc_p_i = '1' and retrig_cnt /= (c_full_retrig_period- 1) then
-        roll_over_c2 <= x"00000000";
-
-                                        -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
-                                        -- arrive on the exact same moment 
       elsif utc_p_i = '1' and retrig_cnt = (c_full_retrig_period - 1) then
-        roll_over_c2 <= x"00000001";
+        roll_over_c <= x"00000001";
       elsif retrig_cnt = (c_full_retrig_period - 1) then
-        roll_over_c2 <= roll_over_c2 + "1";
+        roll_over_c <= roll_over_c + "1";
       end if;
     end if;
   end process;
@@ -373,16 +317,9 @@ begin
       if rst_i = '1' then
         clk_i_cycles_offset <= (others => '0');
         retrig_nb_offset    <= (others => '0');
-
-        clk_i_cycles_offset2 <= (others => '0');
-        retrig_nb_offset2    <= (others => '0');
-
       elsif utc_p_i = '1' then
         clk_i_cycles_offset <= current_cycles;
         retrig_nb_offset    <= current_retrig_nb;
-
-        clk_i_cycles_offset2 <= current_cycles;
-        retrig_nb_offset2    <= current_retrig_nb;
       end if;
     end if;
   end process;
@@ -397,9 +334,6 @@ begin
 
 
 
-  oldnew_equal <= '1' when (current_retrig_nb = current_retrig_nb2 and clk_i_cycles_offset = clk_i_cycles_offset2 and retrig_nb_offset = retrig_nb_offset2 and roll_over_c = roll_over_c2 and current_cycles = current_cycles2) else '0';
-  
-                            
 end architecture rtl;
 
 
