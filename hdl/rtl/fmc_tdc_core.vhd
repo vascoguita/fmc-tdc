@@ -286,10 +286,8 @@ architecture rtl of fmc_tdc_core is
   signal gen_fake_ts_enable  : std_logic;
   signal gen_fake_ts_channel : std_logic_vector(2 downto 0);
   signal gen_fake_ts_period  : std_logic_vector(27 downto 0);
-  signal r_int_flag_dly_ce : std_logic;
-  signal r_int_flag_dly_inc : std_logic;
-  signal r_int_flag_dly_rst : std_logic;
-
+  signal int_flag_delay : std_logic_vector(15 downto 0);
+  
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -350,9 +348,7 @@ begin
      gen_fake_ts_period_o   => gen_fake_ts_period,
      gen_fake_ts_enable_o   => gen_fake_ts_enable,
      gen_fake_ts_channel_o  => gen_fake_ts_channel,
-     int_flag_dly_ce_o => r_int_flag_dly_ce,
-     int_flag_dly_inc_o => r_int_flag_dly_inc,
-     int_flag_dly_rst_o => r_int_flag_dly_rst
+     int_flag_delay_o => int_flag_delay
      );
 
   process(clk_tdc_i)
@@ -461,10 +457,8 @@ begin
   start_retrigger_block : entity work.start_retrig_ctrl
     port map
     (
-     r_int_flag_dly_rst_i       => r_int_flag_dly_rst,
-     r_int_flag_dly_inc_i       => r_int_flag_dly_inc,
-     r_int_flag_dly_ce_i        => r_int_flag_dly_ce,
-      int_flag_i => int_flag_i,
+     int_flag_delay_i => int_flag_delay,
+     int_flag_i => int_flag_i,
      clk_i                   => clk_tdc_i,
      utc_p_i                 => utc_p,
      rst_i                   => rst_tdc,

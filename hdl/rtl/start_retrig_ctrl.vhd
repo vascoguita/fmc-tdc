@@ -132,7 +132,7 @@ use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
 
 library unisim;
 use unisim.vcomponents.all;
- 
+
 --=================================================================================================
 --                            Entity declaration for start_retrig_ctrl
 --=================================================================================================
@@ -141,13 +141,12 @@ entity start_retrig_ctrl is
   port
     -- INPUTS
     -- Signal from the clk_rst_manager
-    (clk_i               : in  std_logic;
-     rst_i             : in  std_logic;
+    (clk_i                  : in std_logic;
+     rst_i                  : in std_logic;
      -- Signal from the acam_timecontrol_interface
-     int_flag_i              : in  std_logic;
-     r_int_flag_dly_rst_i       : in  std_logic;
-     r_int_flag_dly_inc_i       : in  std_logic;
-     r_int_flag_dly_ce_i       : in  std_logic;
+     int_flag_i             : in std_logic;
+     int_flag_delay_i : in std_logic_vector(15 downto 0);
+
      -- Signal from the one_hz_generator unit
      utc_p_i                 : in  std_logic;
      -- OUTPUTS
@@ -168,14 +167,24 @@ end start_retrig_ctrl;
 architecture rtl of start_retrig_ctrl is
 
   signal clk_i_cycles_offset : std_logic_vector(31 downto 0);
+  signal clk_i_cycles_offset2 : std_logic_vector(31 downto 0);
   signal current_cycles      : std_logic_vector(31 downto 0);
+  signal current_cycles2     : std_logic_vector(31 downto 0);
   signal current_retrig_nb   : std_logic_vector(31 downto 0);
+  signal current_retrig_nb2  : std_logic_vector(31 downto 0);
   signal retrig_nb_offset    : std_logic_vector(31 downto 0);
+  signal retrig_nb_offset2   : std_logic_vector(31 downto 0);
   signal retrig_p            : std_logic;
   signal roll_over_c         : unsigned(31 downto 0);
+  signal roll_over_c2         : unsigned(31 downto 0);
 
-  signal int_flag_stb_p, int_flag_dly, int_flag, int_flag_d, int_flag_p : std_logic;
+  signal int_flag_r, int_flag_f, int_flag, int_flag_d, int_flag_p : std_logic;
 
+  constant c_full_retrig_period : integer := 64 * 256;
+
+  signal retrig_cnt : unsigned(15 downto 0);
+
+  signal oldnew_equal : std_logic;
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -239,52 +248,58 @@ begin
 -- These two counters keep a track of the current internal start retrigger
 -- of the ACAM in parallel with the ACAM itself. Counting up to c_ACAM_RETRIG_PERIOD = 64
 
+  p_sample_int_flag_r : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      int_flag_r <= int_flag_i;
+    end if;
+  end process;
 
+  p_sample_int_flag_f : process(clk_i)
+  begin
+    if falling_edge(clk_i) then
+      int_flag_f <= int_flag_i;
+    end if;
+  end process;
 
-  iodelay2_bus : IODELAY2
-    generic map (
-      DATA_RATE                => "SDR",
-      IDELAY_VALUE             => 0,
-      IDELAY_TYPE              => "VARIABLE_FROM_ZERO",
-      COUNTER_WRAPAROUND       => "STAY_AT_LIMIT",
-      DELAY_SRC                => "IDATAIN",
-      SERDES_MODE              => "NONE",
-      SIM_TAPDELAY_VALUE       => 75)
-    port map (
-      -- required datapath
-      IDATAIN                => int_flag_i,
-      DATAOUT                => int_flag_dly,
-      T                      => '1',
-      -- inactive data connections
-      DATAOUT2               => open,
-      DOUT                   => open,
-      ODATAIN                => '0',
-      TOUT                   =>  open,
-       -- connect up the clocks
-      IOCLK0                => clk_i,      -- High speed clock for calibration for SDR/DDR
-      IOCLK1                => '0',                 -- High speed clock for calibration for DDR
-      CLK                   => clk_i,
-      CAL                   => '0',
-      INC                   => r_int_flag_dly_inc_i,
-      CE                    => r_int_flag_dly_ce_i,
-      BUSY                  => open,
-      RST                   => r_int_flag_dly_rst_i);
-
-  p_sample_int_flag : process(clk_i)
+  p_pulse_detect : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if rst_i = '1' then
         int_flag_d <= '0';
-        int_flag <= '0';
+        int_flag_p <= '0';
+        int_flag   <= '0';
       else
-        int_flag <= int_flag_dly;
+        if(int_flag_delay_i(0) = '0') then
+          int_flag <= int_flag_r;
+        else
+          int_flag <= int_flag_f;
+        end if;
+
         int_flag_d <= int_flag;
+        int_flag_p <= int_flag_d and not int_flag;
       end if;
     end if;
   end process;
 
+  p_count_retrig_periods : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if rst_i = '1' then
+        retrig_cnt <= (others => '0');
+      elsif int_flag_p = '1' then
+        retrig_cnt(6 downto 0) <= unsigned(int_flag_delay_i(7 downto 1));
+        for i in 7 to 15 loop
+          retrig_cnt(i) <= int_flag_delay_i(8);
+        end loop;
+      else
+        retrig_cnt <= retrig_cnt + 1;
+      end if;
+    end if;
+  end process;
 
-  int_flag_p <= not int_flag and int_flag_d;
+  current_cycles2 <= std_logic_vector(resize(63 - retrig_cnt(5 downto 0), 32));
+  current_retrig_nb2 <= std_logic_vector(resize(retrig_cnt(13 downto 6), 32));
 
   retrig_period_counter : free_counter  -- retrigger periods
     generic map
@@ -320,8 +335,8 @@ begin
       if utc_p_i = '1' and int_flag_p = '0' then
         roll_over_c <= x"00000000";
 
-      -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
-      -- arrive on the exact same moment 
+                                        -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
+                                        -- arrive on the exact same moment 
       elsif utc_p_i = '1' and int_flag_p = '1' then
         roll_over_c <= x"00000001";
 
@@ -330,6 +345,23 @@ begin
       end if;
     end if;
   end process;
+
+  roll_over_counter2 : process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if utc_p_i = '1' and retrig_cnt /= (c_full_retrig_period- 1) then
+        roll_over_c2 <= x"00000000";
+
+                                        -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
+                                        -- arrive on the exact same moment 
+      elsif utc_p_i = '1' and retrig_cnt = (c_full_retrig_period - 1) then
+        roll_over_c2 <= x"00000001";
+      elsif retrig_cnt = (c_full_retrig_period - 1) then
+        roll_over_c2 <= roll_over_c2 + "1";
+      end if;
+    end if;
+  end process;
+
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- When a new second starts, all values are captured and stored as offsets.
@@ -342,9 +374,15 @@ begin
         clk_i_cycles_offset <= (others => '0');
         retrig_nb_offset    <= (others => '0');
 
+        clk_i_cycles_offset2 <= (others => '0');
+        retrig_nb_offset2    <= (others => '0');
+
       elsif utc_p_i = '1' then
         clk_i_cycles_offset <= current_cycles;
         retrig_nb_offset    <= current_retrig_nb;
+
+        clk_i_cycles_offset2 <= current_cycles;
+        retrig_nb_offset2    <= current_retrig_nb;
       end if;
     end if;
   end process;
@@ -357,6 +395,11 @@ begin
   roll_over_nb_o          <= std_logic_vector(roll_over_c);
   current_retrig_nb_o     <= current_retrig_nb;  -- for debug
 
+
+
+  oldnew_equal <= '1' when (current_retrig_nb = current_retrig_nb2 and clk_i_cycles_offset = clk_i_cycles_offset2 and retrig_nb_offset = retrig_nb_offset2 and roll_over_c = roll_over_c2 and current_cycles = current_cycles2) else '0';
+  
+                            
 end architecture rtl;
 
 
