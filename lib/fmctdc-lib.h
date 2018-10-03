@@ -227,8 +227,12 @@ extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
 extern uint64_t fmctdc_ts_approx_ns(struct fmctdc_time *a);
 extern uint64_t fmctdc_ts_ps(struct fmctdc_time *a);
 extern void fmctdc_ts_norm(struct fmctdc_time *a);
-extern void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b);
-extern void fmctdc_ts_add(struct fmctdc_time *a, struct fmctdc_time *b);
+extern int fmctdc_ts_sub(struct fmctdc_time *r,
+			 const struct fmctdc_time *a,
+			 const struct fmctdc_time *b);
+extern void fmctdc_ts_add(struct fmctdc_time *r,
+			  const struct fmctdc_time *a,
+			  const struct fmctdc_time *b);
 extern int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b);
 /**@}*/
 

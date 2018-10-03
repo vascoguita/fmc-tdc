@@ -142,7 +142,7 @@ void process_timestamps(struct fmctdc_time *ts, int n_ts)
 			struct fmctdc_time delta;
 			delta = ts[i];
 
-			fmctdc_ts_sub(&delta, &prev_ts);
+			fmctdc_ts_sub(&delta, &ts[i], &prev_ts);
 			int64_t ps = fmctdc_ts_ps(&delta);
 
 			if ( (prev_ts.seq_id + 1) != ts[i].seq_id) {

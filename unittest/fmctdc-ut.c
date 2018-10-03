@@ -362,8 +362,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 		}
 
 		for (i = 1; i < FMCTDC_NUM_CHANNELS; ++i) {
-			memcpy(&tmp, &t[0], sizeof(t));
-			fmctdc_ts_sub(&tmp, &t[i]);
+			fmctdc_ts_sub(&tmp, &t[0], &t[i]);
 			/*
 			 * We know that from time to time ACAM TDC-GPX
 			 * produces wrong timestamps (-8ns +8ns)
@@ -494,7 +493,7 @@ static const char *fmctdc_math_test1_desc =
 
 static void fmctdc_math_test2(struct m_test *m_test)
 {
-	struct fmctdc_time ret, t1, t2;
+	struct fmctdc_time ret1, ret2, t1, t2;
 
 	t1.seconds = random();
 	t1.coarse = random();
@@ -506,11 +505,13 @@ static void fmctdc_math_test2(struct m_test *m_test)
 	t2.frac = random();
 	fmctdc_ts_norm(&t2);
 
-	ret = t1;
-	fmctdc_ts_add(&ret, &t2);
-	fmctdc_ts_sub(&ret, &t2);
-	m_assert_mem_eq(&ret, &t1, sizeof(ret));
+	fmctdc_ts_add(&ret1, &t1, &t2);
+	fmctdc_ts_norm(&ret1);
+	fmctdc_ts_sub(&ret2, &ret1, &t2);
 
+	m_assert_int_eq(t1.seconds, ret2.seconds);
+	m_assert_int_eq(t1.coarse, ret2.coarse);
+	m_assert_int_eq(t1.frac, ret2.frac);
 }
 static const char *fmctdc_math_test2_desc =
 	"Validate timestamp albegra (t1 < t2 : t1 = t1 + t2 - t2)";
@@ -518,20 +519,88 @@ static const char *fmctdc_math_test2_desc =
 static void fmctdc_math_test3(struct m_test *m_test)
 {
 	struct fmctdc_time ret, t1;
+	int neg;
 
 	t1.seconds = random();
 	t1.coarse = random();
 	t1.frac = random();
 	fmctdc_ts_norm(&t1);
 
-	ret = t1;
-	fmctdc_ts_sub(&ret, &t1);
+	neg = fmctdc_ts_sub(&ret, &t1, &t1);
+	m_assert_int_eq(0, neg);
 	m_assert_int_eq(0, ret.seconds);
 	m_assert_int_eq(0, ret.coarse);
 	m_assert_int_eq(0, ret.frac);
 }
 static const char *fmctdc_math_test3_desc =
 	"Validate timestamp albegra (t1 - t1 = 0)";
+
+static void fmctdc_math_test4(struct m_test *m_test)
+{
+	struct fmctdc_time ret, t1, t2;
+	int neg;
+
+	t1.seconds = 10;
+	t1.coarse = 10;
+	t1.frac = 10;
+	t2.seconds = 11;
+	t2.coarse = 10;
+	t2.frac = 10;
+
+	neg = fmctdc_ts_sub(&ret, &t1, &t2);
+	m_assert_int_eq(1, neg);
+	m_assert_int_eq(1, ret.seconds);
+	m_assert_int_eq(0, ret.coarse);
+	m_assert_int_eq(0, ret.frac);
+
+	neg = fmctdc_ts_sub(&ret, &t2, &t1);
+	m_assert_int_eq(0, neg);
+	m_assert_int_eq(1, ret.seconds);
+	m_assert_int_eq(0, ret.coarse);
+	m_assert_int_eq(0, ret.frac);
+
+
+	t1.seconds = 10;
+	t1.coarse = 10;
+	t1.frac = 10;
+	t2.seconds = 10;
+	t2.coarse = 11;
+	t2.frac = 10;
+
+	neg = fmctdc_ts_sub(&ret, &t1, &t2);
+	m_assert_int_eq(1, neg);
+	m_assert_int_eq(0, ret.seconds);
+	m_assert_int_eq(1, ret.coarse);
+	m_assert_int_eq(0, ret.frac);
+
+	neg = fmctdc_ts_sub(&ret, &t2, &t1);
+	m_assert_int_eq(0, neg);
+	m_assert_int_eq(0, ret.seconds);
+	m_assert_int_eq(1, ret.coarse);
+	m_assert_int_eq(0, ret.frac);
+
+
+	t1.seconds = 10;
+	t1.coarse = 10;
+	t1.frac = 10;
+	t2.seconds = 10;
+	t2.coarse = 10;
+	t2.frac = 11;
+
+	neg = fmctdc_ts_sub(&ret, &t1, &t2);
+	m_assert_int_eq(1, neg);
+	m_assert_int_eq(0, ret.seconds);
+	m_assert_int_eq(0, ret.coarse);
+	m_assert_int_eq(1, ret.frac);
+
+	neg = fmctdc_ts_sub(&ret, &t2, &t1);
+	m_assert_int_eq(0, neg);
+	m_assert_int_eq(0, ret.seconds);
+	m_assert_int_eq(0, ret.coarse);
+	m_assert_int_eq(1, ret.frac);
+}
+static const char *fmctdc_math_test4_desc =
+	"Validate timestamp albegra (t1 < t2 : r = t1 - t2, r = t2 - t1)";
 
 
 
@@ -602,6 +671,8 @@ int main(int argc, char *argv[])
 		m_test_desc_loop(NULL, fmctdc_math_test3, NULL,
 				 fmctdc_math_test3_desc,
 				 100),
+		m_test_desc(NULL, fmctdc_math_test4, NULL,
+			    fmctdc_math_test4_desc),
 	};
 	struct m_suite fmctdc_suite_math = m_suite("FMC TDC test: math",
 						   M_VERBOSE,

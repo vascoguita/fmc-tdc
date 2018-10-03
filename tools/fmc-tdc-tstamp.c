@@ -104,8 +104,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 		return;
 
 	/* We are in normal mode, calculate the difference */
-	ts_tmp = *ts;
-	fmctdc_ts_sub(&ts_tmp, &ts_prev_lst[ch]);
+	fmctdc_ts_sub(&ts_tmp, ts, &ts_prev_lst[ch]);
 
 	fprintf(stdout, "    diff ");
 	print_ts(ts_tmp, fmt_wr);

@@ -8,6 +8,7 @@
  */
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 
 #include "fmctdc-lib.h"
 #include "fmctdc-lib-private.h"
@@ -66,13 +67,18 @@ void fmctdc_ts_norm(struct fmctdc_time *a)
 }
 
 /**
- * It perform the subtraction: a = a - b
+ * It perform the subtraction: r = a - b (a > b)
+ * @param[out] r result
  * @param[in] a normalized timestamp
  * @param[in] b normalized timestamp
  */
-void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
+static void __fmctdc_ts_sub(struct fmctdc_time *r,
+			    const struct fmctdc_time *a,
+			    const struct fmctdc_time *b)
 {
-	int32_t d_frac, d_coarse = 0;
+	int32_t d_frac, d_coarse = 0, d_seconds = 0;
+
+	memset(r, 0, sizeof(*r));
 
 	d_frac = a->frac - b->frac;
 
@@ -81,40 +87,76 @@ void fmctdc_ts_sub(struct fmctdc_time *a, struct fmctdc_time *b)
 		d_coarse--;
 	}
 
-	d_coarse += a->coarse - b->coarse;
-
+	d_coarse += (a->coarse - b->coarse);
 	if (d_coarse < 0) {
 		d_coarse += 125000000;
-		a->seconds--;
+		d_seconds--;
 	}
 
-	a->coarse = d_coarse;
-	a->frac = d_frac;
-	a->seconds -= b->seconds;
+	d_seconds += (a->seconds - b->seconds);
+
+	r->coarse = d_coarse;
+	r->frac = d_frac;
+	r->seconds = d_seconds;
+}
+
+/**
+ * It perform the subtraction: r = a - b
+ * @param[out] r result
+ * @param[in] a normalized timestamp
+ * @param[in] b normalized timestamp
+ * @return 1 if the difference is negative, otherwise 0
+ */
+int fmctdc_ts_sub(struct fmctdc_time *r,
+		  const struct fmctdc_time *a,
+		  const struct fmctdc_time *b)
+{
+	int negative = 0;
+
+	if (a->seconds < b->seconds)
+		negative = 1;
+	else if (a->seconds == b->seconds &&
+		 a->coarse < b->coarse)
+		negative = 1;
+	else if (a->seconds == b->seconds &&
+		 a->coarse == b->coarse &&
+		 a->frac < b->frac)
+		negative = 1;
+
+	if (negative)
+		__fmctdc_ts_sub(r, b, a);
+	else
+		__fmctdc_ts_sub(r, a, b);
+
+	return negative;
 }
 
 
 /**
- * It perform an addiction: a = a + b
+ * It perform an addiction: r = a + b
+ * @param[out] r result
  * @param[in] a normalized timestamp
  * @param[in] b normalized timestamp
  */
-void fmctdc_ts_add(struct fmctdc_time *a, struct fmctdc_time *b)
+void fmctdc_ts_add(struct fmctdc_time *r,
+		   const struct fmctdc_time *a,
+		   const struct fmctdc_time *b)
 {
-	a->frac += b->frac;
+	memset(r, 0, sizeof(*r));
 
-	if (a->frac >= 4096) {
-		a->frac -= 4096;
-		a->coarse++;
+	r->frac = a->frac + b->frac;
+
+	if (r->frac >= 4096) {
+		r->frac -= 4096;
+		r->coarse++;
 	}
 
-	a->coarse += b->coarse;
+	r->coarse += a->coarse + b->coarse;
 
-	if (a->coarse >= 125000000) {
-		a->coarse -= 125000000;
-		a->seconds++;
+	if (r->coarse >= 125000000) {
+		r->coarse -= 125000000;
+		r->seconds++;
 	}
 
-	a->seconds += b->seconds;
+	r->seconds += a->seconds + b->seconds;
 }
-
