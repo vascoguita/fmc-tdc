@@ -255,7 +255,8 @@ static void fmctdc_param_test7(struct m_test *m_test)
 	m_assert_int_eq(0, ret);
 	sleep(2);
 	ret = fmctdc_check_wr_mode(tdc);
-	m_assert_int_eq(ENODEV, ret);
+	m_assert_int_eq(-1, ret);
+	m_assert_int_eq(ENODEV, errno);
 }
 static const char *fmctdc_param_test7_desc =
 	"Being able to change the White-Rabbit mode";
