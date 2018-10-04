@@ -41,8 +41,6 @@ static int fmctdc_execute_fmc_fdelay_pulse(unsigned int devid,
 			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %du -c %d &> /dev/null",
 			 devid, channel + 1, period_us, relative_us, count);
 
-	printf("%s\n", cmd);
-	system("fmc-fdelay-board-time -d 0x700 get\n");
 	return system(cmd);
 }
 
