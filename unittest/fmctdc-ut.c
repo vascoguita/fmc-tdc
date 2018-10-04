@@ -442,17 +442,17 @@ static const char *fmctdc_op_test3_desc =
 
 static void fmctdc_op_test4(struct m_test *m_test)
 {
-	fmctdc_op_test_parameters(m_test, 100000, 10);
+	fmctdc_op_test_parameters(m_test, 60000, 10);
 }
 static const char *fmctdc_op_test4_desc =
-	"FineDelay generates, simultaneously, 100000 pulse for each channel (100kHz). We check that they all arrives and the timestamp is the same (error 8ns)";
+	"FineDelay generates, simultaneously, 60000 pulse for each channel (100kHz). We check that they all arrives and the timestamp is the same (error 8ns)";
 
 static void fmctdc_op_test5(struct m_test *m_test)
 {
-	fmctdc_op_test_parameters(m_test, 1000000, 100);
+	fmctdc_op_test_parameters(m_test, 60000, 100);
 }
 static const char *fmctdc_op_test5_desc =
-	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We check that they all arrives and the timestamp is the same (error 8ns)";
+	"FineDelay generates, simultaneously, 60000 pulse for each channel (1MHz). We check that they all arrives and the timestamp is the same (error 8ns)";
 
 static void fmctdc_op_test6(struct m_test *m_test)
 {
@@ -471,7 +471,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 1000000,
+						      i, 1, 0, 50000,
 						      t);
 		m_assert_int_eq(0, err);
 
@@ -482,7 +482,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 	}
 }
 static const char *fmctdc_op_test6_desc =
-	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to not receive timestamp before the timeout";
+	"FineDelay generates, simultaneously, 50000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to not receive timestamp before the timeout";
 
 static void fmctdc_op_test7(struct m_test *m_test)
 {
@@ -502,7 +502,7 @@ static void fmctdc_op_test7(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 1000000,
+						      i, 1, 0, 50000,
 						      t);
 		m_assert_int_eq(0, err);
 
@@ -513,7 +513,7 @@ static void fmctdc_op_test7(struct m_test *m_test)
 	}
 }
 static const char *fmctdc_op_test7_desc =
-	"FineDelay generates, simultaneously, 1000000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to receive timestamp after the timeout";
+	"FineDelay generates, simultaneously, 50000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to receive timestamp after the timeout";
 
 
 static void fmctdc_math_test1(struct m_test *m_test)
