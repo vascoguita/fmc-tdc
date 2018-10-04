@@ -471,8 +471,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 50000,
-						      t);
+						      i, 1, 0, 1, t);
 		m_assert_int_eq(0, err);
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
@@ -482,7 +481,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 	}
 }
 static const char *fmctdc_op_test6_desc =
-	"FineDelay generates, simultaneously, 50000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to not receive timestamp before the timeout";
+	"FineDelay generates a pulse for each channel. We test the IRQ coalesing timeout. We expect to not receive the timestamp before the timeout (NOTE: not really usefull because fdelay tools does not emit pulses immediately)";
 
 static void fmctdc_op_test7(struct m_test *m_test)
 {
@@ -502,19 +501,18 @@ static void fmctdc_op_test7(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 50000,
-						      t);
+						      i, 1, 0, 1, t);
 		m_assert_int_eq(0, err);
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
 		p.events = POLLIN | POLLERR;
-		ret = poll(&p, 1, timeout + 1);
+		ret = poll(&p, 1, 1000 + timeout);
 		m_assert_int_neq(0, ret);
 		m_assert_int_neq(0, p.revents & POLLIN);
 	}
 }
 static const char *fmctdc_op_test7_desc =
-	"FineDelay generates, simultaneously, 50000 pulse for each channel (1MHz). We test the IRQ coalesing timeout. We expect to receive timestamp after the timeout";
+	"FineDelay generates a pulse for each channel. We test the IRQ coalesing timeout. We expect to receive the timestamp after the timeout (NOTE: not really usefull because fdelay tools does not emit pulses immediately)";
 
 
 static void fmctdc_math_test1(struct m_test *m_test)
