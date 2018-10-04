@@ -241,12 +241,15 @@ static void fmctdc_param_test7(struct m_test *m_test)
 {
 	struct fmctdc_test_desc *d = m_test->suite->private;
 	struct fmctdc_board *tdc = d->tdc;
-	int ret;
+	int ret, i;
 
 	ret = fmctdc_wr_mode(tdc, 1);
 	m_assert_int_eq(0, ret);
-	sleep(2);
-	ret = fmctdc_check_wr_mode(tdc);
+	/* wait maximum ~10seconds for white-rabbit to sync */
+	for (i = 0; ret && i < 10; ++i) {
+		sleep(1);
+		ret = fmctdc_check_wr_mode(tdc);
+	}
 	m_assert_int_eq(0, ret);
 
 	ret = fmctdc_wr_mode(tdc, 0);
@@ -294,8 +297,9 @@ static void fmctdc_op_test_setup(struct m_test *m_test)
 	m_assert_int_eq(0, ret);
 
 	/* wait maximum ~10seconds for white-rabbit to sync */
-	for (i = 0; err && i < 5; ++i) {
-		sleep(2);
+	err = -1;
+	for (i = 0; err && i < 10; ++i) {
+		sleep(1);
 		err = fmctdc_check_wr_mode(tdc);
 	}
 	m_assert_int_eq(0, err);
