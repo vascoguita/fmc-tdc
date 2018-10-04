@@ -292,13 +292,13 @@ static void fmctdc_op_test_setup(struct m_test *m_test)
 	err = fmcdc_execute_fmc_fdelay_wr(fmcfd_dev_id);
 	m_assert_int_eq(0, err);
 
-	ret = fmctdc_wr_mode(tdc, 0);
+	ret = fmctdc_wr_mode(tdc, 1);
 	m_assert_int_eq(0, ret);
 
 	/* wait maximum ~10seconds for white-rabbit to sync */
-	for (i = 0; err && i < 10; ++i) {
+	for (i = 0; err && i < 5; ++i) {
+		sleep(2);
 		err = fmctdc_check_wr_mode(tdc);
-		sleep(1);
 	}
 	m_assert_int_eq(0, err);
 }
