@@ -510,6 +510,7 @@ static void fmctdc_op_test7(struct m_test *m_test)
 		p.events = POLLIN | POLLERR;
 		ret = poll(&p, 1, timeout + 1);
 		m_assert_int_neq(0, ret);
+		m_assert_int_neq(0, p.revents & POLLIN);
 	}
 }
 static const char *fmctdc_op_test7_desc =
