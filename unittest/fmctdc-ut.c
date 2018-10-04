@@ -359,8 +359,6 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	}
 	sleep(2 + ((count * period) / 1000000));
 
-	fmctdc_get_time(tdc, &tmp);
-
 	/* Check statistics */
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
 		uint32_t val;
