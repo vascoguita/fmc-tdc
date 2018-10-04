@@ -345,7 +345,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	/* Generate pulses 2_pulses in the future */
 	err = fmctdc_get_time(tdc, &start);
 	m_assert_int_eq(0, err);
-	start.seconds += 1;
+	start.seconds += 2;
 	start.coarse = 0;
 	start.frac = 0;
 	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
@@ -357,7 +357,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 		m_assert_int_eq(0, err);
 		fmctdc_get_time(tdc, &tmp);
 	}
-	sleep(2 + ((count * period) / 1000000));
+	sleep(3 + ((count * period) / 1000000));
 
 	/* Check statistics */
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
