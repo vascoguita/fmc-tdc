@@ -323,11 +323,13 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 {
 	struct fmctdc_test_desc *d = m_test->suite->private;
 	struct fmctdc_board *tdc = d->tdc;
-	struct fmctdc_time t[FMCTDC_NUM_CHANNELS], tmp, start;
+	struct fmctdc_time *t[FMCTDC_NUM_CHANNELS], tmp, start;
 	struct pollfd p;
 	int i, k, err, ret;
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		t[i] = calloc(count, sizeof(struct fmctdc_time));
+		m_assert_mem_not_null(t[i]);
 		err = fmctdc_channel_enable(tdc, i);
 		m_assert_int_eq(0, err);
 	}
@@ -345,24 +347,44 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 						      count,
 						      start);
 		m_assert_int_eq(0, err);
+		fmctdc_get_time(tdc, &tmp);
 	}
-	sleep(3);
+	sleep(5 + ((count * period) / 1000000));
 
-	for (k = 0; k < count; ++k) {
-		for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
-			p.fd = fmctdc_fileno_channel(tdc, i);
-			p.events = POLLIN | POLLERR;
-			ret = poll(&p, 1, 1000);
-			m_assert_int_neq(0, ret); /* detect time out */
-			m_assert_int_neq(0, p.revents & POLLIN);
-			m_assert_int_lt(0, ret);
+	fmctdc_get_time(tdc, &tmp);
 
-			ret = fmctdc_read(tdc, i, &t[i], 1, 0);
-			m_assert_int_eq(1, ret);
-		}
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		p.fd = fmctdc_fileno_channel(tdc, i);
+		p.events = POLLIN | POLLERR;
+		ret = poll(&p, 1, 1000);
+		m_assert_int_neq(0, ret); /* detect time out */
+		m_assert_int_neq(0, p.revents & POLLIN);
+		m_assert_int_lt(0, ret);
 
+		ret = 0;
+		do {
+			int n;
+			n = fmctdc_read(tdc, i, t[i], count - ret,
+					O_NONBLOCK);
+			m_assert_int_neq(-1, n);
+			ret += n;
+		} while (ret > 0 && ret < count);
+		m_assert_int_eq(count, ret);
+	}
+
+	/* Validate period */
+	for (k = 1; k < count; ++k) {
 		for (i = 1; i < FMCTDC_NUM_CHANNELS; ++i) {
-			fmctdc_ts_sub(&tmp, &t[0], &t[i]);
+			fmctdc_ts_sub(&tmp, &t[i][k], &t[i][k - 1]);
+			m_assert_int_range(period - 1, period + 1,
+					fmctdc_ts_ps(&tmp) / 1000000);
+		}
+	}
+
+	/* Validate synchronicity */
+	for (k = 0; k < count; ++k) {
+		for (i = 1; i < FMCTDC_NUM_CHANNELS; ++i) {
+			fmctdc_ts_sub(&tmp, &t[0][k], &t[i][k]);
 			/*
 			 * We know that from time to time ACAM TDC-GPX
 			 * produces wrong timestamps (-8ns +8ns)
@@ -370,6 +392,9 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 			m_assert_int_range(0, 8000, fmctdc_ts_ps(&tmp));
 		}
 	}
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i)
+		free(t[i]);
 }
 
 static void fmctdc_op_test1(struct m_test *m_test)
