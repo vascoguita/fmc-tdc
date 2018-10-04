@@ -1201,3 +1201,51 @@ int fmctdc_ts_mode_get(struct fmctdc_board *userb,
 
 	return 0;
 }
+
+/**
+ * It gets the number of received pulses (on hardware)
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[out] val number of received pulses
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_stats_recv_get(struct fmctdc_board *userb,
+			  unsigned int channel,
+			  uint32_t *val)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	char path[64];
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(path, sizeof(path), "ft-ch%d/received",
+		 channel + 1);
+	return fmctdc_sysfs_get(b, path, val);
+}
+
+/**
+ * It gets the number of transferred timestamps
+ * @param[in] userb TDC board instance token
+ * @param[in] channel target channel [0, 4]
+ * @param[out] val number of transferred timestamps
+ * @return 0 on success, otherwise -1 and errno is set appropriately
+ */
+int fmctdc_stats_trans_get(struct fmctdc_board *userb,
+			  unsigned int channel,
+			  uint32_t *val)
+{
+	struct __fmctdc_board *b = (void *)(userb);
+	char path[64];
+
+	if (channel >= FMCTDC_NUM_CHANNELS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	snprintf(path, sizeof(path), "ft-ch%d/transferred",
+		 channel + 1);
+	return fmctdc_sysfs_get(b, path, val);
+}

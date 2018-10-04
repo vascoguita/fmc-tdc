@@ -49,6 +49,8 @@ enum ft_zattr_in_idx {
 	FT_ATTR_TDC_TRANSFER_MODE,
 	FT_ATTR_TDC_COALESCING_TIME,
 	FT_ATTR_TDC_RAW_READOUT_MODE,
+	FT_ATTR_TDC_RECV,
+	FT_ATTR_TDC_TRANS,
 	FT_ATTR_TDC__LAST,
 };
 
@@ -121,6 +123,14 @@ enum ft_channel_flags {
 
 struct fmctdc_dev;
 
+/**
+ * Channel statistics
+ */
+struct fmctdc_channel_stats {
+	uint32_t received;
+	uint32_t transferred;
+};
+
 struct ft_calibration {		/* All of these are big endian in the EEPROM */
 	/* Input-to-WR timebase offset in ps. */
 	int32_t zero_offset[5];
@@ -143,6 +153,8 @@ struct ft_channel_state {
 #define __FT_BUF_MAX 2
 	uint32_t buf_addr[__FT_BUF_MAX];
 	uint32_t buf_size; // in timestamps
+
+	struct fmctdc_channel_stats stats;
 };
 
 enum ft_transfer_mode {

@@ -326,8 +326,14 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	struct fmctdc_time *t[FMCTDC_NUM_CHANNELS], tmp, start;
 	struct pollfd p;
 	int i, k, err, ret;
+	uint32_t trans_b[FMCTDC_NUM_CHANNELS], recv_b[FMCTDC_NUM_CHANNELS];
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		err = fmctdc_stats_recv_get(tdc, i, &recv_b[i]);
+		m_assert_int_eq(0, err);
+		err = fmctdc_stats_trans_get(tdc, i, &trans_b[i]);
+		m_assert_int_eq(0, err);
+
 		t[i] = calloc(count, sizeof(struct fmctdc_time));
 		m_assert_mem_not_null(t[i]);
 		err = fmctdc_channel_enable(tdc, i);
@@ -352,6 +358,19 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	sleep(5 + ((count * period) / 1000000));
 
 	fmctdc_get_time(tdc, &tmp);
+
+	/* Check statistics */
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		uint32_t val;
+
+		err = fmctdc_stats_recv_get(tdc, i, &val);
+		m_assert_int_eq(0, err);
+		m_assert_int_eq(recv_b[i] + count, val);
+		err = fmctdc_stats_trans_get(tdc, i, &val);
+		m_assert_int_eq(0, err);
+		m_assert_int_eq(trans_b[i] + count, val);
+	}
+
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
 		p.fd = fmctdc_fileno_channel(tdc, i);

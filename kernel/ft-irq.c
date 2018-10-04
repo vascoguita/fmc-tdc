@@ -304,6 +304,7 @@ static void ft_dma_work(struct work_struct *work)
 		base_cur[n_block] = st->buf_addr[transfer];
 
 		cset->ti->nsamples = ft_buffer_count(ft, i);
+		st->stats.received += cset->ti->nsamples;
 
 		zio_arm_trigger(cset->ti); /* actually arm'n'fire */
 		if (!zio_cset_can_acquire(cset)) {
@@ -373,7 +374,12 @@ static int ft_timestamp_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts)
  */
 static void ft_readout_fifo_one(struct zio_cset *cset)
 {
+	struct fmctdc_dev *ft;
 	struct ft_hw_timestamp *hwts;
+	struct ft_channel_state *st;
+
+	ft = cset->zdev->priv_d;
+	st = &ft->channels[cset->index];
 
 	cset->ti->nsamples = 1;
 	zio_arm_trigger(cset->ti);
@@ -384,6 +390,8 @@ static void ft_readout_fifo_one(struct zio_cset *cset)
 	ft_timestamp_get(cset, hwts);
 out:
 	zio_trigger_data_done(cset);
+	st->stats.received++;
+	st->stats.transferred++;
 }
 
 static void ft_fifo_work(struct work_struct *work)
@@ -490,8 +498,10 @@ static irqreturn_t ft_irq_handler_dma_complete(int irq, void *dev_id)
 	}
 
 	/* perhpas WQ: it processes data */
-	for_each_set_bit(i, loop, FT_NUM_CHANNELS)
+	for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
 		zio_trigger_data_done(&ft->zdev->cset[i]);
+		ft->channels[i].stats.transferred += ft->zdev->cset[i].ti->nsamples;
+	}
 
 out:
 	fmc_irq_ack(fmc);

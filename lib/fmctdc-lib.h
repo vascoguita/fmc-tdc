@@ -213,6 +213,18 @@ extern int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
 extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
 /**@}*/
 
+/**
+ * @defgroup libstats Statistics
+ * Set of functions to get statistics
+ * @{
+ */
+extern int fmctdc_stats_recv_get(struct fmctdc_board *userb,
+				 unsigned int channel,
+				 uint32_t *val);
+extern int fmctdc_stats_trans_get(struct fmctdc_board *userb,
+				  unsigned int channel,
+				  uint32_t *val);
+/**@}*/
 
 /**
  *@file fmctdc-lib-math.c

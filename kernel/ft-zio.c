@@ -56,6 +56,8 @@ static struct zio_attribute ft_zattr_input[] = {
 		     FT_ATTR_TDC_COALESCING_TIME, 10),
 	ZIO_ATTR_EXT("raw_readout_mode", ZIO_RW_PERM,
 		     FT_ATTR_TDC_RAW_READOUT_MODE, 0),
+	ZIO_ATTR_EXT("received", ZIO_RO_PERM, FT_ATTR_TDC_RECV, 0),
+	ZIO_ATTR_EXT("transferred", ZIO_RO_PERM, FT_ATTR_TDC_TRANS, 0),
 };
 
 /* This identifies if our "struct device" is device, input, output */
@@ -232,6 +234,12 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		break;
 	case FT_ATTR_TDC_RAW_READOUT_MODE:
 		*usr_val = ft_raw_mode_get(ft, cset->index);
+		break;
+	case FT_ATTR_TDC_RECV:
+		*usr_val = st->stats.received;
+		break;
+	case FT_ATTR_TDC_TRANS:
+		*usr_val = st->stats.transferred;
 		break;
 	}
 
