@@ -34,11 +34,11 @@ static int fmctdc_execute_fmc_fdelay_pulse(unsigned int devid,
 
 	if (t.seconds)
 		snprintf(cmd, CMD_LEN,
-			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -D %"PRId64":0 -c %d > /dev/null",
+			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -D %"PRId64":0 -c %d &> /dev/null",
 			 devid, channel + 1, period_us, t.seconds, count);
 	else
 		snprintf(cmd, CMD_LEN,
-			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %du -c %d > /dev/null",
+			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %du -c %d &> /dev/null",
 			 devid, channel + 1, period_us, relative_us, count);
 
 	printf("%s\n", cmd);
