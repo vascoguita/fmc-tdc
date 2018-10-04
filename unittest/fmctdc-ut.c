@@ -477,7 +477,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
 		p.events = POLLIN | POLLERR;
-		ret = poll(&p, 1, timeout / 2);
+		ret = poll(&p, 1, timeout - 1);
 		m_assert_int_eq(0, ret);
 	}
 }
