@@ -15,6 +15,9 @@
 
 #include <fmctdc-lib.h>
 
+#define FMCFD_NUM_CHANNELS 4
+#define FMCTDC_NUM_CHANNELS_TEST (FMCTDC_NUM_CHANNELS - 1)
+
 struct fmctdc_test_desc {
 	struct fmctdc_board *tdc;
 };
@@ -104,7 +107,7 @@ static void fmctdc_param_test1(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	int i, fd;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		fd = fmctdc_fileno_channel(tdc, i);
 		m_assert_int_lt(0, fd);
 	}
@@ -119,7 +122,7 @@ static void fmctdc_param_test2(struct m_test *m_test)
 	unsigned int timeout, timeout_rb;
 	int i, err;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		for (timeout = 1; timeout < 1000; timeout *= 10) {
 			err = fmctdc_coalescing_timeout_set(tdc, i,
 							    timeout);
@@ -140,7 +143,7 @@ static void fmctdc_param_test3(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	int i, err, ret;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		/* disable */
 		err = fmctdc_set_termination(tdc, i, 0);
 		m_assert_int_eq(0, err);
@@ -167,7 +170,7 @@ static void fmctdc_param_test4(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	int i, err, ret;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		/* disable */
 		err = fmctdc_channel_status_set(tdc, i, FMCTDC_STATUS_DISABLE);
 		m_assert_int_eq(0, err);
@@ -194,7 +197,7 @@ static void fmctdc_param_test5(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	int i, err, ret;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		err = fmctdc_set_buffer_mode(tdc, i, FMCTDC_BUFFER_CIRC);
 		m_assert_int_eq(0, err);
 		ret = fmctdc_get_buffer_mode(tdc, i);
@@ -217,7 +220,7 @@ static void fmctdc_param_test6(struct m_test *m_test)
 	unsigned int len;
 	int i, err, ret;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		for (len = 1; len < 64; len <<= 1) {
 			err = fmctdc_set_buffer_len(tdc, i, len);
 			m_assert_int_eq(-1, err);
@@ -271,7 +274,7 @@ static void fmctdc_op_test_setup(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	int i, err, ret;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		err = fmctdc_channel_status_set(tdc, i, FMCTDC_STATUS_DISABLE);
 		m_assert_int_eq(0, err);
 		ret = fmctdc_channel_status_get(tdc, i);
@@ -311,7 +314,7 @@ static void fmctdc_op_test_tear_down(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	int i, err, ret;
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		err = fmctdc_channel_status_set(tdc, i, FMCTDC_STATUS_DISABLE);
 		m_assert_int_eq(0, err);
 		ret = fmctdc_channel_status_get(tdc, i);
@@ -325,12 +328,13 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 {
 	struct fmctdc_test_desc *d = m_test->suite->private;
 	struct fmctdc_board *tdc = d->tdc;
-	struct fmctdc_time *t[FMCTDC_NUM_CHANNELS], tmp, start;
+	struct fmctdc_time *t[FMCTDC_NUM_CHANNELS_TEST], tmp, start;
 	struct pollfd p;
 	int i, k, err, ret;
-	uint32_t trans_b[FMCTDC_NUM_CHANNELS], recv_b[FMCTDC_NUM_CHANNELS];
+	uint32_t trans_b[FMCTDC_NUM_CHANNELS_TEST];
+	uint32_t recv_b[FMCTDC_NUM_CHANNELS_TEST];
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		err = fmctdc_stats_recv_get(tdc, i, &recv_b[i]);
 		m_assert_int_eq(0, err);
 		err = fmctdc_stats_trans_get(tdc, i, &trans_b[i]);
@@ -348,7 +352,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	start.seconds += 2;
 	start.coarse = 0;
 	start.frac = 0;
-	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
+	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i) {
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
 						      i, period,
 						      0,
@@ -360,7 +364,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	sleep(3 + ((count * period) / 1000000));
 
 	/* Check statistics */
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		uint32_t val;
 
 		err = fmctdc_stats_recv_get(tdc, i, &val);
@@ -372,7 +376,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	}
 
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		p.fd = fmctdc_fileno_channel(tdc, i);
 		p.events = POLLIN | POLLERR;
 		ret = poll(&p, 1, 1000);
@@ -393,7 +397,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 
 	/* Validate period */
 	for (k = 1; k < count; ++k) {
-		for (i = 1; i < FMCTDC_NUM_CHANNELS; ++i) {
+		for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 			fmctdc_ts_sub(&tmp, &t[i][k], &t[i][k - 1]);
 			m_assert_int_range(period - 1, period + 1,
 					fmctdc_ts_ps(&tmp) / 1000000);
@@ -402,7 +406,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 
 	/* Validate synchronicity */
 	for (k = 0; k < count; ++k) {
-		for (i = 1; i < FMCTDC_NUM_CHANNELS; ++i) {
+		for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 			fmctdc_ts_sub(&tmp, &t[0][k], &t[i][k]);
 			/*
 			 * We know that from time to time ACAM TDC-GPX
@@ -412,7 +416,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 		}
 	}
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i)
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i)
 		free(t[i]);
 }
 
@@ -461,7 +465,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 	int i, err, ret;
 	struct fmctdc_time t = {0, 0, 0, 0, 0};
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
+	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i) {
 		err = fmctdc_coalescing_timeout_set(tdc, i, timeout);
 		m_assert_int_eq(0, err);
 
@@ -491,7 +495,7 @@ static void fmctdc_op_test7(struct m_test *m_test)
 	struct fmctdc_time t = {0, 0, 0, 0, 0};
 
 
-	for (i = 0; i < FMCTDC_NUM_CHANNELS - 1; ++i) {
+	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i) {
 		err = fmctdc_coalescing_timeout_set(tdc, i, timeout);
 		m_assert_int_eq(0, err);
 
