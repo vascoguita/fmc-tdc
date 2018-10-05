@@ -266,6 +266,44 @@ static void fmctdc_param_test7(struct m_test *m_test)
 static const char *fmctdc_param_test7_desc =
 	"Being able to change the White-Rabbit mode";
 
+static void fmctdc_param_test8(struct m_test *m_test)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	struct fmctdc_time start = {0, 0, 0, 0, 0};
+	struct pollfd p;
+	int ret, i;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		ret = fmctdc_channel_enable(tdc, i);
+		m_assert_int_eq(0, ret);
+	}
+
+	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i) {
+		ret = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+						      i, 1, 0, 1000,
+						      start);
+		m_assert_int_eq(0, ret);
+	}
+	sleep(1);
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		p.fd = fmctdc_fileno_channel(tdc, i);
+		p.events = POLLIN | POLLERR;
+
+		ret = poll(&p, 1, 1);
+		m_assert_int_neq(0, ret); /* buffer not empty */
+
+		ret = fmctdc_flush(tdc, i);
+		m_assert_int_eq(0, ret);
+
+		ret = poll(&p, 1, 1);
+		m_assert_int_eq(0, ret); /* buffer empty*/
+	}
+}
+static const char *fmctdc_param_test8_desc =
+	"Being able to flush a channel buffer";
+
 
 
 
@@ -671,6 +709,8 @@ int main(int argc, char *argv[])
 			    fmctdc_param_test6_desc),
 		m_test_desc(NULL, fmctdc_param_test7, NULL,
 			    fmctdc_param_test7_desc),
+		m_test_desc(NULL, fmctdc_param_test8, NULL,
+			    fmctdc_param_test8_desc),
 	};
 	struct m_suite fmctdc_suite_param = m_suite("FMC TDC test: parameters",
 						    M_VERBOSE,
