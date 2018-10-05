@@ -974,6 +974,7 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	struct __fmctdc_board *b = (void *)(userb);
 	char path[64];
 	int en, err;
+	uint32_t val = 1;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
@@ -988,11 +989,25 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	if (err)
 		return err;
 
-	/* Flush ZIO buffer */
-	snprintf(path, sizeof(path), "ft-ch%d/chan0/buffer/flush", channel + 1);
-	err = fmctdc_sysfs_set(b, path, &channel);
-	if (err) {
-		return err;
+	if (1) {
+		/*
+		 * For some reason the ZIO flush attribute does not work.
+		 * I do not have time to investigate it. Flush it by reading
+		 */
+		struct fmctdc_time ts[100];
+		int n;
+
+		do {
+			n = fmctdc_read(userb, channel, ts, 100, O_NONBLOCK);
+		} while (n > 0);
+	} else {
+		/* Flush ZIO buffer */
+		snprintf(path, sizeof(path),
+			 "ft-ch%d/chan0/buffer/flush",
+			 channel + 1);
+		err = fmctdc_sysfs_set(b, path, &val);
+		if (err)
+			return err;
 	}
 
 	/* Re-enable if it was enable */
