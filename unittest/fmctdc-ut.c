@@ -17,6 +17,7 @@
 
 #define FMCFD_NUM_CHANNELS 4
 #define FMCTDC_NUM_CHANNELS_TEST (FMCTDC_NUM_CHANNELS - 1)
+#define TS_ERROR 1000 /* ps */
 
 struct fmctdc_test_desc {
 	struct fmctdc_board *tdc;
@@ -333,6 +334,7 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	int i, k, err, ret;
 	uint32_t trans_b[FMCTDC_NUM_CHANNELS_TEST];
 	uint32_t recv_b[FMCTDC_NUM_CHANNELS_TEST];
+	uint64_t period_ps = period * 1000000ULL;
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
 		err = fmctdc_stats_recv_get(tdc, i, &recv_b[i]);
@@ -396,23 +398,24 @@ static void fmctdc_op_test_parameters(struct m_test *m_test,
 	}
 
 	/* Validate period */
-	for (k = 1; k < count; ++k) {
-		for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+	for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		for (k = 1; k < count; ++k) {
 			fmctdc_ts_sub(&tmp, &t[i][k], &t[i][k - 1]);
-			m_assert_int_range(period - 1, period + 1,
-					fmctdc_ts_ps(&tmp) / 1000000);
+			m_assert_int_range(period_ps - TS_ERROR,
+					   period_ps + TS_ERROR,
+					   fmctdc_ts_ps(&tmp));
 		}
 	}
 
 	/* Validate synchronicity */
-	for (k = 0; k < count; ++k) {
-		for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+	for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		for (k = 0; k < count; ++k) {
 			fmctdc_ts_sub(&tmp, &t[0][k], &t[i][k]);
 			/*
 			 * We know that from time to time ACAM TDC-GPX
 			 * produces wrong timestamps (-8ns +8ns)
 			 */
-			m_assert_int_range(0, 8000, fmctdc_ts_ps(&tmp));
+			m_assert_int_range(0, TS_ERROR, fmctdc_ts_ps(&tmp));
 		}
 	}
 
