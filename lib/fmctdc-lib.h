@@ -15,7 +15,29 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
 #include <stdint.h>
+
+/**
+ * printf format for timestamps with pico-second resolution
+ */
+#define PRItsps "%010"PRIu64"s  %012"PRIu64"ps"
+
+/**
+ * printf value for timestamps with pico-second resolution
+ */
+#define PRItspsVAL(_ts) (_ts)->seconds, (uint64_t)(((uint64_t)(_ts)->coarse * 8000ULL) + ((uint64_t)(_ts)->frac *8000ULL / 4096ULL))
+
+/**
+ * printf format for timestamps with White-Rabbit notation
+ */
+#define PRItswr "%10"PRIu64":%09u:%04u"
+
+/**
+ * printf value for timestamp with White-Rabbit notation
+ */
+#define PRItswrVAL(_ts) (_ts)->seconds, (_ts)->coarse, (_ts)->frac
+
 
 #define __FMCTDC_ERR_MIN 4096
 enum fmctdc_error_numbers {

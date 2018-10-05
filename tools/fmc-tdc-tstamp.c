@@ -34,36 +34,6 @@ enum tstamp_print_format {
 };
 
 /**
- * It prints the given timestamp using the White-Rabit format
- * @param[in] ts timestamp
- *
- * seconds:coarse:frac
- */
-static inline void print_ts_wr(struct fmctdc_time ts)
-{
-	fprintf(stdout, "%10"PRIu64":%09u:%04u",
-		ts.seconds, ts.coarse, ts.frac);
-
-}
-
-/**
- * It prints the given timestamp using the picosecond format
- * @param[in] ts timestamp
- *
- * seconds.picoseconds
- */
-static inline void print_ts_ps(struct fmctdc_time ts)
-{
-	uint64_t picoseconds;
-
-	picoseconds = ((uint64_t)ts.coarse) * 8000ULL;
-	picoseconds += ((uint64_t)ts.frac) * 8000ULL / 4096ULL;
-	fprintf(stdout,
-		"%010"PRIu64"s  %012"PRIu64"ps",
-		ts.seconds, picoseconds);
-}
-
-/**
  * It prints the given timestamp
  * @param[in] ts timestamp
  * @param[in] fmt timestamp print format
@@ -72,10 +42,10 @@ static void print_ts(struct fmctdc_time ts, enum tstamp_print_format fmt)
 {
 	switch (fmt) {
 	case TSTAMP_FMT_WR:
-		print_ts_wr(ts);
+		fprintf(stdout, PRItswr, PRItswrVAL(&ts));
 		break;
 	case TSTAMP_FMT_PS:
-		print_ts_ps(ts);
+		fprintf(stdout, PRItsps, PRItspsVAL(&ts));
 		break;
 	default:
 		fprintf(stdout, "--- invalid format ---\n");

@@ -36,18 +36,6 @@ enum tstamp_print_format
 };
 
 /**
- * It prints the given timestamp using the White-Rabit format
- * @param[in] ts timestamp
- *
- * seconds:coarse:frac
- */
-static inline void print_ts_wr(struct fmctdc_time ts)
-{
-	fprintf(stderr, "%10" PRIu64 ":%09u:%04u seq %-10d",
-			ts.seconds, ts.coarse, ts.frac, ts.seq_id);
-}
-
-/**
  * Print help message
  * @param[in] name program name
  */
@@ -148,13 +136,10 @@ void process_timestamps(struct fmctdc_time *ts, int n_ts)
 			if ( (prev_ts.seq_id + 1) != ts[i].seq_id) {
 				fprintf(stderr,
 					"\n\nSuspicious timestamps (gap in sequence ids):\n");
-				fprintf(stderr,"Previous : ");
-				print_ts_wr( prev_ts );
-				fprintf(stderr, "\n");
-
-				fprintf(stderr,"Current  : ");
-				print_ts_wr( ts[i] );
-				fprintf(stderr, "\n");
+				fprintf(stderr,"Previous : "PRItswr"\n",
+					PRItswrVAL(&prev_ts));
+				fprintf(stderr,"Current  : "PRItswr"\n",
+					PRItswrVAL(&ts[i]));
 				misses++;
 			} else {
 				int64_t avg_delta = (int64_t)((1e12 * avg_acc) / (double)total_samples);
@@ -190,17 +175,16 @@ void process_timestamps(struct fmctdc_time *ts, int n_ts)
 							ps, avg_delta, delta_diff,
 							max_delta_span);
 
-						fprintf(stderr, "Previous : ");
-						print_ts_wr(prev_ts);
 						fprintf(stderr,
-							", ACAM bins: %d (DMA timestamp vs RAW ACAM readout error: %d)\n",
-							prev_fine, err_prev);
-
-						fprintf(stderr, "Currrent : ");
-						print_ts_wr(ts[i]);
+							"Previous : "PRItswr", ACAM bins: %d (DMA timestamp vs RAW ACAM readout error: %d)\n",
+							PRItswrVAL(&prev_ts),
+							prev_fine,
+							err_prev);
 						fprintf(stderr,
-							", ACAM bins: %d (DMA timestamp vs RAW ACAM readout error: %d)\n",
-							fine, err_curr);
+							"Current  : "PRItswr", ACAM bins: %d (DMA timestamp vs RAW ACAM readout error: %d)\n",
+							PRItswrVAL(&ts[i]),
+							fine,
+							err_curr);
 					}
 				}
 				avg_acc += (double)ps / 1e12;
