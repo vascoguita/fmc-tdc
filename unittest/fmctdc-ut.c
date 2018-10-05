@@ -557,6 +557,124 @@ static void fmctdc_op_test7(struct m_test *m_test)
 static const char *fmctdc_op_test7_desc =
 	"FineDelay generates a pulse for each channel. We test the IRQ coalesing timeout. We expect to receive the timestamp after the timeout (NOTE: not really usefull because fdelay tools does not emit pulses immediately)";
 
+static void fmctdc_op_test_parameters_del(struct m_test *m_test,
+					  unsigned int count,
+					  unsigned int period,
+					  unsigned int delay_ps)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	struct fmctdc_time *t[FMCTDC_NUM_CHANNELS_TEST], tmp,
+		start = {0, 0, 0, 0, 0};
+	struct pollfd p;
+	int i, k, err, ret;
+	uint32_t trans_b[FMCTDC_NUM_CHANNELS_TEST];
+	uint32_t recv_b[FMCTDC_NUM_CHANNELS_TEST];
+	uint64_t avg[FMCTDC_NUM_CHANNELS_TEST];
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		err = fmctdc_stats_recv_get(tdc, i, &recv_b[i]);
+		m_assert_int_eq(0, err);
+		err = fmctdc_stats_trans_get(tdc, i, &trans_b[i]);
+		m_assert_int_eq(0, err);
+
+		t[i] = calloc(count, sizeof(struct fmctdc_time));
+		m_assert_mem_not_null(t[i]);
+		err = fmctdc_channel_enable(tdc, i);
+		m_assert_int_eq(0, err);
+	}
+
+	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i) {
+		/* +500ms */
+		uint64_t relative_ps = 500000000000ULL + delay_ps * i;
+
+		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+						      i, period,
+						      relative_ps,
+						      count,
+						      start);
+		m_assert_int_eq(0, err);
+	}
+	sleep(2 + ((count * period) / 1000000));
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		p.fd = fmctdc_fileno_channel(tdc, i);
+		p.events = POLLIN | POLLERR;
+		ret = poll(&p, 1, 1000);
+		m_assert_int_neq(0, ret); /* detect time out */
+		m_assert_int_neq(0, p.revents & POLLIN);
+		m_assert_int_lt(0, ret);
+
+		ret = 0;
+		do {
+			int n;
+			n = fmctdc_read(tdc, i, t[i], count - ret,
+					O_NONBLOCK);
+			m_assert_int_neq(-1, n);
+			ret += n;
+		} while (ret > 0 && ret < count);
+		m_assert_int_eq(count, ret);
+	}
+
+
+
+	/* Validate relative time among channels  */
+	for (i = 1; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		avg[i] = 0;
+		for (k = 0; k < count; ++k) {
+			uint64_t ps;
+
+			fmctdc_ts_sub(&tmp, &t[i - 1][k], &t[i][k]);
+			ps = fmctdc_ts_ps(&tmp);
+			avg[i] += ps;
+			m_assert_int_range(delay_ps - TS_ERROR,
+					   delay_ps + TS_ERROR,
+					   ps);
+		}
+		m_assert_int_range(delay_ps - TS_ERROR / 2,
+				   delay_ps + TS_ERROR / 2,
+				   avg[i] / count);
+	}
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		free(t[i]);
+	}
+}
+
+static void fmctdc_op_test8(struct m_test *m_test)
+{
+	fmctdc_op_test_parameters_del(m_test, 100, 10, 1000000000);
+}
+static const char *fmctdc_op_test8_desc =
+	"FineDelay generates 100 pulses for each channel (100kHz). A delay of 1ms between two consecutive channels (ignore 4ns error is it is sporadic).";
+
+static void fmctdc_op_test9(struct m_test *m_test)
+{
+	fmctdc_op_test_parameters_del(m_test, 100, 10, 1000000);
+}
+static const char *fmctdc_op_test9_desc =
+	"FineDelay generates 100 pulses for each channel (100kHz). A delay of 1us between two consecutive channels.";
+
+static void fmctdc_op_test10(struct m_test *m_test)
+{
+	fmctdc_op_test_parameters_del(m_test, 100, 10, 1000);
+}
+static const char *fmctdc_op_test10_desc =
+	"FineDelay generates 100 pulses for each channel (100kHz). A delay of 1ns between two consecutive channels.";
+
+static void fmctdc_op_test11(struct m_test *m_test)
+{
+	fmctdc_op_test_parameters_del(m_test, 100, 10, 850);
+}
+static const char *fmctdc_op_test11_desc =
+	"FineDelay generates 100 pulses for each channel (100kHz). A delay of 850ps between two consecutive channels.";
+
+static void fmctdc_op_test12(struct m_test *m_test)
+{
+	fmctdc_op_test_parameters_del(m_test, 100, 10, 500);
+}
+static const char *fmctdc_op_test12_desc =
+	"FineDelay generates 100 pulses for each channel (100kHz). A delay of 500ps between two consecutive channels.";
 
 static void fmctdc_math_test1(struct m_test *m_test)
 {
@@ -746,6 +864,26 @@ int main(int argc, char *argv[])
 			    fmctdc_op_test7,
 			    fmctdc_op_test_tear_down,
 			    fmctdc_op_test7_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test8,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test8_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test9,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test9_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test10,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test10_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test11,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test11_desc),
+		m_test_desc(fmctdc_op_test_setup,
+			    fmctdc_op_test12,
+			    fmctdc_op_test_tear_down,
+			    fmctdc_op_test12_desc),
 	};
 	struct m_suite fmctdc_suite_op = m_suite("FMC TDC test: operation",
 						 M_VERBOSE,
