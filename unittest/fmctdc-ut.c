@@ -493,7 +493,7 @@ static const char *fmctdc_op_test4_desc =
 
 static void fmctdc_op_test5(struct m_test *m_test)
 {
-	fmctdc_op_test_parameters(m_test, 60000, 100);
+	fmctdc_op_test_parameters(m_test, 60000, 1);
 }
 static const char *fmctdc_op_test5_desc =
 	"FineDelay generates, simultaneously, 60000 pulse for each channel (1MHz). We check that they all arrives and the timestamp is the same (error 8ns)";
