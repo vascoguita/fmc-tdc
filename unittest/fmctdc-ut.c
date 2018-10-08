@@ -18,6 +18,7 @@
 #define FMCFD_NUM_CHANNELS 4
 #define FMCTDC_NUM_CHANNELS_TEST (FMCTDC_NUM_CHANNELS - 1)
 #define TS_ERROR 1000 /* ps */
+#define POLL_TIMEOUT_SETUP 2000 /* ms */
 
 struct fmctdc_test_desc {
 	struct fmctdc_board *tdc;
@@ -676,6 +677,132 @@ static void fmctdc_op_test12(struct m_test *m_test)
 static const char *fmctdc_op_test12_desc =
 	"FineDelay generates 100 pulses for each channel (100kHz). A delay of 500ps between two consecutive channels.";
 
+static void fmctdc_op_test13_setup(struct m_test *m_test)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	int i, err, ret;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		err = fmctdc_channel_status_set(tdc, i, FMCTDC_STATUS_DISABLE);
+		m_assert_int_eq(0, err);
+		ret = fmctdc_channel_status_get(tdc, i);
+		m_assert_int_eq(FMCTDC_STATUS_DISABLE, ret);
+
+		err = fmctdc_set_buffer_len(tdc, i, 1000000);
+		m_assert_int_eq(0, err);
+		err = fmctdc_ts_mode_set(tdc, i, FMCTDC_TS_MODE_POST);
+		m_assert_int_eq(0, err);
+		err = fmctdc_coalescing_timeout_set(tdc, i, 1);
+		m_assert_int_eq(0, err);
+
+		err = fmctdc_flush(tdc, i);
+		m_assert_int_eq(0, err);
+	}
+
+	err = fmcdc_execute_fmc_fdelay_wr(fmcfd_dev_id);
+	m_assert_int_eq(0, err);
+
+	ret = fmctdc_wr_mode(tdc, 1);
+	m_assert_int_eq(0, ret);
+
+	/* wait maximum ~10seconds for white-rabbit to sync */
+	err = -1;
+	for (i = 0; err && i < 10; ++i) {
+		sleep(1);
+		err = fmctdc_check_wr_mode(tdc);
+	}
+	m_assert_int_eq(0, err);
+}
+static void fmctdc_op_test13_tear_down(struct m_test *m_test)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	int i, err, ret;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		err = fmctdc_channel_status_set(tdc, i, FMCTDC_STATUS_DISABLE);
+		m_assert_int_eq(0, err);
+		ret = fmctdc_channel_status_get(tdc, i);
+		m_assert_int_eq(FMCTDC_STATUS_DISABLE, ret);
+	}
+}
+
+static void fmctdc_op_test13(struct m_test *m_test)
+{
+	struct fmctdc_test_desc *d = m_test->suite->private;
+	struct fmctdc_board *tdc = d->tdc;
+	struct fmctdc_time t[FMCTDC_NUM_CHANNELS_TEST], start = {0, 0, 0, 0, 0};
+	uint32_t trans_b[FMCTDC_NUM_CHANNELS_TEST];
+	uint32_t recv_b[FMCTDC_NUM_CHANNELS_TEST];
+	struct pollfd p;
+	int i, err, ret;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		err = fmctdc_stats_recv_get(tdc, i, &recv_b[i]);
+		m_assert_int_eq(0, err);
+		err = fmctdc_stats_trans_get(tdc, i, &trans_b[i]);
+		m_assert_int_eq(0, err);
+		err = fmctdc_channel_enable(tdc, i);
+		m_assert_int_eq(0, err);
+	}
+
+	err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+					      0,
+					      0,
+					      500000000000ULL,
+					      1,
+					      start);
+	m_assert_int_eq(0, err);
+	err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+					      1,
+					      0,
+					      501000000000ULL,
+					      1,
+					      start);
+	m_assert_int_eq(0, err);
+	err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+					      2,
+					      0,
+					      501001000000ULL,
+					      1,
+					      start);
+	m_assert_int_eq(0, err);
+	err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
+					      3,
+					      0,
+					      501001001000ULL,
+					      1,
+					      start);
+	m_assert_int_eq(0, err);
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
+		uint32_t val;
+
+		p.fd = fmctdc_fileno_channel(tdc, i);
+		p.events = POLLIN | POLLERR;
+		ret = poll(&p, 1, POLL_TIMEOUT_SETUP + 1000);
+
+		m_assert_int_neq(0, ret); /* detect time out */
+		m_assert_int_neq(0, p.revents & POLLIN);
+		m_assert_int_lt(0, ret);
+
+		ret = fmctdc_read(tdc, i, &t[i], 1,
+				  O_NONBLOCK);
+		m_assert_int_eq(1, ret);
+
+		err = fmctdc_stats_recv_get(tdc, i, &val);
+		m_assert_int_eq(0, err);
+		m_assert_int_eq(recv_b[i] + 1, val);
+		err = fmctdc_stats_trans_get(tdc, i, &val);
+		m_assert_int_eq(0, err);
+		m_assert_int_eq(trans_b[i] + 1, val);
+	}
+}
+static const char *fmctdc_op_test13_desc =
+	"FineDelay generates a pulses on each channel with different delays. We want to see if we have interrupt problems or loosing pulses";
+
+
 static void fmctdc_math_test1(struct m_test *m_test)
 {
 	struct fmctdc_time t;
@@ -884,6 +1011,10 @@ int main(int argc, char *argv[])
 			    fmctdc_op_test12,
 			    fmctdc_op_test_tear_down,
 			    fmctdc_op_test12_desc),
+		m_test_desc(fmctdc_op_test13_setup,
+			    fmctdc_op_test13,
+			    fmctdc_op_test13_tear_down,
+			    fmctdc_op_test13_desc),
 	};
 	struct m_suite fmctdc_suite_op = m_suite("FMC TDC test: operation",
 						 M_VERBOSE,
