@@ -30,7 +30,7 @@ static int fmcfd_dev_id;
 static int fmctdc_execute_fmc_fdelay_pulse(unsigned int devid,
 					   unsigned int channel,
 					   unsigned int period_us,
-					   unsigned int relative_us,
+					   uint64_t relative_ps,
 					   unsigned int count,
 					   struct fmctdc_time t)
 {
@@ -42,8 +42,8 @@ static int fmctdc_execute_fmc_fdelay_pulse(unsigned int devid,
 			 devid, channel + 1, period_us, t.seconds, count);
 	else
 		snprintf(cmd, CMD_LEN,
-			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %du -c %d &> /dev/null",
-			 devid, channel + 1, period_us, relative_us, count);
+			 "fmc-fdelay-pulse -d 0x%x -o %d -m pulse -T %du -w 150n -r %"PRId64"p -c %d &> /dev/null",
+			 devid, channel + 1, period_us, relative_ps, count);
 
 	return system(cmd);
 }
@@ -514,7 +514,7 @@ static void fmctdc_op_test6(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 1, t);
+						      i, 1, 1000000, 1, t);
 		m_assert_int_eq(0, err);
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
@@ -544,7 +544,7 @@ static void fmctdc_op_test7(struct m_test *m_test)
 		m_assert_int_eq(0, err);
 
 		err = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
-						      i, 1, 0, 1, t);
+						      i, 1, 1000000, 1, t);
 		m_assert_int_eq(0, err);
 
 		p.fd = fmctdc_fileno_channel(tdc, i);
