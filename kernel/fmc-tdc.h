@@ -98,7 +98,6 @@ struct ft_hw_timestamp {
 #include <linux/timer.h>
 #include <linux/fmc.h>
 #include <linux/version.h>
-#include <linux/workqueue.h>
 
 #include <linux/zio-dma.h>
 #include <linux/zio-trigger.h>
@@ -108,7 +107,6 @@ struct ft_hw_timestamp {
 #include "hw/tdc_dma_eic.h"
 
 extern struct zio_trigger_type ft_trig_type;
-extern struct workqueue_struct *ft_workqueue;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 #define TDC_CHANNEL_BUFFER_SIZE_BYTES 0x1000000 // 16MB
@@ -174,9 +172,9 @@ static inline struct fmctdc_trig *to_fmctdc_trig(struct zio_ti *ti_ptr)
 /*
  * Main TDC device context
  * @unique_id unique identifier from the temperature sensor
- * @lock it protects: irq_imr (irq vs user), offset (user vs user),
- *       wr_mode (user vs user)
- * @irq_imr it holds the IMR value since our last modification
+ * @lock it protects: offset (user vs user), wr_mode (user vs user)
+ * @irq_imr it holds the IMR value since our last modification. Use it
+ *          **only** in the DMA IRQ handlers
  * @dma_chan_mask: bitmask to keep track of which channels are
  *                 transferring data. Timestamp interrupts are disabled
  *                 while DMA is running and we touch and this is the only
@@ -216,7 +214,6 @@ struct fmctdc_dev {
 	int wr_mode;
 
 	uint32_t irq_imr;
-	struct work_struct ts_work;
 
 	struct zio_dma_sgt *zdma;
 	int dma_chan_mask;

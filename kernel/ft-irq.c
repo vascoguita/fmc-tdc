@@ -40,7 +40,7 @@ MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
 				      TDC_EIC_EIC_ISR_TDC_DMA4 |  \
 				      TDC_EIC_EIC_ISR_TDC_DMA5)
 
-#define TDC_EIC_EIC_IMR_TDC_FIFO_SHIFT 5
+#define TDC_EIC_EIC_IMR_TDC_FIFO_SHIFT 0
 #define TDC_EIC_EIC_IMR_TDC_FIFO_MASK (TDC_EIC_EIC_ISR_TDC_FIFO1 | \
 				       TDC_EIC_EIC_ISR_TDC_FIFO2 | \
 				       TDC_EIC_EIC_ISR_TDC_FIFO3 | \
@@ -128,6 +128,13 @@ static inline uint32_t ft_chan_to_irq_mask(struct fmctdc_dev *ft, uint32_t chan_
  * @ft FmcTdc device instance
  * @chan_mask channel bitmask, a bit to one will disable the corresponding
  *            IRQ channel line
+ *
+ * NOTE Use it **only** in the DMA Buffer IRQ handler
+ *
+ * We do not use any spinlock here. This function should be called
+ * only by ft_irq_handler_ts_dma() and nobody else. Since this piece
+ * of code disables interrupts, there is no risk that it can run because
+ * of ft_irq_handler_ts_dma().
  */
 static void ft_irq_disable_save(struct fmctdc_dev *ft)
 {
@@ -138,10 +145,18 @@ static void ft_irq_disable_save(struct fmctdc_dev *ft)
 /**
  * It restores the previous known IRQ status
  * @ft FmcTdc device instance
+ *
+ * NOTE: Use it only in the DMA completion handler
+ *
+ * We do not use any spinlock here. This function should be called
+ * only by ft_irq_handler_dma_complete() and nobody else. This handler can
+ * run only after ft_irq_handler_ts_dma() successfully complete; within this
+ * time IRQ are disabled, so nobody can touch ``irq_imr``
  */
 static void ft_irq_enable_restore(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ft->irq_imr, ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
+	ft->irq_imr = 0;
 }
 
 
@@ -268,90 +283,6 @@ static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
 	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 }
 
-
-/**
- * It transfers timestamps from the DDR
- */
-static void ft_dma_work(struct work_struct *work)
-{
-	struct fmctdc_dev *ft = container_of(work, struct fmctdc_dev,
-					     ts_work);
-	struct ft_channel_state *st;
-	struct zio_cset *cset;
-	struct zio_block *blocks[ft->zdev->n_cset];
-	uint32_t base_cur[ft->zdev->n_cset];
-	uint32_t irq_stat;
-	int i, err, transfer, n_block;
-	unsigned long *loop;
-
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	if (!(irq_stat & TDC_EIC_EIC_IMR_TDC_DMA_MASK)) {
-		dev_warn(&ft->fmc->dev,
-			 "Expected DMA interrupt but got 0x%x\n", irq_stat);
-		goto err;
-	}
-
-	irq_stat &= TDC_EIC_EIC_IMR_TDC_DMA_MASK;
-	irq_stat >>= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
-	ft->dma_chan_mask = irq_stat;
-	loop = (unsigned long *) &irq_stat;
-	/* arm all csets */
-	n_block = 0;
-	for_each_set_bit(i, loop, ft->zdev->n_cset) {
-		st = &ft->channels[i];
-		cset = &ft->zdev->cset[i];
-		transfer = ft_buffer_switch(ft, i);
-		base_cur[n_block] = st->buf_addr[transfer];
-
-		cset->ti->nsamples = ft_buffer_count(ft, i);
-		st->stats.received += cset->ti->nsamples;
-
-		zio_arm_trigger(cset->ti); /* actually arm'n'fire */
-		if (!zio_cset_can_acquire(cset)) {
-			dev_warn(&cset->head.dev,
-				 "ZIO trigger not armed, or missing block\n");
-			continue;
-		}
-		blocks[n_block] = cset->chan->active_block;
-		n_block++;
-	}
-
-	cset = &ft->zdev->cset[0]; /* ZIO is not really using the channel,
-				      and probably it should not */
-	ft->zdma = zio_dma_alloc_sg(cset->chan, ft->fmc->hwdev,
-				    blocks, n_block, GFP_ATOMIC);
-	if (IS_ERR_OR_NULL(ft->zdma))
-		goto err_alloc;
-	for (i = 0; i < n_block; ++i)
-		ft->zdma->sg_blocks[i].dev_mem_off = base_cur[i];
-
-	err = zio_dma_map_sg(ft->zdma, sizeof(struct gncore_dma_item),
-			     gennum_dma_fill);
-	if (err)
-		goto err_map;
-
-
-	for_each_set_bit(i, loop, ft->zdev->n_cset)
-		zio_cset_busy_set(&ft->zdev->cset[i], 1);
-	dma_sync_single_for_device(ft->fmc->hwdev, ft->zdma->dma_page_desc_pool,
-				   sizeof(struct gncore_dma_item) * ft->zdma->sgt.nents,
-				   DMA_TO_DEVICE);
-	gn4124_dma_start(ft);
-
-	return;
-err_map:
-	zio_dma_free_sg(ft->zdma);
-err_alloc:
-	dev_err(ft->fmc->hwdev, "Cannot execute DMA\n");
-	ft->zdma = NULL;
-	for_each_set_bit(i, loop, ft->zdev->n_cset) {
-		zio_cset_busy_clear(&ft->zdev->cset[i], 1);
-		zio_trigger_abort_disable(&ft->zdev->cset[i], 0);
-	}
-err:
-	ft_irq_enable_restore(ft);
-}
-
 /**
  * Get a time stamp from the fifo, if you set the 'last' flag it takes the last
  * recorded time-stamp
@@ -394,59 +325,6 @@ out:
 	st->stats.transferred++;
 }
 
-static void ft_fifo_work(struct work_struct *work)
-{
-	struct fmctdc_dev *ft = container_of(work, struct fmctdc_dev,
-					     ts_work);
-	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
-	unsigned long *loop;
-	struct zio_cset *cset;
-	int i;
-
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	if (!(irq_stat & TDC_EIC_EIC_IMR_TDC_FIFO_MASK)) {
-		dev_warn(&ft->fmc->dev,
-			 "Expected FIFO interrupt but got 0x%x\n", irq_stat);
-		return;
-	}
-
-irq:
-	/*
-	 * Go through all FIFOs and read data. Democracy is a complicated thing,
-	 * the following loops is a democratic loop, so it goes trough all
-	 * channels without any priority. This avoid to be late to read the last
-	 * channel on high frequency where the risk is to have an oligarchy
-	 * where the first and second channel are read, but not the others.
-	 */
-	tmp_irq_stat = 0xFF;
-	do {
-		tmp_irq_stat &= irq_stat;
-		loop = (unsigned long *) &tmp_irq_stat;
-		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
-			cset = &ft->zdev->cset[i];
-			ft_readout_fifo_one(cset);
-			fifo_csr_addr = ft->ft_fifo_base +
-				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
-			fifo_stat = ft_ioread(ft, fifo_csr_addr);
-			if (!(fifo_stat & TSF_FIFO_CSR_EMPTY))
-				continue; /* Still something to read */
-
-			/* Ack the interrupt, nothing to read anymore */
-			ft_iowrite(ft, 1 << i,
-				   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-			tmp_irq_stat &= (~(1 << i));
-		}
-	} while (tmp_irq_stat);
-
-	/* Meanwhile we got another interrupt? then repeat */
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	if (irq_stat)
-		goto irq;
-
-	/* Re-Enable interrupts that where disabled in the IRQ handler */
-	ft_irq_enable_restore(ft);
-	return;
-}
 
 /**
  * It aborts a running acquisition
@@ -512,30 +390,194 @@ out:
 	return IRQ_HANDLED;
 }
 
-
-static irqreturn_t ft_irq_handler_ts(int irq, void *dev_id)
+/**
+ * It gets the IRQ buffer status
+ * @ft FmcTdc instance
+ *
+ * Return: IRQ buffer status
+ */
+static inline uint32_t ft_irq_buff_status(struct fmctdc_dev *ft)
 {
-	struct fmc_device *fmc = dev_id;
-	struct fmctdc_dev *ft = fmc->mezzanine_data;
-	uint32_t irq_stat, chan_stat;
+	uint32_t irq_stat, imr;
 
 	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	if (!irq_stat)
-		return IRQ_NONE;
+	imr = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_IMR);
+
+	return irq_stat & imr;
+}
+
+/**
+ * It gets the IRQ buffer status
+ * @ft FmcTdc instance
+ *
+ * Return: IRQ buffer status
+ */
+static inline uint32_t ft_irq_fifo_status(struct fmctdc_dev *ft)
+{
+	uint32_t irq_stat;
+
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+	return irq_stat & TDC_EIC_EIC_IMR_TDC_FIFO_MASK;
+}
+
+/**
+ * It validates the IRQ status
+ * @ft FmcTdc instance
+ *
+ * This is a paranoiac check, but experience tells that with this design
+ * it is better to double check
+ *
+ * Return: 1 if it is valid, otherwise 0
+ */
+static inline unsigned int ft_irq_status_is_valid(struct fmctdc_dev *ft,
+						  uint32_t irq_stat)
+{
+	uint32_t chan_stat;
 
 	chan_stat = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	chan_stat &= TDC_INPUT_ENABLE_CH_ALL;
 	chan_stat >>= TDC_INPUT_ENABLE_CH1_SHIFT;
 	chan_stat = ft_chan_to_irq_mask(ft, chan_stat);
 
-	WARN((chan_stat & irq_stat) == 0,
-	     "Received an unexpected interrupt: 0x%X 0x%X\n",
-	     chan_stat, irq_stat);
+	return !WARN((chan_stat & irq_stat) == 0,
+		    "Received an unexpected interrupt: 0x%X 0x%X\n",
+		    chan_stat, irq_stat);
+}
+
+static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
+{
+	struct fmc_device *fmc = dev_id;
+	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
+	unsigned long *loop;
+	struct zio_cset *cset;
+	int i;
+
+	irq_stat = ft_irq_fifo_status(ft);
+	if (!irq_stat || !ft_irq_status_is_valid(ft, irq_stat))
+		return IRQ_NONE;
+
+irq:
+	/*
+	 * Go through all FIFOs and read data. Democracy is a complicated thing,
+	 * the following loop is a democratic loop, so it goes trough all
+	 * channels without any priority. This avoid to be late to read the last
+	 * channel on high frequency where the risk is to have an oligarchy
+	 * where the first and second channel are read, but not the others.
+	 */
+	tmp_irq_stat = 0xFF;
+	do {
+		tmp_irq_stat &= irq_stat;
+		loop = (unsigned long *) &tmp_irq_stat;
+		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
+			cset = &ft->zdev->cset[i];
+			ft_readout_fifo_one(cset);
+			fifo_csr_addr = ft->ft_fifo_base +
+				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
+			fifo_stat = ft_ioread(ft, fifo_csr_addr);
+			if (!(fifo_stat & TSF_FIFO_CSR_EMPTY))
+				continue; /* Still something to read */
+
+			/* Ack the interrupt, nothing to read anymore */
+			ft_iowrite(ft, 1 << i,
+				   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+			tmp_irq_stat &= (~(1 << i));
+		}
+	} while (tmp_irq_stat);
+
+	/* Meanwhile we got another interrupt? then repeat */
+	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+	if (irq_stat)
+		goto irq;
+
+	/* Ack the FMC signal, we have finished */
+	fmc_irq_ack(fmc);
+
+	return IRQ_HANDLED;
+}
+
+
+static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
+{
+	struct fmc_device *fmc = dev_id;
+	struct fmctdc_dev *ft = fmc->mezzanine_data;
+	struct ft_channel_state *st;
+	struct zio_cset *cset;
+	struct zio_block *blocks[ft->zdev->n_cset];
+	uint32_t base_cur[ft->zdev->n_cset];
+	uint32_t irq_stat;
+	int i, err, transfer, n_block;
+	unsigned long *loop;
+
+	irq_stat = ft_irq_buff_status(ft);
+	if (!irq_stat || !ft_irq_status_is_valid(ft, irq_stat))
+		return IRQ_NONE;
 
 	/* Disable interrupts until we fetch all stored samples */
 	ft_irq_disable_save(ft);
 
-	queue_work(ft_workqueue, &ft->ts_work);
+	irq_stat &= TDC_EIC_EIC_IMR_TDC_DMA_MASK;
+	irq_stat >>= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
+	ft->dma_chan_mask = irq_stat;
+	loop = (unsigned long *) &irq_stat;
+	/* arm all csets */
+	n_block = 0;
+	for_each_set_bit(i, loop, ft->zdev->n_cset) {
+		st = &ft->channels[i];
+		cset = &ft->zdev->cset[i];
+		transfer = ft_buffer_switch(ft, i);
+		base_cur[n_block] = st->buf_addr[transfer];
+
+		cset->ti->nsamples = ft_buffer_count(ft, i);
+		st->stats.received += cset->ti->nsamples;
+
+		zio_arm_trigger(cset->ti); /* actually arm'n'fire */
+		if (!zio_cset_can_acquire(cset)) {
+			dev_warn(&cset->head.dev,
+				 "ZIO trigger not armed, or missing block\n");
+			continue;
+		}
+		blocks[n_block] = cset->chan->active_block;
+		n_block++;
+	}
+
+	cset = &ft->zdev->cset[0]; /* ZIO is not really using the channel,
+				      and probably it should not */
+	ft->zdma = zio_dma_alloc_sg(cset->chan, ft->fmc->hwdev,
+				    blocks, n_block, GFP_ATOMIC);
+	if (IS_ERR_OR_NULL(ft->zdma))
+		goto err_alloc;
+	for (i = 0; i < n_block; ++i)
+		ft->zdma->sg_blocks[i].dev_mem_off = base_cur[i];
+
+	err = zio_dma_map_sg(ft->zdma, sizeof(struct gncore_dma_item),
+			     gennum_dma_fill);
+	if (err)
+		goto err_map;
+
+
+	for_each_set_bit(i, loop, ft->zdev->n_cset)
+		zio_cset_busy_set(&ft->zdev->cset[i], 1);
+	dma_sync_single_for_device(ft->fmc->hwdev, ft->zdma->dma_page_desc_pool,
+				   sizeof(struct gncore_dma_item) * ft->zdma->sgt.nents,
+				   DMA_TO_DEVICE);
+	gn4124_dma_start(ft);
+
+	fmc_irq_ack(fmc);
+
+	return IRQ_HANDLED;
+
+err_map:
+	zio_dma_free_sg(ft->zdma);
+err_alloc:
+	dev_err(ft->fmc->hwdev, "Cannot execute DMA\n");
+	ft->zdma = NULL;
+	for_each_set_bit(i, loop, ft->zdev->n_cset) {
+		zio_cset_busy_clear(&ft->zdev->cset[i], 1);
+		zio_trigger_abort_disable(&ft->zdev->cset[i], 0);
+	}
+
+	ft_irq_enable_restore(ft);
 
 	/* Ack the FMC signal, we have finished */
 	fmc_irq_ack(fmc);
@@ -678,48 +720,56 @@ int ft_irq_init(struct fmctdc_dev *ft)
 
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
-		INIT_WORK(&ft->ts_work, ft_fifo_work);
+		ft->fmc->irq = ft->ft_irq_base;
+		ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_fifo,
+				      "fmc-tdc-fifo", 0);
+		if (ret < 0) {
+			dev_err(&ft->fmc->dev,
+				"Request interrupt 'FIFO' failed: %d\n",
+				ret);
+			return ret;
+		}
 		break;
 	case FT_ACQ_TYPE_DMA:
-		INIT_WORK(&ft->ts_work, ft_dma_work);
-		break;
-	}
-
-	ft->fmc->irq = ft->ft_irq_base;
-	ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts,
-			      "fmc-tdc", 0);
-	if (ret < 0) {
-		dev_err(&ft->fmc->dev,
-			"Request interrupt failed: %d\n",
-			ret);
-		return ret;
-	}
-
-	if (ft->mode == FT_ACQ_TYPE_DMA) {
+		ft->fmc->irq = ft->ft_irq_base;
+		ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_dma,
+				      "fmc-tdc-dma-start", 0);
+		if (ret < 0) {
+			dev_err(&ft->fmc->dev,
+				"Request interrupt 'DMA Start' failed: %d\n",
+				ret);
+			return ret;
+		}
 		/*
 		 * DMA completion interrupt (from the GN4124 core), like in
 		 * the FMCAdc design
 		 */
 		ft->fmc->irq = ft->ft_irq_base + 1;
 		ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
-				      "fmc-tdc-dma", 0);
-	}
-
-	/* kick off the interrupts (fixme: possible issue with the HDL) */
-	fmc_irq_ack(ft->fmc);
-
-	/*
-	 * We enable interrupts on all channel. but if we do not enable
-	 * the channel, we should not receive anything. So, even if ZIO is
-	 * not ready to receive data at this time we should not see any trouble.
-	 * If we have problems here, the HDL is broken!
-	 */
-	if (ft->mode == FT_ACQ_TYPE_DMA) {
+				      "fmc-tdc-dma-over", 0);
+		if (ret < 0) {
+			dev_err(&ft->fmc->dev,
+				"Request interrupt 'DMA Over' failed: %d\n",
+				ret);
+			ft->fmc->irq = ft->ft_irq_base;
+			fmc_irq_free(ft->fmc);
+		}
+		/* kick off the interrupts (fixme: possible issue with the HDL) */
+		fmc_irq_ack(ft->fmc);
+		/*
+		 * We enable interrupts on all channel. but if we do not enable
+		 * the channel, we should not receive anything. So, even if
+		 * ZIO is not ready to receive data at this time we should not
+		 * see any trouble.
+		 * If we have problems here, the HDL is broken!
+		 */
 		ft_iowrite(ft,
 			   DMA_EIC_EIC_IER_DMA_DONE | DMA_EIC_EIC_IER_DMA_ERROR,
 			   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
-
+		break;
 	}
+
+	/* Enable interrupts */
 	ft_iowrite(ft, ft_chan_to_irq_mask(ft, 0x1F),
 		   ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
 
@@ -729,17 +779,21 @@ int ft_irq_init(struct fmctdc_dev *ft)
 void ft_irq_exit(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
-	if (ft->mode == FT_ACQ_TYPE_DMA) {
+
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		ft->fmc->irq = ft->ft_irq_base;
+		fmc_irq_free(ft->fmc);
+		break;
+	case FT_ACQ_TYPE_DMA:
 		ft_iowrite(ft,
 			   DMA_EIC_EIC_IDR_DMA_DONE | DMA_EIC_EIC_IDR_DMA_ERROR,
 			   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
-	}
 
-	ft->fmc->irq = ft->ft_irq_base;
-	fmc_irq_free(ft->fmc);
-
-	if (ft->mode == FT_ACQ_TYPE_DMA) {
+		ft->fmc->irq = ft->ft_irq_base;
+		fmc_irq_free(ft->fmc);
 		ft->fmc->irq = ft->ft_irq_base + 1;
 		fmc_irq_free(ft->fmc);
+		break;
 	}
 }
