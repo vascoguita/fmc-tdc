@@ -107,6 +107,7 @@ struct ft_hw_timestamp {
 #include "hw/tdc_dma_eic.h"
 
 extern struct zio_trigger_type ft_trig_type;
+extern int irq_timeout_ms_default;
 
 #define FT_USER_OFFSET_RANGE 1000000000	/* picoseconds */
 #define TDC_CHANNEL_BUFFER_SIZE_BYTES 0x1000000 // 16MB
@@ -276,10 +277,11 @@ int ft_wr_query(struct fmctdc_dev *ft);
 
 int ft_handle_eeprom_calibration(struct fmctdc_dev *ft);
 
-int ft_irq_init(struct fmctdc_dev *ft);
-void ft_irq_exit(struct fmctdc_dev *ft);
-void ft_irq_enable(struct fmctdc_dev *ft, uint32_t chan_mask);
-void ft_irq_disable(struct fmctdc_dev *ft, uint32_t chan_mask);
+int ft_fifo_init(struct fmctdc_dev *ft);
+void ft_fifo_exit(struct fmctdc_dev *ft);
+
+int ft_buf_init(struct fmctdc_dev *ft);
+void ft_buf_exit(struct fmctdc_dev *ft);
 
 int ft_time_init(struct fmctdc_dev *ft);
 void ft_time_exit(struct fmctdc_dev *ft);

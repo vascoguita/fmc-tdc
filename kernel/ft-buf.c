@@ -1,24 +1,17 @@
 /*
- * Interrupt handling and timestamp readout for fmc-tdc driver.
+ * fmc-tdc (a.k.a) FmcTdc1ns5cha main header.
  *
- * Copyright (C) 2012-2013 CERN (www.cern.ch)
+ * Copyright (C) 2018 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch>
  * Author: Tomasz Wlostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
- * Author: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
- * Author: Miguel Angel Gomez Sexto <magomez@igalia.com>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
-
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <linux/timer.h>
-#include <linux/jiffies.h>
 #include <linux/bitops.h>
-#include <linux/spinlock.h>
 #include <linux/io.h>
-#include <linux/kfifo.h>
 #include <linux/moduleparam.h>
 
 #include <linux/zio.h>
@@ -28,11 +21,6 @@
 #include "fmc-tdc.h"
 #include "hw/timestamp_fifo_regs.h"
 
-/* Module parameters */
-static int irq_timeout_ms_default = 10;
-module_param_named(irq_timeout_ms, irq_timeout_ms_default, int, 0444);
-MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
-
 #define TDC_EIC_EIC_IMR_TDC_DMA_SHIFT 5
 #define TDC_EIC_EIC_IMR_TDC_DMA_MASK (TDC_EIC_EIC_ISR_TDC_DMA1 | \
 				      TDC_EIC_EIC_ISR_TDC_DMA2 |  \
@@ -40,12 +28,50 @@ MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
 				      TDC_EIC_EIC_ISR_TDC_DMA4 |  \
 				      TDC_EIC_EIC_ISR_TDC_DMA5)
 
-#define TDC_EIC_EIC_IMR_TDC_FIFO_SHIFT 0
-#define TDC_EIC_EIC_IMR_TDC_FIFO_MASK (TDC_EIC_EIC_ISR_TDC_FIFO1 | \
-				       TDC_EIC_EIC_ISR_TDC_FIFO2 | \
-				       TDC_EIC_EIC_ISR_TDC_FIFO3 | \
-				       TDC_EIC_EIC_ISR_TDC_FIFO4 | \
-				       TDC_EIC_EIC_ISR_TDC_FIFO5)
+
+static int dma_buf_ddr_burst_size_default = 16;
+module_param_named(dma_buf_ddr_burst_size, dma_buf_ddr_burst_size_default,
+		   int, 0444);
+MODULE_PARM_DESC(dma_buf_ddr_burst_size,
+		 "DDR size coalesing timeout (default: 16 timestamps).");
+
+
+static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
+				     unsigned int chan,
+				     uint32_t size)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp &= ~TDC_BUF_CSR_BURST_SIZE_MASK;
+	tmp |= TDC_BUF_CSR_BURST_SIZE_W(size);
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+}
+
+static void ft_buffer_burst_enable(struct fmctdc_dev *ft,
+				   unsigned int chan)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp |= TDC_BUF_CSR_ENABLE;
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+
+}
+
+static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
+				    unsigned int chan)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+	tmp &= ~TDC_BUF_CSR_ENABLE;
+	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+
+}
 
 
 /**
@@ -94,33 +120,6 @@ static int zio_cset_can_acquire(struct zio_cset *cset)
 		return 0;
 
 	return 1;
-}
-
-
-/**
- * It converts a channel bitmask into an IRQ bitmask according to
- * the acquisition mode
- * @ft FmcTdc device instance
- * @chan_mask channel bitmask, a bit to one will enable the corresponding
- *            IRQ channel line
- *
- * Return: an IRQ bitmask
- */
-static inline uint32_t ft_chan_to_irq_mask(struct fmctdc_dev *ft, uint32_t chan_mask)
-{
-	uint32_t mask = 0;
-
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		mask = (chan_mask << 0) & TDC_EIC_EIC_IMR_TDC_FIFO_MASK;
-		break;
-	case FT_ACQ_TYPE_DMA:
-		mask = (chan_mask << 5) & TDC_EIC_EIC_IMR_TDC_DMA_MASK;
-		break;
-	default:
-		break;
-	}
-	return mask;
 }
 
 /**
@@ -283,47 +282,6 @@ static unsigned int ft_buffer_count(struct fmctdc_dev *ft, unsigned int chan)
 	return ft_ioread(ft,  base + TDC_BUF_REG_CUR_COUNT);
 }
 
-/**
- * Get a time stamp from the fifo, if you set the 'last' flag it takes the last
- * recorded time-stamp
- */
-static int ft_timestamp_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts)
-{
-	struct fmctdc_dev *ft = cset->zdev->priv_d;
-	uint32_t fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * cset->index;
-
-	hwts->seconds = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R0);
-	hwts->coarse = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R1);
-	hwts->frac = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R2);
-	hwts->metadata = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_R3);
-
-	return 1;
-}
-
-/**
- * Extract a timestamp from the FIFO
- */
-static void ft_readout_fifo_one(struct zio_cset *cset)
-{
-	struct fmctdc_dev *ft;
-	struct ft_hw_timestamp *hwts;
-	struct ft_channel_state *st;
-
-	ft = cset->zdev->priv_d;
-	st = &ft->channels[cset->index];
-
-	cset->ti->nsamples = 1;
-	zio_arm_trigger(cset->ti);
-	if (!cset->chan->active_block)
-		goto out;
-	hwts = cset->chan->active_block->data;
-
-	ft_timestamp_get(cset, hwts);
-out:
-	zio_trigger_data_done(cset);
-	st->stats.received++;
-	st->stats.transferred++;
-}
 
 
 /**
@@ -406,19 +364,6 @@ static inline uint32_t ft_irq_buff_status(struct fmctdc_dev *ft)
 	return irq_stat & imr;
 }
 
-/**
- * It gets the IRQ buffer status
- * @ft FmcTdc instance
- *
- * Return: IRQ buffer status
- */
-static inline uint32_t ft_irq_fifo_status(struct fmctdc_dev *ft)
-{
-	uint32_t irq_stat;
-
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	return irq_stat & TDC_EIC_EIC_IMR_TDC_FIFO_MASK;
-}
 
 /**
  * It validates the IRQ status
@@ -437,63 +382,11 @@ static inline unsigned int ft_irq_status_is_valid(struct fmctdc_dev *ft,
 	chan_stat = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	chan_stat &= TDC_INPUT_ENABLE_CH_ALL;
 	chan_stat >>= TDC_INPUT_ENABLE_CH1_SHIFT;
-	chan_stat = ft_chan_to_irq_mask(ft, chan_stat);
+	chan_stat <<= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
 
 	return !WARN((chan_stat & irq_stat) == 0,
 		    "Received an unexpected interrupt: 0x%X 0x%X\n",
 		    chan_stat, irq_stat);
-}
-
-static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
-{
-	struct fmc_device *fmc = dev_id;
-	struct fmctdc_dev *ft = fmc->mezzanine_data;
-	uint32_t irq_stat, tmp_irq_stat, fifo_stat, fifo_csr_addr;
-	unsigned long *loop;
-	struct zio_cset *cset;
-	int i;
-
-	irq_stat = ft_irq_fifo_status(ft);
-	if (!irq_stat || !ft_irq_status_is_valid(ft, irq_stat))
-		return IRQ_NONE;
-
-irq:
-	/*
-	 * Go through all FIFOs and read data. Democracy is a complicated thing,
-	 * the following loop is a democratic loop, so it goes trough all
-	 * channels without any priority. This avoid to be late to read the last
-	 * channel on high frequency where the risk is to have an oligarchy
-	 * where the first and second channel are read, but not the others.
-	 */
-	tmp_irq_stat = 0xFF;
-	do {
-		tmp_irq_stat &= irq_stat;
-		loop = (unsigned long *) &tmp_irq_stat;
-		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
-			cset = &ft->zdev->cset[i];
-			ft_readout_fifo_one(cset);
-			fifo_csr_addr = ft->ft_fifo_base +
-				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
-			fifo_stat = ft_ioread(ft, fifo_csr_addr);
-			if (!(fifo_stat & TSF_FIFO_CSR_EMPTY))
-				continue; /* Still something to read */
-
-			/* Ack the interrupt, nothing to read anymore */
-			ft_iowrite(ft, 1 << i,
-				   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-			tmp_irq_stat &= (~(1 << i));
-		}
-	} while (tmp_irq_stat);
-
-	/* Meanwhile we got another interrupt? then repeat */
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	if (irq_stat)
-		goto irq;
-
-	/* Ack the FMC signal, we have finished */
-	fmc_irq_ack(fmc);
-
-	return IRQ_HANDLED;
 }
 
 
@@ -586,214 +479,135 @@ err_alloc:
 }
 
 /**
- * It sets the coalescing timeout for the DMA buffers
- * @ft FmcTdc instance
- * @chan channel buffer -1 for all channels, otherwise [0, 4]
- * @timeout timeout in milliseconds
+ * It configure the double buffers for a given channel
+ * @param[in] ft FmcTdc device instance
+ * @param[in] channel range [0, N-1]
  */
-static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
-					      unsigned int chan,
-					      uint32_t timeout)
+static void ft_buffer_size_set(struct fmctdc_dev *ft, int channel)
 {
-	uint32_t base, tmp;
-	int i;
+	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
+	uint32_t val;
+	struct ft_channel_state *st;
 
-	for (i = (chan == -1 ? 0 : chan);
-	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
-	     ++i) {
-		base = ft->ft_dma_base + (0x40 * i);
-		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-		tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
-		tmp |= TDC_BUF_CSR_IRQ_TIMEOUT_W(timeout);
-		ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-	}
+	if (ft->mode != FT_ACQ_TYPE_DMA)
+		return;
+
+	st = &ft->channels[channel];
+
+	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / sizeof(struct ft_hw_timestamp);
+	st->active_buffer = 0;
+
+	ft_buffer_burst_disable(ft, channel);
+
+	/* Buffer 1 */
+	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel);
+	ft_iowrite(ft, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE);
+	val = (st->buf_size << TDC_BUF_CUR_SIZE_SIZE_SHIFT);
+	val |= TDC_BUF_CUR_SIZE_VALID;
+	ft_iowrite(ft, val, base + TDC_BUF_REG_CUR_SIZE);
+
+	/* Buffer 2 */
+	st->buf_addr[1] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel + 1);
+	ft_iowrite(ft, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
+	val = (st->buf_size << TDC_BUF_NEXT_SIZE_SIZE_SHIFT);
+	val |= TDC_BUF_NEXT_SIZE_VALID;
+	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
+
+	ft_buffer_burst_size_set(ft, channel, dma_buf_ddr_burst_size_default);
+	ft_buffer_burst_enable(ft, channel);
+
+	dev_info(&ft->fmc->dev,
+		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
+		 channel, base, st->buf_addr[0], st->buf_addr[1],
+		 st->buf_size);
+	dev_info(&ft->fmc->dev, "CSR: %08x\n",
+		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
 }
 
 /**
- * It gets the coalescing timeout for the DMA buffers
- * @ft FmcTdc instance
- * @chan channel buffer [0, 4]
- *
- * Return: timeout in milliseconds
+ * It clears the double buffers configuration for a given channel
+ * @param[in] ft FmcTdc device instance
+ * @param[in] channel range [0, N-1]
  */
-static uint32_t ft_dma_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
-						  unsigned int chan)
+static void ft_buffer_size_clr(struct fmctdc_dev *ft, int channel)
 {
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
+	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
 
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-
-	return TDC_BUF_CSR_IRQ_TIMEOUT_R(tmp);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
+	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
+	ft_buffer_burst_disable(ft, channel);
 }
 
 
-/**
- * It sets the coalescing timeout according to the acquisition mode
- * @ft FmcTdc instance
- * @chan channe [0, 4] (used only for DMA acquisition mode)
- * @timeout_ms timeout in milliseconds to trigger IRQ
- */
-void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
-				   unsigned int chan,
-				   uint32_t timeout_ms)
+int ft_buf_init(struct fmctdc_dev *ft)
 {
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		if (unlikely(chan != -1)) {
-			dev_warn(&ft->fmc->dev,
-				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, set global value\n",
-				 __func__, chan);
-		}
-		ft_writel(ft, timeout_ms, TDC_REG_IRQ_TIMEOUT);
-		break;
-	case FT_ACQ_TYPE_DMA:
-		ft_dma_irq_coalescing_timeout_set(ft, chan, timeout_ms);
-		break;
-	}
-}
-
-/**
- * It sets the coalescing size according to the acquisition mode
- * @ft FmcTdc instance
- * @chan channe [0, 4] (used only for DMA acquisition mode)
- *
- * Return: timeout in milliseconds
- */
-uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
-				       unsigned int chan)
-{
-	uint32_t timeout = 0;
-
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		if (unlikely(chan != -1)) {
-			dev_warn(&ft->fmc->dev,
-				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, get global value\n",
-				 __func__, chan);
-		}
-		timeout = ft_readl(ft, TDC_REG_IRQ_THRESHOLD);
-		break;
-	case FT_ACQ_TYPE_DMA:
-
-		timeout = ft_dma_irq_coalescing_timeout_get(ft, chan);
-		break;
-	default:
-		dev_err(&ft->fmc->dev, "%s: unknown acquisition mode %d\n",
-			__func__, ft->mode);
-	}
-
-	return timeout;
-}
-
-/**
- * It sets the coalescing size according to the acquisition mode
- * @ft FmcTdc instance
- * @chan channe [0, 4] (used only for DMA acquisition mode)
- * @size number of samples to trigger IRQ
- */
-void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
-				unsigned int chan,
-				uint32_t size)
-{
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		if (unlikely(chan != -1)) {
-			dev_warn(&ft->fmc->dev,
-				 "FIFO acquisition mode has a gobal coalesing size. Ignore channel %d, apply globally\n",
-				 chan);
-		}
-		ft_writel(ft, size, TDC_REG_IRQ_THRESHOLD);
-		break;
-	case FT_ACQ_TYPE_DMA:
-		/* There is none */
-		break;
-	}
-}
-
-int ft_irq_init(struct fmctdc_dev *ft)
-{
+	unsigned int i;
 	int ret;
 
 	ft_irq_coalescing_timeout_set(ft, -1, irq_timeout_ms_default);
 	ft_irq_coalescing_size_set(ft, -1, 40);
 
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		ft->fmc->irq = ft->ft_irq_base;
-		ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_fifo,
-				      "fmc-tdc-fifo", 0);
-		if (ret < 0) {
-			dev_err(&ft->fmc->dev,
-				"Request interrupt 'FIFO' failed: %d\n",
-				ret);
-			return ret;
-		}
-		break;
-	case FT_ACQ_TYPE_DMA:
-		ft->fmc->irq = ft->ft_irq_base;
-		ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_dma,
-				      "fmc-tdc-dma-start", 0);
-		if (ret < 0) {
-			dev_err(&ft->fmc->dev,
-				"Request interrupt 'DMA Start' failed: %d\n",
-				ret);
-			return ret;
-		}
-		/*
-		 * DMA completion interrupt (from the GN4124 core), like in
-		 * the FMCAdc design
-		 */
-		ft->fmc->irq = ft->ft_irq_base + 1;
-		ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
-				      "fmc-tdc-dma-over", 0);
-		if (ret < 0) {
-			dev_err(&ft->fmc->dev,
-				"Request interrupt 'DMA Over' failed: %d\n",
-				ret);
-			ft->fmc->irq = ft->ft_irq_base;
-			fmc_irq_free(ft->fmc);
-		}
-		/* kick off the interrupts (fixme: possible issue with the HDL) */
-		fmc_irq_ack(ft->fmc);
-		/*
-		 * We enable interrupts on all channel. but if we do not enable
-		 * the channel, we should not receive anything. So, even if
-		 * ZIO is not ready to receive data at this time we should not
-		 * see any trouble.
-		 * If we have problems here, the HDL is broken!
-		 */
-		ft_iowrite(ft,
-			   DMA_EIC_EIC_IER_DMA_DONE | DMA_EIC_EIC_IER_DMA_ERROR,
-			   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
-		break;
+	ft->fmc->irq = ft->ft_irq_base;
+	ret = fmc_irq_request(ft->fmc, ft_irq_handler_ts_dma,
+			      "fmc-tdc-dma-start", 0);
+	if (ret < 0) {
+		dev_err(&ft->fmc->dev,
+			"Request interrupt 'DMA Start' failed: %d\n",
+			ret);
+		return ret;
 	}
+	/*
+	 * DMA completion interrupt (from the GN4124 core), like in
+	 * the FMCAdc design
+	 */
+	ft->fmc->irq = ft->ft_irq_base + 1;
+	ret = fmc_irq_request(ft->fmc, ft_irq_handler_dma_complete,
+			      "fmc-tdc-dma-over", 0);
+	if (ret < 0) {
+		dev_err(&ft->fmc->dev,
+			"Request interrupt 'DMA Over' failed: %d\n",
+			ret);
+		ft->fmc->irq = ft->ft_irq_base;
+		fmc_irq_free(ft->fmc);
+	}
+	/* kick off the interrupts (fixme: possible issue with the HDL) */
+	fmc_irq_ack(ft->fmc);
+	/*
+	 * We enable interrupts on all channel. but if we do not enable
+	 * the channel, we should not receive anything. So, even if
+	 * ZIO is not ready to receive data at this time we should not
+	 * see any trouble.
+	 * If we have problems here, the HDL is broken!
+	 */
+	ft_iowrite(ft,
+		   DMA_EIC_EIC_IER_DMA_DONE | DMA_EIC_EIC_IER_DMA_ERROR,
+		   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
 
-	/* Enable interrupts */
-	ft_iowrite(ft, ft_chan_to_irq_mask(ft, 0x1F),
+	ft_iowrite(ft, TDC_EIC_EIC_IMR_TDC_DMA_MASK,
 		   ft->ft_irq_base + TDC_EIC_REG_EIC_IER);
+
+	for (i = 0; i < FT_NUM_CHANNELS; i++)
+		ft_buffer_size_set(ft, i);
 
 	return 0;
 }
 
-void ft_irq_exit(struct fmctdc_dev *ft)
+void ft_buf_exit(struct fmctdc_dev *ft)
 {
+	unsigned int i;
+
 	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 
-	switch (ft->mode) {
-	case FT_ACQ_TYPE_FIFO:
-		ft->fmc->irq = ft->ft_irq_base;
-		fmc_irq_free(ft->fmc);
-		break;
-	case FT_ACQ_TYPE_DMA:
-		ft_iowrite(ft,
-			   DMA_EIC_EIC_IDR_DMA_DONE | DMA_EIC_EIC_IDR_DMA_ERROR,
-			   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
+	ft_iowrite(ft,
+		   DMA_EIC_EIC_IDR_DMA_DONE | DMA_EIC_EIC_IDR_DMA_ERROR,
+		   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
 
-		ft->fmc->irq = ft->ft_irq_base;
-		fmc_irq_free(ft->fmc);
-		ft->fmc->irq = ft->ft_irq_base + 1;
-		fmc_irq_free(ft->fmc);
-		break;
-	}
+	ft->fmc->irq = ft->ft_irq_base;
+	fmc_irq_free(ft->fmc);
+
+	ft->fmc->irq = ft->ft_irq_base + 1;
+	fmc_irq_free(ft->fmc);
+
+	for (i = 0; i < FT_NUM_CHANNELS; i++)
+		ft_buffer_size_clr(ft, i);
 }

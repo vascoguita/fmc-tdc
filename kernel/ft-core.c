@@ -29,11 +29,9 @@
 #include "fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
-static int dma_buf_ddr_burst_size_default = 16;
-module_param_named(dma_buf_ddr_burst_size, dma_buf_ddr_burst_size_default,
-		   int, 0444);
-MODULE_PARM_DESC(dma_buf_ddr_burst_size,
-		 "DDR size coalesing timeout (default: 16 timestamps).");
+int irq_timeout_ms_default = 10;
+module_param_named(irq_timeout_ms, irq_timeout_ms_default, int, 0444);
+MODULE_PARM_DESC(irq_timeout_ms, "IRQ coalesing timeout (default: 10ms).");
 
 static int test_data_period = 0;
 module_param_named(test_data_period, test_data_period, int, 0444);
@@ -49,6 +47,132 @@ FMC_PARAM_BUSID(ft_drv);
 FMC_PARAM_GATEWARE(ft_drv);
 
 static char bitstream_name[32];
+
+/**
+ * It sets the coalescing timeout for the DMA buffers
+ * @ft FmcTdc instance
+ * @chan channel buffer -1 for all channels, otherwise [0, 4]
+ * @timeout timeout in milliseconds
+ */
+static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
+					      unsigned int chan,
+					      uint32_t timeout)
+{
+	uint32_t base, tmp;
+	int i;
+
+	for (i = (chan == -1 ? 0 : chan);
+	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
+	     ++i) {
+		base = ft->ft_dma_base + (0x40 * i);
+		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+		tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
+		tmp |= TDC_BUF_CSR_IRQ_TIMEOUT_W(timeout);
+		ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
+	}
+}
+
+/**
+ * It gets the coalescing timeout for the DMA buffers
+ * @ft FmcTdc instance
+ * @chan channel buffer [0, 4]
+ *
+ * Return: timeout in milliseconds
+ */
+static uint32_t ft_dma_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
+						  unsigned int chan)
+{
+	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
+	uint32_t tmp;
+
+	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
+
+	return TDC_BUF_CSR_IRQ_TIMEOUT_R(tmp);
+}
+
+
+/**
+ * It sets the coalescing timeout according to the acquisition mode
+ * @ft FmcTdc instance
+ * @chan channe [0, 4] (used only for DMA acquisition mode)
+ * @timeout_ms timeout in milliseconds to trigger IRQ
+ */
+void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
+				   unsigned int chan,
+				   uint32_t timeout_ms)
+{
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		if (unlikely(chan != -1)) {
+			dev_warn(&ft->fmc->dev,
+				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, set global value\n",
+				 __func__, chan);
+		}
+		ft_writel(ft, timeout_ms, TDC_REG_IRQ_TIMEOUT);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		ft_dma_irq_coalescing_timeout_set(ft, chan, timeout_ms);
+		break;
+	}
+}
+
+/**
+ * It sets the coalescing size according to the acquisition mode
+ * @ft FmcTdc instance
+ * @chan channe [0, 4] (used only for DMA acquisition mode)
+ *
+ * Return: timeout in milliseconds
+ */
+uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
+				       unsigned int chan)
+{
+	uint32_t timeout = 0;
+
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		if (unlikely(chan != -1)) {
+			dev_warn(&ft->fmc->dev,
+				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, get global value\n",
+				 __func__, chan);
+		}
+		timeout = ft_readl(ft, TDC_REG_IRQ_THRESHOLD);
+		break;
+	case FT_ACQ_TYPE_DMA:
+
+		timeout = ft_dma_irq_coalescing_timeout_get(ft, chan);
+		break;
+	default:
+		dev_err(&ft->fmc->dev, "%s: unknown acquisition mode %d\n",
+			__func__, ft->mode);
+	}
+
+	return timeout;
+}
+
+/**
+ * It sets the coalescing size according to the acquisition mode
+ * @ft FmcTdc instance
+ * @chan channe [0, 4] (used only for DMA acquisition mode)
+ * @size number of samples to trigger IRQ
+ */
+void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
+				unsigned int chan,
+				uint32_t size)
+{
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_FIFO:
+		if (unlikely(chan != -1)) {
+			dev_warn(&ft->fmc->dev,
+				 "FIFO acquisition mode has a gobal coalesing size. Ignore channel %d, apply globally\n",
+				 chan);
+		}
+		ft_writel(ft, size, TDC_REG_IRQ_THRESHOLD);
+		break;
+	case FT_ACQ_TYPE_DMA:
+		/* There is none */
+		break;
+	}
+}
 
 
 static int ft_reset_core(struct fmctdc_dev *ft)
@@ -110,107 +234,6 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 		clear_bit(FT_FLAG_CH_TERMINATED, &st->flags);
 
 	return 0;
-}
-
-static void ft_buffer_burst_size_set(struct fmctdc_dev *ft,
-				     unsigned int chan,
-				     uint32_t size)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
-
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	tmp &= ~TDC_BUF_CSR_BURST_SIZE_MASK;
-	tmp |= TDC_BUF_CSR_BURST_SIZE_W(size);
-	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-}
-
-static void ft_buffer_burst_enable(struct fmctdc_dev *ft,
-				   unsigned int chan)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
-
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	tmp |= TDC_BUF_CSR_ENABLE;
-	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-
-}
-
-static void ft_buffer_burst_disable(struct fmctdc_dev *ft,
-				    unsigned int chan)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * chan);
-	uint32_t tmp;
-
-	tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
-	tmp &= ~TDC_BUF_CSR_ENABLE;
-	ft_iowrite(ft, tmp, base + TDC_BUF_REG_CSR);
-
-}
-
-/**
- * It configure the double buffers for a given channel
- * @param[in] ft FmcTdc device instance
- * @param[in] channel range [0, N-1]
- */
-static void ft_buffer_init(struct fmctdc_dev *ft, int channel)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
-	uint32_t val;
-	struct ft_channel_state *st;
-
-	if (ft->mode != FT_ACQ_TYPE_DMA)
-		return;
-
-	st = &ft->channels[channel];
-
-	st->buf_size = TDC_CHANNEL_BUFFER_SIZE_BYTES / sizeof(struct ft_hw_timestamp);
-	st->active_buffer = 0;
-
-	ft_buffer_burst_disable(ft, channel);
-
-	/* Buffer 1 */
-	st->buf_addr[0] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel);
-	ft_iowrite(ft, st->buf_addr[0], base + TDC_BUF_REG_CUR_BASE);
-	val = (st->buf_size << TDC_BUF_CUR_SIZE_SIZE_SHIFT);
-	val |= TDC_BUF_CUR_SIZE_VALID;
-	ft_iowrite(ft, val, base + TDC_BUF_REG_CUR_SIZE);
-
-	/* Buffer 2 */
-	st->buf_addr[1] = TDC_CHANNEL_BUFFER_SIZE_BYTES * (2 * channel + 1);
-	ft_iowrite(ft, st->buf_addr[1], base + TDC_BUF_REG_NEXT_BASE);
-	val = (st->buf_size << TDC_BUF_NEXT_SIZE_SIZE_SHIFT);
-	val |= TDC_BUF_NEXT_SIZE_VALID;
-	ft_iowrite(ft, val, base + TDC_BUF_REG_NEXT_SIZE);
-
-	ft_buffer_burst_size_set(ft, channel, dma_buf_ddr_burst_size_default);
-	ft_buffer_burst_enable(ft, channel);
-
-	dev_info(&ft->fmc->dev,
-		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
-		 channel, base, st->buf_addr[0], st->buf_addr[1],
-		 st->buf_size);
-	dev_info(&ft->fmc->dev, "CSR: %08x\n",
-		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
-}
-
-
-/**
- * It clears the double buffers configuration for a given channel
- * @param[in] ft FmcTdc device instance
- * @param[in] channel range [0, N-1]
- */
-static void ft_buffer_exit(struct fmctdc_dev *ft, int channel)
-{
-	const uint32_t base = ft->ft_dma_base + (0x40 * channel);
-
-	if (ft->mode != FT_ACQ_TYPE_DMA)
-		return;
-
-	ft_iowrite(ft, 0, base + TDC_BUF_REG_CUR_SIZE);
-	ft_iowrite(ft, 0, base + TDC_BUF_REG_NEXT_SIZE);
-	ft_buffer_burst_disable(ft, channel);
 }
 
 static int ft_channels_init(struct fmctdc_dev *ft)
@@ -715,12 +738,17 @@ int ft_probe(struct fmc_device *fmc)
 
 	ft_test_data(ft, 0, test_data_period, !!test_data_period);
 
-	ret = ft_irq_init(ft);
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_DMA:
+		ret = ft_buf_init(ft);
+		break;
+	case FT_ACQ_TYPE_FIFO:
+		ret = ft_fifo_init(ft);
+		break;
+	}
 	if (ret < 0)
 		goto err;
 
-	for (i = 0; i < FT_NUM_CHANNELS; i++)
-		ft_buffer_init(ft, i);
 	ft_writel(ft, TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
@@ -733,7 +761,14 @@ int ft_probe(struct fmc_device *fmc)
 	return 0;
 
 out_mod:
-	ft_irq_exit(ft);
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_DMA:
+		ft_buf_exit(ft);
+		break;
+	case FT_ACQ_TYPE_FIFO:
+		ft_fifo_exit(ft);
+		break;
+	}
 err:
 	while (--m, --i >= 0)
 		if (m->exit)
@@ -752,10 +787,15 @@ int ft_remove(struct fmc_device *fmc)
 
 	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
 	ft_writel(ft, 0, TDC_REG_INPUT_ENABLE);
-	for (i = 0; i < FT_NUM_CHANNELS; i++)
-		ft_buffer_exit(ft, i);
 
-	ft_irq_exit(ft);
+	switch (ft->mode) {
+	case FT_ACQ_TYPE_DMA:
+		ft_buf_exit(ft);
+		break;
+	case FT_ACQ_TYPE_FIFO:
+		ft_fifo_exit(ft);
+		break;
+	}
 
 	i = ARRAY_SIZE(init_subsystems);
 	while (--i >= 0) {
