@@ -282,6 +282,10 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 		return NULL;
 	}
 	ret = readlink(path, dev_id_str, sizeof(dev_id_str));
+	if (ret != 4) { /* 4 digits */
+		errno = ENODEV;
+		return NULL;
+	}
 	if (sscanf(dev_id_str, "%4x", &dev_id) != 1) {
 		errno = ENODEV;
 		return NULL;
