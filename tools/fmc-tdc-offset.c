@@ -12,7 +12,7 @@ char git_version[] = "git version: " GIT_VERSION;
 int main(int argc, char **argv)
 {
 	int32_t offset;
-	int err, ret, i, channel, ch_start = FMCTDC_CH_1, ch_end = FMCTDC_CH_LAST;
+	int err, i, channel, ch_start = FMCTDC_CH_1, ch_end = FMCTDC_CH_LAST;
 
 	init(argc, argv);
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	}
 
 	if (argc >= 4) {
-		ret = sscanf(argv[3], "%"SCNi32, &offset);
+		int ret = sscanf(argv[3], "%"SCNi32, &offset);
 		if (ret != 1) {
 			fprintf(stderr, "%s: invalid command.\n", argv[0]);
 			return -1;

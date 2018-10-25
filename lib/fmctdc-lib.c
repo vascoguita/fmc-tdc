@@ -727,7 +727,6 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 {
 	__define_board(b, userb);
 	int i;
-	int n_ts;
 	fd_set set;
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
@@ -737,7 +736,8 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 
 	i = 0;
 	while (i < n) {
-		n_ts = __fmctdc_read(userb, channel, &t[i], 1);
+		int n_ts = __fmctdc_read(userb, channel, &t[i], 1);
+
 		if (n_ts < 0 && errno != EAGAIN) {
 			if (i == 0)
 				return -1;
@@ -781,10 +781,10 @@ int fmctdc_read(struct fmctdc_board *userb, unsigned int channel,
 int fmctdc_fread(struct fmctdc_board *userb, unsigned int channel,
 		 struct fmctdc_time *t, int n)
 {
-	int i, loop;
+	int i;
 
 	for (i = 0; i < n;) {
-		loop = fmctdc_read(userb, channel, t + i, n - i, 0);
+		int loop = fmctdc_read(userb, channel, t + i, n - i, 0);
 		if (loop < 0)
 			return -1;
 		i += loop;
@@ -805,13 +805,13 @@ int fmctdc_set_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 {
 	__define_board(b, userb);
 	uint32_t attrs[ARRAY_SIZE(names)];
-	int i, ret;
+	int i;
 
 	attrs[0] = t->seconds & 0xffffffff;
 	attrs[1] = t->coarse;
 
 	for (i = ARRAY_SIZE(names) - 1; i >= 0; i--) {
-		ret = fmctdc_sysfs_set(b, names[i], attrs + i);
+		int ret = fmctdc_sysfs_set(b, names[i], attrs + i);
 		if (ret < 0)
 			return ret;
 	}
@@ -830,10 +830,10 @@ int fmctdc_get_time(struct fmctdc_board *userb, struct fmctdc_time *t)
 {
 	__define_board(b, userb);
 	uint32_t attrs[ARRAY_SIZE(names)];
-	int i, ret;
+	int i;
 
 	for (i = 0; i < ARRAY_SIZE(names); i++) {
-		ret = fmctdc_sysfs_get(b, names[i], attrs + i);
+		int ret = fmctdc_sysfs_get(b, names[i], attrs + i);
 		if (ret < 0)
 			return ret;
 	}
@@ -974,7 +974,6 @@ int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
 int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 {
 	struct __fmctdc_board *b = (void *)(userb);
-	char path[64];
 	int en, err;
 	uint32_t val = 1;
 
@@ -1003,6 +1002,8 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 			n = fmctdc_read(userb, channel, ts, 100, O_NONBLOCK);
 		} while (n > 0);
 	} else {
+		char path[64];
+
 		/* Flush ZIO buffer */
 		snprintf(path, sizeof(path),
 			 "ft-ch%u/chan0/buffer/flush",
