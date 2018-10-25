@@ -108,10 +108,13 @@ enum tstamp_testing_modes {
  */
 static void help(char *name)
 {
-	fprintf(stderr, "%s [options] <device> [channels]\n", basename(name));
+	fprintf(stderr, "%s [options] -D <device_id> -L <cern-lun> [channels]\n",
+		basename(name));
 	fprintf(stderr,
 		"reads timestamps from fmc-tdc channels. No [channels] means all channels.\n\n");
 	fprintf(stderr, "Options are:\n");
+	fprintf(stderr, "  -D          : device identifier in hex, e.g. 0x1234\n");
+	fprintf(stderr, "  -L          : CERN LUN number\n");
 	fprintf(stderr, "  -n          : non-blocking mode\n");
 	fprintf(stderr, "  -s n_samples: dump 'n_samples' timestamps\n");
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
@@ -216,6 +219,7 @@ int main(int argc, char **argv)
 {
 	struct fmctdc_board *brd;
 	unsigned int dev_id = 0xFFFFFFFF;
+	unsigned int lun = 0xFFFFFFFF;
 	struct fmctdc_time *ts;
 	int channels[FMCTDC_NUM_CHANNELS];
 	int chan_count = 0, i, n, ch, fd, n_ts, ret, n_boards;
@@ -258,13 +262,20 @@ int main(int argc, char **argv)
 	}
 
 	/* Parse Options */
-	while ((opt = getopt(argc, argv, "D:hwns:frm:l:Lc:VS:t:o:ea:")) != -1) {
+	while ((opt = getopt(argc, argv, "D:hwns:frm:l:L:c:VS:t:o:ea:")) != -1) {
 		switch (opt) {
 		case 'D':
 			ret = sscanf(optarg, "0x%04x", &dev_id);
 			if (!ret) {
 				help(argv[0]);
 				exit(EXIT_SUCCESS);
+			}
+			break;
+		case 'L':
+			ret = sscanf(optarg, "%u", &lun);
+			if (!ret) {
+				help(argv[0]);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'h':
@@ -361,17 +372,28 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* Open FMC TDC device */
-	brd = fmctdc_open(-1, dev_id); /* look for dev_id form the beginning */
-	if (!brd) {
-		if (dev_id == 0xFFFFFFFF)
-			fprintf(stderr, "Missing device identifier\n");
-		else
-			fprintf(stderr, "Can't open device 0x%x: %s\n", dev_id,
-				strerror(errno));
+	if (dev_id == 0xFFFFFFFF && lun == dev_id) {
+		fprintf(stderr, "Missing device identifier or CENR LUN\n");
 		exit(EXIT_FAILURE);
 	}
 
+
+	/* Open FMC TDC device */
+	if (dev_id != 0xFFFFFFFF) {
+		brd = fmctdc_open(-1, dev_id);
+		if (!brd) {
+			fprintf(stderr, "Can't open device id 0x%x: %s\n",
+				dev_id, strerror(errno));
+		exit(EXIT_FAILURE);
+		}
+	} else {
+		brd = fmctdc_open_by_lun(lun);
+		if (!brd) {
+			fprintf(stderr, "Can't open device lun %u: %s\n",
+				lun, strerror(errno));
+		exit(EXIT_FAILURE);
+		}
+	}
 
 	/* Open Channels from command line */
 	memset(channels, 0, sizeof(channels));
