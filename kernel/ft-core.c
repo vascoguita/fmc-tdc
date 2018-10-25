@@ -378,7 +378,7 @@ int gn4124_dma_sg(struct fmctdc_dev *ft,
 	int mapbytes = 0;
 	int byteleft = size;
 	int ret = 0;
-	int n = (size / PAGE_SIZE) + (size % PAGE_SIZE ? 1 : 0);
+	int n = (size / PAGE_SIZE) + ((size % PAGE_SIZE) ? 1 : 0);
 	int i;
 	void *bufp;
 
