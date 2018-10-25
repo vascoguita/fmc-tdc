@@ -359,9 +359,9 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Missing argument\n");
 				help(argv[0]);
 				exit(EXIT_FAILURE);
-				break;
 			}
 			ch_cfg[tmp].mode = FMCTDC_TS_MODE_RAW;
+			break;
 		}
 	}
 
