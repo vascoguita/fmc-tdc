@@ -119,7 +119,6 @@ static void help(char *name)
 	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
 	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
 	fprintf(stderr, "  -l:           maximum buffer lenght\n");
-	fprintf(stderr, "  -L:\tkeep reading from the last hardware timestamp instead than from the proper buffer\n");
 	fprintf(stderr, "  -S n_samples: output decimation, number of samples to skip\n");
 	fprintf(stderr, "  -h:           print this message\n\n");
 	fprintf(stderr, "  -V:           print version info\n\n");
@@ -224,7 +223,7 @@ int main(int argc, char **argv)
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
 	unsigned int n_show = 1;
-	int flush = 0, read = 0, last = 0;
+	int flush = 0, read = 0;
 	char opt;
 	struct sigaction new_action, old_action;
 	int ch_valid[FMCTDC_NUM_CHANNELS] = {0, 1, 2, 3, 4};
@@ -306,9 +305,6 @@ int main(int argc, char **argv)
 			break;
 		case 'e':
 			stop_on_err = 1;
-			break;
-		case 'L':
-			last = 1;
 			break;
 		case 'c':
 			if (chan_count >= FMCTDC_NUM_CHANNELS) {
@@ -456,7 +452,7 @@ int main(int argc, char **argv)
 
 	n = 0;
 	while ((n < n_samples || n_samples <= 0) && (!stop)) {
-		if (!nblock && !last) {
+		if (!nblock) {
 			ret = poll(p, FMCTDC_NUM_CHANNELS, 10);
 			if (ret <= 0)
 				continue;
@@ -470,17 +466,13 @@ int main(int argc, char **argv)
 			if (fd < 0)
 				continue;
 
-			/* Read from buffer */
-			if (last) {
-				n_ts = fmctdc_read_last(brd, chan, ts);
-			} else {
-				if (!(p[chan].revents & POLLIN))
-					continue;
-				n_ts = fmctdc_read(brd, chan, ts, n_show,
-						   nblock ? O_NONBLOCK : 0);
-				if (n_ts < 0)
-					goto err_acq;
-			}
+			if (!(p[chan].revents & POLLIN))
+				continue;
+			n_ts = fmctdc_read(brd, chan, ts, n_show,
+					   nblock ? O_NONBLOCK : 0);
+			if (n_ts < 0)
+				goto err_acq;
+
 			if (n_ts == 0) /* no timestamp */
 				continue;
 
