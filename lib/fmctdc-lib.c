@@ -274,7 +274,7 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 	char dev_id_str[4];
 	char path_pattern[] = "/dev/fmc-tdc.%d";
 	char path[sizeof(path_pattern) + 1];
-	int dev_id;
+	uint32_t dev_id;
 
 	ret = snprintf(path, sizeof(path), path_pattern, lun);
 	if (ret < 0 || ret >= sizeof(path)) {

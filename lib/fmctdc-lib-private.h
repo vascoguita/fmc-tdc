@@ -22,7 +22,7 @@
 
 /* Internal structure */
 struct __fmctdc_board {
-	int dev_id;
+	uint32_t dev_id;
 	char *devbase;
 	char *sysbase;
 	int fdcc[FMCTDC_NUM_CHANNELS]; /**< current controls */
