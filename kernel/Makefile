@@ -22,6 +22,8 @@ ZIO_VERSION     ?= $(shell cd $(ZIO_ABS);     git describe --always --dirty --lo
 export FMC_BUS_VERSION
 export ZIO_VERSION
 
+CPPCHECK ?= cppcheck
+
 all: modules
 
 modules_install modules:
@@ -32,3 +34,6 @@ modules_install modules:
 
 clean:
 	$(MAKE) -C $(LINUX) M=$(shell /bin/pwd) $@
+
+cppcheck:
+	$(CPPCHECK) -q -I. -I$(ZIO_ABS)/include -I$(FMC_BUS_ABS)/sdb-lib/  --enable=all *.c *.h

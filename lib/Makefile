@@ -23,6 +23,7 @@ CFLAGS = -Wall -Werror -ggdb -O2 -I../kernel -I$(ZIO_ABS)/include $(EXTRACFLAGS)
 CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
 CFLAGS += -DZIO_GIT_VERSION="\"$(ZIO_GIT_VERSION)\""
 DESTDIR ?= /usr/local
+CPPCHECK ?= cppcheck
 
 modules all: lib
 
@@ -49,4 +50,9 @@ install:
 
 modules_install:
 
+cppcheck:
+	$(CPPCHECK) -q -I. -I../kernel  --enable=warning,style,information,missingInclude *.c *.h
+
 -include .depend
+
+.PHONY=cppcheck

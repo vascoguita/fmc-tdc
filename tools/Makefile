@@ -26,6 +26,8 @@ COMMON_SRCS = test-common.c
 LDFLAGS = -L$(LIBTDC) 
 LDLIBS = -lfmctdc -lrt
 
+CPPCHECK ?= cppcheck
+
 all: $(TESTS)
 
 $(TESTS): $(COMMON_SRCS:.c=.o) $(LIBTDC)/libfmctdc.a
@@ -39,3 +41,6 @@ modules_install:
 install:
 	install -d $(DESTDIR)/bin
 	install -D $(TESTS) $(DESTDIR)/bin
+
+cppcheck:
+	$(CPPCHECK) -q -I. -I../kernel -I$(LIBTDC)  --enable=all *.c *.h

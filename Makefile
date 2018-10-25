@@ -68,3 +68,6 @@ fmc-bus-init_repo:
 # init submodule if missing
 zio-init_repo:
 	@test -d $(ZIO_ABS)/doc || ( echo "Checking out submodule $(ZIO_ABS)" && git submodule update --init $(ZIO_ABS) )
+
+cppcheck:
+	for d in kernel lib tools; do $(MAKE) -C $$d cppcheck || exit 1; done
