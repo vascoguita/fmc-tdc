@@ -409,7 +409,7 @@ int gn4124_dma_sg(struct fmctdc_dev *ft,
 
 		sg_set_buf(sg, bufp, mapbytes);
 		byteleft -= mapbytes;
-		bufp += mapbytes;
+		bufp = ((char *)bufp) + mapbytes;
 	}
 
 	ret = dma_map_sg(ft->fmc->hwdev, sgt.sgl, sgt.nents, dir);
