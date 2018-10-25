@@ -13,12 +13,6 @@ extern char git_version[];
 int n_boards;
 struct fmctdc_board *brd = NULL;
 
-void usage_msg(const char *name, const char *msg)
-{
-	printf("usage: %s %s\n", name, msg);
-	exit(0);
-}
-
 void open_board(char *dev_id_str)
 {
 	unsigned int dev_id;

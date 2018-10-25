@@ -90,12 +90,6 @@ int tmo_init(timeout_t *tmo, uint32_t milliseconds, int repeat)
 	return 0;
 }
 
-int tmo_restart(timeout_t *tmo)
-{
-	tmo->start_tics = get_monotonic_us();
-	return 0;
-}
-
 int tmo_expired(timeout_t *tmo)
 {
 	uint64_t time = get_monotonic_us();
