@@ -58,12 +58,13 @@ static void ft_dma_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 					      unsigned int chan,
 					      uint32_t timeout)
 {
-	uint32_t base, tmp;
 	int i;
 
 	for (i = (chan == -1 ? 0 : chan);
 	     i < (chan == -1 ? ft->zdev->n_cset : chan + 1);
 	     ++i) {
+		uint32_t base, tmp;
+
 		base = ft->ft_dma_base + (0x40 * i);
 		tmp = ft_ioread(ft, base + TDC_BUF_REG_CSR);
 		tmp &= ~TDC_BUF_CSR_IRQ_TIMEOUT_MASK;
@@ -238,10 +239,10 @@ int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable)
 
 static int ft_channels_init(struct fmctdc_dev *ft)
 {
-	int i, ret;
+	int i;
 
 	for (i = FT_CH_1; i <= FT_NUM_CHANNELS; i++) {
-		ret = ft_init_channel(ft, i);
+		int ret = ft_init_channel(ft, i);
 		if (ret < 0)
 			return ret;
 		/* termination is off by default */
@@ -778,7 +779,6 @@ err:
 
 int ft_remove(struct fmc_device *fmc)
 {
-	struct ft_modlist *m;
 	struct fmctdc_dev *ft = fmc->mezzanine_data;
 	int i;
 
@@ -799,7 +799,7 @@ int ft_remove(struct fmc_device *fmc)
 
 	i = ARRAY_SIZE(init_subsystems);
 	while (--i >= 0) {
-		m = init_subsystems + i;
+		struct ft_modlist *m = init_subsystems + i;
 		if (m->exit)
 			m->exit(ft);
 	}

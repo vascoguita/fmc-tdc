@@ -428,9 +428,8 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 	struct zio_channel *chan;
 	struct ft_channel_state *st;
 	struct fmctdc_dev *ft;
-	uint32_t ien, csr;
-	uint32_t fifo_addr;
-	
+	uint32_t ien;
+
 	/* We manage only status flag */
 	if (!(mask & ZIO_STATUS))
 		return;
@@ -441,6 +440,8 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	if (chan->flags & ZIO_STATUS) {
+		uint32_t csr, fifo_addr;
+
 		/* DISABLED */
 		ft_disable(ft, chan->cset->index);
 		fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan->cset->index;
