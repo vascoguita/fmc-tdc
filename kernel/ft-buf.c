@@ -224,7 +224,7 @@ static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
 {
 	struct ft_channel_state *st = &ft->channels[chan];
 	uint32_t base = ft->ft_dma_base + chan * 0x40;
-	uint32_t csr, base_cur, base_next;
+	uint32_t csr, base_cur;
 	unsigned int transfer_buffer;
 
 	csr = ft_ioread(ft, base + TDC_BUF_REG_CSR);
@@ -254,8 +254,6 @@ static unsigned int ft_buffer_switch(struct fmctdc_dev *ft, int chan)
 	base_cur = st->buf_addr[st->active_buffer];
 
 	st->active_buffer = 1 - st->active_buffer;
-	base_next = st->buf_addr[st->active_buffer];
-
 
 	/* update the pointer to the next buffer */
 	ft_iowrite(ft, base_cur, base + TDC_BUF_REG_NEXT_BASE);
