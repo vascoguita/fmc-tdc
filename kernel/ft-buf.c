@@ -514,11 +514,11 @@ static void ft_buffer_size_set(struct fmctdc_dev *ft, int channel)
 	ft_buffer_burst_size_set(ft, channel, dma_buf_ddr_burst_size_default);
 	ft_buffer_burst_enable(ft, channel);
 
-	dev_info(&ft->fmc->dev,
+	dev_vdbg(&ft->fmc->dev,
 		 "Config channel %d: base = 0x%x buf[0] = 0x%08x, buf[1] = 0x%08x, %d timestamps per buffer\n",
 		 channel, base, st->buf_addr[0], st->buf_addr[1],
 		 st->buf_size);
-	dev_info(&ft->fmc->dev, "CSR: %08x\n",
+	dev_vdbg(&ft->fmc->dev, "CSR: %08x\n",
 		 ft_ioread(ft, base + TDC_BUF_REG_CSR));
 }
 
