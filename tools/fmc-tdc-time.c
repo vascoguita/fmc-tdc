@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 			case 0:		printf("synchronized.\n"); break;
 			default:	printf("error: %s\n", strerror(err)); break;
 		}
-		printf("Current TAI time is %llu.%09d s\n", (unsigned long long) ts.seconds,
+		printf("Current TAI time is %llu.%09u s\n", (unsigned long long) ts.seconds,
 		       ts.coarse * 8);
 	} else if (!strcmp(cmd, "set")) {
 		if (argc < 4) {

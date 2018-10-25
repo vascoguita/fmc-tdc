@@ -122,7 +122,7 @@ int fmctdc_init(void)
 		return -1;
 
 	if (v != FT_VERSION_MAJ) {
-		fprintf(stderr, "%s: version mismatch, lib(%i) != drv(%i)\n",
+		fprintf(stderr, "%s: version mismatch, lib(%u) != drv(%u)\n",
 			__func__, FT_VERSION_MAJ, v);
 		errno = EIO;
 		return -1;
@@ -357,7 +357,7 @@ int fmctdc_set_termination(struct fmctdc_board *userb, unsigned int channel,
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/termination", channel + 1);
 
 	val = on ? 1 : 0;
 	return fmctdc_sysfs_set(b, attr, &val);
@@ -384,7 +384,7 @@ int fmctdc_get_termination(struct fmctdc_board *userb, unsigned int channel)
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/termination", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/termination", channel + 1);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
 	if (ret)
@@ -412,7 +412,7 @@ int fmctdc_channel_status_get(struct fmctdc_board *userb, unsigned int channel)
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/enable", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/enable", channel + 1);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
 	if (ret)
@@ -440,7 +440,7 @@ int fmctdc_channel_status_set(struct fmctdc_board *userb, unsigned int channel,
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/enable", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/enable", channel + 1);
 
 	return fmctdc_sysfs_set(b, attr, &val);
 }
@@ -488,7 +488,8 @@ int fmctdc_get_buffer_mode(struct fmctdc_board *userb, unsigned int channel)
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/prefer-new", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/chan0/buffer/prefer-new",
+		 channel + 1);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
 	if (ret)
@@ -516,7 +517,8 @@ int fmctdc_set_buffer_mode(struct fmctdc_board *userb, unsigned int channel,
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/prefer-new", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/chan0/buffer/prefer-new",
+		 channel + 1);
 
 	val = mode;
 	return fmctdc_sysfs_set(b, attr, &val);
@@ -541,7 +543,7 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-kb",
+	snprintf(attr, sizeof(attr), "ft-ch%u/chan0/buffer/max-buffer-kb",
 		 channel + 1);
 
 	ret = fmctdc_sysfs_get(b, attr, &val);
@@ -582,7 +584,7 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/chan0/buffer/max-buffer-kb",
+	snprintf(attr, sizeof(attr), "ft-ch%u/chan0/buffer/max-buffer-kb",
 		 channel + 1);
 
 	val = ((length * sizeof(struct ft_hw_timestamp)) / 1024) + 1;
@@ -918,7 +920,7 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 	if (err)
 		return err;
 
-	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target + 1);
+	snprintf(path, sizeof(path), "ft-ch%u/diff-reference", ch_target + 1);
 	return fmctdc_sysfs_set(b, path, &ch_ref);
 }
 
@@ -953,7 +955,7 @@ int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
 		errno = EINVAL;
 		return -1;
 	}
-	snprintf(path, sizeof(path), "ft-ch%d/diff-reference", ch_target + 1);
+	snprintf(path, sizeof(path), "ft-ch%u/diff-reference", ch_target + 1);
 	err = fmctdc_sysfs_get(b, path, &ch_ref);
 	if (err)
 		return -1;
@@ -1003,7 +1005,7 @@ int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel)
 	} else {
 		/* Flush ZIO buffer */
 		snprintf(path, sizeof(path),
-			 "ft-ch%d/chan0/buffer/flush",
+			 "ft-ch%u/chan0/buffer/flush",
 			 channel + 1);
 		err = fmctdc_sysfs_set(b, path, &val);
 		if (err)
@@ -1035,7 +1037,7 @@ int fmctdc_set_offset_user(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(attr, sizeof(attr), "ft-ch%d/user-offset", channel + 1);
+	snprintf(attr, sizeof(attr), "ft-ch%u/user-offset", channel + 1);
 
 	return fmctdc_sysfs_set(b, attr, &val);
 }
@@ -1060,7 +1062,7 @@ int fmctdc_get_offset_user(struct fmctdc_board *userb,
 		errno = EINVAL;
 		return -1;
 	}
-	snprintf(path, sizeof(path), "ft-ch%d/user-offset", channel + 1);
+	snprintf(path, sizeof(path), "ft-ch%u/user-offset", channel + 1);
 	err = fmctdc_sysfs_get(b, path, &val);
 	if (err)
 		return -1;
@@ -1088,7 +1090,7 @@ int fmctdc_buffer_mode(struct fmctdc_board *userb,
 		errno = EINVAL;
 		return -1;
 	}
-	snprintf(path, sizeof(path), "ft-ch%d/transfer-mode", channel + 1);
+	snprintf(path, sizeof(path), "ft-ch%u/transfer-mode", channel + 1);
 	err = fmctdc_sysfs_get(b, path, &val);
 	if (err)
 		return -1;
@@ -1120,7 +1122,7 @@ int fmctdc_coalescing_timeout_set(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(path, sizeof(path), "ft-ch%d/irq_coalescing_time",
+	snprintf(path, sizeof(path), "ft-ch%u/irq_coalescing_time",
 		 channel + 1);
 	return fmctdc_sysfs_set(b, path, &val);
 }
@@ -1149,7 +1151,7 @@ int fmctdc_coalescing_timeout_get(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(path, sizeof(path), "ft-ch%d/irq_coalescing_time",
+	snprintf(path, sizeof(path), "ft-ch%u/irq_coalescing_time",
 		 channel + 1);
 	err = fmctdc_sysfs_get(b, path, &val);
 	if (err)
@@ -1179,7 +1181,7 @@ int fmctdc_ts_mode_set(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(path, sizeof(path), "ft-ch%d/raw_readout_mode",
+	snprintf(path, sizeof(path), "ft-ch%u/raw_readout_mode",
 		 channel + 1);
 	return fmctdc_sysfs_set(b, path, &mode);
 }
@@ -1206,7 +1208,7 @@ int fmctdc_ts_mode_get(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(path, sizeof(path), "ft-ch%d/raw_readout_mode",
+	snprintf(path, sizeof(path), "ft-ch%u/raw_readout_mode",
 		 channel + 1);
 	err = fmctdc_sysfs_get(b, path, &val);
 	if (err)
@@ -1236,7 +1238,7 @@ int fmctdc_stats_recv_get(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(path, sizeof(path), "ft-ch%d/received",
+	snprintf(path, sizeof(path), "ft-ch%u/received",
 		 channel + 1);
 	return fmctdc_sysfs_get(b, path, val);
 }
@@ -1260,7 +1262,7 @@ int fmctdc_stats_trans_get(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	snprintf(path, sizeof(path), "ft-ch%d/transferred",
+	snprintf(path, sizeof(path), "ft-ch%u/transferred",
 		 channel + 1);
 	return fmctdc_sysfs_get(b, path, val);
 }

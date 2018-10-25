@@ -65,7 +65,7 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 	double s, hz;
 
 	fprintf(stdout,
-		"channel %d | channel seq %-12u\n    ts   ",
+		"channel %u | channel seq %-12u\n    ts   ",
 		ch, ts->seq_id);
 	print_ts(*ts, fmt_wr);
 	fprintf(stdout, "\n");
@@ -170,7 +170,7 @@ static int tstamp_testing_mode_1(struct fmctdc_time *ts,
 			continue;
 		if (ts_tmp->seq_id + 1 != ts[i].seq_id && ts[i].seq_id != 0) {
 			fprintf(stderr,
-				"*** Invalid sequence number. Previous %d, current %d, expected +1\n",
+				"*** Invalid sequence number. Previous %u, current %u, expected +1\n",
 				ts_tmp->seq_id, ts[i].seq_id);
 			goto err;
 		}
@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 			}
 			ret = sscanf(optarg, "%i", &tmp);
 			if (ret != 1 || tmp >= FMCTDC_NUM_CHANNELS) {
-				fprintf(stderr, "%s: invalid channel number %u\n",
+				fprintf(stderr, "%s: invalid channel number %i\n",
 					argv[0], tmp);
 				help(argv[0]);
 				exit(EXIT_FAILURE);
@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 			ch_cfg[tmp].flags |= FMCTDC_CFG_VALID;
 			break;
 		case 'S':
-			sscanf(optarg, "%i", &n_show);
+			sscanf(optarg, "%u", &n_show);
 			if (n_show == 0) {
 				fprintf(stderr, "%s: invalid 'n_show', min 1\n", argv[0]);
 				help(argv[0]);
@@ -339,13 +339,13 @@ int main(int argc, char **argv)
 		case 't':
 			sscanf(optarg, "%u", &mode);
 			if (mode < TST_MODE_1 || mode > __TST_MODE_MAX) {
-				fprintf(stderr, "%s: invalid test mode %u\n", argv[0], mode);
+				fprintf(stderr, "%s: invalid test mode %i\n", argv[0], mode);
 				help(argv[0]);
 				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'o':
-			ret = sscanf(optarg, "%u", &timeout_ms);
+			ret = sscanf(optarg, "%i", &timeout_ms);
 			if (ret != 1) {
 				fprintf(stderr, "%s: invalid IRQ coalescing timeout %s\n",
 					argv[0], optarg);
