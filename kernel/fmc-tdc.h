@@ -11,8 +11,8 @@
 #ifndef __FMC_TDC_H__
 #define __FMC_TDC_H__
 
-#define FT_VERSION_MAJ   2		/* version of the driver */
-#define FT_VERSION_MIN   1
+#define FT_VERSION_MAJ   2U		/* version of the driver */
+#define FT_VERSION_MIN   1U
 
 #define FT_ZIO_TRIG_TYPE_NAME "tdc1n5c-trg\0"
 
