@@ -131,8 +131,7 @@ int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 		calib->zero_offset[0] = 0;
 		for (i = FT_CH_1 + 1; i < FT_NUM_CHANNELS; i++)
 			calib->zero_offset[i] =
-			  le32_to_cpu(raw_calib[i - 1]) / 100
-			  - calib->zero_offset[0];
+				le32_to_cpu(raw_calib[i - 1]) / 100;
 
 		calib->vcxo_default_tune = le32_to_cpu(raw_calib[4]);
 	}
