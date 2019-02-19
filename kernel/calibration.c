@@ -17,6 +17,7 @@
 #include <linux/jhash.h>
 #include <linux/slab.h>
 #include <linux/ipmi-fru.h>
+#include <linux/zio.h>
 
 #include "libsdbfs.h"
 #include "fmc-tdc.h"
@@ -109,59 +110,136 @@ out:
 	return year;
 }
 
+/**
+ * @calib: calibration data
+ *
+ * We know for sure that our structure is only made of 32bit fields
+ */
+static void ft_calib_le32_to_cpus(struct ft_calibration_raw *calib)
+{
+	int i;
+	uint32_t *p = (uint32_t *)calib;
+
+	for (i = 0; i < sizeof(*calib) / sizeof(uint32_t); i++)
+		le32_to_cpus(p + i); /* s == in situ */
+}
+
+/**
+ * @calib: calibration data
+ *
+ * We know for sure that our structure is only made of 32bit fields
+ */
+static void ft_calib_cpu_to_le32s(struct ft_calibration_raw *calib)
+{
+	int i;
+	uint32_t *p = (uint32_t *)calib;
+
+	for (i = 0; i < sizeof(*calib) / sizeof(uint32_t); i++)
+		cpu_to_le32s(p + i); /* s == in situ */
+}
+
+static void ft_calib_cpy_from_raw(struct ft_calibration *calib,
+				  struct ft_calibration_raw *calib_raw)
+{
+	int i;
+
+	ft_calib_le32_to_cpus(calib_raw);
+	calib->zero_offset[0] = 0;
+	for (i = 1; i < FT_NUM_CHANNELS; i++)
+		calib->zero_offset[i] = calib_raw->zero_offset[i - 1] / 100;
+	calib->vcxo_default_tune = calib_raw->vcxo_default_tune / 100;
+	calib->calibration_temp = calib_raw->calibration_temp;
+	calib->wr_offset = calib_raw->wr_offset / 100;
+	calib->wr_offset += wr_calibration_offset_carrier;
+}
+
+static void ft_calib_cpy_to_raw(struct ft_calibration_raw *calib_raw,
+				struct ft_calibration *calib)
+{
+	int i;
+
+	for (i = 1; i < FT_NUM_CHANNELS; i++)
+		calib_raw->zero_offset[i - 1] = calib->zero_offset[i] * 100;
+	calib_raw->vcxo_default_tune = calib->vcxo_default_tune * 100;
+	calib_raw->calibration_temp = calib->calibration_temp;
+	calib_raw->wr_offset = (calib->wr_offset - wr_calibration_offset_carrier) * 100;
+
+	ft_calib_cpu_to_le32s(calib_raw);
+}
+
 
 /* This is the only thing called by outside */
 int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
 {
 	struct ft_calibration *calib;
+	struct ft_calibration_raw calib_raw;
 	struct device *d = &ft->fmc->dev;
 	int i;
-	u32 raw_calib[7], year;
 
 	/* Retrieve and validate the calibration */
 	calib = &ft->calib;
-	memcpy(calib, &default_calibration, sizeof(struct ft_calibration));
+	i = ft_read_calibration_eeprom(ft->fmc, &calib_raw, sizeof(calib_raw));
+	if (i >= 0) {
+		u32 year;
 
-	i = ft_read_calibration_eeprom(ft->fmc, raw_calib, sizeof(raw_calib));
-
-	if (i < 0) {
+		ft_calib_cpy_from_raw(calib, &calib_raw);
+		year = __get_ipmi_fru_id_year(ft);
+		if (year < WR_OFFSET_FIX_YEAR) {
+			calib->wr_offset = wr_calibration_offset;
+			calib->wr_offset += wr_calibration_offset_carrier;
+			dev_warn(d,
+				 "Apply default calibration correction to White-Rabbit offset if done before 2018 (%d)\n",
+				 year);
+		}
+	} else {
 		dev_err(d,
 			"Failed to read calibration EEPROM. Using default.\n");
-		for (i = 0; i < FT_NUM_CHANNELS; i++)
-			calib->zero_offset[i] = 0;
-			calib->vcxo_default_tune = 32000;
-	} else {
-		calib->zero_offset[0] = 0;
-		for (i = FT_CH_1 + 1; i < FT_NUM_CHANNELS; i++)
-			calib->zero_offset[i] =
-				le32_to_cpu(raw_calib[i - 1]) / 100;
-
-		calib->vcxo_default_tune = le32_to_cpu(raw_calib[4]);
+		memcpy(calib, &default_calibration, sizeof(*calib));
+		calib->wr_offset += wr_calibration_offset_carrier;
 	}
 
-	calib->calibration_temp = le32_to_cpu(raw_calib[5]);
-	calib->wr_offset = le32_to_cpu(raw_calib[6]) / 100;
-
-	year = __get_ipmi_fru_id_year(ft);
-	if (year < WR_OFFSET_FIX_YEAR) {
-		calib->wr_offset = wr_calibration_offset;
-		dev_warn(d,
-			 "Apply default calibration correction to White-Rabbit offset if done before 2018 (%d)\n",
-			 year);
-	}
-
-	calib->wr_offset += wr_calibration_offset_carrier;
-
-	if (ft->verbose) {
-		/* Print verbose messages */
-		for (i = 0; i < ARRAY_SIZE(calib->zero_offset); i++)
-			dev_info(d, "calib: zero_offset[%i] = %i ps\n",
-				 i, calib->zero_offset[i]);
-
-		dev_info(d, "calib: vcxo_default_tune %i\n",
-			 calib->vcxo_default_tune);
-		dev_info(d, "calib: wr offset = %i ps\n",
-			 calib->wr_offset);
-	}
 	return 0;
 }
+
+
+static ssize_t ft_write_eeprom(struct file *file, struct kobject *kobj,
+			       struct bin_attribute *attr,
+			       char *buf, loff_t off, size_t count)
+{
+	struct device *dev = container_of(kobj, struct device, kobj);
+	struct fmctdc_dev *ft = to_zio_dev(dev)->priv_d;
+	struct ft_calibration_raw *calib_raw = (struct ft_calibration_raw *) buf;
+
+	if (off != 0 || count != sizeof(*calib_raw))
+		return -EINVAL;
+
+	ft_calib_cpy_from_raw(&ft->calib, calib_raw);
+
+	return count;
+}
+
+static ssize_t ft_read_eeprom(struct file *file, struct kobject *kobj,
+			      struct bin_attribute *attr,
+			      char *buf, loff_t off, size_t count)
+{
+	struct device *dev = container_of(kobj, struct device, kobj);
+	struct fmctdc_dev *ft = to_zio_dev(dev)->priv_d;
+	struct ft_calibration_raw *calib_raw = (struct ft_calibration_raw *) buf;
+
+	if (off != 0 || count < sizeof(*calib_raw))
+		return -EINVAL;
+
+	ft_calib_cpy_to_raw(calib_raw, &ft->calib);
+
+	return count;
+}
+
+struct bin_attribute dev_attr_calibration = {
+	.attr = {
+		.name = "calibration_data",
+		.mode = 0644,
+	},
+	.size = sizeof(struct ft_calibration_raw),
+	.write = ft_write_eeprom,
+	.read = ft_read_eeprom,
+};
