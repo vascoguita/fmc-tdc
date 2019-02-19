@@ -6,4 +6,5 @@ fmc-tdc-term
 fmc-tdc-time
 fmc-tdc-tstamp
 fmc-tdc-offset
+fmc-tdc-calibration
 Makefile.specific

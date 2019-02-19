@@ -15,7 +15,8 @@ TESTS = fmc-tdc-list \
 	fmc-tdc-temperature \
 	fmc-tdc-time \
 	fmc-tdc-tstamp \
-	fmc-tdc-offset
+	fmc-tdc-offset \
+	fmc-tdc-calibration
 
 CFLAGS = -I. -I$(LIBTDC) -I../kernel -Wall -Werror $(EXTRACFLAGS)
 GIT_VERSION := $(shell git describe --dirty --long --tags)
