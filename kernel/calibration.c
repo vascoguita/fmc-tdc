@@ -21,7 +21,8 @@
 #include "libsdbfs.h"
 #include "fmc-tdc.h"
 
-static u32 wr_calibration_offset = 229460;
+#define WR_CALIB_OFFSET 229460
+static u32 wr_calibration_offset = WR_CALIB_OFFSET;
 module_param_named(wr_offset_fix, wr_calibration_offset, int, 0444);
 MODULE_PARM_DESC(wr_offset_fix,
 		 "Overwrite the White-Rabbit calibration offset for calibration value computer before 2018. (Default: 229460 [ps])");
@@ -35,7 +36,9 @@ MODULE_PARM_DESC(wr_offset_carrier,
 /* dummy calibration data - used in case of empty/corrupted EEPROM */
 static struct ft_calibration default_calibration = {
 	{0, 86, 609, 572, 335},	/* zero_offset */
-	43343			/* vcxo_default_tune */
+	43343,			/* vcxo_default_tune */
+	0,
+	WR_CALIB_OFFSET, /* white-rabbit offset */
 };
 
 #define WR_OFFSET_FIX_YEAR (2018)
