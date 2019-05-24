@@ -77,10 +77,10 @@ begin
 
 
   ts_channel <= direct_timestamp_i(98 downto 96);
-  ts_edge    <= direct_timestamp_i(100);
-  ts_seconds <= direct_timestamp_i(95 downto 64);
+  ts_edge    <= direct_timestamp_i(99);
+  ts_seconds <= direct_timestamp_i(31 downto 0);
   ts_cycles  <= direct_timestamp_i(63 downto 32);
-  ts_bins    <= direct_timestamp_i(17 downto 0);
+  ts_bins    <= direct_timestamp_i(81 downto 64);
 
   U_WB_Slave : fmc_tdc_direct_readout_wb_slave
     port map (

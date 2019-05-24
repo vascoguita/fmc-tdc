@@ -197,14 +197,14 @@ architecture rtl of timestamp_convert_filter is
       if rst_sys_n_i = '0' then
         direct_timestamp_valid_o <= '0';
       else
-        direct_timestamp_o(31 downto 0) <= s3_ts.tai;
-        direct_timestamp_o(63 downto 32) <= s3_ts.coarse;
-        direct_timestamp_o(95 downto 64) <= x"00000" & s3_ts.frac;
+        direct_timestamp_o(31 downto 0)      <= s3_ts.tai;
+        direct_timestamp_o(63 downto 32)     <= s3_ts.coarse;
+        direct_timestamp_o(95 downto 64)     <= x"00000" & s3_ts.frac;
         direct_timestamp_o(96 + 2 downto 96) <= s3_ts.channel;
-        direct_timestamp_o(96 + 3) <= s3_ts.slope;
-        direct_timestamp_o(127 downto 100) <= (others => '0');
-        direct_timestamp_valid_o <= s3_valid;
-      end if; 
+        direct_timestamp_o(96 + 3)           <= s3_ts.slope;
+        direct_timestamp_o(127 downto 100)   <= (others => '0');
+        direct_timestamp_valid_o             <= s3_valid;
+      end if;
     end if;
   end process;
   
