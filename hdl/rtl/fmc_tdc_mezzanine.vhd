@@ -202,6 +202,9 @@ end fmc_tdc_mezzanine;
 --=================================================================================================
 architecture rtl of fmc_tdc_mezzanine is
 
+  constant c_CLK_PERIOD : std_logic_vector(31 downto 0) :=
+    work.tdc_core_pkg.f_pick(g_SIMULATION, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
+
 ---------------------------------------------------------------------------------------------------
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
@@ -543,8 +546,8 @@ begin
         wrabbit_utc_p <= '0';
       else
         if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
-          if unsigned(wrabbit_cycles_i) = (unsigned(c_SYN_CLK_PERIOD)-3) then  -- so that the end of the pulse
-                                        -- comes exactly upon the UTC change
+          -- so that the end of the pulse comes exactly upon the UTC change
+          if unsigned(wrabbit_cycles_i) = (unsigned(c_CLK_PERIOD) - 3) then
             wrabbit_utc_p <= '1';
           else
             wrabbit_utc_p <= '0';
