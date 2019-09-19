@@ -13,10 +13,10 @@
 #include <linux/firmware.h>
 #include <linux/jhash.h>
 #include <linux/slab.h>
+#include <linux/fmc.h>
 #include <linux/ipmi-fru.h>
 #include <linux/zio.h>
 
-#include "libsdbfs.h"
 #include "fmc-tdc.h"
 
 #define WR_CALIB_OFFSET 229460
@@ -40,36 +40,7 @@ static struct ft_calibration default_calibration = {
 };
 
 #define WR_OFFSET_FIX_YEAR (2018)
-
-/* sdbfs-related function */
-static int ft_read_calibration_eeprom(struct fmc_device *fmc, void *buf,
-				      int length)
-{
-	int i, ret = 0;
-	static struct sdbfs fs;
-
-	fs.data = fmc->eeprom;
-	fs.datalen = fmc->eeprom_len;
-
-	/* Look for sdb entry point */
-	for (i = 0x40; i < fmc->eeprom_len - 0x40; i += 0x40) {
-		fs.entrypoint = i;
-		ret = sdbfs_dev_create(&fs, 0);
-		if (ret == 0)
-			break;
-	}
-	if (ret)
-		return ret;
-	/* Open "cali" as a device id, vendor is "FileData" -- big endian */
-	ret = sdbfs_open_name(&fs, "calib");
-	if (ret)
-		return ret;
-
-	ret = sdbfs_fread(&fs, 0, buf, length);
-
-	sdbfs_dev_destroy(&fs);
-	return ret;
-}
+#define IPMI_FRU_SIZE 256
 
 /**
  * HACK area to get the calibration year
@@ -79,31 +50,37 @@ static u32 __get_ipmi_fru_id_year(struct fmctdc_dev *ft)
 	struct fru_board_info_area *bia;
 	struct fru_type_length *tmp;
 	unsigned long year = 0;
-	char *buf = NULL;
+	char year_ascii[5];
+	void *fru = NULL;
 	int err, i;
 
-	bia = fru_get_board_area((const struct fru_common_header *)ft->fmc->eeprom);
+	fru = kmalloc(IPMI_FRU_SIZE, GFP_KERNEL);
+	if (!fru)
+		goto out_mem;
+	err = fmc_slot_eeprom_read(ft->slot, fru, 0x0, IPMI_FRU_SIZE);
+	if (err)
+		goto out_read;
+	bia = fru_get_board_area((const struct fru_common_header *)fru);
 	tmp = bia->tl;
 	for (i = 0; i < 4; ++i) {
 		tmp = fru_next_tl(tmp);
 		if (!tmp)
-			goto out;
+			goto out_fru;
 	}
 	if (!fru_length(tmp))
-		goto out;
+		goto out_fru;
 	if (fru_type(tmp) != FRU_TYPE_ASCII)
-		goto out;
-	buf = kmalloc(fru_length(tmp), GFP_ATOMIC);
-	if (!buf)
-		goto out;
-	buf = fru_strcpy(buf, tmp);
-	buf[4] = '\0';
-	err = kstrtoul(buf, 10, &year);
+		goto out_fru;
+	memcpy(year_ascii, tmp->data, 4);
+	year_ascii[4] = '\0';
+	err = kstrtoul(year_ascii, 10, &year);
 	if (err)
-		goto out;
+		year = 0;
 
-out:
-	kfree(buf);
+out_fru:
+out_read:
+	kfree(fru);
+out_mem:
 	return year;
 }
 
@@ -164,41 +141,6 @@ static void ft_calib_cpy_to_raw(struct ft_calibration_raw *calib_raw,
 	ft_calib_cpu_to_le32s(calib_raw);
 }
 
-
-/* This is the only thing called by outside */
-int ft_handle_eeprom_calibration(struct fmctdc_dev *ft)
-{
-	struct ft_calibration *calib;
-	struct ft_calibration_raw calib_raw;
-	struct device *d = &ft->fmc->dev;
-	int i;
-
-	/* Retrieve and validate the calibration */
-	calib = &ft->calib;
-	i = ft_read_calibration_eeprom(ft->fmc, &calib_raw, sizeof(calib_raw));
-	if (i >= 0) {
-		u32 year;
-
-		ft_calib_cpy_from_raw(calib, &calib_raw);
-		year = __get_ipmi_fru_id_year(ft);
-		if (year < WR_OFFSET_FIX_YEAR) {
-			calib->wr_offset = wr_calibration_offset;
-			calib->wr_offset += wr_calibration_offset_carrier;
-			dev_warn(d,
-				 "Apply default calibration correction to White-Rabbit offset if done before 2018 (%d)\n",
-				 year);
-		}
-	} else {
-		dev_err(d,
-			"Failed to read calibration EEPROM. Using default.\n");
-		memcpy(calib, &default_calibration, sizeof(*calib));
-		calib->wr_offset += wr_calibration_offset_carrier;
-	}
-
-	return 0;
-}
-
-
 static ssize_t ft_write_eeprom(struct file *file, struct kobject *kobj,
 			       struct bin_attribute *attr,
 			       char *buf, loff_t off, size_t count)
@@ -240,3 +182,35 @@ struct bin_attribute dev_attr_calibration = {
 	.write = ft_write_eeprom,
 	.read = ft_read_eeprom,
 };
+
+#define FT_EEPROM_CALIB_OFFSET 0x100
+
+int ft_calib_init(struct fmctdc_dev *ft)
+{
+	struct ft_calibration_raw calib;
+	int ret;
+
+	ret = fmc_slot_eeprom_read(ft->slot, &calib,
+				   FT_EEPROM_CALIB_OFFSET, sizeof(calib));
+	if (ret < 0) {
+		dev_warn(&ft->pdev->dev,
+			 "Failed to read calibration from EEPROM: using identity calibration %d\n",
+			 ret);
+		memcpy(&calib, &default_calibration, sizeof(calib));
+		goto out;
+	}
+
+	ft_calib_cpy_from_raw(&ft->calib, &calib);
+	/* FIX wrong calibration on old FMC-TDC mezzanine */
+	if (__get_ipmi_fru_id_year(ft) < WR_OFFSET_FIX_YEAR)
+		ft->calib.wr_offset = wr_calibration_offset;
+
+out:
+	ft->calib.wr_offset += wr_calibration_offset_carrier;
+	return 0;
+}
+
+void ft_calib_exit(struct fmctdc_dev *ft)
+{
+
+}

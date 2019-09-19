@@ -20,6 +20,8 @@
 #include <linux/list.h>
 #include <linux/io.h>
 #include <linux/platform_device.h>
+#include <linux/ipmi-fru.h>
+#include <linux/fmc.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -40,6 +42,7 @@ static int ft_verbose;
 module_param_named(verbose, ft_verbose, int, 0444);
 MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
 
+#define FT_EEPROM_TYPE "at24c64"
 
 /**
  * It sets the coalescing timeout for the DMA buffers
@@ -639,6 +642,49 @@ static int ft_resource_validation(struct platform_device *pdev)
 	return 0;
 }
 
+#define FT_FMC_NAME "FmcTdc1ns4cha"
+
+static bool ft_fmc_slot_is_valid(struct fmctdc_dev *ft)
+{
+	int ret;
+	void *fru = NULL;
+	char *fmc_name = NULL;
+
+	if (!fmc_slot_fru_valid(ft->slot)) {
+		dev_err(&ft->pdev->dev,
+			"Can't identify FMC card: invalid FRU\n");
+		return -EINVAL;
+	}
+
+	fru = kmalloc(FRU_SIZE_MAX, GFP_KERNEL);
+	if (!fru)
+		return -ENOMEM;
+
+	ret = fmc_slot_eeprom_read(ft->slot, fru, 0x0, FRU_SIZE_MAX);
+	if (ret != FRU_SIZE_MAX) {
+		dev_err(&ft->pdev->dev, "Failed to read FRU header\n");
+		goto err;
+	}
+
+	fmc_name = fru_get_product_name(fru);
+	ret = strcmp(fmc_name, FT_FMC_NAME);
+	if (ret) {
+		dev_err(&ft->pdev->dev,
+			"Invalid FMC card: expectd '%s', found '%s'\n",
+			FT_FMC_NAME, fmc_name);
+		goto err;
+	}
+
+	kfree(fmc_name);
+	kfree(fru);
+
+	return true;
+err:
+	kfree(fmc_name);
+	kfree(fru);
+	return false;
+}
+
 static int ft_endianess(struct fmctdc_dev *ft)
 {
 	switch (ft->pdev->id_entry->driver_data) {
@@ -682,6 +728,7 @@ int ft_probe(struct platform_device *pdev)
 	struct resource *r;
 	int i, ret, err;
 	uint32_t stat;
+	uint32_t slot_nr;
 
 	err = ft_resource_validation(pdev);
 	if (err)
@@ -744,9 +791,38 @@ int ft_probe(struct platform_device *pdev)
 	ret = ft_reset_core(ft);
 	if (ret < 0)
 		return ret;
+	slot_nr = ft_readl(ft, FT_REG_FMC_SLOT_ID) + 1;
+	ft->slot = fmc_slot_get(pdev->dev.parent->parent, slot_nr);
+	if (IS_ERR(ft->slot)) {
+		dev_err(&ft->pdev->dev,
+			"Can't find FMC slot %d err: %ld\n",
+			slot_nr, PTR_ERR(ft->slot));
+		goto out_fmc;
+	}
 
-	/* Retrieve calibration from the eeprom, and validate */
-	ret = ft_handle_eeprom_calibration(ft);
+	if (!fmc_slot_present(ft->slot)) {
+		dev_err(&ft->pdev->dev,
+			"Can't identify FMC card: missing card\n");
+		goto out_fmc_pre;
+	}
+
+	if (strcmp(fmc_slot_eeprom_type_get(ft->slot), FT_EEPROM_TYPE)) {
+		dev_warn(&ft->pdev->dev,
+			 "use non standard EERPOM type \"%s\"\n",
+			 FT_EEPROM_TYPE);
+		ret = fmc_slot_eeprom_type_set(ft->slot, FT_EEPROM_TYPE);
+		if (ret < 0) {
+			dev_err(&ft->pdev->dev,
+				"Failed to change EEPROM type to \"%s\"",
+				FT_EEPROM_TYPE);
+			goto out_fmc_eeprom;
+		}
+	}
+
+	if(!ft_fmc_slot_is_valid(ft))
+		goto out_fmc_err;
+
+	ret = ft_calib_init(ft);
 	if (ret < 0)
 		goto err_calib;
 
@@ -782,7 +858,13 @@ err:
 	while (--m, --i >= 0)
 		if (m->exit)
 			m->exit(ft);
+	ft_calib_exit(ft);
 err_calib:
+out_fmc_err:
+out_fmc_eeprom:
+out_fmc_pre:
+	fmc_slot_put(ft->slot);
+out_fmc:
 err_mode_selection:
 err_memops:
 	iounmap(ft->ft_base);
@@ -817,6 +899,8 @@ int ft_remove(struct platform_device *pdev)
 		if (m->exit)
 			m->exit(ft);
 	}
+	ft_calib_exit(ft);
+	fmc_slot_put(ft->slot);
 	iounmap(ft->ft_base);
 	iounmap(ft->ft_carrier_base);
 	kfree(ft);

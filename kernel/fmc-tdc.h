@@ -126,6 +126,7 @@ struct ft_calibration_raw {
 #include <linux/timer.h>
 #include <linux/version.h>
 #include <linux/platform_device.h>
+#include <linux/fmc.h>
 
 struct ft_memory_ops {
 	u32 (*read)(void *addr);
@@ -247,6 +248,7 @@ struct fmctdc_dev {
 	void *ft_dma_eic_base;
 	struct ft_memory_ops memops;
 	/* IRQ base index (for SVEC) */
+	struct fmc_slot *slot;
 	struct platform_device *pdev;
 	struct zio_device *zdev, *hwzdev;
 	/* carrier private data */
@@ -307,6 +309,8 @@ static inline void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg
 }
 
 
+int ft_calib_init(struct fmctdc_dev *ft);
+void ft_calib_exit(struct fmctdc_dev *ft);
 
 void ft_enable_acquisition(struct fmctdc_dev *ft, int enable);
 
@@ -327,7 +331,6 @@ void ft_set_host_time(struct fmctdc_dev *ft);
 int ft_wr_mode(struct fmctdc_dev *ft, int on);
 int ft_wr_query(struct fmctdc_dev *ft);
 
-int ft_handle_eeprom_calibration(struct fmctdc_dev *ft);
 extern struct bin_attribute dev_attr_calibration;
 
 int ft_fifo_init(struct fmctdc_dev *ft);

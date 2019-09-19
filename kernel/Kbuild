@@ -1,11 +1,14 @@
 # ZIO comes from the Makefile
 
-KBUILD_EXTRA_SYMBOLS := \
-	$(ZIO_ABS)/Module.symvers \
+KBUILD_EXTRA_SYMBOLS += $(ZIO_EXTRA_SYMBOLS-y)
+KBUILD_EXTRA_SYMBOLS += $(FMC_EXTRA_SYMBOLS-y)
 
-ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\" \
-	-I$(src) \
-	-I$(ZIO_ABS)/include \
+
+ccflags-y = -DGIT_VERSION=\"$(GIT_VERSION)\"
+ccflags-y += -I$(src)
+ccflags-y += -I$(ZIO_ABS)/include
+ccflags-y += -I$(FMC_ABS)/include
+
 
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG
 ccflags-$(CONFIG_FMC_TDC_VERBOSE_DEBUG) += -DVERBOSE_DEBUG
