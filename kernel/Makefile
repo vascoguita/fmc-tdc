@@ -16,9 +16,6 @@ ZIO_EXTRA_SYMBOLS-y = $(ZIO_ABS)/Module.symvers
 FMC_ABS ?= $(abspath $(FMC))
 FMC_EXTRA_SYMBOLS-y = $(FMC_ABS)/drivers/fmc/Module.symvers
 
-GIT_VERSION = $(shell git describe --always --dirty --long --tags)
-export GIT_VERSION
-
 ZIO_VERSION     ?= $(shell cd $(ZIO_ABS);     git describe --always --dirty --long --tags)
 
 export ZIO_VERSION
