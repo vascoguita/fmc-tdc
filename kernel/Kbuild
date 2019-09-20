@@ -36,6 +36,8 @@ ccflags-y += -DADDITIONAL_VERSIONS="$(SUBMODULE_VERSIONS)"
 subdirs-ccflags-y = $(ccflags-y)
 
 obj-m := fmc-tdc.o
+obj-m += fmc-tdc-spec.o
+
 fmc-tdc-objs := acam.o
 fmc-tdc-objs += calibration.o
 fmc-tdc-objs += ft-buf.o
@@ -43,3 +45,5 @@ fmc-tdc-objs += ft-core.o
 fmc-tdc-objs += ft-fifo.o
 fmc-tdc-objs += ft-time.o
 fmc-tdc-objs += ft-zio.o
+
+fmc-tdc-spec-objs := fmc-tdc-spec-core.o
