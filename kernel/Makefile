@@ -14,10 +14,6 @@ ZIO_EXTRA_SYMBOLS-y = $(ZIO_ABS)/drivers/zio/Module.symvers
 FMC_ABS ?= $(abspath $(FMC))
 FMC_EXTRA_SYMBOLS-y = $(FMC_ABS)/drivers/fmc/Module.symvers
 
-ZIO_VERSION     ?= $(shell cd $(ZIO_ABS);     git describe --always --dirty --long --tags)
-
-export ZIO_VERSION
-
 CPPCHECK ?= cppcheck
 
 all: modules
