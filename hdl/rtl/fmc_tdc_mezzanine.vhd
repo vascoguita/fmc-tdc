@@ -110,6 +110,14 @@ entity fmc_tdc_mezzanine is
      g_span                        : integer := 32;
      g_width                       : integer := 32;
      g_simulation                  : boolean := false;
+     -- Enable filtering based on pulse width. This will have the following effects:
+     -- * Suppress theforwarding of negative slope timestamps.
+     -- * Delay the forwarding of timestamps until after the falling edge timestamp.
+     -- Once enabled, all pulses wider than 1 second or narrower than
+     -- g_pulse_width_filter_min will be dropped.
+     g_pulse_width_filter          : boolean := true;
+     -- In 8ns ticks.
+     g_pulse_width_filter_min      : natural := 12;
      g_use_dma_readout             : boolean := true;
      g_use_fifo_readout            : boolean := true;
      g_use_fake_timestamps_for_sim : boolean := false);
@@ -326,11 +334,13 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_tdc_core : entity work.fmc_tdc_core
     generic map
-    (g_span              => g_span,
-     g_width             => g_width,
-     g_simulation        => g_simulation,
-     g_with_dma_readout  => g_use_dma_readout,
-     g_with_fifo_readout => g_use_fifo_readout)
+    (g_span                   => g_span,
+     g_width                  => g_width,
+     g_simulation             => g_simulation,
+     g_pulse_width_filter     => g_pulse_width_filter,
+     g_pulse_width_filter_min => g_pulse_width_filter_min,
+     g_with_dma_readout       => g_use_dma_readout,
+     g_with_fifo_readout      => g_use_fifo_readout)
     port map
     (                                   -- clks, rst
       clk_tdc_i   => clk_tdc_i,

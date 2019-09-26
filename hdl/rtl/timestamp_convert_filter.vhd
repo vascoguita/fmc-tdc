@@ -8,6 +8,15 @@ use work.gencores_pkg.all;
 use work.genram_pkg.all;
 
 entity timestamp_convert_filter is
+  generic (
+    -- Enable filtering based on pulse width. This will have the following effects:
+    -- * Suppress theforwarding of negative slope timestamps.
+    -- * Delay the forwarding of timestamps until after the falling edge timestamp.
+    -- Once enabled, all pulses wider than 1 second or narrower than
+    -- g_PULSE_WIDTH_FILTER_MIN will be dropped.
+    g_PULSE_WIDTH_FILTER     : boolean := TRUE;
+    -- In 8ns ticks.
+    g_PULSE_WIDTH_FILTER_MIN : natural := 12);
   port (
     clk_tdc_i   : in std_logic;
     rst_tdc_n_i : in std_logic;
@@ -37,13 +46,10 @@ end timestamp_convert_filter;
 
 architecture rtl of timestamp_convert_filter is
 
-  constant c_MIN_PULSE_WIDTH_TICKS : integer := 12;  -- 12 * 8 ns = 96 ns
-
   constant c_FINE_SF    : unsigned(17 downto 0) := to_unsigned(84934, 18);
   constant c_FINE_SHIFT : integer               := 11;
 
   type t_channel_state is record
-    expected_edge      : std_logic;
     last_ts            : t_tdc_timestamp;
     last_valid         : std_logic;
     seq                : unsigned(31 downto 0);
@@ -211,65 +217,84 @@ architecture rtl of timestamp_convert_filter is
   
   gen_channels : for i in 0 to 4 generate
 
-    p_fsm : process(clk_sys_i)
-    begin
-      if rising_edge(clk_sys_i) then
-        if rst_sys_n_i = '0' or enable_i(i) = '0' then
-          ts_valid_preoffset(i)     <= '0';
-          channels(i).expected_edge <= '1';
-          channels(i).s1_valid      <= '0';
-          channels(i).s2_valid      <= '0';
-          channels(i).last_valid    <= '0';
-        else
-          channels(i).s1_valid <= '0';
+    gen_with_pwidth_filter : if g_PULSE_WIDTH_FILTER generate
+      p_fsm : process(clk_sys_i)
+      begin
+        if rising_edge(clk_sys_i) then
+          if rst_sys_n_i = '0' or enable_i(i) = '0' then
+            ts_valid_preoffset(i)     <= '0';
+            channels(i).s1_valid      <= '0';
+            channels(i).s2_valid      <= '0';
+            channels(i).last_valid    <= '0';
+          else
+            channels(i).s1_valid <= '0';
 
-          if s3_valid = '1' and unsigned(s3_channel) = i then
+            if s3_valid = '1' and unsigned(s3_channel) = i then
 
-            if (s3_ts.slope = '1') then  -- rising edge
-              channels(i).last_ts    <= s3_ts;
-              channels(i).last_valid <= '1';
-              channels(i).s1_valid   <= '0';
-            else
-              channels(i).last_valid <= '0';
-              channels(i).s1_valid   <= '1';
+              if (s3_ts.slope = '1') then  -- rising edge
+                channels(i).last_ts    <= s3_ts;
+                channels(i).last_valid <= '1';
+                channels(i).s1_valid   <= '0';
+              else
+                channels(i).last_valid <= '0';
+                channels(i).s1_valid   <= '1';
+              end if;
+
+              channels(i).s1_delta_coarse <= unsigned(s3_ts.coarse) - unsigned(channels(i).last_ts.coarse);
+              channels(i).s1_delta_tai    <= unsigned(s3_ts.tai) - unsigned(channels(i).last_ts.tai);
             end if;
 
-            channels(i).s1_delta_coarse <= unsigned(s3_ts.coarse) - unsigned(channels(i).last_ts.coarse);
-            channels(i).s1_delta_tai    <= unsigned(s3_ts.tai) - unsigned(channels(i).last_ts.tai);
-          end if;
 
+            if channels(i).s1_delta_coarse(31) = '1' then
+              channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse + to_unsigned(125000000, 32);
+              channels(i).s2_delta_tai    <= channels(i).s1_delta_tai - 1;
+            else
+              channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse;
+              channels(i).s2_delta_tai    <= channels(i).s1_delta_tai;
+            end if;
 
-          if channels(i).s1_delta_coarse(31) = '1' then
-            channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse + to_unsigned(125000000, 32);
-            channels(i).s2_delta_tai    <= channels(i).s1_delta_tai - 1;
-          else
-            channels(i).s2_delta_coarse <= channels(i).s1_delta_coarse;
-            channels(i).s2_delta_tai    <= channels(i).s1_delta_tai;
-          end if;
+            channels(i).s2_valid <= channels(i).s1_valid;
 
-          channels(i).s2_valid <= channels(i).s1_valid;
+            if channels(i).s2_valid = '1' then
+              if channels(i).s2_delta_tai = 0 and channels(i).s2_delta_coarse >= 12 then
 
-          if channels(i).s2_valid = '1' then
-            if channels(i).s2_delta_tai = 0 and channels(i).s2_delta_coarse >= 12 then
+                ts_preoffset(i).tai     <= channels(i).last_ts.tai;
+                ts_preoffset(i).coarse  <= channels(i).last_ts.coarse;
+                ts_preoffset(i).frac    <= channels(i).last_ts.frac;
+                ts_preoffset(i).channel <= channels(i).last_ts.channel;
+                ts_preoffset(i).slope   <= channels(i).last_ts.slope;
+                ts_preoffset(i).meta    <= channels(i).last_ts.meta;
 
-              ts_preoffset(i).tai     <= channels(i).last_ts.tai;
-              ts_preoffset(i).coarse  <= channels(i).last_ts.coarse;
-              ts_preoffset(i).frac    <= channels(i).last_ts.frac;
-              ts_preoffset(i).channel <= channels(i).last_ts.channel;
-              ts_preoffset(i).slope   <= channels(i).last_ts.slope;
-              ts_preoffset(i).meta <= channels(i).last_ts.meta;
-
-              ts_valid_preoffset(i) <= '1';
+                ts_valid_preoffset(i) <= '1';
+              else
+                ts_valid_preoffset(i) <= '0';
+              end if;
             else
               ts_valid_preoffset(i) <= '0';
             end if;
-          else
-            ts_valid_preoffset(i) <= '0';
-          end if;
 
+          end if;
         end if;
-      end if;
-    end process;
+      end process p_fsm;
+    end generate gen_with_pwidth_filter;
+
+    gen_without_pwidth_filter : if not g_PULSE_WIDTH_FILTER generate
+      p_fsm : process(clk_sys_i)
+      begin
+        if rising_edge(clk_sys_i) then
+          if rst_sys_n_i = '0' or enable_i(i) = '0' then
+            ts_valid_preoffset(i) <= '0';
+          else
+            if s3_valid = '1' and unsigned(s3_channel) = i then
+              ts_valid_preoffset(i) <= '1';
+              ts_preoffset(i)       <= s3_ts;
+            else
+              ts_valid_preoffset(i) <= '0';
+            end if;
+          end if;
+        end if;
+      end process p_fsm;
+    end generate gen_without_pwidth_filter;
 
     U_Offset_Adder : entity work.tdc_ts_addsub
       port map (

@@ -150,12 +150,19 @@ use work.genram_pkg.all;
 --=================================================================================================
 entity fmc_tdc_core is
   generic
-    (g_span              : integer := 32;  -- address span in bus interfaces
-     g_width             : integer := 32;  -- data width in bus interfaces
-     g_simulation        : boolean := false;
-     g_with_dma_readout  : boolean := false;
-     g_with_fifo_readout : boolean := false);  -- this generic is set to TRUE
-                                        -- when instantiated in a test-bench
+    (g_span                   : integer := 32;  -- address span in bus interfaces
+     g_width                  : integer := 32;  -- data width in bus interfaces
+     g_simulation             : boolean := false;
+     -- Enable filtering based on pulse width. This will have the following effects:
+     -- * Suppress theforwarding of negative slope timestamps.
+     -- * Delay the forwarding of timestamps until after the falling edge timestamp.
+     -- Once enabled, all pulses wider than 1 second or narrower than
+     -- g_pulse_width_filter_min will be dropped.
+     g_pulse_width_filter     : boolean := true;
+     -- In 8ns ticks.
+     g_pulse_width_filter_min : natural := 12;
+     g_with_dma_readout       : boolean := false;
+     g_with_fifo_readout      : boolean := false);
   port
     (
       clk_sys_i   : in std_logic;
@@ -536,6 +543,9 @@ begin
 
 
   U_FilterAndConvert : entity work.timestamp_convert_filter
+    generic map (
+      g_pulse_width_filter     => g_pulse_width_filter,
+      g_pulse_width_filter_min => g_pulse_width_filter_min)
     port map (
       clk_tdc_i   => clk_tdc_i,
       rst_tdc_n_i => rst_tdc_n_i,
