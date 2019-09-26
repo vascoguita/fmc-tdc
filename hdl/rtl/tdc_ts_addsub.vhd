@@ -99,14 +99,13 @@ begin  -- rtl
       elsif(enable_i = '1') then
         pipe(0) <= valid_i;
 
-        sums(0).tai <= signed( resize(unsigned(a_i.tai) + unsigned(b_i.tai), 33) );
-        sums(0).seq <= a_i.seq;
+        sums(0).seq   <= a_i.seq;
         sums(0).slope <= a_i.slope;
-        sums(0).meta <= a_i.meta;
-        
-        sums(0).frac   <= signed( resize(unsigned(a_i.frac),16) + resize(unsigned(b_i.frac), 16) );
-        sums(0).coarse <= signed(resize(unsigned(a_i.coarse), sums(0).coarse'length) +
-                          resize(unsigned(b_i.coarse), sums(0).coarse'length));
+        sums(0).meta  <= a_i.meta;
+
+        sums(0).tai    <= resize(signed(a_i.tai), 33) + resize(signed(b_i.tai), 33);
+        sums(0).frac   <= resize(signed(a_i.frac), 16) + resize(signed(b_i.frac), 16);
+        sums(0).coarse <= signed(a_i.coarse) + signed(b_i.coarse);
 
       else
         pipe(0) <= '0';
