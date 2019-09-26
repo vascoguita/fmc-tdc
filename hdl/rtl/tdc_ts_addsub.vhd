@@ -6,7 +6,7 @@
 -- Author     : Tomasz Wlostowski
 -- Company    : CERN
 -- Created    : 2011-08-29
--- Last update: 2018-09-10
+-- Last update: 2019-09-26
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -169,9 +169,9 @@ begin  -- rtl
           unf_coarse <= "00";
         end if;
 
-        if ( sums(1).coarse >= g_frac_range ) then
+        if ( sums(1).coarse >= g_coarse_range ) then
           ovf_coarse <= "10";
-        elsif ( sums(1).coarse >= 2*g_frac_range ) then
+        elsif ( sums(1).coarse >= 2*g_coarse_range ) then
           ovf_coarse <= "01";
         else
           ovf_coarse <= "00";
