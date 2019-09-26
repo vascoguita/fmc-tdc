@@ -28,9 +28,6 @@ use work.wishbone_pkg.all;
 use work.gencores_pkg.all;
 
 entity timestamp_fifo is
-  generic (
-    g_channel : integer
-    );
   port (
     clk_sys_i   : in std_logic;
     rst_sys_n_i : in std_logic;
@@ -47,8 +44,8 @@ entity timestamp_fifo is
     irq_threshold_i : in std_logic_vector(9 downto 0);
     irq_timeout_i : in std_logic_vector(9 downto 0);
 
-    timestamp_i       : in t_tdc_timestamp_array(4 downto 0);
-    timestamp_valid_i : in std_logic_vector(4 downto 0);
+    timestamp_i       : in t_tdc_timestamp;
+    timestamp_valid_i : in std_logic;
 
     ts_offset_o : out t_tdc_timestamp;
     reset_seq_o : out std_logic;
@@ -68,13 +65,10 @@ architecture rtl of timestamp_fifo is
   signal regs_out   : t_tsf_out_registers;
   signal channel_id : std_logic_vector(2 downto 0);
 
-  signal ts_match : std_logic;
-
   signal timestamp_with_seq : std_logic_vector(127 downto 0);
 
   signal ref_valid : std_logic;
   signal ref_ts : t_tdc_timestamp;
-  signal ref_channel : integer range 0 to 4;
   signal sub_valid : std_logic;
   signal sub_in_valid, sub_out_valid : std_logic;
   signal sub_result : t_tdc_timestamp;
@@ -91,12 +85,12 @@ begin
   reset_seq_o <= regs_out.csr_rst_seq_o;
   raw_enable_o <= regs_out.csr_raw_mode_o;
 
-  timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).tai), 32));
-  timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).coarse), 32));
-  timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i(g_channel).frac), 32));
-  timestamp_with_seq(98 downto 96)   <= timestamp_i(g_channel).channel;
-  timestamp_with_seq(99)            <= timestamp_i(g_channel).slope;
-  timestamp_with_seq(127 downto 100) <= timestamp_i(g_channel).seq(27 downto 0);
+  timestamp_with_seq(31 downto 0)    <= std_logic_vector(resize(unsigned(timestamp_i.tai), 32));
+  timestamp_with_seq(63 downto 32)   <= std_logic_vector(resize(unsigned(timestamp_i.coarse), 32));
+  timestamp_with_seq(95 downto 64)   <= std_logic_vector(resize(unsigned(timestamp_i.frac), 32));
+  timestamp_with_seq(98 downto 96)   <= timestamp_i.channel;
+  timestamp_with_seq(99)             <= timestamp_i.slope;
+  timestamp_with_seq(127 downto 100) <= timestamp_i.seq(27 downto 0);
 
 
   U_WB_Slave : entity work.timestamp_fifo_wb
@@ -110,8 +104,6 @@ begin
 
   buf_count <= resize(unsigned(regs_out.fifo_wr_usedw_o), 10);
 
-  ts_match <= timestamp_valid_i(g_channel);
-
   p_fifo_write : process(clk_sys_i)
   begin
     if rising_edge(clk_sys_i) then
@@ -119,7 +111,7 @@ begin
         regs_in.fifo_wr_req_i <= '0';
       else
 
-        if(enable_i = '1' and regs_out.fifo_wr_full_o = '0' and ts_match = '1') then
+        if(enable_i = '1' and regs_out.fifo_wr_full_o = '0' and timestamp_valid_i = '1') then
           regs_in.fifo_wr_req_i <= '1';
         else
           regs_in.fifo_wr_req_i <= '0';
@@ -140,15 +132,15 @@ begin
         ref_valid <= '0';
       else
         -- latch only the last rising edge TS
-        if (enable_i = '1' and timestamp_valid_i(ref_channel) = '1') then
+        if (enable_i = '1' and timestamp_valid_i = '1') then
           ref_valid <= '1';
-          ref_ts    <= timestamp_i(ref_channel);
+          ref_ts    <= timestamp_i;
         end if;
       end if;
     end if;
   end process;
 
-  sub_valid <= ref_valid and ts_match;
+  sub_valid <= ref_valid and timestamp_valid_i;
   
   U_Subtractor: entity work.tdc_ts_sub
     port map (
@@ -156,7 +148,7 @@ begin
       rst_n_i  => rst_sys_n_i,
       valid_i  => sub_in_valid,
       enable_i => enable_i,
-      a_i      => timestamp_i(g_channel),
+      a_i      => timestamp_i,
       b_i      => ref_ts,
       valid_o  => sub_out_valid,
       q_o      => sub_result);

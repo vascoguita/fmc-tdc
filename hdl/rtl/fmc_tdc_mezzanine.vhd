@@ -432,8 +432,6 @@ begin
     gen_fifos : for i in 0 to 4 generate
 
       U_TheFifo : entity work.timestamp_fifo
-        generic map (
-          g_channel => i)
         port map (
           clk_sys_i         => clk_sys_i,
           rst_sys_n_i       => rst_sys_n_i,
@@ -444,8 +442,8 @@ begin
           tick_i            => tick_1ms,
           irq_threshold_i   => irq_threshold,
           irq_timeout_i     => irq_timeout,
-          timestamp_i       => timestamp,
-          timestamp_valid_i => timestamp_stb,
+          timestamp_i       => timestamp(i),
+          timestamp_valid_i => timestamp_stb(i),
           ts_offset_o       => ts_offset(i),
           reset_seq_o       => reset_seq(i),
           raw_enable_o      => raw_enable(i));
