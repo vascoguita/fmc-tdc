@@ -226,10 +226,6 @@ entity fmc_tdc_core is
       timestamp_valid_o : out std_logic_vector(4 downto 0);
       timestamp_ready_i : in  std_logic_vector(4 downto 0);
 
-      -- direct interface, for compatibility with LIST/WRTD
-      direct_timestamp_o : out std_logic_vector(127 downto 0);
-      direct_timestamp_valid_o : out std_logic;
-      
       channel_enable_o : out std_logic_vector(4 downto 0);
       irq_threshold_o  : out std_logic_vector(9 downto 0);
       irq_timeout_o    : out std_logic_vector(9 downto 0)
@@ -560,9 +556,7 @@ begin
       ts_ready_i   => final_timestamp_ready,
       ts_offset_i  => ts_offset_i,
       reset_seq_i  => reset_seq_i,
-      raw_enable_i => raw_enable_i,
-      direct_timestamp_o => direct_timestamp_o,
-      direct_timestamp_valid_o => direct_timestamp_valid_o
+      raw_enable_i => raw_enable_i
       );
 
 

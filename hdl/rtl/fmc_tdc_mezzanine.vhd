@@ -194,8 +194,9 @@ entity fmc_tdc_mezzanine is
       i2c_sda_i                : in    std_logic;
       -- 1-Wire interface
       onewire_b                : inout std_logic;
-      direct_timestamp_o       : out   std_logic_vector(127 downto 0);
-      direct_timestamp_valid_o : out   std_logic;
+
+      timestamp_o       : out t_tdc_timestamp_array(4 downto 0);
+      timestamp_valid_o : out std_logic_vector(4 downto 0);
 
       sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
       sim_timestamp_valid_i : in  std_logic       := '0';
@@ -400,9 +401,6 @@ begin
       ts_offset_i  => ts_offset,
       reset_seq_i  => reset_seq,
 
-      direct_timestamp_valid_o => direct_timestamp_valid_o,
-      direct_timestamp_o       => direct_timestamp_o,
-
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
       channel_enable_o => channel_enable
@@ -435,8 +433,8 @@ begin
     tdc_timestamp_ready <= timestamp_ready;
   end generate gen_use_real_timestamps;
 
-
-
+  timestamp_o       <= timestamp;
+  timestamp_valid_o <= timestamp_valid;
 
   gen_enable_fifo_readout : if g_use_fifo_readout generate
     gen_fifos : for i in 0 to 4 generate

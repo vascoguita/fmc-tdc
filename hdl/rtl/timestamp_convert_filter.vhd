@@ -35,13 +35,8 @@ entity timestamp_convert_filter is
     ts_offset_i : in     t_tdc_timestamp_array(4 downto 0);
     ts_o        : out    t_tdc_timestamp_array(4 downto 0);
     ts_valid_o  : buffer std_logic_vector(4 downto 0);
-    ts_ready_i  : in     std_logic_vector(4 downto 0);
-
-    direct_timestamp_o : out std_logic_vector(127 downto 0);
-    direct_timestamp_valid_o : out std_logic
+    ts_ready_i  : in     std_logic_vector(4 downto 0)
     );
-
-
 end timestamp_convert_filter;
 
 architecture rtl of timestamp_convert_filter is
@@ -197,24 +192,6 @@ architecture rtl of timestamp_convert_filter is
   s3_ts.channel <= s3_channel;
   s3_ts.meta     <= s3_meta;
 
-
-  p_direct_output : process(clk_sys_i)
-  begin
-    if rising_edge(clk_sys_i) then
-      if rst_sys_n_i = '0' then
-        direct_timestamp_valid_o <= '0';
-      else
-        direct_timestamp_o(31 downto 0)      <= s3_ts.tai;
-        direct_timestamp_o(63 downto 32)     <= s3_ts.coarse;
-        direct_timestamp_o(95 downto 64)     <= x"00000" & s3_ts.frac;
-        direct_timestamp_o(96 + 2 downto 96) <= s3_ts.channel;
-        direct_timestamp_o(96 + 3)           <= s3_ts.slope;
-        direct_timestamp_o(127 downto 100)   <= (others => '0');
-        direct_timestamp_valid_o             <= s3_valid;
-      end if;
-    end if;
-  end process;
-  
   gen_channels : for i in 0 to 4 generate
 
     gen_with_pwidth_filter : if g_PULSE_WIDTH_FILTER generate
