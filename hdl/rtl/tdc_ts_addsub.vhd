@@ -73,7 +73,6 @@ architecture rtl of tdc_ts_addsub is
     tai    : signed(32 downto 0);
     coarse : signed(31 downto 0);
     frac   : signed(15 downto 0);
-    seq : std_logic_vector(31 downto 0);
     meta : std_logic_vector(31 downto 0);
     slope : std_logic;
   end record;
@@ -99,7 +98,6 @@ begin  -- rtl
       elsif(enable_i = '1') then
         pipe(0) <= valid_i;
 
-        sums(0).seq   <= a_i.seq;
         sums(0).slope <= a_i.slope;
         sums(0).meta  <= a_i.meta;
 
@@ -127,7 +125,6 @@ begin  -- rtl
       else
         pipe(1) <= pipe(0);
 
-        sums(1).seq <= sums(0).seq;
         sums(1).meta <= sums(0).meta;
         sums(1).slope <= sums(0).slope;
         
@@ -190,7 +187,6 @@ begin  -- rtl
       else
 
         pipe(3) <= pipe(2);
-        sums(3).seq <= sums(2).seq;
         sums(3).slope <= sums(2).slope;
         sums(3).meta <= sums(2).meta;
 
@@ -222,7 +218,6 @@ begin  -- rtl
   q_o.tai    <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).tai(31 downto 0));
   q_o.coarse <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).coarse(31 downto 0));
   q_o.frac  <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).frac(11 downto 0));
-  q_o.seq <= sums(c_NUM_PIPELINE_STAGES-1).seq;
   q_o.slope <= sums(c_NUM_PIPELINE_STAGES-1).slope;
   q_o.meta <=  sums(c_NUM_PIPELINE_STAGES-1).meta;
 end rtl;

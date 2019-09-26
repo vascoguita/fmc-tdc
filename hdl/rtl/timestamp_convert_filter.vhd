@@ -74,12 +74,14 @@ architecture rtl of timestamp_convert_filter is
 
   signal fifo_we, fifo_rd, fifo_empty, fifo_full, fifo_rd_d : std_logic;
   signal fifo_d, fifo_q : std_logic_vector(127 downto 0);
-  
+
   signal ts_fifo_out : t_acam_timestamp;
 
-  signal ts_valid_preoffset, ts_ready_preoffset, ts_valid_postoffset : std_logic_vector(4 downto 0);
-  signal ts_preoffset, ts_postoffset                                 : t_tdc_timestamp_array(4 downto 0);
-  signal s1_meta, s2_meta, s3_meta                                      : std_logic_vector(31 downto 0);
+  signal ts_valid_preoffset, ts_ready_preoffset            : std_logic_vector(4 downto 0);
+  signal ts_valid_postoffset, ts_valid_postoffset_with_seq : std_logic_vector(4 downto 0);
+  signal ts_preoffset, ts_postoffset                       : t_tdc_timestamp_array(4 downto 0);
+  signal ts_postoffset_with_seq                            : t_tdc_timestamp_array(4 downto 0);
+  signal s1_meta, s2_meta, s3_meta                         : std_logic_vector(31 downto 0);
 
   function f_pack_acam_timestamp (ts : t_acam_timestamp) return std_logic_vector is
     variable rv : std_logic_vector(127 downto 0);
@@ -105,7 +107,6 @@ architecture rtl of timestamp_convert_filter is
     return ts;
   end f_unpack_acam_timestamp;
 
-  
     begin
 
   fifo_d <= f_pack_acam_timestamp(ts_i);
@@ -125,7 +126,7 @@ architecture rtl of timestamp_convert_filter is
       q_o               => fifo_q,
       rd_i              => fifo_rd,
       rd_empty_o        => fifo_empty);
-  
+
   ts_fifo_out <= f_unpack_acam_timestamp(fifo_q);
   fifo_rd <= not fifo_empty;
 
@@ -141,7 +142,7 @@ architecture rtl of timestamp_convert_filter is
 
         fifo_rd_d <= fifo_rd;
 
-        -- 64/125 = 4096/8000: reduce fraction to avoid 64-bit division 
+        -- 64/125 = 4096/8000: reduce fraction to avoid 64-bit division
         -- frac = hwts->bins * 81 * 64 / 125;
 
         -- stage 1: scale frac
@@ -219,13 +220,8 @@ architecture rtl of timestamp_convert_filter is
           channels(i).s1_valid      <= '0';
           channels(i).s2_valid      <= '0';
           channels(i).last_valid    <= '0';
-          channels(i).seq           <= (others => '0');
         else
           channels(i).s1_valid <= '0';
-
-          if(reset_seq_i(i) = '1') then
-            channels(i).seq <= (others => '0');
-          end if;
 
           if s3_valid = '1' and unsigned(s3_channel) = i then
 
@@ -264,14 +260,6 @@ architecture rtl of timestamp_convert_filter is
               ts_preoffset(i).meta <= channels(i).last_ts.meta;
 
               ts_valid_preoffset(i) <= '1';
-
-              if(reset_seq_i(i) = '1') then
-                channels(i).seq     <= (others => '0');
-                ts_preoffset(i).seq <= (others => '0');
-              else
-                channels(i).seq     <= channels(i).seq + 1;
-                ts_preoffset(i).seq <= std_logic_vector(channels(i).seq);
-              end if;
             else
               ts_valid_preoffset(i) <= '0';
             end if;
@@ -288,11 +276,29 @@ architecture rtl of timestamp_convert_filter is
         clk_i    => clk_sys_i,
         rst_n_i  => rst_sys_n_i,
         valid_i  => ts_valid_preoffset(i),
-        enable_i => '1',
+        enable_i => enable_i(i),
         a_i      => ts_preoffset(i),
         b_i      => ts_offset_i(i),
         valid_o  => ts_valid_postoffset(i),
         q_o      => ts_postoffset(i));
+
+    p_seq_count : process(clk_sys_i) is
+    begin
+      if rising_edge(clk_sys_i) then
+        if rst_sys_n_i = '0' or enable_i(i) = '0' or reset_seq_i(i) = '1' then
+          channels(i).seq <= (others => '0');
+        else
+          if ts_valid_postoffset(i) = '1' then
+            channels(i).seq                 <= channels(i).seq + 1;
+            ts_valid_postoffset_with_seq(i) <= '1';
+            ts_postoffset_with_seq(i)       <= ts_postoffset(i);
+            ts_postoffset_with_seq(i).seq   <= std_logic_vector(channels(i).seq);
+          else
+            ts_valid_postoffset_with_seq(i) <= '0';
+          end if;
+        end if;
+      end if;
+    end process p_seq_count;
 
     p_output : process(clk_sys_i)
     begin
@@ -314,9 +320,9 @@ architecture rtl of timestamp_convert_filter is
 
           else
 
-            if ts_valid_postoffset(i) = '1' then
+            if ts_valid_postoffset_with_seq(i) = '1' then
               ts_valid_o(i) <= '1';
-              ts_o(i)       <= ts_postoffset(i);
+              ts_o(i)       <= ts_postoffset_with_seq(i);
             end if;
 
           end if;
@@ -330,7 +336,3 @@ architecture rtl of timestamp_convert_filter is
 
 
 end rtl;
-
-
-
-
