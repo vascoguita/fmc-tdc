@@ -22,6 +22,8 @@ files = [
     "fmc_tdc_direct_readout_slave_pkg.vhd",
     "fmc_tdc_wrapper.vhd",
     "timestamp_fifo.vhd",
+    "channel_regs.vhd",
+    "channel_regs_wbgen2_pkg.vhd",
     "timestamp_fifo_wb.vhd",
     "timestamp_fifo_wbgen2_pkg.vhd",
     "timestamp_convert_filter.vhd",

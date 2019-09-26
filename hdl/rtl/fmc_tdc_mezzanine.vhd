@@ -224,7 +224,8 @@ architecture rtl of fmc_tdc_mezzanine is
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 1;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_EIC         : integer := 2;  -- TDC interrupts
   constant c_WB_SLAVE_TDC_I2C         : integer := 3;  -- TDC mezzanine board system EEPROM I2C
-  constant c_WB_SLAVE_TDC_FIFO0       : integer := 4;  -- Access to TDC core FIFO for timestamps retrieval
+  constant c_WB_SLAVE_TDC_CHANNEL0    : integer := 4;  -- Access to TDC core channel registers
+                                                       -- and FIFO for timestamps retrieval
   constant c_WB_SLAVE_TDC_DMA         : integer := 9;  -- Access to TDC core DMA controller
 
   -- Slave port on the wishbone crossbar
@@ -436,42 +437,29 @@ begin
   timestamp_o       <= timestamp;
   timestamp_valid_o <= timestamp_valid;
 
-  gen_enable_fifo_readout : if g_use_fifo_readout generate
-    gen_fifos : for i in 0 to 4 generate
+  gen_fifos : for i in 0 to 4 generate
 
-      U_TheFifo : entity work.timestamp_fifo
-        port map (
-          clk_sys_i         => clk_sys_i,
-          rst_sys_n_i       => rst_sys_n_i,
-          slave_i           => cnx_master_out(c_WB_SLAVE_TDC_FIFO0 + i),
-          slave_o           => cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i),
-          irq_o             => irq_fifo(i),
-          enable_i          => channel_enable(i),
-          tick_i            => tick_1ms,
-          irq_threshold_i   => irq_threshold,
-          irq_timeout_i     => irq_timeout,
-          timestamp_i       => timestamp(i),
-          timestamp_valid_i => timestamp_stb(i),
-          ts_offset_o       => ts_offset(i),
-          reset_seq_o       => reset_seq(i),
-          raw_enable_o      => raw_enable(i));
+    U_TheFifo : entity work.timestamp_fifo
+      generic map (
+        g_use_fifo_readout => g_use_fifo_readout)
+      port map (
+        clk_sys_i         => clk_sys_i,
+        rst_sys_n_i       => rst_sys_n_i,
+        slave_i           => cnx_master_out(c_WB_SLAVE_TDC_CHANNEL0 + i),
+        slave_o           => cnx_master_in(c_WB_SLAVE_TDC_CHANNEL0 + i),
+        irq_o             => irq_fifo(i),
+        enable_i          => channel_enable(i),
+        tick_i            => tick_1ms,
+        irq_threshold_i   => irq_threshold,
+        irq_timeout_i     => irq_timeout,
+        timestamp_i       => timestamp(i),
+        timestamp_valid_i => timestamp_stb(i),
+        ts_offset_o       => ts_offset(i),
+        reset_seq_o       => reset_seq(i),
+        raw_enable_o      => raw_enable(i));
 
-      timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
-    end generate gen_fifos;
-  end generate gen_enable_fifo_readout;
-
-
-  gen_disable_fifo_readout : if not g_use_fifo_readout generate
-    gen_fifos : for i in 0 to 4 generate
-      timestamp_ready(i) <= '1';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).ack <= '1';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).stall <= '0';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).err <= '0';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).rty <= '0';
-    end generate gen_fifos;
-  end generate gen_disable_fifo_readout;
-  
-
+    timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
+  end generate gen_fifos;
 
   gen_with_dma_readout : if g_use_dma_readout generate
     U_DMA_Engine : entity work.tdc_dma_engine
