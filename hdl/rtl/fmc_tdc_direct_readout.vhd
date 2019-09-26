@@ -83,7 +83,6 @@ begin
       wb_we_i    => direct_slave_i.we,
       wb_ack_o   => direct_slave_out.ack,
       wb_stall_o => direct_slave_out.stall,
-      clk_tdc_i  => clk_sys_i,
       regs_i     => regs_in,
       regs_o     => regs_out);
 

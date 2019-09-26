@@ -13,8 +13,6 @@ peripheral
       flags_bus = {FIFO_EMPTY, FIFO_FULL, FIFO_COUNT, FIFO_RESET};
       flags_dev = {FIFO_EMPTY, FIFO_FULL, FIFO_COUNT, FIFO_RESET};
 
-      clock = "clk_tdc_i";
-
       field {
          name = "Seconds";
 	 prefix = "SECONDS";
@@ -53,7 +51,6 @@ peripheral
    reg {
       name = "Channel Enable Register";
       prefix = "CHAN_ENABLE";
-      clock = "clk_tdc_i";
       field {
          name = "Channel enable";
          size = 5;
@@ -66,8 +63,6 @@ peripheral
    reg {
       name = "Dead Time Register";
       prefix = "DEAD_TIME";
-      clock = "clk_tdc_i";
-
       field {
          name = "Dead time (8ns ticks)";
          size = 24;
