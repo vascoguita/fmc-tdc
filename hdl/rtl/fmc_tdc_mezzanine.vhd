@@ -645,7 +645,7 @@ begin
   i2c_scl_oen_o <= sys_scl_oe_n;
   i2c_scl_o     <= sys_scl_out;
 
-  U_OnewireIF : gc_ds182x_interface
+  U_OnewireIF : gc_ds182x_readout
     generic map (
       g_CLOCK_FREQ_KHZ   => 62500,
       g_USE_INTERNAL_PPS => true)

@@ -7,8 +7,8 @@ TOP_MODULE := wr_spec_tdc
 PWD := $(shell pwd)
 PROJECT := wr_spec_tdc
 PROJECT_FILE := $(PROJECT).xise
-TOOL_PATH := /opt/Xilinx/14.7/ISE_DS/ISE/bin/lin64
-TCL_INTERPRETER := xtclsh
+TOOL_PATH := C:\Xilinx\14.7\ISE_DS\ISE\bin\nt
+TCL_INTERPRETER := xtclsh.exe
 ifneq ($(strip $(TOOL_PATH)),)
 TCL_INTERPRETER := $(TOOL_PATH)/$(TCL_INTERPRETER)
 endif
@@ -29,241 +29,277 @@ endif
 #target for performing local synthesis
 all: bitstream
 
-SOURCES_NGCFile := \
-../../ip_cores/wr-cores/platform/xilinx/chipscope/chipscope_icon.ngc \
-../../ip_cores/wr-cores/platform/xilinx/chipscope/chipscope_ila.ngc \
-../../ip_cores/gn4124-core/hdl/spec/ip_cores/l2p_fifo.ngc
-
-SOURCES_UCFFile := \
-../../top/spec/wr_spec_tdc.ucf
+SOURCES_VHDLFile := \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_buffer.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/xwr_endpoint.vhd \
+../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram_dualclock.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_clock_alignment_fifo.vhd \
+../../ip_cores/wr-cores/modules/timing/pulse_stamper.vhd \
+../../ip_cores/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/xrx_streamers_stats.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wr_core.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/simple_uart_wb.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/escape_detector.vhd \
+../../rtl/timestamp_fifo_wbgen2_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_header_processor.vhd \
+../../ip_cores/general-cores/modules/common/gc_ds182x_readout/gc_ds182x_readout.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_path.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_early_address_match.vhd \
+../../ip_cores/wr-cores/modules/wr_softpll_ng/spll_wbgen2_pkg.vhd \
+../../ip_cores/general-cores/modules/genrams/generic/generic_async_fifo_dual_rst.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/escape_inserter.vhd \
+../../rtl/leds_manager.vhd \
+../../ip_cores/general-cores/modules/genrams/common/inferred_sync_fifo.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_metadata/xwb_metadata.vhd \
+../../ip_cores/wr-cores/modules/wr_mini_nic/minic_wb_slave.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/mcb_raw_wrapper.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_crossbar/xwb_sdb_crossbar.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/wbmaster32.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/uart_async_tx.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/ts_restore_tai.vhd \
+../../ip_cores/wr-cores/modules/fabric/xwrf_loopback/lbk_wishbone_controller.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_packet_injection.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd \
+../../rtl/tdc_dma_engine.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_slave_adapter/wb_slave_adapter.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/xwr_core.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_registers_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/simple_uart_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_packet_filter.vhd \
+../../rtl/data_formatting.vhd \
+../../ip_cores/general-cores/modules/genrams/generic/generic_async_fifo.vhd \
+../../rtl/wrabbit_sync.vhd \
+../../ip_cores/wr-cores/board/common/wr_board_pkg.vhd \
+../../rtl/local_pps_gen.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/xwb_gn4124_core.vhd \
+../../rtl/tdc_buffer_control_regs.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_timestamping_unit.vhd \
+../../rtl/decr_counter.vhd \
+../../rtl/data_engine.vhd \
+../../rtl/timestamp_fifo.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/xwr_streamers.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_crossbar/xwb_crossbar.vhd \
+../../ip_cores/wr-cores/modules/wr_softpll_ng/spll_aligner.vhd \
+../../rtl/fmc_tdc_direct_readout_slave_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_pcs_8bit.vhd \
+../../rtl/tdc_dma_channel.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/wr_streamers_wb.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_status_reg_insert.vhd \
+../../rtl/tdc_onewire_wbgen2_pkg.vhd \
+../../rtl/tdc_eic.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/generated/xwb_lm32.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/xtx_streamer.vhd \
+../../rtl/tdc_ts_sub.vhd \
+../../ip_cores/wr-cores/modules/timing/dmtd_with_deglitcher.vhd \
+../../ip_cores/general-cores/modules/common/gc_serial_dac.vhd \
+../../ip_cores/wr-cores/modules/timing/dmtd_sampler.vhd \
+../../ip_cores/general-cores/modules/genrams/genram_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_onewire_master/wb_onewire_master.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_sync_detect_16bit.vhd \
+../../ip_cores/wr-cores/platform/xilinx/wr_xilinx_pkg.vhd \
+../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram_split.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/streamers_priv_pkg.vhd \
+../../ip_cores/general-cores/modules/common/gc_extend_pulse.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/p2l_decode32.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rtu_header_extract.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_wb.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wrc_diags_pkg.vhd \
+../../ip_cores/general-cores/modules/genrams/common/inferred_async_fifo.vhd \
+../../rtl/fmc_tdc_wrapper.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wrc_diags_wb.vhd \
+../../ip_cores/wr-cores/modules/wr_softpll_ng/softpll_pkg.vhd \
+../../ip_cores/general-cores/modules/common/gc_sync_word_wr.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl.vhd \
+../../ip_cores/general-cores/modules/genrams/generic/generic_sync_fifo.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_sync_detect.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/memc3_wrapper.vhd \
+../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_fifo_async.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/iodrp_mcb_controller.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/dropping_buffer.vhd \
+../../ip_cores/general-cores/modules/common/gc_pulse_synchronizer2.vhd \
+../../ip_cores/general-cores/modules/common/gc_sync_word_rd.vhd \
+../../rtl/tdc_core_pkg.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/xwrc_diags_wb.vhd \
+../../ip_cores/wr-cores/modules/wr_mini_nic/minic_wbgen2_pkg.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/gn4124_core_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_wb_master.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_pcs_16bit.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/serdes_n_to_1_s2_diff.vhd \
+../../ip_cores/wr-cores/modules/wr_dacs/spec_serial_dac.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_onewire_master/xwb_onewire_master.vhd \
+../../ip_cores/spec/hdl/rtl/spec_base_wr.vhd \
+../../ip_cores/general-cores/modules/genrams/xilinx/generic_simple_dpram.vhd \
+../../ip_cores/general-cores/modules/wishbone/wishbone_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_pps_gen/xwr_pps_gen.vhd \
+../../rtl/tdc_ts_addsub.vhd \
+../../rtl/fmc_tdc_direct_readout_slave.vhd \
+../../rtl/acam_timecontrol_interface.vhd \
+../../rtl/acam_databus_interface.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_1000basex_pcs.vhd \
+../../ip_cores/wr-cores/modules/wr_mini_nic/xwr_mini_nic.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/mcb_soft_calibration.vhd \
+../../ip_cores/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/memc3_infrastructure.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/mcb_soft_calibration_top.vhd \
+../../ip_cores/general-cores/modules/genrams/common/generic_shiftreg_fifo.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_vic/wb_vic.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd \
+../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_pcs_16bit.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_dp_ram.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wrc_periph.vhd \
+../../rtl/wbgen2_eic_nomask.vhd \
+../../rtl/clks_rsts_manager.vhd \
+../../ip_cores/wr-cores/modules/fabric/xwb_fabric_source.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/fixed_latency_ts_match.vhd \
+../../rtl/timestamp_fifo_wb.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_ram.vhd \
+../../rtl/timestamp_convert_filter.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_wrapper.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/uart_async_rx.vhd \
+../../ip_cores/wr-cores/board/spec/wr_spec_pkg.vhd \
+../../ip_cores/general-cores/modules/genrams/common/inferred_async_fifo_dual_rst.vhd \
+../../ip_cores/wr-cores/modules/wr_tbi_phy/disparity_gen_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_split/xwb_split.vhd \
+../../rtl/reg_ctrl.vhd \
+../../ip_cores/general-cores/modules/common/gc_async_counter_diff.vhd \
+../../rtl/fmc_tdc_core.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_vlan_unit.vhd \
+../../ip_cores/wr-cores/modules/fabric/xwrf_mux.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/wr_streamers_wbgen2_pkg.vhd \
+../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/spartan6/whiterabbitgtp_wrapper_tile_spartan6.vhd \
+../../top/spec/synthesis_descriptor.vhd \
+../../rtl/free_counter.vhd \
+../../ip_cores/general-cores/modules/common/gc_sync_ffs.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_clock_crossing/xwb_clock_crossing.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_vic/wb_vic_regs.vhd \
+../../ip_cores/wr-cores/modules/fabric/wr_fabric_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/i2c_master_bit_ctrl.vhd \
+../../top/spec/wr_spec_tdc.vhd \
+../../rtl/incr_counter.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/iodrp_controller.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_spi/wb_spi.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_oob_insert.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_crc32_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/uart_baud_gen.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/xrx_streamer.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/fixed_latency_delay.vhd \
+../../ip_cores/wr-cores/modules/wr_mini_nic/wr_mini_nic.vhd \
+../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_eic.vhd \
+../../rtl/tdc_onewire_wb.vhd \
+../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram_sameclock.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_wrapper_pkg.vhd \
+../../ip_cores/general-cores/modules/common/gc_reset_multi_aasd.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_autonegotiation.vhd \
+../../ip_cores/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd \
+../../ip_cores/spec/hdl/rtl/spec_base_regs.vhd \
+../../ip_cores/wr-cores/modules/timing/pulse_stamper_sync.vhd \
+buildinfo_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_pcs_8bit.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/xwb_i2c_master.vhd \
+../../ip_cores/general-cores/modules/common/gc_crc_gen.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/p2l_des.vhd \
+../../ip_cores/wr-cores/modules/wr_dacs/spec_serial_dac_arb.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/xwb_simple_uart.vhd \
+../../rtl/start_retrig_ctrl.vhd \
+../../ip_cores/wr-cores/modules/fabric/xwrf_loopback/xwrf_loopback.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/l2p_arbiter.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/streamers_pkg.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/p2l_dma_master.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/serdes_1_to_n_data_s2_se.vhd \
+../../ip_cores/wr-cores/modules/wr_softpll_ng/spll_wb_slave.vhd \
+../../ip_cores/general-cores/modules/common/gencores_pkg.vhd \
+../../ip_cores/general-cores/modules/genrams/memory_loader_pkg.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/l2p_dma_master.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_vic/xwb_vic.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_ds182x_readout/wb_ds182x_regs.vhd \
+../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/spartan6/wr_gtp_phy_spartan6.vhd \
+../../ip_cores/general-cores/modules/genrams/xilinx/gc_shiftreg.vhd \
+../../ip_cores/general-cores/modules/common/gc_sync_register.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/i2c_master_byte_ctrl.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_inject_ctrl.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_crc_size_check.vhd \
+../../ip_cores/general-cores/modules/common/gc_frequency_meter.vhd \
+../../ip_cores/wr-cores/platform/xilinx/xwrc_platform_xilinx.vhd \
+../../ip_cores/wr-cores/modules/fabric/xwb_fabric_sink.vhd \
+../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/spartan6/gtp_phase_align.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/dma_controller.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/i2c_master_top.vhd \
+../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/gtp_bitslide.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_uart/wb_simple_uart.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/xrtx_streamers_stats.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_ds182x_readout/xwb_ds182x_readout.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/serdes_1_to_n_clk_pll_s2_diff.vhd \
+../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/ddr3_ctrl_spec_bank3_32b_32b.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_ts_counter.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_vlan_unit.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_spi/xwb_spi.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/l2p_ser.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_leds_controller.vhd \
+../../ip_cores/wr-cores/modules/wrc_core/wrcore_pkg.vhd \
+../../ip_cores/general-cores/modules/common/gc_ds182x_interface.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_crc_inserter.vhd \
+../../ip_cores/general-cores/modules/common/gc_pulse_synchronizer.vhd \
+../../ip_cores/wr-cores/board/spec/xwrc_board_spec.vhd \
+../../rtl/fmc_tdc_direct_readout.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/endpoint_private_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_fifo_sync.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_path.vhd \
+../../ip_cores/wr-cores/modules/timing/dmtd_phase_meas.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/dma_controller_regs.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/fifo_showahead_adapter.vhd \
+../../ip_cores/wr-cores/board/common/xwrc_board_common.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/wb_i2c_master.vhd \
+../../rtl/tdc_buffer_control_regs_wbgen2_pkg.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/endpoint_pkg.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/serdes_n_to_1_s2_se.vhd \
+../../ip_cores/gn4124-core/hdl/rtl/spartan6/gn4124_core.vhd \
+../../ip_cores/wr-cores/modules/fabric/xwrf_loopback/lbk_pkg.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_crossbar/sdb_rom.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_wishbone_controller.vhd \
+../../rtl/fmc_tdc_mezzanine.vhd \
+../../ip_cores/wr-cores/modules/wr_streamers/xtx_streamers_stats.vhd \
+../../ip_cores/general-cores/modules/wishbone/wb_dpram/xwb_dpram.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/ep_pcs_tbi_mdio_wb.vhd \
+../../ip_cores/wr-cores/modules/wr_endpoint/wr_endpoint.vhd
 
 SOURCES_VerilogFile := \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_logic_op.v \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/jtag_cores.v \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_addsub.v \
 ../../ip_cores/general-cores/modules/wishbone/wb_lm32/generated/lm32_allprofiles.v \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/platform/spartan6/jtag_tap.v \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_include.v \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/jtag_cores.v \
+../../ip_cores/general-cores/modules/wishbone/wb_spi/spi_top.v \
 ../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_adder.v \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/platform/spartan6/jtag_tap.v \
 ../../ip_cores/general-cores/modules/wishbone/wb_onewire_master/sockit_owm.v \
 ../../ip_cores/general-cores/modules/wishbone/wb_lm32/platform/spartan6/lm32_multiplier.v \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_shifter.v
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_shifter.v \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_logic_op.v \
+../../ip_cores/general-cores/modules/wishbone/wb_spi/spi_shift.v \
+../../ip_cores/general-cores/modules/wishbone/wb_spi/spi_clgen.v \
+../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_addsub.v
 
-SOURCES_VHDLFile := \
-../../rtl/tdc_dma_channel.vhd \
-../../ip_cores/wr-cores/modules/timing/pulse_stamper.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rtu_header_extract.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/mcb_soft_calibration.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/xwr_core.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/p2l_dma_master.vhd \
-../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram_sameclock.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_pcs_8bit.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/streamers_pkg.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/l2p_dma_master.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_vic/wb_vic.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/xrx_streamers_stats.vhd \
-../../rtl/clks_rsts_manager.vhd \
-../../rtl/reg_ctrl.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/dma_controller.vhd \
-../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram_dualclock.vhd \
-../../ip_cores/wr-cores/modules/timing/dmtd_with_deglitcher.vhd \
-../../ip_cores/general-cores/modules/genrams/common/inferred_async_fifo.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_vic/vic_prio_enc.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/xrx_streamer.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_wb.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wrc_periph.vhd \
-../../ip_cores/wr-cores/board/spec/xwrc_board_spec.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/gn4124_core_pkg.vhd \
-../../ip_cores/general-cores/modules/common/gc_sync_ffs.vhd \
-../../ip_cores/wr-cores/board/spec/wr_spec_pkg.vhd \
-../../rtl/tdc_core_pkg.vhd \
-../../ip_cores/general-cores/modules/genrams/xilinx/gc_shiftreg.vhd \
-../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/spartan6/wr_gtp_phy_spartan6.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/gn4124_core.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_crc_inserter.vhd \
-../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_fifo_async.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wrcore_pkg.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/xwb_simple_uart.vhd \
-../../ip_cores/wr-cores/modules/wr_softpll_ng/spll_wb_slave.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_crc_size_check.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wrc_diags_wb.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_onewire_master/wb_onewire_master.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_1000basex_pcs.vhd \
-../../rtl/acam_databus_interface.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wrc_diags_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/escape_inserter.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/serdes_1_to_n_data_s2_se.vhd \
-../../top/spec/wr_spec_tdc.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/l2p_arbiter.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/endpoint_pkg.vhd \
-../../rtl/tdc_eic.vhd \
-../../rtl/timestamp_fifo_wb.vhd \
-../../rtl/fmc_tdc_core.vhd \
-../../ip_cores/wr-cores/modules/wr_dacs/spec_serial_dac_arb.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_crossbar/xwb_crossbar.vhd \
-../../rtl/timestamp_fifo.vhd \
-../../ip_cores/general-cores/modules/common/gencores_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_wishbone_controller.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_clock_crossing/xwb_clock_crossing.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/mcb_soft_calibration_top.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_wrapper.vhd \
-../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_pkg.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/wb_i2c_master.vhd \
-../../rtl/timestamp_convert_filter.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/i2c_master_top.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/p2l_decode32.vhd \
-../../rtl/fmc_tdc_direct_readout_slave_pkg.vhd \
-../../rtl/fmc_tdc_wrapper.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_oob_insert.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_vic/xwb_vic.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_buffer.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_crossbar/xwb_sdb_crossbar.vhd \
-../../ip_cores/wr-cores/modules/wr_mini_nic/xwr_mini_nic.vhd \
-../../ip_cores/wr-cores/board/common/wr_board_pkg.vhd \
-../../rtl/tdc_buffer_control_regs_wbgen2_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/wr_streamers_wb.vhd \
-../../rtl/carrier_info.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/serdes_n_to_1_s2_se.vhd \
-../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/spartan6/gtp_phase_align.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_dpram/xwb_dpram.vhd \
-../../ip_cores/general-cores/modules/genrams/xilinx/generic_simple_dpram.vhd \
-../../ip_cores/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd \
-../../rtl/leds_manager.vhd \
-../../rtl/incr_counter.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/dma_controller_wb_slave.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_timestamping_unit.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/simple_uart_pkg.vhd \
-../../ip_cores/wr-cores/modules/fabric/xwb_fabric_source.vhd \
-../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/gtp_bitslide.vhd \
-../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/generated/xwb_lm32.vhd \
-../../ip_cores/general-cores/modules/genrams/genram_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_autonegotiation.vhd \
-../../ip_cores/general-cores/modules/genrams/generic/generic_sync_fifo.vhd \
-../../ip_cores/wr-cores/platform/xilinx/xwrc_platform_xilinx.vhd \
-../../ip_cores/wr-cores/modules/wr_dacs/spec_serial_dac.vhd \
-../../ip_cores/wr-cores/modules/wr_softpll_ng/spll_aligner.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/wr_streamers_wbgen2_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_crc32_pkg.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/i2c_master_byte_ctrl.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/iodrp_mcb_controller.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_registers_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/xtx_streamer.vhd \
-../../ip_cores/wr-cores/modules/fabric/wr_fabric_pkg.vhd \
-../../ip_cores/general-cores/modules/common/gc_sync_register.vhd \
-../../ip_cores/wr-cores/modules/timing/dmtd_phase_meas.vhd \
-../../ip_cores/general-cores/modules/genrams/common/inferred_sync_fifo.vhd \
-../../ip_cores/general-cores/modules/common/gc_reset.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/p2l_des.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_wrapper_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/streamers_priv_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_inject_ctrl.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_early_address_match.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_vlan_unit.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/l2p_ser.vhd \
-../../ip_cores/wr-cores/modules/wr_tbi_phy/disparity_gen_pkg.vhd \
-../../rtl/tdc_dma_engine.vhd \
-../../ip_cores/wr-cores/modules/wr_pps_gen/xwr_pps_gen.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/wbmaster32.vhd \
-../../ip_cores/general-cores/modules/genrams/common/generic_shiftreg_fifo.vhd \
-../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_fifo_sync.vhd \
-../../rtl/decr_counter.vhd \
-../../ip_cores/general-cores/modules/genrams/memory_loader_pkg.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/iodrp_controller.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/serdes_1_to_n_clk_pll_s2_diff.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_status_reg_insert.vhd \
-../../rtl/fmc_tdc_direct_readout_slave.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/wr_endpoint.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_pcs_tbi_mdio_wb.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/wr_core.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/uart_async_tx.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_ts_counter.vhd \
-../../ip_cores/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/memc3_infrastructure.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_pcs_16bit.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_pcs_8bit.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_onewire_master/xwb_onewire_master.vhd \
-../../ip_cores/wr-cores/platform/xilinx/wr_xilinx_pkg.vhd \
-../../ip_cores/general-cores/modules/common/gc_frequency_meter.vhd \
-../../rtl/tdc_buffer_control_regs.vhd \
-../../rtl/timestamp_fifo_wbgen2_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_packet_injection.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/xtx_streamers_stats.vhd \
-../../ip_cores/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd \
-../../ip_cores/wr-cores/board/common/xwrc_board_common.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/i2c_master_bit_ctrl.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_pcs_16bit.vhd \
-../../ip_cores/general-cores/modules/wishbone/wishbone_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_path.vhd \
-../../ip_cores/general-cores/modules/common/gc_pulse_synchronizer.vhd \
-../../ip_cores/general-cores/modules/common/gc_extend_pulse.vhd \
-../../ip_cores/general-cores/modules/wishbone/wbgen2/wbgen2_eic.vhd \
-../../rtl/wrabbit_sync.vhd \
-../../ip_cores/wr-cores/platform/xilinx/wr_gtp_phy/spartan6/whiterabbitgtp_wrapper_tile_spartan6.vhd \
-../../ip_cores/general-cores/modules/common/gc_crc_gen.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_path.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_leds_controller.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_crossbar/sdb_rom.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_vlan_unit.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_sync_detect.vhd \
-../../ip_cores/wr-cores/modules/wr_mini_nic/minic_wbgen2_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/dropping_buffer.vhd \
-../../ip_cores/gn4124-core/hdl/gn4124core/rtl/spartan6/serdes_n_to_1_s2_diff.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl.vhd \
-../../ip_cores/wr-cores/modules/wr_mini_nic/minic_wb_slave.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_clock_alignment_fifo.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_vic/wb_slave_vic.vhd \
-../../ip_cores/wr-cores/modules/fabric/xwb_fabric_sink.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_tx_header_processor.vhd \
-../../rtl/fmc_tdc_mezzanine.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/mcb_raw_wrapper.vhd \
-../../ip_cores/general-cores/modules/genrams/generic/generic_async_fifo.vhd \
-../../rtl/free_counter.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/ddr3_ctrl_spec_bank3_32b_32b.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_ram.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/wb_simple_uart.vhd \
-../../rtl/acam_timecontrol_interface.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/xrtx_streamers_stats.vhd \
-../../ip_cores/general-cores/modules/common/gc_pulse_synchronizer2.vhd \
-../../rtl/data_engine.vhd \
-../../rtl/local_pps_gen.vhd \
-../../ip_cores/wr-cores/modules/fabric/xwrf_mux.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_i2c_master/xwb_i2c_master.vhd \
-../../ip_cores/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd \
-../../ip_cores/wr-cores/modules/wr_mini_nic/wr_mini_nic.vhd \
-../../rtl/data_formatting.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/rtl/ddr3_ctrl_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_sync_detect_16bit.vhd \
-../../ip_cores/wr-cores/modules/wrc_core/xwrc_diags_wb.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/simple_uart_wb.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_lm32/src/lm32_dp_ram.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/uart_baud_gen.vhd \
-../../rtl/start_retrig_ctrl.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/xwr_streamers.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_packet_filter.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/xwr_endpoint.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/ep_rx_wb_master.vhd \
-../../ip_cores/ddr3-sp6-core/hdl/spec/ip_cores/ddr3_ctrl_spec_bank3_32b_32b/user_design/rtl/memc3_wrapper.vhd \
-../../top/spec/synthesis_descriptor.vhd \
-../../ip_cores/wr-cores/modules/wr_streamers/escape_detector.vhd \
-../../ip_cores/general-cores/modules/genrams/xilinx/generic_dpram_split.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_slave_adapter/wb_slave_adapter.vhd \
-../../ip_cores/wr-cores/modules/wr_softpll_ng/spll_wbgen2_pkg.vhd \
-../../ip_cores/general-cores/modules/wishbone/wb_uart/uart_async_rx.vhd \
-../../rtl/fmc_tdc_direct_readout.vhd \
-../../ip_cores/wr-cores/modules/wr_softpll_ng/softpll_pkg.vhd \
-../../ip_cores/wr-cores/modules/wr_endpoint/endpoint_private_pkg.vhd
+SOURCES_UCFFile := \
+../../top/spec/wr_spec_tdc.ucf \
+../../ip_cores/spec/hdl/syn/common/spec_base_ddr3.ucf \
+../../ip_cores/spec/hdl/syn/common/spec_base_common.ucf \
+../../ip_cores/spec/hdl/syn/common/spec_base_spi.ucf \
+../../ip_cores/spec/hdl/syn/common/spec_base_onewire.ucf \
+../../ip_cores/spec/hdl/syn/common/spec_base_wr.ucf
+
+SOURCES_NGCFile := \
+../../ip_cores/wr-cores/platform/xilinx/chipscope/chipscope_spartan6_icon.ngc \
+../../ip_cores/wr-cores/platform/xilinx/chipscope/chipscope_spartan6_ila.ngc
 
 files.tcl:
-		@$(foreach sourcefile, $(SOURCES_NGCFile), echo "xfile add $(sourcefile)" >> $@ &)
-		@$(foreach sourcefile, $(SOURCES_UCFFile), echo "xfile add $(sourcefile)" >> $@ &)
-		@$(foreach sourcefile, $(SOURCES_VerilogFile), echo "xfile add $(sourcefile)" >> $@ &)
-		@$(foreach sourcefile, $(SOURCES_VHDLFile), echo "xfile add $(sourcefile)" >> $@ &)
+		@$(foreach sourcefile, $(SOURCES_VHDLFile), echo xfile add $(sourcefile) >> $@ &)
+		@$(foreach sourcefile, $(SOURCES_VerilogFile), echo xfile add $(sourcefile) >> $@ &)
+		@$(foreach sourcefile, $(SOURCES_UCFFile), echo xfile add $(sourcefile) >> $@ &)
+		@$(foreach sourcefile, $(SOURCES_NGCFile), echo xfile add $(sourcefile) >> $@ &)
 
 SYN_PRE_PROJECT_CMD := 
-SYN_POST_PROJECT_CMD := 
+SYN_POST_PROJECT_CMD := $(TCL_INTERPRETER) syn_extra_steps.tcl $(PROJECT_FILE)
 
 SYN_PRE_SYNTHESIZE_CMD := 
 SYN_POST_SYNTHESIZE_CMD := 
@@ -282,14 +318,15 @@ SYN_POST_BITSTREAM_CMD :=
 
 project.tcl:
 		echo $(TCL_CREATE) >> $@
+		echo xfile remove [search \* -type file] >> $@
 		echo source files.tcl >> $@
-		echo project set \"family\" \"$(SYN_FAMILY)\" >> $@
-		echo project set \"device\" \"$(SYN_DEVICE)\" >> $@
-		echo project set \"package\" \"$(SYN_PACKAGE)\" >> $@
-		echo project set \"speed\" \"$(SYN_GRADE)\" >> $@
-		echo project set \"Manual Implementation Compile Order\" \"false\" >> $@
-		echo project set \"Auto Implementation Top\" \"false\" >> $@
-		echo project set \"Create Binary Configuration File\" \"true\" >> $@
+		echo project set "family" "$(SYN_FAMILY)" >> $@
+		echo project set "device" "$(SYN_DEVICE)" >> $@
+		echo project set "package" "$(SYN_PACKAGE)" >> $@
+		echo project set "speed" "$(SYN_GRADE)" >> $@
+		echo project set \"Manual Implementation Compile Order\" "false" >> $@
+		echo project set \"Auto Implementation Top\" "false" >> $@
+		echo project set \"Create Binary Configuration File\" "true" >> $@
 		echo set compile_directory . >> $@
 		echo project set top $(TOP_MODULE) >> $@
 		echo $(TCL_SAVE) >> $@
@@ -299,14 +336,14 @@ project: files.tcl project.tcl
 		$(SYN_PRE_PROJECT_CMD)
 		$(TCL_INTERPRETER) $@.tcl
 		$(SYN_POST_PROJECT_CMD)
-		touch $@
+		type nul >> $@
 
 synthesize.tcl:
 		echo $(TCL_OPEN) >> $@
 		echo set process {Synthesize - XST} >> $@
-		echo process run '$$'process >> $@
-		echo set result [process get '$$'process status] >> $@
-		echo if { '$$'result == \"errors\" } { >> $@
+		echo process run $$process >> $@
+		echo set result [process get $$process status] >> $@
+		echo if { $$result == "errors" } { >> $@
 		echo     exit 1 >> $@
 		echo } >> $@
 		echo $(TCL_SAVE) >> $@
@@ -316,14 +353,14 @@ synthesize: project synthesize.tcl
 		$(SYN_PRE_SYNTHESIZE_CMD)
 		$(TCL_INTERPRETER) $@.tcl
 		$(SYN_POST_SYNTHESIZE_CMD)
-		touch $@
+		type nul >> $@
 
 translate.tcl:
 		echo $(TCL_OPEN) >> $@
 		echo set process {Translate} >> $@
-		echo process run '$$'process >> $@
-		echo set result [process get '$$'process status] >> $@
-		echo if { '$$'result == \"errors\" } { >> $@
+		echo process run $$process >> $@
+		echo set result [process get $$process status] >> $@
+		echo if { $$result == "errors" } { >> $@
 		echo     exit 1 >> $@
 		echo } >> $@
 		echo $(TCL_SAVE) >> $@
@@ -333,14 +370,14 @@ translate: synthesize translate.tcl
 		$(SYN_PRE_TRANSLATE_CMD)
 		$(TCL_INTERPRETER) $@.tcl
 		$(SYN_POST_TRANSLATE_CMD)
-		touch $@
+		type nul >> $@
 
 map.tcl:
 		echo $(TCL_OPEN) >> $@
 		echo set process {Map} >> $@
-		echo process run '$$'process >> $@
-		echo set result [process get '$$'process status] >> $@
-		echo if { '$$'result == \"errors\" } { >> $@
+		echo process run $$process >> $@
+		echo set result [process get $$process status] >> $@
+		echo if { $$result == "errors" } { >> $@
 		echo     exit 1 >> $@
 		echo } >> $@
 		echo $(TCL_SAVE) >> $@
@@ -350,14 +387,14 @@ map: translate map.tcl
 		$(SYN_PRE_MAP_CMD)
 		$(TCL_INTERPRETER) $@.tcl
 		$(SYN_POST_MAP_CMD)
-		touch $@
+		type nul >> $@
 
 par.tcl:
 		echo $(TCL_OPEN) >> $@
-		echo set process {Place '&' Route} >> $@
-		echo process run '$$'process >> $@
-		echo set result [process get '$$'process status] >> $@
-		echo if { '$$'result == \"errors\" } { >> $@
+		echo set process {Place ^& Route} >> $@
+		echo process run $$process >> $@
+		echo set result [process get $$process status] >> $@
+		echo if { $$result == "errors" } { >> $@
 		echo     exit 1 >> $@
 		echo } >> $@
 		echo $(TCL_SAVE) >> $@
@@ -367,14 +404,14 @@ par: map par.tcl
 		$(SYN_PRE_PAR_CMD)
 		$(TCL_INTERPRETER) $@.tcl
 		$(SYN_POST_PAR_CMD)
-		touch $@
+		type nul >> $@
 
 bitstream.tcl:
 		echo $(TCL_OPEN) >> $@
 		echo set process {Generate Programming File} >> $@
-		echo process run '$$'process >> $@
-		echo set result [process get '$$'process status] >> $@
-		echo if { '$$'result == \"errors\" } { >> $@
+		echo process run $$process >> $@
+		echo set result [process get $$process status] >> $@
+		echo if { $$result == "errors" } { >> $@
 		echo     exit 1 >> $@
 		echo } >> $@
 		echo $(TCL_SAVE) >> $@
@@ -384,16 +421,17 @@ bitstream: par bitstream.tcl
 		$(SYN_PRE_BITSTREAM_CMD)
 		$(TCL_INTERPRETER) $@.tcl
 		$(SYN_POST_BITSTREAM_CMD)
-		touch $@
+		type nul >> $@
 
 CLEAN_TARGETS := $(LIBS) xst xlnx_auto_0_xdb iseconfig _xmsgs _ngo *.b *_summary.html *.bld *.cmd_log *.drc *.lso *.ncd *.ngc *.ngd *.ngr *.pad *.par *.pcf *.prj *.ptwx *.stx *.syr *.twr *.twx *.gise *.gise *.bgn *.unroutes *.ut *.xpi *.xst *.xise *.xwbt *_envsettings.html *_guide.ncd *_map.map *_map.mrp *_map.ncd *_map.ngm *_map.xrpt *_ngdbuild.xrpt *_pad.csv *_pad.txt *_par.xrpt *_summary.xml *_usage.xml *_xst.xrpt usage_statistics_webtalk.html webtalk.log par_usage_statistics.html webtalk_pn.xml
 
 clean:
-		rm -rf $(CLEAN_TARGETS)
-		rm -rf project synthesize translate map par bitstream
-		rm -rf project.tcl synthesize.tcl translate.tcl map.tcl par.tcl bitstream.tcl files.tcl
+		del /s /q /f $(CLEAN_TARGETS)
+		@-rmdir /s /q $(CLEAN_TARGETS) >nul 2>&1
+		del /s /q /f project synthesize translate map par bitstream
+		del /s /q /f project.tcl synthesize.tcl translate.tcl map.tcl par.tcl bitstream.tcl files.tcl
 
 mrproper: clean
-		rm -rf *.bit *.bin *.mcs
+		del /s /q /f *.bit *.bin *.mcs
 
 .PHONY: mrproper clean all

@@ -8,6 +8,7 @@ import tdc_core_pkg::*;
 `include "vhd_wishbone_master.svh"
 `include "acam_model.svh"
 `include "softpll_regs_ng.vh"
+`include "gn4124_bfm.svh"
 
 typedef struct {
    uint32_t tai;
@@ -45,14 +46,19 @@ class FmcTdcDriver;
    
    task automatic init();
       uint32_t d;
-      
-      readl('h000000, d); 
+
+
+      readl('h20000, d); 
+      $display("address 0x20000: %x", d);
 
       if( d != 'h5344422d )
 	begin
+       $error("!!!!address 0x0 %x!!!!", d);
 	   $error("Can't read the SDB signature.");
 	   $stop;
 	end
+
+
       
       writel('h20a0, 1234);  // set UTC
       writel('h20fc, 1<<9); // load UTC
@@ -172,14 +178,14 @@ module main;
       .D(tdc_data)
       );
    
-
+   IGN4124PCIMaster Host
+     (
+    
+      );
    
    wr_spec_tdc 
      #(
-       .g_with_wr_phy(0),	
-       .g_simulation(1),
-       .g_calib_soft_ip(0),
-       .g_sim_bypass_gennum(1)
+       .g_simulation(1)
        ) DUT (
 		     .clk_125m_pllref_p_i(clk_125m),
 		     .clk_125m_pllref_n_i(~clk_125m),
@@ -187,57 +193,70 @@ module main;
 		     .clk_125m_gtp_n_i(~clk_125m),
 
 
-		     .tdc_clk_125m_p_i(clk_125m),
-		     .tdc_clk_125m_n_i(~clk_125m),
+		     .fmc0_tdc_clk_125m_p_i(clk_125m),
+		     .fmc0_tdc_clk_125m_n_i(~clk_125m),
 
-		     .acam_refclk_p_i(clk_acam),
-		     .acam_refclk_n_i(~clk_acam),
+		     .fmc0_tdc_acam_refclk_p_i(clk_acam),
+		     .fmc0_tdc_acam_refclk_n_i(~clk_acam),
 
 		     .clk_20m_vcxo_i(clk_20m),
-                     .pll_status_i(1'b1),
 
+             .fmc0_tdc_pll_status_i(1'b1),
 		     
-		     .ef1_i(tdc_ef1),
-		     .ef2_i(tdc_ef2),
-		     .err_flag_i(tdc_err_flag),
-		     .int_flag_i(tdc_int_flag),
-		     .rd_n_o(tdc_rd_n),
-		     .wr_n_o(tdc_wr_n),
-		     .oe_n_o(tdc_oe_n),
-		     .cs_n_o(tdc_cs_n),
-		     .data_bus_io(tdc_data),
-		     .address_o(tdc_addr),
-		     .start_from_fpga_o(tdc_start),
-		     .start_dis_o(tdc_start_dis),
-		     .stop_dis_o(tdc_stop_dis[1]),
+		     .fmc0_tdc_ef1_i(tdc_ef1),
+		     .fmc0_tdc_ef2_i(tdc_ef2),
+		     .fmc0_tdc_err_flag_i(tdc_err_flag),
+		     .fmc0_tdc_int_flag_i(tdc_int_flag),
+		     .fmc0_tdc_rd_n_o(tdc_rd_n),
+		     .fmc0_tdc_wr_n_o(tdc_wr_n),
+		     .fmc0_tdc_oe_n_o(tdc_oe_n),
+		     .fmc0_tdc_cs_n_o(tdc_cs_n),
+		     .fmc0_tdc_data_bus_io(tdc_data),
+		     .fmc0_tdc_address_o(tdc_addr),
+		     .fmc0_tdc_start_from_fpga_o(tdc_start),
+		     .fmc0_tdc_start_dis_o(tdc_start_dis),
+		     .fmc0_tdc_stop_dis_o(tdc_stop_dis[1]),
 		     
-		     .sim_wb_i(Host.out),
-		     .sim_wb_o(Host.in)
+			`GENNUM_WIRE_SPEC_BTRAIN_REF(Host)
+
 		     );
 
    assign tdc_stop_dis[4] = tdc_stop_dis[1];
    assign tdc_stop_dis[3] = tdc_stop_dis[1];
    assign tdc_stop_dis[2] = tdc_stop_dis[1];
    
-   IVHDWishboneMaster Host
-     (
-      .clk_i   (DUT.clk_sys_62m5),
-      .rst_n_i (DUT.rst_sys_62m5_n)
-      );
+   // IVHDWishboneMaster Host
+     // (
+      // .clk_i   (DUT.clk_sys_62m5),
+      // .rst_n_i (DUT.rst_sys_62m5_n)
+      // );
    
    initial 
      begin
 	CBusAccessor acc;
 	FmcTdcDriver drv;
-	const uint64_t tdc1_base = 'h40000;
+	const uint64_t tdc1_base = 'h20000;
 	uint64_t d;
 	acc = Host.get_accessor();
 	
 	#10us;
 	
-	$display("Un-reset FMCs...");
-	acc.write('h02000c, 'h3); 
+	//$display("Un-reset FMCs...");
+	//acc.write('h02000c, 'h3); 
 
+    acc.read('h20000, d); 
+      $display("address 0x20000: %x", d);
+
+    acc.read('h22004, d); 
+      $display("address 0x22004: %x", d);
+
+    acc.write('h2208c, 1234);  // test
+
+    acc.read('h2208c, d); 
+      $display("address 0x2208c: %x", d);
+
+    acc.write('h22080, 1234);  // starting UTC
+    acc.write('h220fc, 1<<9); // load UTC
 
 
 	drv = new (acc, 'h40000, 0 );

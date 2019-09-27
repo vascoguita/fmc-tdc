@@ -336,8 +336,8 @@ package tdc_core_pkg is
                                                                            -- corresponds to:
   constant c_STARTING_UTC_ADR     : std_logic_vector(7 downto 0) := x"20"; -- address 0x51080 of GN4124 BAR 0
   constant c_ACAM_INPUTS_EN_ADR   : std_logic_vector(7 downto 0) := x"21"; -- address 0x51084 of GN4124 BAR 0
-  constant c_START_PHASE_ADR      : std_logic_vector(7 downto 0) := x"22"; -- address 0x51088 of GN4124 BAR 0
-  constant c_ONE_HZ_PHASE_ADR     : std_logic_vector(7 downto 0) := x"23"; -- address 0x5108C of GN4124 BAR 0
+  constant c_FMC_ID_ADR           : std_logic_vector(7 downto 0) := x"22"; -- address 0x51088 of GN4124 BAR 0
+  constant c_SPARE_ADR            : std_logic_vector(7 downto 0) := x"23"; -- address 0x5108C of GN4124 BAR 0
 
   constant c_IRQ_TSTAMP_THRESH_ADR: std_logic_vector(7 downto 0) := x"24"; -- address 0x51090 of GN4124 BAR 0
   constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 0x51094 of GN4124 BAR 0
