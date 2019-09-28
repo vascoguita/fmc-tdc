@@ -424,9 +424,6 @@ begin
 
                           if acam_ef1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
-
-                          elsif acam_ef2_i ='0' then
-                            nxt_engine_st <= GET_STAMP2;
                           else
                             nxt_engine_st <= ACTIVE;
                           end if;
