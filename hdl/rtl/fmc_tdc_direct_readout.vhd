@@ -95,8 +95,7 @@ begin
   gen_channels : for i in 0 to c_num_channels-1 generate
 
     c(i).enable <= regs_out.chan_enable_o(i);
-    fifo_wr(i) <= f_to_std_logic(timestamp_i(i).slope = '1'and
-                                 timestamp_valid_i(i) = '1'and
+    fifo_wr(i) <= f_to_std_logic(timestamp_valid_i(i) = '1' and
                                  c(i).ready = '1');
 
     p_dead_time : process (clk_sys_i)
