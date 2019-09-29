@@ -6,17 +6,19 @@
 -- Author     : Tomasz Wlostowski
 -- Company    : CERN
 -- Created    : 2011-08-29
--- Last update: 2019-09-26
+-- Last update: 2019-09-29
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
 -- Description: Pipelined timestamp adder with re-normalization of the result.
 -- Adds a to b, producing normalized timestamp q. A timestmap is normalized when
--- the 0 <= frac < 2**g_frac_bits, 0 <= coarse <= g_coarse_range-1 and utc >= 0.
+-- the 0 <= frac < g_frac_range, 0 <= coarse <= g_coarse_range-1 and utc >= 0.
 -- For correct operation of renormalizer, input timestamps must meet the
 -- following constraints:
--- 1. 0 <= (a/b)_frac_i <= 2**g_frac_bits-1
--- 2. -g_coarse_range+1 <= (a_coarse_i + b_coarse_i) <= 3*g_coarse_range-1
+-- 1. 0 <= a_tai + b_tai < 2**32 - 1
+-- 2. 0 <= a_frac < g_frac_range
+-- 3. -g_frac_range / 2 <= b_frac < g_frac_range / 2
+-- 4. -g_coarse_range+1 <= (a_coarse + b_coarse) <= 3*g_coarse_range-1
 -------------------------------------------------------------------------------
 --
 -- Copyright (c) 2011 CERN / BE-CO-HT
@@ -101,10 +103,9 @@ begin  -- rtl
         sums(0).slope <= a_i.slope;
         sums(0).meta  <= a_i.meta;
 
-        sums(0).tai    <= resize(signed(a_i.tai), 33) + resize(signed(b_i.tai), 33);
-        sums(0).frac   <= resize(signed(a_i.frac), 16) + resize(signed(b_i.frac), 16);
+        sums(0).tai    <= signed(resize(unsigned(a_i.tai) + unsigned(b_i.tai), 33));
         sums(0).coarse <= signed(a_i.coarse) + signed(b_i.coarse);
-
+        sums(0).frac   <= signed(resize(signed('0' & a_i.frac), 16) + resize(signed(b_i.frac), 16));
       else
         pipe(0) <= '0';
       end if;
