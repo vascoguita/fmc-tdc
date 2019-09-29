@@ -65,7 +65,7 @@ begin
   regs_in.fifo_cycles_i  <= timestamp_i(channel_select).coarse;
   regs_in.fifo_edge_i    <= timestamp_i(channel_select).slope;
   regs_in.fifo_seconds_i <= timestamp_i(channel_select).tai;
-  regs_in.fifo_channel_i <= std_logic_vector(to_unsigned(channel_select, 4));
+  regs_in.fifo_channel_i <= '0' & timestamp_i(channel_select).channel;
   regs_in.fifo_bins_i    <= "000000" & timestamp_i(channel_select).frac;
   regs_in.fifo_wr_req_i  <= f_to_std_logic(fifo_wr(channel_select) = '1' and
                                            regs_out.fifo_wr_full_o = '0');

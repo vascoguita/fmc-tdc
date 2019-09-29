@@ -61,7 +61,7 @@ entity tdc_ts_addsub is
 
     a_i : in t_tdc_timestamp;
     b_i : in t_tdc_timestamp;
-    
+
     valid_o    : out std_logic;
     q_o    : out t_tdc_timestamp
     );
@@ -72,11 +72,12 @@ architecture rtl of tdc_ts_addsub is
   constant c_NUM_PIPELINE_STAGES : integer := 4;
 
   type t_internal_sum is record
-    tai    : signed(32 downto 0);
-    coarse : signed(31 downto 0);
-    frac   : signed(15 downto 0);
-    meta : std_logic_vector(31 downto 0);
-    slope : std_logic;
+    tai     : signed(32 downto 0);
+    coarse  : signed(31 downto 0);
+    frac    : signed(15 downto 0);
+    channel : std_logic_vector(2 downto 0);
+    meta    : std_logic_vector(31 downto 0);
+    slope   : std_logic;
   end record;
 
   type t_internal_sum_array is array (integer range <>) of t_internal_sum;
@@ -88,7 +89,7 @@ architecture rtl of tdc_ts_addsub is
   signal unf_frac   : std_logic;
   signal ovf_coarse : std_logic_vector(1 downto 0);
   signal unf_coarse : std_logic_vector(1 downto 0);
-  
+
 begin  -- rtl
 
   -- Pipeline stage 0: just subtract the two timestamps field by field
@@ -100,8 +101,9 @@ begin  -- rtl
       elsif(enable_i = '1') then
         pipe(0) <= valid_i;
 
-        sums(0).slope <= a_i.slope;
-        sums(0).meta  <= a_i.meta;
+        sums(0).channel <= a_i.channel;
+        sums(0).slope   <= a_i.slope;
+        sums(0).meta    <= a_i.meta;
 
         sums(0).tai    <= signed(resize(unsigned(a_i.tai) + unsigned(b_i.tai), 33));
         sums(0).coarse <= signed(a_i.coarse) + signed(b_i.coarse);
@@ -120,16 +122,16 @@ begin  -- rtl
   p_stage1 : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      
+
       if rst_n_i = '0' then
         pipe(1) <= '0';
       else
         pipe(1) <= pipe(0);
 
-        sums(1).meta <= sums(0).meta;
-        sums(1).slope <= sums(0).slope;
-        
-        
+        sums(1) <= sums(0);
+        sums(1) <= sums(0);
+        sums(1) <= sums(0);
+
         if(ovf_frac = '1') then
           sums(1).frac   <= sums(0).frac - g_frac_range;
           sums(1).coarse <= sums(0).coarse + 1;
@@ -141,7 +143,6 @@ begin  -- rtl
           sums(1).coarse <= sums(0).coarse;
         end if;
 
-        sums(1).tai <= sums(0).tai;
       end if;
     end if;
   end process;
@@ -173,7 +174,7 @@ begin  -- rtl
         else
           ovf_coarse <= "00";
         end if;
-        
+
       end if;
     end if;
   end process;
@@ -188,8 +189,7 @@ begin  -- rtl
       else
 
         pipe(3) <= pipe(2);
-        sums(3).slope <= sums(2).slope;
-        sums(3).meta <= sums(2).meta;
+        sums(3) <= sums(2);
 
         if(unf_coarse = "10") then
           sums(3).coarse <= sums(2).coarse + g_coarse_range;
@@ -208,17 +208,16 @@ begin  -- rtl
           sums(3).tai    <= sums(2).tai;
         end if;
 
-        sums(3).frac <= sums(2).frac;
-
       end if;
     end if;
   end process;
 
   -- clip the extra bits and output the result
-  valid_o    <= pipe(c_NUM_PIPELINE_STAGES-1);
-  q_o.tai    <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).tai(31 downto 0));
-  q_o.coarse <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).coarse(31 downto 0));
-  q_o.frac  <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).frac(11 downto 0));
-  q_o.slope <= sums(c_NUM_PIPELINE_STAGES-1).slope;
-  q_o.meta <=  sums(c_NUM_PIPELINE_STAGES-1).meta;
+  valid_o     <= pipe(c_NUM_PIPELINE_STAGES-1);
+  q_o.tai     <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).tai(31 downto 0));
+  q_o.coarse  <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).coarse(31 downto 0));
+  q_o.frac    <= std_logic_vector(sums(c_NUM_PIPELINE_STAGES-1).frac(11 downto 0));
+  q_o.slope   <= sums(c_NUM_PIPELINE_STAGES-1).slope;
+  q_o.meta    <= sums(c_NUM_PIPELINE_STAGES-1).meta;
+  q_o.channel <= sums(c_NUM_PIPELINE_STAGES-1).channel;
 end rtl;
