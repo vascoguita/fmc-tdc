@@ -110,6 +110,14 @@ entity fmc_tdc_mezzanine is
      g_span                        : integer := 32;
      g_width                       : integer := 32;
      g_simulation                  : boolean := false;
+     -- Enable filtering based on pulse width. This will have the following effects:
+     -- * Suppress theforwarding of negative slope timestamps.
+     -- * Delay the forwarding of timestamps until after the falling edge timestamp.
+     -- Once enabled, all pulses wider than 1 second or narrower than
+     -- g_pulse_width_filter_min will be dropped.
+     g_pulse_width_filter          : boolean := true;
+     -- In 8ns ticks.
+     g_pulse_width_filter_min      : natural := 12;
      g_use_dma_readout             : boolean := true;
      g_use_fifo_readout            : boolean := true;
      g_use_fake_timestamps_for_sim : boolean := false);
@@ -188,8 +196,9 @@ entity fmc_tdc_mezzanine is
       i2c_sda_i                : in    std_logic;
       -- 1-Wire interface
       onewire_b                : inout std_logic;
-      direct_timestamp_o       : out   std_logic_vector(127 downto 0);
-      direct_timestamp_valid_o : out   std_logic;
+
+      timestamp_o       : out t_tdc_timestamp_array(4 downto 0);
+      timestamp_valid_o : out std_logic_vector(4 downto 0);
 
       sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
       sim_timestamp_valid_i : in  std_logic       := '0';
@@ -204,6 +213,9 @@ end fmc_tdc_mezzanine;
 --=================================================================================================
 architecture rtl of fmc_tdc_mezzanine is
 
+  constant c_CLK_PERIOD : std_logic_vector(31 downto 0) :=
+    work.tdc_core_pkg.f_pick(g_SIMULATION, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
+
 ---------------------------------------------------------------------------------------------------
 --                                         SDB CONSTANTS                                         --
 ---------------------------------------------------------------------------------------------------
@@ -214,7 +226,8 @@ architecture rtl of fmc_tdc_mezzanine is
   constant c_WB_SLAVE_TDC_CORE_CONFIG : integer := 1;  -- TDC core configuration registers
   constant c_WB_SLAVE_TDC_EIC         : integer := 2;  -- TDC interrupts
   constant c_WB_SLAVE_TDC_I2C         : integer := 3;  -- TDC mezzanine board system EEPROM I2C
-  constant c_WB_SLAVE_TDC_FIFO0       : integer := 4;  -- Access to TDC core FIFO for timestamps retrieval
+  constant c_WB_SLAVE_TDC_CHANNEL0    : integer := 4;  -- Access to TDC core channel registers
+                                                       -- and FIFO for timestamps retrieval
   constant c_WB_SLAVE_TDC_DMA         : integer := 9;  -- Access to TDC core DMA controller
 
   -- Slave port on the wishbone crossbar
@@ -325,11 +338,13 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_tdc_core : entity work.fmc_tdc_core
     generic map
-    (g_span              => g_span,
-     g_width             => g_width,
-     g_simulation        => g_simulation,
-     g_with_dma_readout  => g_use_dma_readout,
-     g_with_fifo_readout => g_use_fifo_readout)
+    (g_span                   => g_span,
+     g_width                  => g_width,
+     g_simulation             => g_simulation,
+     g_pulse_width_filter     => g_pulse_width_filter,
+     g_pulse_width_filter_min => g_pulse_width_filter_min,
+     g_with_dma_readout       => g_use_dma_readout,
+     g_with_fifo_readout      => g_use_fifo_readout)
     port map
     (                                   -- clks, rst
       clk_tdc_i   => clk_tdc_i,
@@ -389,9 +404,6 @@ begin
       ts_offset_i  => ts_offset,
       reset_seq_i  => reset_seq,
 
-      direct_timestamp_valid_o => direct_timestamp_valid_o,
-      direct_timestamp_o       => direct_timestamp_o,
-
       fmc_id_i         => fmc_id_i,
 
       irq_threshold_o  => irq_threshold,
@@ -426,47 +438,32 @@ begin
     tdc_timestamp_ready <= timestamp_ready;
   end generate gen_use_real_timestamps;
 
+  timestamp_o       <= timestamp;
+  timestamp_valid_o <= timestamp_valid;
 
+  gen_fifos : for i in 0 to 4 generate
 
+    U_TheFifo : entity work.timestamp_fifo
+      generic map (
+        g_use_fifo_readout => g_use_fifo_readout)
+      port map (
+        clk_sys_i         => clk_sys_i,
+        rst_sys_n_i       => rst_sys_n_i,
+        slave_i           => cnx_master_out(c_WB_SLAVE_TDC_CHANNEL0 + i),
+        slave_o           => cnx_master_in(c_WB_SLAVE_TDC_CHANNEL0 + i),
+        irq_o             => irq_fifo(i),
+        enable_i          => channel_enable(i),
+        tick_i            => tick_1ms,
+        irq_threshold_i   => irq_threshold,
+        irq_timeout_i     => irq_timeout,
+        timestamp_i       => timestamp(i),
+        timestamp_valid_i => timestamp_stb(i),
+        ts_offset_o       => ts_offset(i),
+        reset_seq_o       => reset_seq(i),
+        raw_enable_o      => raw_enable(i));
 
-  gen_enable_fifo_readout : if g_use_fifo_readout generate
-    gen_fifos : for i in 0 to 4 generate
-
-      U_TheFifo : entity work.timestamp_fifo
-        generic map (
-          g_channel => i)
-        port map (
-          clk_sys_i         => clk_sys_i,
-          rst_sys_n_i       => rst_sys_n_i,
-          slave_i           => cnx_master_out(c_WB_SLAVE_TDC_FIFO0 + i),
-          slave_o           => cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i),
-          irq_o             => irq_fifo(i),
-          enable_i          => channel_enable(i),
-          tick_i            => tick_1ms,
-          irq_threshold_i   => irq_threshold,
-          irq_timeout_i     => irq_timeout,
-          timestamp_i       => timestamp,
-          timestamp_valid_i => timestamp_stb,
-          ts_offset_o       => ts_offset(i),
-          reset_seq_o       => reset_seq(i),
-          raw_enable_o      => raw_enable(i));
-
-      timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
-    end generate gen_fifos;
-  end generate gen_enable_fifo_readout;
-
-
-  gen_disable_fifo_readout : if not g_use_fifo_readout generate
-    gen_fifos : for i in 0 to 4 generate
-      timestamp_ready(i) <= '1';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).ack <= '1';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).stall <= '0';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).err <= '0';
-      cnx_master_in(c_WB_SLAVE_TDC_FIFO0 + i).rty <= '0';
-    end generate gen_fifos;
-  end generate gen_disable_fifo_readout;
-  
-
+    timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
+  end generate gen_fifos;
 
   gen_with_dma_readout : if g_use_dma_readout generate
     U_DMA_Engine : entity work.tdc_dma_engine
@@ -547,8 +544,8 @@ begin
         wrabbit_utc_p <= '0';
       else
         if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
-          if unsigned(wrabbit_cycles_i) = (unsigned(c_SYN_CLK_PERIOD)-3) then  -- so that the end of the pulse
-                                        -- comes exactly upon the UTC change
+          -- so that the end of the pulse comes exactly upon the UTC change
+          if unsigned(wrabbit_cycles_i) = (unsigned(c_CLK_PERIOD) - 3) then
             wrabbit_utc_p <= '1';
           else
             wrabbit_utc_p <= '0';

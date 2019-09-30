@@ -19,3 +19,4 @@
 [submodule "hdl/ip_cores/svec"]
 	path = hdl/ip_cores/svec
 	url = https://ohwr.org/project/svec.git
+

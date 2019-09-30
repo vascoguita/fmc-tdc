@@ -132,6 +132,14 @@ entity fmc_tdc_wrapper is
       g_simulation                  : boolean := false;
       -- implement direct TDC timestamp readout FIFO, used in the WR Node projects
       g_with_direct_readout         : boolean := false;
+      -- Enable filtering based on pulse width. This will have the following effects:
+      -- * Suppress theforwarding of negative slope timestamps.
+      -- * Delay the forwarding of timestamps until after the falling edge timestamp.
+      -- Once enabled, all pulses wider than 1 second or narrower than
+      -- g_pulse_width_filter_min will be dropped.
+      g_pulse_width_filter          : boolean := true;
+      -- In 8ns ticks.
+      g_pulse_width_filter_min      : natural := 12;
       g_use_dma_readout             : boolean := false;
       g_use_fifo_readout            : boolean := false;
       g_use_fake_timestamps_for_sim : boolean := false
@@ -242,18 +250,6 @@ end fmc_tdc_wrapper;
 --=================================================================================================
 architecture rtl of fmc_tdc_wrapper is
 
-  component fmc_tdc_direct_readout is
-    port (
-      clk_tdc_i             : in  std_logic;
-      rst_tdc_n_i           : in  std_logic;
-      clk_sys_i             : in  std_logic;
-      rst_sys_n_i           : in  std_logic;
-      direct_timestamp_i    : in  std_logic_vector(127 downto 0);
-      direct_timestamp_wr_i : in  std_logic;
-      direct_slave_i        : in  t_wishbone_slave_in;
-      direct_slave_o        : out t_wishbone_slave_out);
-  end component fmc_tdc_direct_readout;
-
   -- WRabbit clocks
   signal clk_125m_mezz                  : std_logic;
   signal rst_125m_mezz_n, rst_125m_mezz : std_logic;
@@ -270,8 +266,8 @@ architecture rtl of fmc_tdc_wrapper is
 
   signal tdc_scl_out, tdc_scl_oen, tdc_sda_out, tdc_sda_oen : std_logic;
 
-  signal direct_timestamp    : std_logic_vector(127 downto 0);
-  signal direct_timestamp_wr : std_logic;
+  signal timestamp       : t_tdc_timestamp_array(4 downto 0);
+  signal timestamp_valid : std_logic_vector(4 downto 0);
 
   constant c_cnx_slave_ports  : integer := 2;
   constant c_cnx_master_ports : integer := 2;
@@ -322,16 +318,14 @@ begin
         master_i => cnx_master_in,
         master_o => cnx_master_out);
 
-    cmp_direct_readout : fmc_tdc_direct_readout
+    cmp_direct_readout : entity work.fmc_tdc_direct_readout
       port map (
-        clk_tdc_i             => clk_125m_mezz,
-        rst_tdc_n_i           => rst_125m_mezz_n,
-        clk_sys_i             => clk_sys_i,
-        rst_sys_n_i           => rst_sys_n_i,
-        direct_timestamp_i    => direct_timestamp,
-        direct_timestamp_wr_i => direct_timestamp_wr,
-        direct_slave_i        => cnx_master_out(c_slave_direct),
-        direct_slave_o        => cnx_master_in(c_slave_direct));
+        clk_sys_i         => clk_sys_i,
+        rst_sys_n_i       => rst_sys_n_i,
+        timestamp_i       => timestamp,
+        timestamp_valid_i => timestamp_valid,
+        direct_slave_i    => cnx_master_out(c_slave_direct),
+        direct_slave_o    => cnx_master_in(c_slave_direct));
 
 
   end generate gen_with_direct_readout;
@@ -406,6 +400,8 @@ begin
     (g_span                        => 32,
      g_width                       => 32,
      g_simulation                  => g_simulation,
+     g_pulse_width_filter          => g_pulse_width_filter,
+     g_pulse_width_filter_min      => g_pulse_width_filter_min,
      g_use_fifo_readout            => g_use_fifo_readout,
      g_use_dma_readout             => g_use_dma_readout,
      g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
@@ -482,8 +478,9 @@ begin
      i2c_sda_o                => tdc_sda_out,
      -- 1-Wire on TDC mezzanine
      onewire_b                => mezz_one_wire_b,
-     direct_timestamp_o       => direct_timestamp,
-     direct_timestamp_valid_o => direct_timestamp_wr,
+
+     timestamp_o       => timestamp,
+     timestamp_valid_o => timestamp_valid,
 
      sim_timestamp_ready_o => sim_timestamp_ready_o,
      sim_timestamp_valid_i => sim_timestamp_valid_i,
