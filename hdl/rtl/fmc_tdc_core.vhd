@@ -225,7 +225,9 @@ entity fmc_tdc_core is
       
       channel_enable_o : out std_logic_vector(4 downto 0);
       irq_threshold_o  : out std_logic_vector(9 downto 0);
-      irq_timeout_o    : out std_logic_vector(9 downto 0)
+      irq_timeout_o    : out std_logic_vector(9 downto 0);
+
+      fmc_id_i         : in std_logic
       );
 end fmc_tdc_core;
 
@@ -301,7 +303,8 @@ begin
 
   core_status(0)           <= '1' when g_with_dma_readout  else '0';
   core_status(1)           <= '1' when g_with_fifo_readout else '0';
-  core_status(31 downto 2) <= (others => '0');
+  core_status(2)           <= fmc_id_i;
+  core_status(31 downto 3) <= (others => '0');
 
   reg_control_block : entity work.reg_ctrl
     generic map

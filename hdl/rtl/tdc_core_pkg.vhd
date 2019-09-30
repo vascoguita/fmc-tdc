@@ -336,8 +336,8 @@ package tdc_core_pkg is
                                                                            -- corresponds to:
   constant c_STARTING_UTC_ADR     : std_logic_vector(7 downto 0) := x"20"; -- address 0x51080 of GN4124 BAR 0
   constant c_ACAM_INPUTS_EN_ADR   : std_logic_vector(7 downto 0) := x"21"; -- address 0x51084 of GN4124 BAR 0
-  constant c_FMC_ID_ADR           : std_logic_vector(7 downto 0) := x"22"; -- address 0x51088 of GN4124 BAR 0
-  constant c_SPARE_ADR            : std_logic_vector(7 downto 0) := x"23"; -- address 0x5108C of GN4124 BAR 0
+  constant c_START_PHASE_ADR      : std_logic_vector(7 downto 0) := x"22"; -- address 0x51088 of GN4124 BAR 0
+  constant c_ONE_HZ_PHASE_ADR     : std_logic_vector(7 downto 0) := x"23"; -- address 0x5108C of GN4124 BAR 0
 
   constant c_IRQ_TSTAMP_THRESH_ADR: std_logic_vector(7 downto 0) := x"24"; -- address 0x51090 of GN4124 BAR 0
   constant c_IRQ_TIME_THRESH_ADR  : std_logic_vector(7 downto 0) := x"25"; -- address 0x51094 of GN4124 BAR 0
@@ -436,7 +436,10 @@ package tdc_core_pkg is
      clk_tdc_i               : in    std_logic; -- 125 MHz clock
      rst_tdc_i               : in    std_logic; -- reset for 125 MHz logic
 
-         -- WISHBONE interface with the GN4124/VME_core (clk_sys)
+     -- Identification of the FMC core; '0' for SPEC, '0' and '1' for each of SVEC cores
+     fmc_id_i                : in    std_logic;
+
+     -- WISHBONE interface with the GN4124/VME_core (clk_sys)
      -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C 
 
      slave_i: in t_wishbone_slave_in;
@@ -515,6 +518,7 @@ package tdc_core_pkg is
       rst_n_sys_i            : in    std_logic;
       clk_tdc_i              : in    std_logic;
       rst_tdc_i              : in    std_logic;
+      fmc_id_i               : in    std_logic;
       acam_refclk_r_edge_p_i : in    std_logic;
       send_dac_word_p_o      : out   std_logic;
       dac_word_o             : out   std_logic_vector(23 downto 0);
@@ -887,6 +891,7 @@ package tdc_core_pkg is
       clk_sys_i            : in    std_logic;
       rst_sys_n_i          : in    std_logic;
       rst_n_a_i            : in    std_logic;
+      fmc_id_i             : in    std_logic;
       pll_sclk_o           : out   std_logic;
       pll_sdi_o            : out   std_logic;
       pll_cs_o             : out   std_logic;

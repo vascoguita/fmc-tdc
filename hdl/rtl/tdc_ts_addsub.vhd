@@ -44,6 +44,7 @@ use ieee.numeric_std.all;
 
 use work.tdc_core_pkg.all;
 
+-- adds q = a + b, b can be a NEGATIVE timestamp (i.e. a negative offset)
 entity tdc_ts_addsub is
   generic(
     g_frac_range : integer := 4096;

@@ -124,6 +124,8 @@ entity fmc_tdc_mezzanine is
       clk_tdc_i   : in std_logic;       -- 125 MHz clock
       rst_tdc_n_i : in std_logic;       -- reset for 125 MHz logic
 
+      fmc_id_i                  : in std_logic;
+
       acam_refclk_r_edge_p_i    : in    std_logic;
       send_dac_word_p_o         : out   std_logic;
       dac_word_o                : out   std_logic_vector(23 downto 0);
@@ -389,6 +391,8 @@ begin
 
       direct_timestamp_valid_o => direct_timestamp_valid_o,
       direct_timestamp_o       => direct_timestamp_o,
+
+      fmc_id_i         => fmc_id_i,
 
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,

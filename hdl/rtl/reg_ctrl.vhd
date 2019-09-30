@@ -543,7 +543,7 @@ begin
     starting_utc           when c_STARTING_UTC_ADR,
     acam_inputs_en         when c_ACAM_INPUTS_EN_ADR,
     start_phase            when c_START_PHASE_ADR,
-    one_hz_phase           when c_ONE_HZ_PHASE_ADR,
+    x"C000FFEE"            when c_ONE_HZ_PHASE_ADR, -- ref for test
     irq_tstamp_threshold   when c_IRQ_TSTAMP_THRESH_ADR,
     irq_time_threshold     when c_IRQ_TIME_THRESH_ADR,
     x"00" & dac_word       when c_DAC_WORD_ADR,

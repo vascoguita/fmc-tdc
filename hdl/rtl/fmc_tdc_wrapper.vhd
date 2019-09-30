@@ -142,6 +142,8 @@ entity fmc_tdc_wrapper is
       rst_sys_n_i : in std_logic;
       rst_n_a_i   : in std_logic;
 
+      fmc_id_i    : in std_logic;
+
       -- Interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
       pll_sclk_o       : out std_logic;  -- SPI clock
       pll_sdi_o        : out std_logic;  -- data line for PLL and DAC
@@ -414,7 +416,8 @@ begin
      -- 125M clk and reset
      clk_tdc_i   => clk_125m_mezz,
      rst_tdc_n_i => rst_125m_mezz_n,
-
+     -- FMC slot identification
+     fmc_id_i    => fmc_id_i,
      -- Wishbone
      slave_i => cnx_master_out(c_slave_regs),
      slave_o => cnx_master_in(c_slave_regs),

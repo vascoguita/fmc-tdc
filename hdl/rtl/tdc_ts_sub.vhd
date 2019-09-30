@@ -44,6 +44,7 @@ use ieee.numeric_std.all;
 
 use work.tdc_core_pkg.all;
 
+--subtracts q = b - a, both b and a are POSITIVE timestamps
 entity tdc_ts_sub is
 
   port(
