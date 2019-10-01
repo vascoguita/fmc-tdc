@@ -169,6 +169,7 @@ module tdc_gpx_model
    
 	   always@(posedge TStop[gch+1] or negedge TStop[gch+1]) 
 	     if(PuResN && !StopDis[(gch/2)+1]) begin
+	     //if(PuResN) begin
 		automatic acam_hit_t hit;
 		
 		if(g_verbose)

@@ -47,17 +47,19 @@ class FmcTdcDriver;
    task automatic init();
       uint32_t d;
 
+      $display("!!!base: %x", m_base);
 
-      readl('h20000, d); 
-      $display("address 0x20000: %x", d);
-
+      readl('h0, d); 
       if( d != 'h5344422d )
 	begin
-       $error("!!!!address 0x0 %x!!!!", d);
 	   $error("Can't read the SDB signature.");
 	   $stop;
 	end
 
+      $display("address 0x20000: %x", d);
+
+      readl('h208c, d); 
+      $display("!!!address 0x2208c: %x", d);
 
       
       writel('h20a0, 1234);  // set UTC
@@ -255,11 +257,44 @@ module main;
     acc.read('h2208c, d); 
       $display("address 0x2208c: %x", d);
 
-    acc.write('h22080, 1234);  // starting UTC
-    acc.write('h220fc, 1<<9); // load UTC
+    //acc.write('h22080, 1234);  // starting UTC
+    //acc.write('h220fc, 1<<9); // load UTC
 
 
-	drv = new (acc, 'h40000, 0 );
+    //acc.write('h22080, 1234);  // 
+    //acc.write('h220fc, 1<<9); // 
+
+    //acc.write('h23004, 'h1f); // 
+      //writel('h3004, 'h1f); // enable EIC irqs for all FIFO channels
+
+    //acc.write('h22084, 'h1f0000); // 
+      //writel('h2084, 'h1f0000); // enable all ACAM inputs
+
+    //acc.write('h22090, 2); // 
+      //writel('h2090, 2); // FIFO threshold = 2 ts
+
+    //acc.write('h22094, 2); // 
+      //writel('h2094, 2); // FIFO threshold = 2 ms
+
+    //acc.write('h220FC, (1<<0)); // 
+      //writel('h20fc, (1<<0)); // start acquisition
+
+    //acc.write('h220BC, ((-1)<<1)); // 
+      //writel('h20bc, ((-1)<<1));
+
+
+      //writel('h20a0, 1234);  // set UTC
+      //writel('h20fc, 1<<9); // load UTC
+      //writel('h3004, 'h1f); // enable EIC irqs for all FIFO channels
+      //writel('h2084, 'h1f0000); // enable all ACAM inputs
+      //writel('h2090, 2); // FIFO threshold = 2 ts
+      //writel('h2094, 2); // FIFO threshold = 2 ms
+      //writel('h20fc, (1<<0)); // start acquisition
+      //writel('h20bc, ((-1)<<1));
+
+
+
+	drv = new (acc, 'h20000, 0 );
 	drv.init();
 	
 	$display("Start operation");
