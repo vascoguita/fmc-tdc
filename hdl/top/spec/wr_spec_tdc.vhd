@@ -355,7 +355,7 @@ architecture rtl of wr_spec_tdc is
   constant c_WB_LAYOUT_MASK :
     t_wishbone_address_array(c_NUM_WB_SLAVES - 1 downto 0) := (
       c_WB_SLAVE_METADATA => x"0003_ffc0",  -- 0x40    bytes  : not(0x40   -1) = not(0x3F)   = c0
-      c_WB_SLAVE_FMC_TDC  => x"0002_0000"); -- 0x20000 bytes  : not(0x6200 -1) = not(0x1FFF) = e0000
+      c_WB_SLAVE_FMC_TDC  => x"0002_0000");
 
   -----------------------------------------------------------------------------
   -- Signals
@@ -664,7 +664,7 @@ begin
   cmp_fmc_tdc_mezzanine : entity work.fmc_tdc_wrapper
     generic map (
       g_simulation                  => g_simulation,
-      g_with_direct_readout         => false,
+      g_with_direct_readout         => false, -- for embedded applications, like WRTD
       g_use_dma_readout             => g_use_dma_readout,
       g_use_fifo_readout            => true,
       g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
@@ -702,12 +702,12 @@ begin
       term_en_3_o          => fmc0_tdc_term_en_3_o,
       term_en_4_o          => fmc0_tdc_term_en_4_o,
       term_en_5_o          => fmc0_tdc_term_en_5_o,
-      tdc_led_status_o     => fmc0_tdc_led_status_o,
-      tdc_led_trig1_o      => fmc0_tdc_led_trig1_o,
-      tdc_led_trig2_o      => fmc0_tdc_led_trig2_o,
-      tdc_led_trig3_o      => fmc0_tdc_led_trig3_o,
-      tdc_led_trig4_o      => fmc0_tdc_led_trig4_o,
-      tdc_led_trig5_o      => fmc0_tdc_led_trig5_o,
+      tdc_led_stat_o       => fmc0_tdc_led_status_o,
+      tdc_led_trig_o(0)    => fmc0_tdc_led_trig1_o,
+      tdc_led_trig_o(1)    => fmc0_tdc_led_trig2_o,
+      tdc_led_trig_o(2)    => fmc0_tdc_led_trig3_o,
+      tdc_led_trig_o(3)    => fmc0_tdc_led_trig4_o,
+      tdc_led_trig_o(4)    => fmc0_tdc_led_trig5_o,
 
       mezz_scl_o           => tdc_scl_oen,
       mezz_sda_o           => tdc_sda_oen,

@@ -90,33 +90,6 @@
 --                           Figure 1: TDC core architecture                                      |
 --                                                                                                |
 --                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v6                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v1  GP  First version                                                             |
---     06/2012  v2  EG  Revamping; Comments added, signals renamed                                |
---                      removed LEDs from top level                                               |
---                      new GN4124 core integrated                                                |
---                      carrier 1 wire master added                                               |
---                      mezzanine I2C master added                                                |
---                      mezzanine 1 wire master added                                             |
---                      interrupts generator added                                                |
---                      changed generation of rst_i                                               |
---                      DAC reconfiguration+needed regs added                                     |
---     06/2012  v3  EG  Changes for v2 of TDC mezzanine                                           |
---                      Several pinout changes,                                                   |
---                      acam_ref_clk LVDS instead of CMOS,                                        |
---                      no PLL_LD only PLL_STATUS                                                 |
---     04/2013  v4  EG  created fmc_tdc_core module; before was all on fmc_tdc_core               |
---     07/2013  v5  EG  removed the clks_rsts_manager from the core; will go to top level         |
---     09/2013  v5.1EG  added block of comments and architecture drawing                          |
---     04/2014  v6  EG  added WRabbit support                                                     |
---                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -197,13 +170,8 @@ entity fmc_tdc_core is
       term_en_4_o            : out   std_logic;  -- Ch.4 termination enable of 50 Ohm termination
       term_en_5_o            : out   std_logic;  -- Ch.5 termination enable of 50 Ohm termination
       -- LEDs on TDC mezzanine
-      tdc_led_status_o       : out   std_logic;  -- amber led on front pannel, division of clk_tdc_i
-      tdc_led_trig1_o        : out   std_logic;  -- amber led on front pannel, Ch.1 termination
-      tdc_led_trig2_o        : out   std_logic;  -- amber led on front pannel, Ch.2 termination
-      tdc_led_trig3_o        : out   std_logic;  -- amber led on front pannel, Ch.3 termination
-      tdc_led_trig4_o        : out   std_logic;  -- amber led on front pannel, Ch.4 termination
-      tdc_led_trig5_o        : out   std_logic;  -- amber led on front pannel, Ch.5 termination
-
+      tdc_led_stat_o         : out   std_logic;  -- amber led on front pannel, division of clk_tdc_i
+      tdc_led_trig_o         : out   std_logic_vector(4 downto 0); -- one amber led on front pannel per Ch
 
 -- White Rabbit control and status registers
       wrabbit_status_reg_i : in  std_logic_vector(g_width-1 downto 0);
@@ -270,8 +238,7 @@ architecture rtl of fmc_tdc_core is
   signal utc, wrabbit_ctrl_reg                               : std_logic_vector(g_width-1 downto 0);
 
   -- LEDs
-  signal acam_channel        : std_logic_vector(5 downto 0);
-  signal acam_tstamp_channel : std_logic_vector(2 downto 0);
+  signal term_enable_tdc     : std_logic_vector(4 downto 0);
 
   signal raw_timestamp_valid : std_logic;
   signal raw_timestamp       : t_acam_timestamp;
@@ -541,6 +508,11 @@ begin
      );
 
 
+---------------------------------------------------------------------------------------------------
+--                                   TSTAMP FINAL FORMAT                                         --
+--                            ADDITION OF OFFSETS (EX.CALIBRATION)                               --
+--                                FILTERING BY PULSE WIDTH                                       --
+---------------------------------------------------------------------------------------------------
   U_FilterAndConvert : entity work.timestamp_convert_filter
     generic map (
       g_pulse_width_filter     => g_pulse_width_filter,
@@ -561,7 +533,6 @@ begin
       reset_seq_i  => reset_seq_i,
       raw_enable_i => raw_enable_i
       );
-
 
 ---------------------------------------------------------------------------------------------------
 --                                       UTC timing source                                       --
@@ -584,24 +555,10 @@ begin
     (clk_i            => clk_tdc_i,
      rst_i            => rst_tdc,
      utc_p_i          => utc_p,
-     tstamp_wr1_p_i   => final_timestamp_valid(0),
-     tstamp_wr2_p_i   => final_timestamp_valid(1),
-     tstamp_wr3_p_i   => final_timestamp_valid(2),
-     tstamp_wr4_p_i   => final_timestamp_valid(3),
-     tstamp_wr5_p_i   => final_timestamp_valid(4),
-     term_en_5_i      => acam_inputs_en(4),
-     term_en_4_i      => acam_inputs_en(3),
-     term_en_3_i      => acam_inputs_en(2),
-     term_en_2_i      => acam_inputs_en(1),
-     term_en_1_i      => acam_inputs_en(0),
-     tdc_led_status_o => tdc_led_status_o,
-     tdc_led_trig1_o  => tdc_led_trig1_o,
-     tdc_led_trig2_o  => tdc_led_trig2_o,
-     tdc_led_trig3_o  => tdc_led_trig3_o,
-     tdc_led_trig4_o  => tdc_led_trig4_o,
-     tdc_led_trig5_o  => tdc_led_trig5_o);
-
-  acam_channel <= "000" & acam_tstamp_channel;
+     tstamp_valid_p_i => final_timestamp_valid,
+     term_en_i        => term_enable_tdc,
+     tdc_led_stat_o   => tdc_led_stat_o,
+     tdc_led_trig_o   => tdc_led_trig_o);
 
 ---------------------------------------------------------------------------------------------------
 --                                    ACAM start_dis, not used                                   --
@@ -617,6 +574,7 @@ begin
       d_i       => channel_enable_tdc,
       q_o       => channel_enable_sys);
 
+  term_enable_tdc <= acam_inputs_en(4 downto 0);
   channel_enable_tdc <= acam_inputs_en(20 downto 16);
   channel_enable_o   <= channel_enable_sys;
 

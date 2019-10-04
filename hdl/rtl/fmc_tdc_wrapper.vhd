@@ -7,94 +7,59 @@
 
 ---------------------------------------------------------------------------------------------------
 --                                                                                                |
---                                        spec_top_fmc_tdc                                        |
+--                                        fmc_tdc_wrapper                                         |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
--- File         spec_top_fmc_tdc.vhd                                                              |
---                                                                                                |
--- Description  TDC top level for a SPEC carrier. Figure 1 shows the architecture of the unit.    |
---                                                                                                |
---              For the communication with the PCIe, the ohwr.org GN4124 core is instantiated.    |
---                                                                                                |
+-- Description  Wrapper of the fmc_tdc_mezzanine core. It instantiates:
+--              - the FMC-TDC mezzanine core for communication with the TDC board
+---------------------------------------------------------------------------------------------------
 --              The TDC mezzanine core is instantiated for the communication with the TDC board.  |
---              The VIC core is forwarding the interrupts coming from the TDC mezzanine core to   |
---                the GN4124 core.                                                                |
---              The carrier_info module provides general information on the SPEC PCB version, PLLs |
---                locking state etc.                                                              |
---              The 1-Wire core provides communication with the SPEC Thermometer&UniqueID chip.   |
---              All the cores communicate with the GN4124 core through the SDB crossbar. The SDB  |
---              crossbar is responsible for managing the acess to the GN4124 core.                |
+--              The TDC mezzanine core is running at 125 MHz. Like this the TDC core can keep up  |
+--              to speed with the maximum speed that the ACAM can be receiving timestamps.        |
+--              All the other cores are running at 62.5 MHz                                                 |
 --                                                                                                |
---              The speed of all the cores (TDC mezzanine, VIC, carrier csr, 1-Wire as well as    |
---              the GN4124 core) is 125MHz.                                                       |
+--              The 62.5MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of |
+--              the SPEC board.                                                                   |
+--              The 125MHz clock for each TDC mezzanine comes from the PLL located on it.         |
+--              A clks_rsts_manager unit is responsible for automatically configuring the PLL upon|
+--              the FPGA startup, using the 62.5MHz clock. The clks_rsts_manager is keeping the   |
+--              the TDC mezzanine core under reset until the respective PLL gets locked.          |
 --                                                                                                |
---              The 125MHz clock comes from the PLL located on the TDC mezzanine board.           |
---              The clks_rsts_manager unit is responsible for automatically configuring the PLL   |
---              upon the FPGA startup or after a PCIe reset, using the 20MHz VCXO on the SPEC     |
---              carrier board. The clks_rsts_manager is keeping all the rest of the logic under   |
---              reset until the PLL gets locked.                                                  |
+--              For the TDC mezzanine core, the crossing from the 125 MHz world to the 62.5 MHz   |
+--              world takes place through the dedicated clock_crossing module.                    |
 --                                                                                                |
---                __________________________________________________________________              |
---   ________    |                                           ___        _____       |             |
---  |        |   |            ___________________           |   |      |     |      |             |
---  |  PLL   |<->|           | clks rsts manager |          |   |      |     |      |             |
---  |  DAC   |   |           |___________________|          |   |      |     |      |             |
---  |        |   |       ____________________________       |   |      |     |      |             |
---  |        |   |      |                            | \    |   |      |     |      |             |
---  |  ACAM  |<->|      |       TDC mezzanine        |  \   |   |      |     |      |             |
---  |________|   |   |--|____________________________|   \  |   |      |  G  |      |             |
---   TDC mezz    |   |                                    \ |   |      |     |      |             |
---               |   |   ____________________________       | S |      |  N  |      |             |
---               |   |->|                            |      |   |      |     |      |             |
---               |      | Vector Interrupt Controller| ---- | D | <--> |  4  |      |             |
---               |      |____________________________|      |   |      |     |      |             |
---               |                                          | B |      |  1  |      |             |
---               |       ____________________________       |   |      |     |      |             |
---               |      |                            |      |   |      |  2  |      |             |
--- SPEC 1Wire <->|      |          1-Wire            | ---- |   |      |     |      |             |
---               |      |____________________________|      |   |      |  4  |      |             |
---               |                                        / |   |      |     |      |             |
---               |       ____________________________    /  |   |      |     |      |             |
---               |      |                            |  /   |   |      |     |      |             |
---               |      |        carrier_info         | /    |   |      |     |      |             |
---               |      |____________________________|      |   |      |     |      |             |
---               |                                          |___|      |_____|      |             |
---               |                                                                  |             |
---               |      ______________________________________________              |             |
--- SPEC LEDs  <->|     |___________________LEDs_______________________|             |             |
---               |                                                                  |             |
---               |__________________________________________________________________|             |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         01/2014                                                                           |
--- Version      v5 (see sdb_meta_pkg)                                                             |
--- Depends on                                                                                     |
---
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v1  GP  First version                                                             |
---     06/2012  v2  EG  Revamping; Comments added, signals renamed                                |
---                      removed LEDs from top level                                               |
---                      new GN4124 core integrated                                                |
---                      carrier 1 wire master added                                               |
---                      mezzanine I2C master added                                                |
---                      mezzanine 1 wire master added                                             |
---                      interrupts generator added                                                |
---                      changed generation of rst_125m_mezz                                         |
---                      DAC reconfiguration+needed regs added                                     |
---     06/2012  v3  EG  Changes for v2 of TDC mezzanine                                           |
---                      Several pinout changes,                                                   |
---                      acam_ref_clk LVDS instead of CMOS,                                        |
---                      no PLL_LD only PLL_STATUS                                                 |
---     04/2013  v4  EG  added SDB; fixed bugs in data_formatting; added carrier CSR information   |
---     01/2014  v5  EG  added VIC and EIC in the TDC mezzanine                                    |
---                                                                                                |
-----------------------------------------------/!\-------------------------------------------------|
--- Note for eva: Remember the design is synthesised with Synplify Premier with DP (tdc_syn.prj)   |
--- For PAR use the tdc_par_script.tcl commands in Xilinx ISE!                                     |
----------------------------------------------------------------------------------------------------
+--                ___________________________________________________________________________     |
+--               |                                                                           |    |
+--               |       ____________________________                 ___        _____       |    |
+--               |      |                            |               |   |      |     |      |    |
+--        |------|------|  WRabbit core, PHY, DAC    |  <----------> |   |      |     |      |    |
+--       \/      |      |____________________________|               |   |      |     |      |    |
+--   ________    |                            62.5MHz                |   |      |     |      |    |
+--  |        |   |       ___________________                         |   |      |     |      |    |
+--  |  DAC   |<->|      | clks rsts manager |                        |   |      |  G  |      |    |
+--  |  PLL   |          |___________________|                        |   |      |     |      |    |
+--  |        |   |       ____________________________   _______      | S |      |  N  |      |    |
+--  |        |   |      |                            | | clk   |     |   |      |     |      |    |
+--  |  ACAM  |<->|      |       TDC mezzanine        |-| cross |<--> |   |      |  4  |      |    |
+--  |________|   |   |--|____________________________| |_______|     | D |      |     |      |    |
+--   TDC mezz    |   |                         125MHz   62.5MHz      |   |      |  1  |      |    |
+--               |   |   ____________________________                |   |      |     |      |    |
+--               |   |->|                            |               | B |      |  2  |      |    |
+--               |      | Vector Interrupt Controller| <---------->  |   | <--> |     |      |    |
+--               |      |____________________________|               |   |      |  4  |      |    |
+--               |                            62.5MHz                |   |      |     |      |    |
+--               |       ____________________________                |   |      |     |      |    |
+--               |      |                            |               |   |      |     |      |    |
+--               |      |        carrier_info        | <---------->  |   |      |     |      |    |
+--               |      |____________________________|               |   |      |     |      |    |
+--               |                            62.5MHz                |___|      |_____|      |    |
+--               |                                                                           |    |
+--               |      ______________________________________________                       |    |
+-- SPEC LEDs  <->|     |___________________LEDs_______________________|                      |    |
+--               |                                                                           |    |
+--               |___________________________________________________________________________|    |
+
+
 
 ---------------------------------------------------------------------------------------------------
 --                               GNU LESSER GENERAL PUBLIC LICENSE                                |
@@ -189,12 +154,10 @@ entity fmc_tdc_wrapper is
       term_en_5_o     : out std_logic;  -- Ch.5 termination enable of 50 Ohm termination
 
       -- LEDs on TDC mezzanine
-      tdc_led_status_o : out std_logic;  -- amber led on front pannel, division of 125 MHz tdc_clk
-      tdc_led_trig1_o  : out std_logic;  -- amber led on front pannel, Ch.1 enable
-      tdc_led_trig2_o  : out std_logic;  -- amber led on front pannel, Ch.2 enable
-      tdc_led_trig3_o  : out std_logic;  -- amber led on front pannel, Ch.3 enable
-      tdc_led_trig4_o  : out std_logic;  -- amber led on front pannel, Ch.4 enable
-      tdc_led_trig5_o  : out std_logic;  -- amber led on front pannel, Ch.5 enable
+      tdc_led_stat_o   : out std_logic;  -- amber led on front pannel, division of 125 MHz tdc_clk
+      tdc_led_trig_o     : out std_logic_vector(4 downto 0); -- one amber led on front pannel per Ch
+                                                           -- blink indicated generation of a valid tstamp;
+                                                           -- ON without input pulses indicates termination enabled
 
 
       -- I2C EEPROM interface on TDC mezzanine
@@ -450,12 +413,8 @@ begin
      term_en_4_o            => term_en_4_o,
      term_en_5_o            => term_en_5_o,
      -- LEDs on TDC mezzanine
-     tdc_led_status_o       => tdc_led_status_o,
-     tdc_led_trig1_o        => tdc_led_trig1_o,
-     tdc_led_trig2_o        => tdc_led_trig2_o,
-     tdc_led_trig3_o        => tdc_led_trig3_o,
-     tdc_led_trig4_o        => tdc_led_trig4_o,
-     tdc_led_trig5_o        => tdc_led_trig5_o,
+     tdc_led_stat_o         => tdc_led_stat_o,
+     tdc_led_trig_o         => tdc_led_trig_o,
      -- WISHBONE interface with the GN4124 core
 
      -- White Rabbit

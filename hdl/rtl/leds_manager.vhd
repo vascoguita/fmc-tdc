@@ -21,20 +21,12 @@
 --                                       | O  O |   5, STA                                        |
 --                                       |______|                                                 |
 --                                                                                                |
---              TDC LEDs: blink upon reception of a pulse. Inverted blinking
---              (LED permanently on without pulses on the input) indicates the
---              50 Ohm termination is active on the channel.
---
+--              TDC LEDs: blink upon the generation of a valid timestamp                          |
+--              Inverted blinking (LED permanently ON without pulses in the input) indicates the  |
+--              50 Ohm termination is active on the channel.                                      |
+--                                                                                                |
 --              TDC LED STA orange:division of the 125 MHz clock; one hz pulses                   |
 --                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
--- Date         05/2012                                                                           |
--- Version      v0.1                                                                              |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2012  v0.1  EG  First version                                                           |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -57,11 +49,11 @@
 
 -- Standard library
 library IEEE;
-use IEEE.STD_LOGIC_1164.all;            -- std_logic definitions
-use IEEE.NUMERIC_STD.all;               -- conversion functions
+use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
+use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific libraries
 library work;
-use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
+use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
 use work.gencores_pkg.all;
 
 
@@ -76,33 +68,22 @@ entity leds_manager is
   port
     -- INPUTS
     -- Signals from the clks_rsts_manager
-    (clk_i : in std_logic;              -- 125 MHz clock
-     rst_i : in std_logic;  -- core internal reset, synched with 125 MHz clk
+    (clk_i            : in std_logic;  -- 125 MHz clock
+     rst_i            : in std_logic;  -- core internal reset, synched with 125 MHz clk
 
      -- Signal from the one_hz_generator unit
-     utc_p_i : in std_logic;
+     utc_p_i          : in std_logic;
 
-     tstamp_wr1_p_i : in std_logic;  -- pulse upon the writing of the timestamp
-     tstamp_wr2_p_i : in std_logic;  -- pulse upon the writing of the timestamp
-     tstamp_wr3_p_i : in std_logic;  -- pulse upon the writing of the timestamp
-     tstamp_wr4_p_i : in std_logic;  -- pulse upon the writing of the timestamp
-     tstamp_wr5_p_i : in std_logic;  -- pulse upon the writing of the timestamp
-
-     term_en_1_i : in std_logic;
-     term_en_2_i : in std_logic;
-     term_en_3_i : in std_logic;
-     term_en_4_i : in std_logic;
-     term_en_5_i : in std_logic;
-
+     tstamp_valid_p_i : in std_logic_vector(4 downto 0); -- pulse upon writing valid tstamp to FIFO
+     term_en_i        : in std_logic_vector(4 downto 0);
 
      -- OUTPUTS
      -- Signals to the LEDs on the TDC front panel
-     tdc_led_status_o : out std_logic;  -- TDC  LED 1: division of 125 MHz
-     tdc_led_trig1_o  : out std_logic;  -- TDC  LED 2: Channel 1 termination enable
-     tdc_led_trig2_o  : out std_logic;  -- TDC  LED 3: Channel 2 termination enable
-     tdc_led_trig3_o  : out std_logic;  -- TDC  LED 4: Channel 3 termination enable
-     tdc_led_trig4_o  : out std_logic;  -- TDC  LED 5: Channel 4 termination enable
-     tdc_led_trig5_o  : out std_logic);  -- TDC  LED 6: Channel 5 termination enable
+     tdc_led_stat_o   : out std_logic;                   -- LED STA: division of 125 MHz
+     tdc_led_trig_o   : out std_logic_vector(4 downto 0));-- LED 2..5: Blinking indicates generation 
+                                                         --           of a valid tstamp;  
+                                                         --           permanently ON without pulses
+                                                         -- in the input indicates 50Ohm termination 
 
 end leds_manager;
 
@@ -112,18 +93,14 @@ end leds_manager;
 --=================================================================================================
 architecture rtl of leds_manager is
 
-  signal tdc_led_blink_done                                                        : std_logic;
-  signal visible_blink_length                                                      : std_logic_vector(g_width-1 downto 0);
-  signal rst_n, blink_led1, blink_led2                                             : std_logic;
-  signal ch1, ch2, ch3, ch4, ch5                                                   : std_logic;
-  signal blink_led3, blink_led4, blink_led5                                        : std_logic;
-  signal blink_led                                                                 : std_logic;
-  signal acam_channel                                                              : std_logic_vector(5 downto 0);
-  signal tdc_led_trig1, tdc_led_trig2, tdc_led_trig3, tdc_led_trig4, tdc_led_trig5 : std_logic;
+  signal tdc_led_blink_done   : std_logic;
+  signal visible_blink_length : std_logic_vector(g_width-1 downto 0);
+  signal rst_n                : std_logic;
+  signal tdc_led_trig         : std_logic_vector (4 downto 0);
 
 begin
 ---------------------------------------------------------------------------------------------------
---                                     TDC FRONT PANEL LED 1                                     --
+--                                   TDC FRONT PANEL LED STA                                     --
 ---------------------------------------------------------------------------------------------------  
 
 ---------------------------------------------------------------------------------------------------
@@ -141,11 +118,11 @@ begin
   begin
     if rising_edge (clk_i) then
       if rst_i = '1' then
-        tdc_led_status_o <= '0';
+        tdc_led_stat_o <= '0';
       elsif utc_p_i = '1' then
-        tdc_led_status_o <= '1';
+        tdc_led_stat_o <= '1';
       elsif tdc_led_blink_done = '1' then
-        tdc_led_status_o <= '0';
+        tdc_led_stat_o <= '0';
       end if;
     end if;
   end process;
@@ -154,7 +131,7 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                                    TDC FRONT PANEL LEDs 2-6                                   --
+--                                   TDC FRONT PANEL LEDs CH 1-5                                 --
 --------------------------------------------------------------------------------------------------- 
 ---------------------------------------------------------------------------------------------------
   rst_n <= not(rst_i);
@@ -166,8 +143,8 @@ begin
     port map
     (clk_i      => clk_i,
      rst_n_i    => rst_n,
-     pulse_i    => tstamp_wr1_p_i,
-     extended_o => tdc_led_trig1);
+     pulse_i    => tstamp_valid_p_i(0),
+     extended_o => tdc_led_trig(0));
 
   cmp_extend_ch2_pulse : gc_extend_pulse
     generic map
@@ -175,8 +152,8 @@ begin
     port map
     (clk_i      => clk_i,
      rst_n_i    => rst_n,
-     pulse_i    => tstamp_wr2_p_i,
-     extended_o => tdc_led_trig2);
+     pulse_i    => tstamp_valid_p_i(1),
+     extended_o => tdc_led_trig(1));
 
   cmp_extend_ch3_pulse : gc_extend_pulse
     generic map
@@ -184,8 +161,8 @@ begin
     port map
     (clk_i      => clk_i,
      rst_n_i    => rst_n,
-     pulse_i    => tstamp_wr3_p_i,
-     extended_o => tdc_led_trig3);
+     pulse_i    => tstamp_valid_p_i(2),
+     extended_o => tdc_led_trig(2));
 
   cmp_extend_ch4_pulse : gc_extend_pulse
     generic map
@@ -193,8 +170,8 @@ begin
     port map
     (clk_i      => clk_i,
      rst_n_i    => rst_n,
-     pulse_i    => tstamp_wr4_p_i,
-     extended_o => tdc_led_trig4);
+     pulse_i    => tstamp_valid_p_i(3),
+     extended_o => tdc_led_trig(3));
 
   cmp_extend_ch5_pulse : gc_extend_pulse
     generic map
@@ -202,14 +179,14 @@ begin
     port map
     (clk_i      => clk_i,
      rst_n_i    => rst_n,
-     pulse_i    => tstamp_wr5_p_i,
-     extended_o => tdc_led_trig5);
+     pulse_i    => tstamp_valid_p_i(4),
+     extended_o => tdc_led_trig(4));
 
-  tdc_led_trig1_o <= tdc_led_trig1 xor term_en_1_i;
-  tdc_led_trig2_o <= tdc_led_trig2 xor term_en_2_i;
-  tdc_led_trig3_o <= tdc_led_trig3 xor term_en_3_i;
-  tdc_led_trig4_o <= tdc_led_trig4 xor term_en_4_i;
-  tdc_led_trig5_o <= tdc_led_trig5 xor term_en_5_i;
+  tdc_led_trig_o(0) <= tdc_led_trig(0) xor term_en_i(0);
+  tdc_led_trig_o(1) <= tdc_led_trig(1) xor term_en_i(1);
+  tdc_led_trig_o(2) <= tdc_led_trig(2) xor term_en_i(2);
+  tdc_led_trig_o(3) <= tdc_led_trig(3) xor term_en_i(3);
+  tdc_led_trig_o(4) <= tdc_led_trig(4) xor term_en_i(4);
 
 end rtl;
 ----------------------------------------------------------------------------------------------------

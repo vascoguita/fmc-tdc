@@ -129,13 +129,19 @@ begin
 
   raw_enable_o <= channel_reg_out.csr_raw_mode_o;
 
+
+
+---------------------------------------------------------------------------------------------------
+--                  Tstamps subtraction to calculate rising timestap deltas                      --
+---------------------------------------------------------------------------------------------------
+-- Latching of the last rising edge tstamp
   p_latch_ref_timestamp : process(clk_sys_i)
   begin
     if rising_edge(clk_sys_i) then
       if rst_sys_n_i = '0' or enable_i = '0' then
-        ref_valid <= '0';
+        ref_valid   <= '0';
       else
-        -- latch only the last rising edge TS
+        -- latch only the last rising edge tstamp
         if (enable_i = '1' and timestamp_valid_i = '1') then
           ref_valid <= '1';
           ref_ts    <= timestamp_i;
@@ -146,6 +152,7 @@ begin
 
   sub_valid <= ref_valid and timestamp_valid_i;
 
+-- Tstamp pipelined subtractor
   U_Subtractor : entity work.tdc_ts_sub
     port map (
       clk_i    => clk_sys_i,
@@ -157,6 +164,7 @@ begin
       valid_o  => sub_out_valid,
       q_o      => sub_result);
 
+-- Deltas calculations
   p_latch_deltas : process(clk_sys_i)
   begin
     if rising_edge(clk_sys_i) then

@@ -65,7 +65,7 @@ package tdc_core_pkg is
   type t_raw_acam_timestamp is record
     seconds               : std_logic_vector(31 downto 0);  -- 32
     acam_bins             : std_logic_vector(16 downto 0);  -- 32 + 17 = 49
-    acam_start_nb : std_logic_vector(7 downto 0);      
+    acam_start_nb         : std_logic_vector(7 downto 0);      
     roll_over_incr_recent : std_logic;
     clk_i_cycles_offset   : std_logic_vector(7 downto 0);   -- 60 + 8 = 68
     roll_over_nb          : std_logic_vector(15 downto 0);  -- 68 + 16 = 84
@@ -472,12 +472,8 @@ package tdc_core_pkg is
      term_en_4_o               : out   std_logic;
      term_en_5_o               : out   std_logic;
      -- TDC board LEDs
-     tdc_led_status_o          : out   std_logic;
-     tdc_led_trig1_o           : out   std_logic;
-     tdc_led_trig2_o           : out   std_logic;
-     tdc_led_trig3_o           : out   std_logic;
-     tdc_led_trig4_o           : out   std_logic;
-     tdc_led_trig5_o           : out   std_logic;
+     tdc_led_stat_o            : out   std_logic;
+     tdc_led_trig_o            : out   std_logic_vector(4 downto 0);
      -- White Rabbit core
      wrabbit_link_up_i         : in    std_logic;
      wrabbit_time_valid_i      : in    std_logic;
@@ -541,12 +537,8 @@ package tdc_core_pkg is
       term_en_3_o            : out   std_logic;
       term_en_4_o            : out   std_logic;
       term_en_5_o            : out   std_logic;
-      tdc_led_status_o       : out   std_logic;
-      tdc_led_trig1_o        : out   std_logic;
-      tdc_led_trig2_o        : out   std_logic;
-      tdc_led_trig3_o        : out   std_logic;
-      tdc_led_trig4_o        : out   std_logic;
-      tdc_led_trig5_o        : out   std_logic;
+      tdc_led_stat_o         : out   std_logic;
+      tdc_led_trig_o         : out   std_logic_vector(4 downto 0);
       wrabbit_status_reg_i   : in    std_logic_vector(g_width-1 downto 0);
       wrabbit_ctrl_reg_o     : out   std_logic_vector(g_width-1 downto 0);
       wrabbit_synched_i      : in    std_logic;
@@ -814,40 +806,6 @@ package tdc_core_pkg is
        pll_status_o           : out std_logic);
       ----------------------------------------------------------------------
   end component;
-
-
----------------------------------------------------------------------------------------------------
-  component carrier_info
-    port
-      (rst_n_i                           : in  std_logic;
-       clk_sys_i                         : in  std_logic;
-       wb_adr_i                          : in  std_logic_vector(1 downto 0);
-       wb_dat_i                          : in  std_logic_vector(31 downto 0);
-       wb_dat_o                          : out std_logic_vector(31 downto 0);
-       wb_cyc_i                          : in  std_logic;
-       wb_sel_i                          : in  std_logic_vector(3 downto 0);
-       wb_stb_i                          : in  std_logic;
-       wb_we_i                           : in  std_logic;
-       wb_ack_o                          : out std_logic;
-       wb_stall_o                        : out std_logic;
-       carrier_info_carrier_pcb_rev_i    : in  std_logic_vector(3 downto 0);
-       carrier_info_carrier_reserved_i   : in  std_logic_vector(11 downto 0);
-       carrier_info_carrier_type_i       : in  std_logic_vector(15 downto 0);
-       carrier_info_stat_fmc_pres_i      : in  std_logic;
-       carrier_info_stat_p2l_pll_lck_i   : in  std_logic;
-       carrier_info_stat_sys_pll_lck_i   : in  std_logic;
-       carrier_info_stat_ddr3_cal_done_i : in  std_logic;
-       carrier_info_stat_reserved_i      : in  std_logic_vector(27 downto 0);
-       carrier_info_ctrl_led_green_o     : out std_logic;
-       carrier_info_ctrl_led_red_o       : out std_logic;
-       carrier_info_ctrl_dac_clr_n_o     : out std_logic;
-       carrier_info_ctrl_reserved_o      : out std_logic_vector(28 downto 0);
-       carrier_info_rst_fmc0_n_o         : out std_logic;
-       carrier_info_rst_fmc0_n_i         : in  std_logic;
-       carrier_info_rst_fmc0_n_load_o    : out std_logic;
-       carrier_info_rst_reserved_o       : out std_logic_vector(30 downto 0));
-  end component carrier_info;
-
 
 
 ---------------------------------------------------------------------------------------------------

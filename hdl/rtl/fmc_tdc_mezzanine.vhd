@@ -12,7 +12,7 @@
 ---------------------------------------------------------------------------------------------------
 -- File         fmc_tdc_mezzanine.vhd                                                             |
 --                                                                                                |
--- Description  The unit combines                                                                 |
+-- Description  The unit instantiates                                                             |
 --                o the TDC core                                                                  |
 --                o the wrabbit_sync unit that is managing the White Rabbit synchronization  and  |
 --                  control signals                                                               |
@@ -21,8 +21,8 @@
 --                o the Embedded Interrupt Controller core that concentrates several interrupt    |
 --                  sources into one WISHBONE interrupt request line.                             |
 --                                                                                                |
---              For the interconnection between the GN4124/VME core and the different cores (TDC, |
---              I2C, 1W, EIC, timestamps memory) the unit instantiates an SDB crossbar.           |
+--              For the interconnection between the host (GN4124/VME core) and the different cores|
+--              (TDC, I2C, 1W, EIC, timestamps memory) the unit instantiates an SDB crossbar.     |
 --                                                                                                |
 --              Note that the TDC core uses word addressing, whereas the GN4124/VME cores use byte|
 --              addressing                                                                        |
@@ -60,20 +60,6 @@
 --                         Figure 1: FMC TDC mezzanine architecture and                           |
 --                          connection with the clks_rsts_manager unit                            |
 --                                                                                                |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         01/2014                                                                           |
--- Version      v2                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     07/2013  v1  EG  First version                                                             |
---     01/2014  v2  EG  Different output for the timestamp data                                   |
---     01/2014  v3  EG  Removed option for timestamps retrieval through DMA                       |
---     08/2014  v4  EG  Corrected missalignement between wrabbit_tai and wrabbit_tai_p (line 444) |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -159,12 +145,8 @@ entity fmc_tdc_mezzanine is
       term_en_4_o               : out   std_logic;
       term_en_5_o               : out   std_logic;
       -- TDC board LEDs
-      tdc_led_status_o          : out   std_logic;
-      tdc_led_trig1_o           : out   std_logic;
-      tdc_led_trig2_o           : out   std_logic;
-      tdc_led_trig3_o           : out   std_logic;
-      tdc_led_trig4_o           : out   std_logic;
-      tdc_led_trig5_o           : out   std_logic;
+      tdc_led_stat_o            : out   std_logic;
+      tdc_led_trig_o            : out   std_logic_vector(4 downto 0);
       -- White Rabbit core
       wrabbit_link_up_i         : in    std_logic;
       wrabbit_time_valid_i      : in    std_logic;
@@ -346,7 +328,7 @@ begin
      g_with_dma_readout       => g_use_dma_readout,
      g_with_fifo_readout      => g_use_fifo_readout)
     port map
-    (                                   -- clks, rst
+    ( -- clks, rst
       clk_tdc_i   => clk_tdc_i,
       rst_tdc_n_i => rst_tdc_n_i,
       clk_sys_i   => clk_sys_i,
@@ -378,12 +360,8 @@ begin
       term_en_4_o            => term_en_4_o,
       term_en_5_o            => term_en_5_o,
       -- TDC board LEDs
-      tdc_led_status_o       => tdc_led_status_o,
-      tdc_led_trig1_o        => tdc_led_trig1_o,
-      tdc_led_trig2_o        => tdc_led_trig2_o,
-      tdc_led_trig3_o        => tdc_led_trig3_o,
-      tdc_led_trig4_o        => tdc_led_trig4_o,
-      tdc_led_trig5_o        => tdc_led_trig5_o,
+      tdc_led_stat_o         => tdc_led_stat_o,
+      tdc_led_trig_o         => tdc_led_trig_o,
 
       -- WR stuff
       wrabbit_tai_i        => wrabbit_utc_i,
@@ -401,48 +379,21 @@ begin
       timestamp_ready_i => tdc_timestamp_ready,
 
       raw_enable_i => raw_enable,
-      ts_offset_i  => ts_offset,
+      ts_offset_i  => ts_offset, -- to be used by the direct readout
       reset_seq_i  => reset_seq,
 
       fmc_id_i         => fmc_id_i,
 
       irq_threshold_o  => irq_threshold,
       irq_timeout_o    => irq_timeout,
-      channel_enable_o => channel_enable
+      channel_enable_o => channel_enable -- from acam config
       );
 
-
-
-  gen_use_fake_timestamps : if g_use_fake_timestamps_for_sim generate
-
-    process(sim_timestamp_i, sim_timestamp_valid_i)
-    begin
-
-      timestamp_valid <= (others => '0');
-
-      for i in 0 to 4 loop
-        if unsigned(sim_timestamp_i.channel) = i then
-          timestamp(i)       <= sim_timestamp_i;
-          timestamp_valid(i) <= sim_timestamp_valid_i;
-        end if;
-      end loop;
-
-    end process;
-    timestamp_ready <= (others => '1');
-
-  end generate gen_use_fake_timestamps;
-
-  gen_use_real_timestamps : if not g_use_fake_timestamps_for_sim generate
-    timestamp           <= tdc_timestamp;
-    timestamp_valid     <= tdc_timestamp_valid;
-    tdc_timestamp_ready <= timestamp_ready;
-  end generate gen_use_real_timestamps;
-
-  timestamp_o       <= timestamp;
-  timestamp_valid_o <= timestamp_valid;
-
+---------------------------------------------------------------------------------------------------
+--                                           x5 FIFOS                                            --
+---------------------------------------------------------------------------------------------------
+-- A FIFO with the timestamps of each channel
   gen_fifos : for i in 0 to 4 generate
-
     U_TheFifo : entity work.timestamp_fifo
       generic map (
         g_use_fifo_readout => g_use_fifo_readout)
@@ -465,6 +416,9 @@ begin
     timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
   end generate gen_fifos;
 
+---------------------------------------------------------------------------------------------------
+--                                             DMA                                               --
+---------------------------------------------------------------------------------------------------
   gen_with_dma_readout : if g_use_dma_readout generate
     U_DMA_Engine : entity work.tdc_dma_engine
       generic map (
@@ -659,6 +613,36 @@ begin
       id_o(31 downto 0)  => regs_ow_in.tdc_ow_id_l_i,
       temper_o           => regs_ow_in.tdc_ow_temp_i,
       id_read_o          => regs_ow_in.tdc_ow_csr_valid_i);
+
+
+  gen_use_fake_timestamps : if g_use_fake_timestamps_for_sim generate
+
+    process(sim_timestamp_i, sim_timestamp_valid_i)
+    begin
+
+      timestamp_valid <= (others => '0');
+
+      for i in 0 to 4 loop
+        if unsigned(sim_timestamp_i.channel) = i then
+          timestamp(i)       <= sim_timestamp_i;
+          timestamp_valid(i) <= sim_timestamp_valid_i;
+        end if;
+      end loop;
+
+    end process;
+    timestamp_ready <= (others => '1');
+
+  end generate gen_use_fake_timestamps;
+
+  gen_use_real_timestamps : if not g_use_fake_timestamps_for_sim generate
+    timestamp           <= tdc_timestamp;
+    timestamp_valid     <= tdc_timestamp_valid;
+    tdc_timestamp_ready <= timestamp_ready;
+  end generate gen_use_real_timestamps;
+
+  timestamp_o       <= timestamp;
+  timestamp_valid_o <= timestamp_valid;
+
 
 end rtl;
 ----------------------------------------------------------------------------------------------------
