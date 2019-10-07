@@ -18,18 +18,6 @@
 --              If there is no White Rabbit synchronization, this unit is the source of UTC timing|
 --              in the design.
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------

@@ -31,19 +31,6 @@
 --                                                                                                |
 --              All the registers are of size 32 bits, as the WISHBONE data bus                   |
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         08/2012                                                                           |
--- Version      v1                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     10/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     08/2012  v1    EG  added register reg_adr_pipe0 for slack timing reasons                   |
---                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------

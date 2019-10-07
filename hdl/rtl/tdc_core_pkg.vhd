@@ -14,19 +14,6 @@
 --                                                                                                |
 -- Description  Package containing core wide constants and components                             |
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.2                                                                              |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     07/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.2  EG  Revamping; Gathering of all the constants, declarations of all the      |
---                        units; Comments added, signals renamed                                  |
---                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------

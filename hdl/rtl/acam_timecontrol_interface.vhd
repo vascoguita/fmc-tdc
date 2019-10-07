@@ -12,23 +12,9 @@
 ---------------------------------------------------------------------------------------------------
 -- File         acam_timecontrol_interface.vhd                                                    |
 --                                                                                                |
--- Description  interface with the ACAM chip pins for control and timing.                         |
+-- Description  Interface with the ACAM chip pins for control and timing.                         |
 --              the start pulse is sent only once upon the activation of the acquisition,         |
 --              synchronously to the utc_p_i                                                      |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2014  v2    EG  Changed the generation of the start_from_fpga; synchronous to utc_p and |
---                        after the signalling from the data_engine that state_active_p_i         |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 

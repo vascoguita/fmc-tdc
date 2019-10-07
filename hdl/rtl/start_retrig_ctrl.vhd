@@ -88,19 +88,6 @@
 --              To conclude, the final Coarse time is: (Part(2) + Part(3)_Start#)*Retrigger period|
 --              and the  Fine time is : Part(3)_Hit                                               |
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v1                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     07/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2014  v1    EG  Changed roll_over_counter to add rare case where utc_p_i and            |
---                        acam_intflag_f_edge_p_i arrive at the same time                         |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -123,7 +110,7 @@
 
 -- Standard library
 library IEEE;
-use IEEE.STD_LOGIC_1164.all;            -- std_logic definitions
+use IEEE.STD_LOGIC_1164.all;  -- std_logic definitions
 use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific library
 library work;

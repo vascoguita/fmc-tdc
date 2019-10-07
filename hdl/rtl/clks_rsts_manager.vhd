@@ -17,7 +17,7 @@
 --                                                                                                |
 --              The PLL is programmed to generate a 125 MHz clock that arrives to the FPGA and    |
 --              is used by all the other units of the TDC core.                                   |
---              It is also programmed to generates a 31.25 MHz clock which is the reference clock |
+--              It is also programmed to generate a 31.25 MHz clock which is the reference clock  |
 --              for the ACAM chip.                                                                |
 --              The registers for programming the PLL are hard-coded in this unit.                |
 --                                                                                                |
@@ -28,27 +28,10 @@
 --              Note that the PLL needs to be configured on the falling edges of the sclk clock,  |
 --              whereas the DAC on the rising edges.                                              |
 --                                                                                                |
---              The unit is also responsible for the generation of a global internal reset signal |
---              for the TDC core. This internal reset is triggered by a GN4124/VME interface      |
---              reset or by a Power On Reset at startup. The idea is to keep this reset asserted  |
---              until the 125 MHz clock signal received from the PLL is stable (PLL lock).        |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         02/2014                                                                           |
--- Version      v1                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.2  EG  Added DFFs to the pll_sdi_o, pll_cs_n_o outputs                         |
---                        Changed completely the internal reset generation; now it depends        |
---                        on the pll_status activation                                            |
---                        General revamping, comments added, signals renamed                      |
---     05/2012  v0.3  EG  Added logic for DAC configuration                                       |
---     02/2014  v1    EG  Correction for the DAC on rising edges; added wrabbit support           |
+--              The unit also generates of a global internal reset signal for the TDC core.       |
+--              This internal reset is triggered by a GN4124/VME interface reset or by a          |
+--              Power On Reset at startup and it remains asserted until the 125 MHz clock signal  |
+--              received from the PLL is stable (PLL lock).                                       |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 

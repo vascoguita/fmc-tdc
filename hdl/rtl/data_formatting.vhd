@@ -18,26 +18,6 @@
 --                o plus the coarse timing internally measured in the core                        |
 --                o plus the UTC time, coming from the WRabbit core if synchronization is         |
 --                  established or from the internal local counter                                |
---              and writes the word to the circular buffer                                        |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v3                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2013  v1    EG  Fixed bug when timestamp comes on the first retrigger after a new       |
---                        second; fixed bug on rollover that is a bit delayed wrt ACAM IrFlag     |
---     07/2013  v2    EG  Cleaner writing with addition of intermediate DFF on the acam_tstamp    |
---                        calculations                                                            |
---     09/2013  v2.1  EG  added wr_index clearing upon dacapo_c_rst_p_i pulse; before only the    |
---                        dacapo_counter was being reset with the dacapo_c_rst_p_i                |
---     04/2014  v3    EG  added logic for channels deactivation                                   |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -86,7 +66,7 @@ entity data_formatting is
      acam_tstamp2_i      : in std_logic_vector(31 downto 0);  -- 32 bits tstamp to be treated and stored;
                                           -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
 
--- Signals from the one_hz_gen unit
+     -- Signals from the one_hz_gen unit
      utc_i : in std_logic_vector(31 downto 0);  -- local UTC time
 
      -- Signals from the start_retrig_ctrl unit

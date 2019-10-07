@@ -512,6 +512,7 @@ begin
 --                                   TSTAMP FINAL FORMAT                                         --
 --                            ADDITION OF OFFSETS (EX.CALIBRATION)                               --
 --                                FILTERING BY PULSE WIDTH                                       --
+--                              SUBTRACTIONS BETWEEN CHANNELS                                    --
 ---------------------------------------------------------------------------------------------------
   U_FilterAndConvert : entity work.timestamp_convert_filter
     generic map (
@@ -531,8 +532,9 @@ begin
       ts_ready_i   => final_timestamp_ready,
       ts_offset_i  => ts_offset_i,
       reset_seq_i  => reset_seq_i,
-      raw_enable_i => raw_enable_i
+      raw_enable_i => raw_enable_i -- not used
       );
+
 
 ---------------------------------------------------------------------------------------------------
 --                                       UTC timing source                                       --

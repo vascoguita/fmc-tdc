@@ -17,18 +17,6 @@
 --				"Counting done" signal asserted simultaneous to"current count value=counter_top_i"|
 --				Needs a rst_i to restart.                                                         |
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2012                                                                           |
--- Version      v0.11                                                                             |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
