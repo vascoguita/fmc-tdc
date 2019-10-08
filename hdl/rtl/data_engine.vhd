@@ -30,23 +30,7 @@
 --                 be in inactive mode (deactivate_acq = 1).                                      |
 --                                                                                                |
 --              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE     |
---              master fetching/ sending data from/to the ACAM interface.                         |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v1                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     06/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2014  v1    EG  added states for reading the  RD_START01 (currently though the start01  |
---                        is not essential absolute timestamp calculations). added wait state     |
---                        before starting receiving timestamps, to ensure that the start pulse has|
---                        been sent and the ACAM IRflag has toggled once                          |
+--              master fetching/sending data from/to the ACAM interface.                          |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
