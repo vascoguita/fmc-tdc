@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Copyright (C) 2019 CERN
+
 -include Makefile.specific
 # include parent_common.mk for buildsystem's defines
 #use absolute path for REPO_PARENT
@@ -20,13 +24,14 @@ all: modules
 
 modules_install modules:
 	$(MAKE) -C $(LINUX) M=$(shell /bin/pwd) \
-		ZIO_ABS=$(ZIO_ABS) FMC_ABS=$(FMC_ABS) \
+		ZIO_ABS=$(ZIO_ABS) \
+		FMC_ABS=$(FMC_ABS) \
 		ZIO_EXTRA_SYMBOLS-y=$(ZIO_EXTRA_SYMBOLS-y) \
 		FMC_EXTRA_SYMBOLS-y=$(FMC_EXTRA_SYMBOLS-y) \
-		SPEC_SW_ABS=$(SPEC_SW_ABS) $@
+		$@
 
 clean:
 	$(MAKE) -C $(LINUX) M=$(shell /bin/pwd) $@
 
 cppcheck:
-	$(CPPCHECK) -q -I. -I$(ZIO_ABS)/include -I$(FMC_BUS_ABS)/sdb-lib/  --enable=all *.c *.h
+	$(CPPCHECK) -q -I. -I$(ZIO_ABS)/include -I$(FMC_BUS_ABS)/  --enable=all *.c *.h
