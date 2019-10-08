@@ -101,16 +101,6 @@ struct ft_hw_timestamp {
 #define FT_HW_TS_META_SEQ_SHIFT 4
 #define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
 
-/**
- * struct ft_calibration - TDC calibration data
- * @zero_offset: time difference to channel 1
- * @vcxo_default_tune: Default DAC value for VCXO. Set during init and for
- *                     local timing
- * @calibration_temp: Temperature at which the device has been calibrated
- * @wr_offset: White Rabbit timescale offset in ps
- *
- * All of these are little endian in the EEPROM
- */
 struct ft_calibration_raw {
 	int32_t zero_offset[FT_NUM_CHANNELS - 1];
 	uint32_t vcxo_default_tune;
