@@ -404,14 +404,31 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 static int ft_zio_probe(struct zio_device *zdev)
 {
 	struct fmctdc_dev *ft;
+	int err;
 
 	/* link the new device from the fd structure */
 	ft = zdev->priv_d;
 	ft->zdev = zdev;
 
+	err = device_create_bin_file(&zdev->head.dev, &dev_attr_calibration);
+	if (err)
+		return err;
+
 	/* We don't have csets at this point, so don't do anything more */
 	return 0;
 }
+
+/*
+ * zfad_zio_remove
+ * @zdev: the real zio device
+ */
+static int ft_zio_remove(struct zio_device *zdev)
+{
+	device_remove_bin_file(&zdev->head.dev, &dev_attr_calibration);
+
+	return 0;
+}
+
 
 /* Our sysfs operations to access internal settings */
 static const struct zio_sysfs_operations ft_zio_sysfs_ops = {
@@ -523,6 +540,7 @@ static struct zio_driver ft_zdrv = {
 		   },
 	.id_table = ft_table,
 	.probe = ft_zio_probe,
+	.remove = ft_zio_remove,
 	/* Take the version from ZIO git sub-module */
 	.min_version = ZIO_VERSION(__ZIO_MIN_MAJOR_VERSION,
 				   __ZIO_MIN_MINOR_VERSION,

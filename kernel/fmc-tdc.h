@@ -11,6 +11,12 @@
 #ifndef __FMC_TDC_H__
 #define __FMC_TDC_H__
 
+#ifdef __KERNEL__
+#include <linux/types.h>
+#else
+#include <stdint.h>
+#endif
+
 #define FT_VERSION_MAJ   2U		/* version of the driver */
 #define FT_VERSION_MIN   1U
 
@@ -89,6 +95,22 @@ struct ft_hw_timestamp {
 #define FT_HW_TS_META_SEQ_SHIFT 4
 #define FT_HW_TS_META_SEQ(_meta) ((_meta & FT_HW_TS_META_SEQ_MASK) >> FT_HW_TS_META_SEQ_SHIFT)
 
+/**
+ * struct ft_calibration - TDC calibration data
+ * @zero_offset: time difference to channel 1
+ * @vcxo_default_tune: Default DAC value for VCXO. Set during init and for
+ *                     local timing
+ * @calibration_temp: Temperature at which the device has been calibrated
+ * @wr_offset: White Rabbit timescale offset in ps
+ *
+ * All of these are little endian in the EEPROM
+ */
+struct ft_calibration_raw {
+	int32_t zero_offset[FT_NUM_CHANNELS - 1];
+	uint32_t vcxo_default_tune;
+	uint32_t calibration_temp;
+	int32_t wr_offset;
+};
 
 /* rest of the file is kernel-only */
 #ifdef __KERNEL__
@@ -130,17 +152,20 @@ struct fmctdc_channel_stats {
 	uint32_t transferred;
 };
 
-struct ft_calibration {		/* All of these are big endian in the EEPROM */
-	/* Input-to-WR timebase offset in ps. */
-	int32_t zero_offset[5];
-
-	/* Default DAC value for VCXO. Set during init and for local timing */
+/**
+ * struct ft_calibration - TDC calibration data
+ * @zero_offset: Input-to-WR timebase offset in ps
+ * @vcxo_default_tune: Default DAC value for VCXO. Set during init and for
+ *                     local timing
+ * @calibration_temp: Temperature at which the device has been calibrated
+ * @wr_offset: White Rabbit timescale offset in ps
+ *
+ * All of these are little endian in the EEPROM
+ */
+struct ft_calibration {
+	int32_t zero_offset[FT_NUM_CHANNELS];
 	uint32_t vcxo_default_tune;
-
-	/* Temperature at which the device has been calibrated */
 	uint32_t calibration_temp;
-
-	/* White Rabbit timescale offset in ps */
 	int32_t wr_offset;
 };
 
@@ -276,6 +301,7 @@ int ft_wr_mode(struct fmctdc_dev *ft, int on);
 int ft_wr_query(struct fmctdc_dev *ft);
 
 int ft_handle_eeprom_calibration(struct fmctdc_dev *ft);
+extern struct bin_attribute dev_attr_calibration;
 
 int ft_fifo_init(struct fmctdc_dev *ft);
 void ft_fifo_exit(struct fmctdc_dev *ft);
