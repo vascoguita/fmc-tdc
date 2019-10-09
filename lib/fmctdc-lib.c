@@ -521,7 +521,7 @@ int fmctdc_set_buffer_mode(struct fmctdc_board *userb, unsigned int channel,
 }
 
 /**
- * The function returns current buffer lenght (number of timestamps)
+ * The function returns current driver buffer length (number of timestamps)
  * @param[in] userb TDC board instance token
  * @param[in] channel to use
  * @return buffer lenght, otherwise a negative errno code is set
@@ -1119,8 +1119,8 @@ int fmctdc_buffer_mode(struct fmctdc_board *userb,
  * @param[in] timeout_ms ms timeout to trigger IRQ
  * @return 0 on success, otherwise -1 and errno is set appropriately
  *
- * It does not work per-channel for the following acuqisition mechanism:
- * - FIFO
+ * It does not work per-channel for the following acquisition mechanism:
+ * - FIFO (it will return the global IRQ coalescing timeout)
  */
 int fmctdc_coalescing_timeout_set(struct fmctdc_board *userb,
 				  unsigned int channel,
