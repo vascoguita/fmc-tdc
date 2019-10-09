@@ -211,7 +211,6 @@ static inline struct fmctdc_trig *to_fmctdc_trig(struct zio_ti *ti_ptr)
 
 /*
  * Main TDC device context
- * @unique_id unique identifier from the temperature sensor
  * @lock it protects: offset (user vs user), wr_mode (user vs user)
  * @irq_imr it holds the IMR value since our last modification. Use it
  *          **only** in the DMA IRQ handlers
@@ -221,7 +220,6 @@ static inline struct fmctdc_trig *to_fmctdc_trig(struct zio_ti *ti_ptr)
  *                 place where we use it: so, we do not need to protect it.
  */
 struct fmctdc_dev {
-	uint64_t unique_id;
 	enum ft_transfer_mode mode;
 	/* HW buffer/FIFO access lock */
 	spinlock_t lock;

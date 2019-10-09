@@ -724,6 +724,7 @@ void ft_zio_unregister(void)
 /* Init and exit are called for each FD card we have */
 int ft_zio_init(struct fmctdc_dev *ft)
 {
+	uint64_t id = 0;
 	int err = 0;
 	int dev_id;
 	int i;
@@ -748,7 +749,8 @@ int ft_zio_init(struct fmctdc_dev *ft)
 		ft_update_offsets(ft, i);
 	}
 
-	ft_unique_id_get(ft, &ft->unique_id);
+	ft_unique_id_get(ft, &id);
+	dev_dbg(&ft->pdev->dev, "TDC OW Serial Number 0x%016llx\n", id);
 
 	return 0;
 
