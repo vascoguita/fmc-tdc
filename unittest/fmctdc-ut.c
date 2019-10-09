@@ -300,12 +300,10 @@ static void fmctdc_param_test8(struct m_test *m_test)
 		m_assert_int_eq(0, ret);
 	}
 
-	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i) {
+	for (i = 0; i < FMCFD_NUM_CHANNELS; ++i)
 		ret = fmctdc_execute_fmc_fdelay_pulse(fmcfd_dev_id,
 						      i, 1, 0, 1000,
 						      start);
-		m_assert_int_eq(0, ret);
-	}
 	sleep(1);
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
