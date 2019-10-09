@@ -38,10 +38,6 @@ module_param_named(test_data_period, test_data_period, int, 0444);
 MODULE_PARM_DESC(test_data_period,
 		 "It sets how many fake timestamps to generate every seconds on the first channel, 0 to disable (default: 0)");
 
-static int ft_verbose;
-module_param_named(verbose, ft_verbose, int, 0444);
-MODULE_PARM_DESC(verbose, "Print a lot of debugging messages.");
-
 #define FT_EEPROM_TYPE "at24c64"
 
 /**
@@ -690,7 +686,6 @@ int ft_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ft);
 	ft->pdev = pdev;
-	ft->verbose = ft_verbose;
 	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_MEM_BASE);
 	ft->ft_base = ioremap(r->start, resource_size(r));
 	ft->ft_core_base = ft->ft_base + TDC_MEZZ_CORE_OFFSET;
@@ -703,13 +698,6 @@ int ft_probe(struct platform_device *pdev)
 	ret = ft_memops_detect(ft);
 	if (ret)
 		goto err_memops;
-
-	if (ft_verbose) {
-		dev_info(dev,
-			 "Base addrs: core %p, irq %p, 1wire %p, buffer/DMA %p\n",
-			 ft->ft_core_base, ft->ft_irq_base,
-			 ft->ft_owregs_base, ft->ft_dma_base);
-	}
 
 	/*
 	 * Even if the HDL supports both acquisition mechanism at the same

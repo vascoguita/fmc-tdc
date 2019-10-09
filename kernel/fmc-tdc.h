@@ -252,7 +252,6 @@ struct fmctdc_dev {
 	int temp;
 	int temp_ready;
 	/* output lots of debug stuff? */
-	int verbose;
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
 
