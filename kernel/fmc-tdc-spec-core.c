@@ -34,7 +34,7 @@ static struct resource ft_spec_fdt_res[] = {
 
 static const struct mfd_cell ft_spec_mfd_devs[] = {
 	[FT_SPEC_MFD_TDC] = {
-		.name = "fmc-tdc",
+		.name = "fmc-tdc-pci",
 		.platform_data = NULL,
 		.pdata_size = 0,
 		.num_resources = ARRAY_SIZE(ft_spec_fdt_res),

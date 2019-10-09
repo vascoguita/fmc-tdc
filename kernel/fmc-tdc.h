@@ -32,8 +32,8 @@
 #define FT_NUM_CHANNELS 5
 
 enum mock_turtle_versions {
-	TDC_VER_SPEC = 0,
-	TDC_VER_SVEC,
+	TDC_VER_PCI = 0,
+	TDC_VER_VME,
 };
 
 

@@ -181,7 +181,7 @@ static int ft_reset_core(struct fmctdc_dev *ft)
 
 	addr = ft->ft_carrier_base + TDC_REG_CARRIER_RST;
 	switch (ft->pdev->id_entry->driver_data) {
-	case TDC_VER_SPEC:
+	case TDC_VER_PCI:
 		shift = -1;
 		break;
 	default:
@@ -688,9 +688,9 @@ err:
 static int ft_endianess(struct fmctdc_dev *ft)
 {
 	switch (ft->pdev->id_entry->driver_data) {
-	case TDC_VER_SPEC:
+	case TDC_VER_PCI:
 		return 0;
-	case TDC_VER_SVEC:
+	case TDC_VER_VME:
 		return 1;
 	default:
 		return -1;
@@ -911,11 +911,11 @@ int ft_remove(struct platform_device *pdev)
 
 static const struct platform_device_id ft_id[] = {
 	{
-		.name = "fmc-tdc-spec",
-		.driver_data = TDC_VER_SPEC,
+		.name = "fmc-tdc-pci",
+		.driver_data = TDC_VER_PCI,
 	}, {
-		.name = "fmc-tdc-svec",
-		.driver_data = TDC_VER_SVEC,
+		.name = "fmc-tdc-vme",
+		.driver_data = TDC_VER_VME,
 	},
 
 	/* TODO we should support different version */
