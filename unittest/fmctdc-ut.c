@@ -95,12 +95,15 @@ static void fmctdc_set_up(struct m_suite *m_suite)
 static void fmctdc_tear_down(struct m_suite *m_suite)
 {
 	struct fmctdc_test_desc *d = m_suite->private;
-	struct fmctdc_board *tdc = d->tdc;
-	int err;
 
 	free(d);
-	err = fmctdc_close(tdc);
-	m_assert_int_eq(0, err);
+	if (d->tdc) {
+		int err;
+		struct fmctdc_board *tdc = d->tdc;
+
+		err = fmctdc_close(tdc);
+		m_assert_int_eq(0, err);
+	}
 	fmctdc_exit();
 }
 
