@@ -144,7 +144,7 @@ int ft_fifo_init(struct fmctdc_dev *ft)
 	ft_irq_coalescing_timeout_set(ft, -1, irq_timeout_ms_default);
 	ft_irq_coalescing_size_set(ft, -1, 40);
 
-	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, 0);
+	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, TDC_IRQ);
 	ret = request_any_context_irq(r->start, ft_irq_handler_ts_fifo, 0,
 				      r->name, ft);
 	if (ret < 0) {
@@ -165,5 +165,5 @@ void ft_fifo_exit(struct fmctdc_dev *ft)
 {
 	ft_iowrite(ft, ~0, ft->ft_irq_base + TDC_EIC_REG_EIC_IDR);
 
-	free_irq(platform_get_irq(ft->pdev, 0), ft);
+	free_irq(platform_get_irq(ft->pdev, TDC_IRQ), ft);
 }

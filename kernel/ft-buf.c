@@ -539,7 +539,7 @@ int ft_buf_init(struct fmctdc_dev *ft)
 	ft_irq_coalescing_timeout_set(ft, -1, irq_timeout_ms_default);
 	ft_irq_coalescing_size_set(ft, -1, 40);
 
-	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, 0);
+	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, TDC_IRQ);
 	ret = request_any_context_irq(r->start, ft_irq_handler_ts_dma, 0,
 				      r->name, ft);
 	if (ret < 0) {
@@ -552,7 +552,7 @@ int ft_buf_init(struct fmctdc_dev *ft)
 	 * DMA completion interrupt (from the GN4124 core), like in
 	 * the FMCAdc design
 	 */
-	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, 1);
+	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, TDC_IRQ + 1);
 	ret = request_any_context_irq(r->start, ft_irq_handler_dma_complete, 0,
 				      r->name, ft);
 	if (ret < 0) {
@@ -592,8 +592,8 @@ void ft_buf_exit(struct fmctdc_dev *ft)
 		   DMA_EIC_EIC_IDR_DMA_DONE | DMA_EIC_EIC_IDR_DMA_ERROR,
 		   ft->ft_dma_eic_base + DMA_EIC_REG_EIC_IER);
 
-	free_irq(platform_get_irq(ft->pdev, 0), ft);
-	free_irq(platform_get_irq(ft->pdev, 1), ft);
+	free_irq(platform_get_irq(ft->pdev, TDC_IRQ), ft);
+	free_irq(platform_get_irq(ft->pdev, TDC_IRQ + 1), ft);
 
 	for (i = 0; i < FT_NUM_CHANNELS; i++)
 		ft_buffer_size_clr(ft, i);
