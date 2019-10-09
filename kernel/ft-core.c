@@ -592,7 +592,7 @@ static int ft_resource_validation(struct platform_device *pdev)
 	return 0;
 }
 
-#define FT_FMC_NAME "FmcTdc1ns4cha"
+#define FT_FMC_NAME "FmcTdc1ns5cha"
 
 static bool ft_fmc_slot_is_valid(struct fmctdc_dev *ft)
 {
