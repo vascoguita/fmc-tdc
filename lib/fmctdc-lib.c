@@ -234,14 +234,6 @@ found:
 		b->fdcc[i] = open(path, O_RDONLY);
 		if (b->fdcc[i] < 0)
 			goto error;
-
-		snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/buffer/max-buffer-kb",
-			 b->sysbase, i + 1);
-		if (access(path, R_OK | W_OK)) {
-			errno = FMCTDC_ERR_VMALLOC;
-			goto error;
-		}
-
 	}
 
 	return (void *)b;
@@ -541,6 +533,14 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
 	uint32_t val;
 	char attr[64];
 	int ret;
+	char path[64];
+
+	snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/buffer/max-buffer-kb",
+		 b->sysbase, channel + 1);
+	if (access(path, R_OK | W_OK)) {
+		errno = FMCTDC_ERR_VMALLOC;
+		return -1;
+	}
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
@@ -578,6 +578,14 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 	__define_board(b, userb);
 	uint32_t val;
 	char attr[64];
+	char path[64];
+
+	snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/buffer/max-buffer-kb",
+		 b->sysbase, channel + 1);
+	if (access(path, R_OK | W_OK)) {
+		errno = FMCTDC_ERR_VMALLOC;
+		return -1;
+	}
 
 	if (channel >= FMCTDC_NUM_CHANNELS) {
 		errno = EINVAL;
