@@ -129,7 +129,6 @@ enum mockturtle_irq_resource {
 
 enum mockturtle_mem_resource {
 	TDC_MEM_BASE = 0,
-	TDC_CARR_MEM_BASE,
 };
 
 enum mockturtle_bus_resource {
@@ -227,7 +226,6 @@ struct fmctdc_dev {
 	/* HW buffer/FIFO access lock */
 	spinlock_t lock;
 	/* base addresses, taken from SDB */
-	void *ft_carrier_base;
 	void *ft_base;
 	void *ft_core_base;
 	void *ft_i2c_base;
@@ -288,14 +286,12 @@ static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
 
 static inline uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
 {
-	return ft_ioread(ft, ft->ft_carrier_base + TDC_SPEC_DMA_BASE + reg);
+	BUG();
 }
 
 static inline void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
 {
-	dev_vdbg(&ft->pdev->dev, "%s %x %x\n",
-		 __func__, data, TDC_SPEC_DMA_BASE + reg);
-	ft_iowrite(ft, data, ft->ft_carrier_base + TDC_SPEC_DMA_BASE + reg);
+	BUG();
 }
 
 

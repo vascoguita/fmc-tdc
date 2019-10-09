@@ -173,42 +173,6 @@ void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
 }
 
 
-static int ft_reset_core(struct fmctdc_dev *ft)
-{
-	struct resource *r;
-	uint32_t val, shift = 0;
-	void *addr;
-
-	addr = ft->ft_carrier_base + TDC_REG_CARRIER_RST;
-	switch (ft->pdev->id_entry->driver_data) {
-	case TDC_VER_PCI:
-		shift = -1;
-		break;
-	default:
-		break;
-	}
-
-	dev_dbg(&ft->pdev->dev, "Un-resetting FMCs...\n");
-
-	/* FMC slot counting starts from 1 */
-	r = platform_get_resource(ft->pdev, IORESOURCE_BUS, TDC_BUS_FMC_SLOT);
-
-	/* Reset - reset bits are shifted by 1 */
-	/* FIXME pdev->id is not correct because we mayhave different TDCs
-	   in slot 0 on different carriers */
-	ft_iowrite(ft, ~(1 << (r->start + shift)), addr);
-
-	udelay(5000);
-
-	val = ft_ioread(ft, addr);
-	val |= (1 << (r->start + shift));
-
-	/* Un-Reset */
-	ft_iowrite(ft, val, addr);
-
-	return 0;
-}
-
 static int ft_init_channel(struct fmctdc_dev *ft, int channel)
 {
 	return 0;
@@ -625,20 +589,6 @@ static int ft_resource_validation(struct platform_device *pdev)
 		return -ENXIO;
 	}
 
-	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_CARR_MEM_BASE);
-	if (!r) {
-		dev_err(&pdev->dev,
-			"The TDC needs the carrier base address\n");
-		return -ENXIO;
-	}
-
-	r = platform_get_resource(pdev, IORESOURCE_BUS, TDC_BUS_FMC_SLOT);
-	if (!r) {
-		dev_err(&pdev->dev,
-			"The TDC needs to be assigned to an FMC slot\n");
-		return -ENXIO;
-	}
-
 	return 0;
 }
 
@@ -741,8 +691,6 @@ int ft_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, ft);
 	ft->pdev = pdev;
 	ft->verbose = ft_verbose;
-	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_CARR_MEM_BASE);
-	ft->ft_carrier_base = ioremap(r->start, resource_size(r));
 	r = platform_get_resource(pdev, IORESOURCE_MEM, TDC_MEM_BASE);
 	ft->ft_base = ioremap(r->start, resource_size(r));
 	ft->ft_core_base = ft->ft_base + TDC_MEZZ_CORE_OFFSET;
@@ -758,8 +706,7 @@ int ft_probe(struct platform_device *pdev)
 
 	if (ft_verbose) {
 		dev_info(dev,
-			 "Base addrs: carr %p, core %p, irq %p, 1wire %p, buffer/DMA %p\n",
-			 ft->ft_carrier_base,
+			 "Base addrs: core %p, irq %p, 1wire %p, buffer/DMA %p\n",
 			 ft->ft_core_base, ft->ft_irq_base,
 			 ft->ft_owregs_base, ft->ft_dma_base);
 	}
@@ -788,9 +735,6 @@ int ft_probe(struct platform_device *pdev)
 		goto err_mode_selection;
 	}
 
-	ret = ft_reset_core(ft);
-	if (ret < 0)
-		return ret;
 	slot_nr = ft_readl(ft, FT_REG_FMC_SLOT_ID) + 1;
 	ft->slot = fmc_slot_get(pdev->dev.parent->parent, slot_nr);
 	if (IS_ERR(ft->slot)) {
@@ -868,7 +812,6 @@ out_fmc:
 err_mode_selection:
 err_memops:
 	iounmap(ft->ft_base);
-	iounmap(ft->ft_carrier_base);
 	kfree(ft);
 	return ret;
 }
@@ -902,7 +845,6 @@ int ft_remove(struct platform_device *pdev)
 	ft_calib_exit(ft);
 	fmc_slot_put(ft->slot);
 	iounmap(ft->ft_base);
-	iounmap(ft->ft_carrier_base);
 	kfree(ft);
 
 	return 0;
