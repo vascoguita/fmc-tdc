@@ -190,9 +190,10 @@ entity fmc_tdc_core is
       reset_seq_i       : in  std_logic_vector(4 downto 0);
       raw_enable_i      : in  std_logic_vector(4 downto 0);
 
-      timestamp_o       : out t_tdc_timestamp_array(4 downto 0);
-      timestamp_valid_o : out std_logic_vector(4 downto 0);
-      timestamp_ready_i : in  std_logic_vector(4 downto 0);
+      timestamp_o         : out t_tdc_timestamp_array(4 downto 0);
+      timestamp_valid_o   : out std_logic_vector(4 downto 0);
+      timestamp_valid_p_o : out std_logic_vector(4 downto 0);
+      timestamp_ready_i   : in  std_logic_vector(4 downto 0);
 
       channel_enable_o : out std_logic_vector(4 downto 0);
       irq_threshold_o  : out std_logic_vector(9 downto 0);
@@ -222,7 +223,7 @@ architecture rtl of fmc_tdc_core is
   signal read_ififo2, read_start01, reset_acam, load_utc     : std_logic;
   signal roll_over_incr_recent                               : std_logic;
   signal deactivate_chan                                     : std_logic_vector(4 downto 0);
-  signal pulse_delay, window_delay, clk_period               : std_logic_vector(g_width-1 downto 0);
+  signal clk_period                                          : std_logic_vector(g_width-1 downto 0);
   signal starting_utc, acam_inputs_en                        : std_logic_vector(g_width-1 downto 0);
   signal acam_ififo1, acam_ififo2, acam_start01              : std_logic_vector(g_width-1 downto 0);
   signal irq_tstamp_threshold, irq_time_threshold            : std_logic_vector(g_width-1 downto 0);
@@ -305,23 +306,21 @@ begin
      acam_ififo2_i          => acam_ififo2,
      acam_start01_i         => acam_start01,
      local_utc_i            => utc,
-     irq_code_i             => x"00000000",
      core_status_i          => core_status,
      wrabbit_status_reg_i   => wrabbit_status_reg_i,
      wrabbit_ctrl_reg_o     => wrabbit_ctrl_reg,
      acam_config_o          => acam_config,
      starting_utc_o         => starting_utc,
      acam_inputs_en_o       => acam_inputs_en,
-     start_phase_o          => window_delay,
      irq_tstamp_threshold_o => irq_tstamp_threshold,
      irq_time_threshold_o   => irq_time_threshold,
      send_dac_word_p_o      => send_dac_word_p_o,
      dac_word_o             => dac_word_o,
-     one_hz_phase_o         => pulse_delay,
-     gen_fake_ts_period_o   => gen_fake_ts_period,
-     gen_fake_ts_enable_o   => gen_fake_ts_enable,
-     gen_fake_ts_channel_o  => gen_fake_ts_channel,
-     int_flag_delay_o => int_flag_delay
+     -----------------------------------------------------------
+     gen_fake_ts_period_o   => gen_fake_ts_period,  -- for debug
+     gen_fake_ts_enable_o   => gen_fake_ts_enable,  -- for debug
+     gen_fake_ts_channel_o  => gen_fake_ts_channel, -- for debug
+     int_flag_delay_o       => int_flag_delay       -- for debug
      );
 
   process(clk_tdc_i)
@@ -372,7 +371,6 @@ begin
      clk_i                  => clk_tdc_i,
      clk_period_i           => clk_period,
      load_utc_p_i           => load_utc,
-     pulse_delay_i          => pulse_delay,
      rst_i                  => rst_tdc,
      starting_utc_i         => starting_utc,
      local_utc_o            => local_utc,
@@ -430,8 +428,8 @@ begin
   start_retrigger_block : entity work.start_retrig_ctrl
     port map
     (
-     int_flag_delay_i => int_flag_delay,
-     int_flag_i => int_flag_i,
+     int_flag_delay_i        => int_flag_delay,     -- for debug
+     int_flag_i              => int_flag_i,
      clk_i                   => clk_tdc_i,
      utc_p_i                 => utc_p,
      rst_i                   => rst_tdc,
@@ -510,7 +508,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                                   TSTAMP FINAL FORMAT                                         --
---                            ADDITION OF OFFSETS (EX.CALIBRATION)                               --
+--                     ADDITION OF FIXED OFFSETS (PER CHANNEL CALIBRATION)                       --
 --                                FILTERING BY PULSE WIDTH                                       --
 --                              SUBTRACTIONS BETWEEN CHANNELS                                    --
 ---------------------------------------------------------------------------------------------------
@@ -523,12 +521,12 @@ begin
       rst_tdc_n_i => rst_tdc_n_i,
       clk_sys_i   => clk_sys_i,
       rst_sys_n_i => rst_sys_n_i,
-
       enable_i     => channel_enable_sys,
       ts_i         => raw_timestamp,
       ts_valid_i   => raw_timestamp_valid,
       ts_o         => final_timestamp,
       ts_valid_o   => final_timestamp_valid,
+      ts_valid_p_o => timestamp_valid_p_o,
       ts_ready_i   => final_timestamp_ready,
       ts_offset_i  => ts_offset_i,
       reset_seq_i  => reset_seq_i,

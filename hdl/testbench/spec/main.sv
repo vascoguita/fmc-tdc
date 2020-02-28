@@ -15,53 +15,58 @@ typedef struct {
    uint32_t coarse;
    uint32_t frac;
    uint32_t seq;
-   int 	       slope;
-   int 	       channel;
+   int      slope;
+   int 	    channel;
 } fmc_tdc_timestamp_t;
 
 typedef fmc_tdc_timestamp_t fmc_tdc_timestamp_queue_t[$];
 
 class FmcTdcDriver;
    CBusAccessor m_acc;
-   uint64_t m_base;
+   uint64_t     m_base;
 
    fmc_tdc_timestamp_queue_t m_queues[5];
    
+   // new
    function new(CBusAccessor acc, uint64_t base, bit use_dma);
       m_acc = acc;
       m_base = base;
-   endfunction // new
+   endfunction
 
-   task automatic writel( uint32_t addr, uint32_t value );
+   // writel
+   task automatic writel(uint32_t addr, uint32_t value);
       m_acc.write(addr + m_base ,value);
-   endtask // writel
+   endtask
 
+   // readl
    task automatic readl( uint32_t addr, ref uint32_t value );
       automatic uint64_t rv;
       m_acc.read(addr + m_base , rv);
-//      $display("readl %x %x", addr+m_base, rv);
-      
+      $display("[Info] readl %x: %x", addr+m_base, rv);
       value = rv;
-   endtask // readl
+   endtask
    
+   // init
    task automatic init();
       uint32_t d;
 
-      $display("!!!base: %x", m_base);
+      $display("[Info] TDC core base addr: %x", m_base);
 
       readl('h0, d); 
       if( d != 'h5344422d )
-	begin
-	   $error("Can't read the SDB signature.");
+	  begin
+	   $error("[Error!] Can't read the SDB signature.");
 	   $stop;
-	end
+	   end
 
-      $display("address 0x20000: %x", d);
+      readl('h1000, d); 
+      readl('h1004, d); 
+      readl('h1008, d);
+      readl('h100C, d);  
 
-      readl('h208c, d); 
-      $display("!!!address 0x2208c: %x", d);
-
+      writel('h20a0, 1234);  // set UTC
       
+      $display("[Info] Setting up TDC core..");
       writel('h20a0, 1234);  // set UTC
       writel('h20fc, 1<<9); // load UTC
       writel('h3004, 'h1f); // enable EIC irqs for all FIFO channels
@@ -71,50 +76,49 @@ class FmcTdcDriver;
       writel('h20fc, (1<<0)); // start acquisition
       writel('h20bc, ((-1)<<1));
       
-      $display("FmcTdcDriver: acquisition started");
+      $display("[Info] TDC acquisition started");
       
-   endtask // init
+   endtask 
    
-	 
+   // update	 
    task automatic update();
       automatic uint32_t csr, t[4];
 
       for(int i = 0; i < 5; i++)
-	begin
+	  begin
 	   automatic uint32_t base = 'h5000 + i * 'h100;
 	   automatic fmc_tdc_timestamp_t ts;
 	   
 	   readl(base + `ADDR_TSF_FIFO_CSR, csr);
 
-//	   $display("csr %x", csr);
+	   $display("csr %x", csr);
 	   
 	   if( ! (csr & `TSF_FIFO_CSR_EMPTY ) )
-	     begin
-		readl(base + `ADDR_TSF_FIFO_R0, t[0]);
-		readl(base + `ADDR_TSF_FIFO_R1, t[1]);
-		readl(base + `ADDR_TSF_FIFO_R2, t[2]);
-		readl(base + `ADDR_TSF_FIFO_R3, t[3]);
+	    begin
+		  readl(base + `ADDR_TSF_FIFO_R0, t[0]);
+		  readl(base + `ADDR_TSF_FIFO_R1, t[1]);
+		  readl(base + `ADDR_TSF_FIFO_R2, t[2]);
+		  readl(base + `ADDR_TSF_FIFO_R3, t[3]);
 
-
-		ts.tai = t[0];
-		ts.coarse = t[1];
-		ts.frac = t[2] & 'hfff;
-		ts.slope = t[3] & 'h8 ? 1: 0;
-		ts.seq = t[3] >> 4;
-		ts.channel = i;
-		
-		m_queues[i].push_back(ts);
-		
+		  ts.tai     = t[0];
+		  ts.coarse  = t[1];
+		  ts.frac    = t[2] & 'hfff;
+		  ts.slope   = t[3] & 'h8 ? 1: 0;
+		  ts.seq     = t[3] >> 4;
+		  ts.channel = i;
+          m_queues[i].push_back(ts);
 	     end
 	   
 	end // for (int i = 0; i < 5; i++)
-   endtask // update
+   endtask 
    
 endclass // FmcTdcDriver
 
 
+//////////////// main ////////////////
 module main;
 
+   // clk, rst
    reg rst_n = 0;
    reg clk_125m = 0, clk_20m = 0;
 
@@ -126,7 +130,6 @@ module main;
       rst_n = 1;
    end
 
-
    reg clk_acam = 0; // 31.25 MHz
    reg clk_62m5 = 0;
 
@@ -136,19 +139,20 @@ module main;
    always@(posedge clk_62m5)
      clk_acam <= ~clk_acam;
 
-   
-   wire [3:0] tdc_addr;
-   wire [27:0] tdc_data;
-   reg [8:1]  tdc_stop = 0;
-   wire       tdc_start, tdc_start_dis;
-   wire [4:1] tdc_stop_dis;
+   // wires, regs
+   wire        tdc_start, tdc_start_dis;
    wire        tdc_cs_n, tdc_oe_n, tdc_rd_n, tdc_wr_n;
    wire        tdc_err_flag, tdc_int_flag;
    wire        tdc_ef1, tdc_ef2;
-   
+   wire [3:0]  tdc_addr;
+   wire [27:0] tdc_data;
+   wire [4:1]  tdc_stop_dis;
+   reg  [8:1]  tdc_stop = 0;
 
+   
+   // ACAM model instantiation  
    tdc_gpx_model 
-     #( .g_verbose(0) )
+     #( .g_verbose(1) )
    ACAM
      (
       .PuResN(1'b1),
@@ -179,12 +183,14 @@ module main;
 
       .D(tdc_data)
       );
-   
+
+   // GN4124 model instantiation  
    IGN4124PCIMaster Host
      (
     
       );
-   
+
+   // TDC core instantiation
    wr_spec_tdc 
      #(
        .g_simulation(1)
@@ -218,112 +224,52 @@ module main;
 		     .fmc0_tdc_start_from_fpga_o(tdc_start),
 		     .fmc0_tdc_start_dis_o(tdc_start_dis),
 		     .fmc0_tdc_stop_dis_o(tdc_stop_dis[1]),
-		     
 			`GENNUM_WIRE_SPEC_BTRAIN_REF(Host)
-
 		     );
 
    assign tdc_stop_dis[4] = tdc_stop_dis[1];
    assign tdc_stop_dis[3] = tdc_stop_dis[1];
    assign tdc_stop_dis[2] = tdc_stop_dis[1];
    
-   // IVHDWishboneMaster Host
-     // (
-      // .clk_i   (DUT.clk_sys_62m5),
-      // .rst_n_i (DUT.rst_sys_62m5_n)
-      // );
-   
-   initial 
-     begin
-	CBusAccessor acc;
-	FmcTdcDriver drv;
-	const uint64_t tdc1_base = 'h20000;
-	uint64_t d;
-	acc = Host.get_accessor();
+
+   // initial 
+   initial begin
+	 CBusAccessor acc;
+	 FmcTdcDriver drv;
+	 const uint64_t tdc1_base = 'h20000;
+	 uint64_t d;
+	 acc = Host.get_accessor();
 	
-	#10us;
+	 #10us;
 	
+    // reset
 	//$display("Un-reset FMCs...");
 	//acc.write('h02000c, 'h3); 
 
-    acc.read('h20000, d); 
-      $display("address 0x20000: %x", d);
+     // test read
+     acc.read('h2208c, d); 
 
-    acc.read('h22004, d); 
-      $display("address 0x22004: %x", d);
-
-    acc.write('h2208c, 1234);  // test
-
-    acc.read('h2208c, d); 
-      $display("address 0x2208c: %x", d);
-
-    //acc.write('h22080, 1234);  // starting UTC
-    //acc.write('h220fc, 1<<9); // load UTC
-
-
-    //acc.write('h22080, 1234);  // 
-    //acc.write('h220fc, 1<<9); // 
-
-    //acc.write('h23004, 'h1f); // 
-      //writel('h3004, 'h1f); // enable EIC irqs for all FIFO channels
-
-    //acc.write('h22084, 'h1f0000); // 
-      //writel('h2084, 'h1f0000); // enable all ACAM inputs
-
-    //acc.write('h22090, 2); // 
-      //writel('h2090, 2); // FIFO threshold = 2 ts
-
-    //acc.write('h22094, 2); // 
-      //writel('h2094, 2); // FIFO threshold = 2 ms
-
-    //acc.write('h220FC, (1<<0)); // 
-      //writel('h20fc, (1<<0)); // start acquisition
-
-    //acc.write('h220BC, ((-1)<<1)); // 
-      //writel('h20bc, ((-1)<<1));
-
-
-      //writel('h20a0, 1234);  // set UTC
-      //writel('h20fc, 1<<9); // load UTC
-      //writel('h3004, 'h1f); // enable EIC irqs for all FIFO channels
-      //writel('h2084, 'h1f0000); // enable all ACAM inputs
-      //writel('h2090, 2); // FIFO threshold = 2 ts
-      //writel('h2094, 2); // FIFO threshold = 2 ms
-      //writel('h20fc, (1<<0)); // start acquisition
-      //writel('h20bc, ((-1)<<1));
-
-
-
+    // device instantiation
 	drv = new (acc, 'h20000, 0 );
 	drv.init();
 	
-	$display("Start operation");
+	$display("[Info] Start operation");
       
 	fork
-	   forever begin
-	      drv.update();
-	      #10us;
-	   end
-	   
-   
-	   
-	   forever begin
-	      #700ns;
-	      tdc_stop[1] <= 1;
-	      #300ns;
-	      tdc_stop[1] <= 0;
-	   end
+	  forever begin
+	    drv.update();
+	    #10us;
+	  end
+	   	   
+	  forever begin
+	    #700ns;
+	    tdc_stop[1] <= 1;
+	    #300ns;
+	    tdc_stop[1] <= 0;
+	  end
 	join
-	
-      
-     
-      
-  
-   end
- 
+    end
    
-
-  
 endmodule // main
 
 

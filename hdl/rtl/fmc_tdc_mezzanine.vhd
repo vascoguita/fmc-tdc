@@ -225,11 +225,11 @@ architecture rtl of fmc_tdc_mezzanine is
 
   -- WISHBONE crossbar layout
   constant c_INTERCONNECT_LAYOUT : t_sdb_record_array(c_NUM_WB_MASTERS-1 downto 0) :=
-    (0 => f_sdb_embed_device(c_TDC_ONEWIRE_SDB_DEVICE, x"00001000"),
-     1 => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00002000"),
-     2 => f_sdb_embed_device(c_TDC_EIC_DEVICE, x"00003000"),
-     3 => f_sdb_embed_device(c_I2C_SDB_DEVICE, x"00004000"),
-     4 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005000"),
+    (c_WB_SLAVE_TDC_ONEWIRE     => f_sdb_embed_device(c_TDC_ONEWIRE_SDB_DEVICE, x"00001000"),
+     c_WB_SLAVE_TDC_CORE_CONFIG => f_sdb_embed_device(c_TDC_CONFIG_SDB_DEVICE, x"00002000"),
+     c_WB_SLAVE_TDC_EIC         => f_sdb_embed_device(c_TDC_EIC_DEVICE, x"00003000"),
+     c_WB_SLAVE_TDC_I2C         => f_sdb_embed_device(c_I2C_SDB_DEVICE, x"00004000"),
+     c_WB_SLAVE_TDC_CHANNEL0    => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005000"),
      5 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005100"),
      6 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005200"),
      7 => f_sdb_embed_device(c_TDC_FIFO_SDB_DEVICE, x"00005300"),
@@ -268,6 +268,7 @@ architecture rtl of fmc_tdc_mezzanine is
   signal timestamp_valid, timestamp_ready, timestamp_stb : std_logic_vector(4 downto 0);
   signal tdc_timestamp                                   : t_tdc_timestamp_array(4 downto 0);
   signal tdc_timestamp_valid, tdc_timestamp_ready        : std_logic_vector(4 downto 0);
+  signal tdc_timestamp_valid_p                           : std_logic_vector(4 downto 0);
   signal channel_enable                                  : std_logic_vector(4 downto 0);
   signal irq_threshold, irq_timeout                      : std_logic_vector(9 downto 0);
   signal tick_1ms                                        : std_logic;
@@ -374,12 +375,13 @@ begin
       cfg_slave_i => f_wb_shift_address_word(cnx_master_out(c_WB_SLAVE_TDC_CORE_CONFIG)),
       cfg_slave_o => cnx_master_in(c_WB_SLAVE_TDC_CORE_CONFIG),
 
-      timestamp_o       => tdc_timestamp,
-      timestamp_valid_o => tdc_timestamp_valid,
-      timestamp_ready_i => tdc_timestamp_ready,
+      timestamp_o         => tdc_timestamp,
+      timestamp_valid_o   => tdc_timestamp_valid,
+      timestamp_valid_p_o => tdc_timestamp_valid_p,
+      timestamp_ready_i   => tdc_timestamp_ready,
 
       raw_enable_i => raw_enable,
-      ts_offset_i  => ts_offset, -- to be used by the direct readout
+      ts_offset_i  => ts_offset,
       reset_seq_i  => reset_seq,
 
       fmc_id_i         => fmc_id_i,
@@ -409,11 +411,11 @@ begin
         irq_timeout_i     => irq_timeout,
         timestamp_i       => timestamp(i),
         timestamp_valid_i => timestamp_stb(i),
-        ts_offset_o       => ts_offset(i),
+        ts_offset_o       => ts_offset(i),  -- to be used by the direct readout
         reset_seq_o       => reset_seq(i),
         raw_enable_o      => raw_enable(i));
 
-    timestamp_stb(i) <= timestamp_valid(i) and timestamp_ready(i);
+    timestamp_stb(i) <= tdc_timestamp_valid_p(i);
   end generate gen_fifos;
 
 ---------------------------------------------------------------------------------------------------
@@ -516,6 +518,20 @@ begin
 --                        TDC Mezzanine Board UniqueID&Thermometer OneWire                       --
 ---------------------------------------------------------------------------------------------------
 
+  U_OnewireIF : gc_ds182x_readout
+    generic map (
+      g_CLOCK_FREQ_KHZ   => 62500,
+      g_USE_INTERNAL_PPS => true)
+    port map (
+      clk_i              => clk_sys_i,
+      rst_n_i            => rst_sys_n_i,
+      pps_p_i            => '0',
+      onewire_b          => onewire_b,
+      id_o(63 downto 32) => regs_ow_in.tdc_ow_id_h_i,
+      id_o(31 downto 0)  => regs_ow_in.tdc_ow_id_l_i,
+      temper_o           => regs_ow_in.tdc_ow_temp_i,
+      id_read_o          => regs_ow_in.tdc_ow_csr_valid_i);
+
   U_Onewire : entity work.tdc_onewire_wb
     port map (
       rst_n_i   => rst_sys_n_i,
@@ -525,7 +541,7 @@ begin
       regs_i    => regs_ow_in,
       regs_o    => regs_ow_out);
 
-  gen_enable_eic : if g_use_fifo_readout or g_use_dma_readout generate
+
 
 ---------------------------------------------------------------------------------------------------
 --                             WBGEN2 EMBEDDED INTERRUPTS CONTROLLER                             --
@@ -534,6 +550,8 @@ begin
 -- 0 -> number of accumulated timestamps reached threshold
 -- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
 -- 2 -> ACAM error
+
+  gen_enable_eic : if g_use_fifo_readout or g_use_dma_readout generate
     cmp_tdc_eic : entity work.tdc_eic
       port map
       (clk_sys_i       => clk_sys_i,
@@ -559,7 +577,6 @@ begin
        irq_tdc_dma4_i  => irq_dma(3),
        irq_tdc_dma5_i  => irq_dma(4)
        );
-
   end generate gen_enable_eic;
 
   gen_disable_eic : if not g_use_fifo_readout and not g_use_dma_readout generate
@@ -599,21 +616,6 @@ begin
   i2c_sda_o     <= sys_sda_out;
   i2c_scl_oen_o <= sys_scl_oe_n;
   i2c_scl_o     <= sys_scl_out;
-
-  U_OnewireIF : gc_ds182x_readout
-    generic map (
-      g_CLOCK_FREQ_KHZ   => 62500,
-      g_USE_INTERNAL_PPS => true)
-    port map (
-      clk_i              => clk_sys_i,
-      rst_n_i            => rst_sys_n_i,
-      pps_p_i            => '0',
-      onewire_b          => onewire_b,
-      id_o(63 downto 32) => regs_ow_in.tdc_ow_id_h_i,
-      id_o(31 downto 0)  => regs_ow_in.tdc_ow_id_l_i,
-      temper_o           => regs_ow_in.tdc_ow_temp_i,
-      id_read_o          => regs_ow_in.tdc_ow_csr_valid_i);
-
 
   gen_use_fake_timestamps : if g_use_fake_timestamps_for_sim generate
 

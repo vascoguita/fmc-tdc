@@ -1,8 +1,8 @@
 files = [
     "tdc_core_pkg.vhd",
+    "reg_ctrl_pkg.vhd",
     "acam_databus_interface.vhd",
     "acam_timecontrol_interface.vhd",
-    "carrier_info.vhd",
     "clks_rsts_manager.vhd",
     "data_engine.vhd",
     "data_formatting.vhd",

@@ -54,11 +54,12 @@
 
 -- Standard library
 library IEEE;
-use IEEE.std_logic_1164.all;            -- std_logic definitions
-use IEEE.NUMERIC_STD.all;               -- conversion functions
+use IEEE.std_logic_1164.all; -- std_logic definitions
+use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
-use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
+use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.reg_ctrl_pkg.all;   -- reg map
 use work.gencores_pkg.all;
 use work.wishbone_pkg.all;
 
@@ -94,7 +95,6 @@ entity reg_ctrl is
 
       -- Signals not used so far
       core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
-      irq_code_i    : in std_logic_vector(g_width-1 downto 0);  -- TDC core interrupt code word
 
       -- White Rabbit status
       wrabbit_status_reg_i : in std_logic_vector(g_width-1 downto 0);  -- 
@@ -105,7 +105,7 @@ entity reg_ctrl is
       acam_config_o : out config_vector;
 
       -- Signals to the data_engine unit: TDC core functionality
-      activate_acq_p_o      : out std_logic;  -- activates tstamps aquisition from ACAM
+      activate_acq_p_o      : out std_logic;  -- activates tstamps acquisition from ACAM
       deactivate_acq_p_o    : out std_logic;  -- activates ACAM configuration readings/ writings
       acam_wr_config_p_o    : out std_logic;  -- enables writing to ACAM regs 0-7, 11, 12, 14 
       acam_rdbk_config_p_o  : out std_logic;  -- enables reading of ACAM regs 0-7, 11, 12, 14 
@@ -121,24 +121,22 @@ entity reg_ctrl is
 
       
       -- Signals to the clks_resets_manager unit
-      send_dac_word_p_o : out std_logic;  -- initiates the reconfiguration of the DAC
-      dac_word_o        : out std_logic_vector(23 downto 0);
+      send_dac_word_p_o     : out std_logic;  -- initiates the reconfiguration of the DAC
+      dac_word_o            : out std_logic_vector(23 downto 0);
 
       -- Signal to the one_hz_gen unit
       load_utc_p_o           : out std_logic;
       starting_utc_o         : out std_logic_vector(g_width-1 downto 0);
+
+      -- Signals to the EIC unit
       irq_tstamp_threshold_o : out std_logic_vector(g_width-1 downto 0);  -- threshold in number of timestamps
       irq_time_threshold_o   : out std_logic_vector(g_width-1 downto 0);  -- threshold in number of ms
-      one_hz_phase_o         : out std_logic_vector(g_width-1 downto 0);  -- for debug only
 
       -- Signal to the TDC mezzanine board
       acam_inputs_en_o : out std_logic_vector(g_width-1 downto 0);  -- enables all five input channels
 
       -- White Rabbit control
       wrabbit_ctrl_reg_o : out std_logic_vector(g_width-1 downto 0);  -- 
-
-      -- Signal to the acam_timecontrol_interface unit -- eva: i think it s not needed
-      start_phase_o : out std_logic_vector(g_width-1 downto 0);
 
       int_flag_delay_o : out std_logic_vector(15 downto 0)
       );
@@ -153,8 +151,8 @@ architecture rtl of reg_ctrl is
 
   signal acam_config                                  : config_vector;
   signal reg_adr, reg_adr_pipe0                       : std_logic_vector(7 downto 0);
-  signal starting_utc, acam_inputs_en, start_phase    : std_logic_vector(g_width-1 downto 0);
-  signal ctrl_reg, one_hz_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
+  signal starting_utc, acam_inputs_en                 : std_logic_vector(g_width-1 downto 0);
+  signal ctrl_reg, local_pps_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
   signal irq_time_threshold                           : std_logic_vector(g_width-1 downto 0);
   signal clear_ctrl_reg, send_dac_word_p              : std_logic;
   signal dac_word                                     : std_logic_vector(23 downto 0);
@@ -331,8 +329,6 @@ begin
 --   o irq_time_threshold   : for the activation of GN4124/VME interrupts based on the time elapsed
 --   o starting_utc         : definition of the current UTC time
 --   o starting_utc         : definition of the current UTC time
---   o one_hz_phase         : eva: think it s not used
---   o start_phase          : eva: think it s not used
 
   TDCcore_config_reg_reception : process (clk_tdc_i)
   begin
@@ -340,11 +336,9 @@ begin
       if rst_tdc_n_i = '0' then
         acam_inputs_en       <= (others => '0');
         starting_utc         <= (others => '0');
-        start_phase          <= (others => '0');
-        one_hz_phase         <= (others => '0');
         wrabbit_ctrl_reg     <= (others => '0');
-        irq_tstamp_threshold <= x"00000001";  -- default 256 timestamps: full memory
-        irq_time_threshold   <= x"00000001";  -- default 200 ms
+        irq_tstamp_threshold <= x"00000001";         -- default 256 timestamps: full memory
+        irq_time_threshold   <= x"00000001";         -- default 200 ms
         dac_word             <= c_DEFAULT_DAC_WORD;  -- default DAC Vout = 1.65
 
         gen_fake_ts_enable_o <= '0';
@@ -359,14 +353,6 @@ begin
 
         if reg_adr = c_ACAM_INPUTS_EN_ADR then
           acam_inputs_en <= wb_in.dat;
-        end if;
-
-        if reg_adr = c_START_PHASE_ADR then
-          start_phase <= wb_in.dat;
-        end if;
-
-        if reg_adr = c_ONE_HZ_PHASE_ADR then
-          one_hz_phase <= wb_in.dat;
         end if;
 
         if reg_adr = c_IRQ_TSTAMP_THRESH_ADR then
@@ -390,7 +376,6 @@ begin
           gen_fake_ts_channel_o <= wb_in.dat(30 downto 28);
           gen_fake_ts_period_o <= wb_in.dat(27 downto 0);
         end if;
-
         
         if reg_adr = c_TEST1_ADR then
           int_flag_delay_o <= wb_in.dat(15 downto 0);
@@ -402,8 +387,6 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --
   starting_utc_o         <= starting_utc;
   acam_inputs_en_o       <= acam_inputs_en;
-  start_phase_o          <= start_phase;
-  one_hz_phase_o         <= one_hz_phase;
   irq_tstamp_threshold_o <= irq_tstamp_threshold;
   irq_time_threshold_o   <= irq_time_threshold;
   dac_word_o             <= dac_word;
@@ -449,7 +432,7 @@ begin
   acam_rdbk_start01_p_o <= ctrl_reg(7);
   acam_rst_p_o          <= ctrl_reg(8);
   load_utc_p_o          <= ctrl_reg(9);
-  send_dac_word_p       <= ctrl_reg(11);
+  send_dac_word_p       <= ctrl_reg(11); -- not used
 -- ctrl_reg bits 12 to 31 not used for the moment!
 
   --  --  --  --  --  --  --  --  --  --  --  --   
@@ -472,7 +455,7 @@ begin
 
 
 ---------------------------------------------------------------------------------------------------
---                        Delivery of ACAM and TDC core Readback Registers                       --
+--                          HOST Reading of ACAM and TDC core registers                          --
 ---------------------------------------------------------------------------------------------------   
 -- TDCcore_ctrl_reg_reception: Delivery to the GN4124/VME interface of all the readable registers,
 -- including those of the ACAM and the TDC core.
@@ -529,8 +512,7 @@ begin
     -- regs written by the GN4124/VME interface
     starting_utc           when c_STARTING_UTC_ADR,
     acam_inputs_en         when c_ACAM_INPUTS_EN_ADR,
-    start_phase            when c_START_PHASE_ADR,
-    x"C000FFEE"            when c_ONE_HZ_PHASE_ADR, -- ref for test
+    x"C000FFEE"            when c_C000FFEE_BREAK_ADR, -- ref for test
     irq_tstamp_threshold   when c_IRQ_TSTAMP_THRESH_ADR,
     irq_time_threshold     when c_IRQ_TIME_THRESH_ADR,
     x"00" & dac_word       when c_DAC_WORD_ADR,
@@ -538,14 +520,10 @@ begin
 
   with reg_adr_pipe0 select dat_out_comb3 <=
     -- regs written locally by the TDC core units
-    local_utc_i          when c_LOCAL_UTC_ADR,
-    irq_code_i           when c_IRQ_CODE_ADR,
-    x"00000000"          when c_WR_INDEX_ADR,
-    core_status_i        when c_CORE_STATUS_ADR,
+    local_utc_i          when c_CURRENT_UTC_ADR,
     -- White Rabbit regs
     wrabbit_status_reg_i when c_WRABBIT_STATUS_ADR,
     wrabbit_ctrl_reg     when c_WRABBIT_CTRL_ADR,
-    x"00000000"          when c_DEACT_CHAN_ADR,
     -- others
     x"00000000"          when others;
 

@@ -71,35 +71,6 @@
 --               |                                                                           |    |
 --               |___________________________________________________________________________|    |
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
---              Grzegorz Daniluk  (Grzegorz.Daniluk@cern.ch)
--- Date         06/2014                                                                           |
--- Version      v6                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v1  GP  First version                                                             |
---     06/2012  v2  EG  Revamping; Comments added, signals renamed                                |
---                      removed LEDs from top level                                               |
---                      new GN4124 core integrated                                                |
---                      carrier 1 wire master added                                               |
---                      mezzanine I2C master added                                                |
---                      mezzanine 1 wire master added                                             |
---                      interrupts generator added                                                |
---                      changed generation of rst_125m_mezz                                       |
---                      DAC reconfiguration+needed regs added                                     |
---     06/2012  v3  EG  Changes for v2 of TDC mezzanine                                           |
---                      Several pinout changes,                                                   |
---                      acam_ref_clk LVDS instead of CMOS,                                        |
---                      no PLL_LD only PLL_STATUS                                                 |
---     04/2013  v4  EG  added SDB; fixed bugs in data_formatting; added carrier CSR information   |
---     01/2014  v5  EG  added VIC and EIC in the TDC mezzanine                                    |
---     06/2014  v6  EG  added White Rabbit support                                                |
---     12/2017  v7  GD  Top file reorganized to benefit from WRPC Board wrapper.                  |
---                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -666,7 +637,7 @@ begin
       g_simulation                  => g_simulation,
       g_with_direct_readout         => false, -- for embedded applications, like WRTD
       g_use_dma_readout             => g_use_dma_readout,
-      g_use_fifo_readout            => true,
+      g_use_fifo_readout            => TRUE,
       g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
     port map (
       clk_sys_i            => clk_sys_62m5,

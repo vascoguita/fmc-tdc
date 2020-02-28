@@ -60,6 +60,7 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.reg_ctrl_pkg.all;   -- reg map
 use work.gencores_pkg.all;
 
 
@@ -80,7 +81,7 @@ entity data_engine is
      activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition 
      deactivate_acq_p_i   : in std_logic;                     -- for configuration readings/ writings
      acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
-     acam_rst_p_i         : in std_logic;                     -- enables writing c_RESET_WORD         to ACAM reg 4
+     acam_rst_p_i         : in std_logic;                     -- enables writing reset_word           to ACAM reg 4
      acam_rdbk_config_p_i : in std_logic;                     -- enables reading of ACAM regs 0-7, 11, 12, 14 
      acam_rdbk_status_p_i : in std_logic;                     -- enables reading of ACAM reg  12
      acam_rdbk_ififo1_p_i : in std_logic;                     -- enables reading of ACAM reg  8

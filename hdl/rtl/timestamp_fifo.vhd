@@ -129,65 +129,6 @@ begin
 
   raw_enable_o <= channel_reg_out.csr_raw_mode_o;
 
-
-
----------------------------------------------------------------------------------------------------
---                  Tstamps subtraction to calculate rising timestap deltas                      --
----------------------------------------------------------------------------------------------------
--- Latching of the last rising edge tstamp
-  p_latch_ref_timestamp : process(clk_sys_i)
-  begin
-    if rising_edge(clk_sys_i) then
-      if rst_sys_n_i = '0' or enable_i = '0' then
-        ref_valid   <= '0';
-      else
-        -- latch only the last rising edge tstamp
-        if (enable_i = '1' and timestamp_valid_i = '1') then
-          ref_valid <= '1';
-          ref_ts    <= timestamp_i;
-        end if;
-      end if;
-    end if;
-  end process;
-
-  sub_valid <= ref_valid and timestamp_valid_i;
-
--- Tstamp pipelined subtractor
-  U_Subtractor : entity work.tdc_ts_sub
-    port map (
-      clk_i    => clk_sys_i,
-      rst_n_i  => rst_sys_n_i,
-      valid_i  => sub_in_valid,
-      enable_i => enable_i,
-      a_i      => timestamp_i,
-      b_i      => ref_ts,
-      valid_o  => sub_out_valid,
-      q_o      => sub_result);
-
--- Deltas calculations
-  p_latch_deltas : process(clk_sys_i)
-  begin
-    if rising_edge(clk_sys_i) then
-      if rst_sys_n_i = '0' or enable_i = '0' then
-        sub_out_valid_latched <= '0';
-      else
-        if channel_reg_out.csr_delta_read_o = '1' then
-          sub_out_valid_latched    <= '0';
-          channel_reg_in.delta1_i <= sub_result_latched.tai;
-          channel_reg_in.delta2_i <= sub_result_latched.coarse;
-          channel_reg_in.delta3_i <= x"00000" & sub_result_latched.frac;
-        end if;
-
-        if(sub_out_valid = '1') then
-          sub_out_valid_latched <= '1';
-          sub_result_latched    <= sub_result;
-        end if;
-      end if;
-    end if;
-  end process;
-
-  channel_reg_in.csr_delta_ready_i <= sub_out_valid_latched;
-
   gen_without_fifo_readout : if not g_USE_FIFO_READOUT generate
     fifo_reg_slave_out <= c_DUMMY_WB_SLAVE_OUT;
     fifo_reg_out       <= c_tsf_out_registers_init_value;

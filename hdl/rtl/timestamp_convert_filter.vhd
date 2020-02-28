@@ -35,6 +35,7 @@ entity timestamp_convert_filter is
     ts_offset_i : in     t_tdc_timestamp_array(4 downto 0);
     ts_o        : out    t_tdc_timestamp_array(4 downto 0);
     ts_valid_o  : buffer std_logic_vector(4 downto 0);
+    ts_valid_p_o: out    std_logic_vector(4 downto 0);
     ts_ready_i  : in     std_logic_vector(4 downto 0)
     );
 end timestamp_convert_filter;
@@ -331,6 +332,8 @@ begin
         end if;
       end if;
     end process;
+  
+  ts_valid_p_o <= ts_valid_postseq;
 
   end generate gen_channels;
 
