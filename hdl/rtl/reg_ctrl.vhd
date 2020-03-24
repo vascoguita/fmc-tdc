@@ -94,7 +94,7 @@ entity reg_ctrl is
       local_utc_i : in std_logic_vector(g_width-1 downto 0);  -- local utc time
 
       -- Signals not used so far
-      core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
+      core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word currently unused
 
       -- White Rabbit status
       wrabbit_status_reg_i : in std_logic_vector(g_width-1 downto 0);  -- 
@@ -521,6 +521,7 @@ begin
   with reg_adr_pipe0 select dat_out_comb3 <=
     -- regs written locally by the TDC core units
     local_utc_i          when c_CURRENT_UTC_ADR,
+    core_status_i        when c_CORE_STATUS_ADR,
     -- White Rabbit regs
     wrabbit_status_reg_i when c_WRABBIT_STATUS_ADR,
     wrabbit_ctrl_reg     when c_WRABBIT_CTRL_ADR,

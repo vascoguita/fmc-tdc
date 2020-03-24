@@ -1,0 +1,827 @@
+peripheral {
+  name = "TDC core registers";
+  prefix="tdc_core_csr";
+  hdl_entity="tdc_core_csr_wb";
+  prefix = "tdc_core_csr";
+
+-- Note that for html readability, some of the lines are longer than 100 characters.
+
+
+----------------------------------------------------------------------------------------------------
+--                                      ACAM CONFIG REGS                                        --
+----------------------------------------------------------------------------------------------------
+
+  reg {
+    name = "acam config reg0";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg0";
+
+    field {
+      name = "reg0";
+      description = "tstamps of both rising and falling edges; set value to 0x01F0FC81";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+
+  reg {
+    name = "acam config reg1";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg1";
+    field {
+      name = "reg1";
+      description = "channel adjustments for other modes; not used; set value to: 0x00000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg2";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg2";
+    field {
+      name = "reg2";
+      description = "I-mode selection and disabling of channels 6-8; set value to: 0x00000E02";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg3";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg3";
+    field {
+      name = "reg3";
+      description = "resolutions and tests for other modes; not used; set value to: 0x00000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg4";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg4";
+    field {
+      name = "reg4";
+      description = "Start retriggers set to 16; resets; set value to: 0x0200000F";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg5";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg5";
+    field {
+      name = "reg5";
+      description = "external start retrigger OFF; offset set to 2.000; set value to: 0x000007D0";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg6";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg6";
+    field {
+      name = "reg6";
+      description = "load flags; not used for the moment; set value to: 0x00000003";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg7";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg7";
+    field {
+      name = "reg7";
+      description = "PLL values: RefClkDiv=7; HSDiv=234; PhaseNeg; set value to: 0x00001FEA";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+
+  reg {
+    name = "acam config reg11";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg11";
+    align = 0x0B;
+    field {
+      name = "reg11";
+      description = "Error flag on the 8 Hit FIFOs; set value to: 0x00FF0000";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg12";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg12";
+    field {
+      name = "reg12";
+      description = "Irq flag; set to the Start# overflow; set value to: 0x04000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config reg14";
+    description = "ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for loading to the ACAM chip, the LOAD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_cfg_reg14";
+    align = 0x0E;
+    field {
+      name = "reg14";
+      description = "Mode control; set value to: 0x00000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+
+----------------------------------------------------------------------------------------------------
+--                                      ACAM READBACK REGS                                        --
+----------------------------------------------------------------------------------------------------
+  reg {
+    name = "acam config readback reg0";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg0";
+    align = 0x10; 
+    field {
+      name = "reg0";
+      description = "tstamps of both rising and falling edges; typical read value: 0xC1F0FC81";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+
+  reg {
+    name = "acam config readback reg1";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg1";
+    field {
+      name = "reg1";
+      description = "channel adjustments for other modes; not used; typical read value: 0xC0000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg2";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg2";
+    field {
+      name = "reg2";
+      description = "I-mode selection and disabling of channels 6-8; typical read value: 0xC0000E02";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg3";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg3";
+    field {
+      name = "reg3";
+      description = "resolutions and tests for other modes; not used; typical read value: 0xC0000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg4";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg4";
+    field {
+      name = "reg4";
+      description = "Start retriggers set to 16; resets; typical read value: 0xC200000F";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg5";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg5";
+    field {
+      name = "reg5";
+      description = "external start retrigger OFF; offset set to 2.000; typical read value: 0xC00007D0";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg6";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg6";
+    field {
+      name = "reg6";
+      description = "load flags; not used for the moment; typical read value: 0xC0000003";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg7";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg7";
+    field {
+      name = "reg7";
+      description = "PLL values: RefClkDiv=7; HSDiv=234; PhaseNeg; typical read value: 0xC0001FEA";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg8";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg8";
+    field {
+      name = "reg8";
+      description = "Interface FIFO1; typical read value: Start# and Stop for channels 1-4";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg9";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg9";
+    field {
+      name = "reg9";
+      description = "Interface FIFO2; typical read value: Start# and Stop for channel 5";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg10";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg10";
+    field {
+      name = "reg10";
+      description = "Start01; typical read value: Start01";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg11";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg11";
+    field {
+      name = "reg11";
+      description = "Error flag on the 8 Hit FIFOs; typical read value: 0xC0FF0000";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg12";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg12";
+    field {
+      name = "reg12";
+      description = "Irq flag; set to the Start# overflow; typical read value: 0xC4000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "acam config readback reg14";
+    description = "Read-back of ACAM configuration regs; refer to ACAM GPX datasheet;\
+    for reading-back the configuration from the ACAM chip, the RD_ACAM_CFG_P  bit of the CTRL reg should be activated";
+    prefix = "acam_rd_cfg_reg14";
+    align = 0x1E;
+    field {
+      name = "reg14";
+      description = "Mode control; typical read value: 0xC0000000";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+----------------------------------------------------------------------------------------------------
+--                                         TDC CONTROL                                           --
+----------------------------------------------------------------------------------------------------
+  reg {
+    name = "starting utc";
+    description = "Optional init value for the local_pps_generator; ignored when WR is enabled";
+    prefix = "starting_utc";
+    align = 0x20;
+    field {
+      name = "starting_utc";
+      description = "Optional init value for the local_pps_generator";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "inputs enable";
+    description = "general enable of all the ACAM channel inputs and per-channel termination enable";
+    prefix = "enable";
+
+    field {
+      name = "ch1_term";
+      prefix = "ch1_term";
+      description = "TDC channel 1 50 Ohm termination enable, active high";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "ch2_term";
+      prefix = "ch2_term";
+      description = "TDC channel 2 50 Ohm termination enable, active high";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "ch3_term";
+      prefix = "ch3_term";
+      description = "TDC channel 3 50 Ohm termination enable, active high";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "ch4_term";
+      prefix = "ch4_term";
+      description = "TDC channel 4 50 Ohm termination enable, active high";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "ch5_term";
+      prefix = "ch5_term";
+      description = "TDC channel 5 50 Ohm termination enable, active high";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "acam_acq";
+      prefix = "acam_acq";
+      description = "ACAM chip timestamp acquisition enable for all inputs, active high";
+      type = BIT;
+      align = 7;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "C000FFEE break";
+    description = "constant with value C000FFEE";
+    prefix = "C000FFEE_break";
+    align = 0x23;
+    field {
+      name = "C000FFEE_break";
+      description = "constant with value C000FFEE";
+      type = CONSTANT;
+      size =32;
+      value = 0xC000FFEE;
+      };
+  };
+
+  reg {
+    name = "irq tstamp threshold";
+    description = "an interrupt is issued if the number of accumulated timestamps since the last irq exceeds this threshold, in any of the FIFOs";
+    prefix = "irq_tstamp_thresh";
+    field {
+      name = "irq_tstamp_thresh";
+      type = SLV;
+      size =8;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "irq time threshold";
+    description = "an interrupt is issued if this amount of ms has passed after the last irq and at least a timestamp has been registered, in any of the FIFOs";
+    prefix = "irq_time_thresh";
+    field {
+      name = "irq_time_thresh";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "DAC word";
+    description = "!currently not used! TDC DAC configuration word; typical set value 1V65: 0x0000A8F5;\
+                  to load the configuration the LOAD_DAC_P bit of the CTRL reg should be enabled";
+    prefix = "dac_word";
+    field {
+      name = "dac_word";
+      type = SLV;
+      size =23;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+
+----------------------------------------------------------------------------------------------------
+--                                          TDC STATUS                                           --
+----------------------------------------------------------------------------------------------------
+
+  reg {
+    name = "Current UTC";
+    description = "Current UTC, either from White Rabbit timing, if enabled, otherwise from the local PPS generator;\
+                   for a fresh reading the bit LOAD_UTC_P of the CTRL reg should be enabled";
+    prefix = "utc";
+    align = 0x28;
+    field {
+      name = "current_utc";
+      type = SLV;
+      size =32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "status";
+    description = "Core status";
+    prefix = "core_status";
+    align = 0x2B;
+    field {
+      name = "DMA-enabled bitstream";
+      prefix = "DMA";
+      description = "DMA-enabled bitstream, active high";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+    field {
+      name = "FIFO-enabled bitstream";
+      prefix = "FIFO";
+      description = "FIFO-enabled bitstream, active high";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+    field {
+      name = "FMC slot ID";
+      prefix = "FMC slot ID";
+      description = "0/1";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+
+  };
+
+----------------------------------------------------------------------------------------------------
+--                                          WHITE RABBIT                                          --
+----------------------------------------------------------------------------------------------------
+  reg {
+    name = "White Rabbit status";
+    description = "White Rabbit status";
+    align = 0x2C;
+    prefix = "wr_stat";
+
+    field {
+      name = "with_wr_core";
+      prefix = "with_wr_core";
+      description = "high, if White Rabbit core is synthesized";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+
+    field {
+      name = "link_up";
+      prefix = "link_up";
+      description = "high, if White Rabbit link is established";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+
+    field {
+      name = "aux_clk_locked";
+      prefix = "aux_clk_locked";
+      aligh = 2;
+      description = "high, if White Rabbit aux clock is locked";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+
+    field {
+      name = "time_valid";
+      prefix = "time_valid";
+      description = "high, if White Rabbit time is valid";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+
+    field {
+      name = "aux_clk_lock_en";
+      prefix = "aux_clk_lock_en";
+      description = "high, if White Rabbit auc clk lock is enabled";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+
+  reg {
+    name = "white Rabbit control";
+    description = "enables White Rabbit synchronisation";
+    align = 0x2D;
+    prefix = "wr_ctrl";
+
+
+    field {
+      name = "en";
+      prefix = "en";
+      description = "White Rabbit synchronisation enable, active high";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "unused";
+      prefix = "unused";
+      description = "currently unused bits";
+      type = SLV;
+      size = 31;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+  };
+
+
+
+----------------------------------------------------------------------------------------------------
+--                                             TEST                                              --
+----------------------------------------------------------------------------------------------------
+  reg {
+    name = "test0";
+    description = "test0";
+    align = 0x2E;
+    prefix = "test0";
+    field {
+      name = "fake_ts_period";
+      prefix = "fake_ts_period";
+      description = "fake ts period";
+      type = SLV;
+      size = 28;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "fake_ts_ch";
+      prefix = "fake_ts_ch";
+      description = "fake ts channel";
+      type = SLV;
+      size = 3;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "fake_ts_en";
+      prefix = "fake_ts_en";
+      description = "fake ts enable";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+
+  reg {
+    name = "test1";
+    description = "test1";
+    align = 0x2F;
+    prefix = "test1";
+    field {
+      name = "int_flag_delay";
+      type = SLV;
+      size =32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+----------------------------------------------------------------------------------------------------
+--                                             Control                                            --
+----------------------------------------------------------------------------------------------------
+  reg {
+    name = "ctrl";
+    description = "TDC control; only one bit of the register should be written at a time";
+    prefix = "ctrl";
+    align = 0x3F;
+
+    field {
+      name = "activate acquisition";
+      description = "when enabled, the FPGA sends the start pulse to the ACAM";
+      prefix = "activate_acq_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "deactivate acquisition";
+      description = "when enabled, FPGA stops receiving timestamps from the ACAM";
+      prefix = "deactivate_acq_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "load ACAM configuration registers";
+      description = "when enabled, the FPGA loads one-by-one all the ACAM_CFG regs";
+      prefix = "load_acam_cfg_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "readback ACAM configuration registers";
+      description = "when enabled, the FPGA reads from the ACAM one-by-one its configuration regs (0-7, 11, 12, 14) and stores them in the ACAM_RD_CFG";
+      prefix = "rd_acam_cfg_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "read ACAM status register";
+      description = "when enabled, the FPGA reads the ACAM reg12 and stores it in the ACAM_RD_CFG_REG12";
+      prefix = "rd_acam_status_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "read ACAM IFIFO1 register";
+      description = "when enabled, the FPGA reads the ACAM reg8 and stores it in the ACAM_RD_CFG_REG8";
+      prefix = "rd_acam_ififo1_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "read ACAM IFIFO2 register";
+      description = "when enabled, the FPGA reads the ACAM reg9 and stores it in the ACAM_RD_CFG_REG9";
+      prefix = "rd_acam_ififo2_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "read ACAM Start01 register";
+      description = "when enabled, the FPGA reads the ACAM reg10 and stores it in the ACAM_RD_CFG_REG10";
+      prefix = "rd_acam_start01_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "reset ACAM chip";
+      description = "when enabled, the FPGA sends a MasterReset to the ACAM, by writing 1 to bit 22 of the ACAM reg4";
+      prefix = "rst_acam_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "load UTC";
+      description = "when enabled, the FPGA sends a MasterReset to the ACAM, by writing 1 to bit 22 of the ACAM reg4";
+      prefix = "load_utc_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "load DAC";
+      description = "!not used! sends the word registered in the DAC_WORD reg to the TDC DAC";
+      prefix = "load_dac_p";
+      type = MONOSTABLE;
+      access_bus = WRITE_ONLY;
+      access_dev = READ_ONLY;
+      };
+  };
+};

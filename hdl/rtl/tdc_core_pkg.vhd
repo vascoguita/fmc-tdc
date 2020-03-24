@@ -723,8 +723,13 @@ package tdc_core_pkg is
 
   component fmc_tdc_wrapper is
     generic (
-      g_simulation          : boolean := false;
-      g_with_direct_readout : boolean := false);
+      g_SIMULATION                  : boolean := false;
+      g_WITH_DIRECT_READOUT         : boolean := false;
+      g_PULSE_WIDTH_FILTER          : boolean := true;
+      g_PULSE_WIDTH_FILTER_MIN      : natural := 12;
+      g_USE_DMA_READOUT             : boolean := false;
+      g_USE_FIFO_READOUT            : boolean := false;
+      g_USE_FAKE_TIMESTAMPS_FOR_SIM : boolean := false);
     port (
       clk_sys_i            : in    std_logic;
       rst_sys_n_i          : in    std_logic;
@@ -759,12 +764,8 @@ package tdc_core_pkg is
       term_en_3_o          : out   std_logic;
       term_en_4_o          : out   std_logic;
       term_en_5_o          : out   std_logic;
-      tdc_led_status_o     : out   std_logic;
-      tdc_led_trig1_o      : out   std_logic;
-      tdc_led_trig2_o      : out   std_logic;
-      tdc_led_trig3_o      : out   std_logic;
-      tdc_led_trig4_o      : out   std_logic;
-      tdc_led_trig5_o      : out   std_logic;
+      tdc_led_stat_o       : out   std_logic;
+      tdc_led_trig_o      : out   std_logic_vector(4 downto 0);
       mezz_scl_o           : out std_logic;
       mezz_sda_o           : out std_logic;
       mezz_scl_i           : in std_logic;

@@ -94,20 +94,20 @@ entity fmc_tdc_wrapper is
   generic
     (
       -- reduces some timeouts to speed up simulation
-      g_simulation                  : boolean := false;
+      g_SIMULATION                  : boolean := false;
       -- implement direct TDC timestamp readout FIFO, used in the WR Node projects
-      g_with_direct_readout         : boolean := false;
+      g_WITH_DIRECT_READOUT         : boolean := false;
       -- Enable filtering based on pulse width. This will have the following effects:
       -- * Suppress theforwarding of negative slope timestamps.
       -- * Delay the forwarding of timestamps until after the falling edge timestamp.
       -- Once enabled, all pulses wider than 1 second or narrower than
       -- g_pulse_width_filter_min will be dropped.
-      g_pulse_width_filter          : boolean := true;
+      g_PULSE_WIDTH_FILTER          : boolean := true;
       -- In 8ns ticks.
-      g_pulse_width_filter_min      : natural := 12;
-      g_use_dma_readout             : boolean := false;
-      g_use_fifo_readout            : boolean := false;
-      g_use_fake_timestamps_for_sim : boolean := false
+      g_PULSE_WIDTH_FILTER_MIN      : natural := 12;
+      g_USE_DMA_READOUT             : boolean := false;
+      g_USE_FIFO_READOUT            : boolean := false;
+      g_USE_FAKE_TIMESTAMPS_FOR_SIM : boolean := false
       );
   port
     (
