@@ -126,17 +126,15 @@ static void fmctdc_param_test2(struct m_test *m_test)
 	struct fmctdc_test_desc *d = m_test->suite->private;
 	struct fmctdc_board *tdc = d->tdc;
 	unsigned int timeout, timeout_rb;
+	enum ft_transfer_mode mode;
 	int i, err;
 
+	err = fmctdc_transfer_mode(tdc, &mode);
+	m_assert_int_eq(0, err);
+	if (mode == FT_ACQ_TYPE_FIFO)
+		return;
+
 	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
-		enum ft_transfer_mode mode;
-
-		err = fmctdc_buffer_mode(tdc, i, &mode);
-		m_assert_int_eq(0, err);
-
-		if (mode == FT_ACQ_TYPE_FIFO)
-			continue; /* not supported in FIFO mode */
-
 		for (timeout = 1; timeout < 1000; timeout *= 10) {
 			err = fmctdc_coalescing_timeout_set(tdc, i,
 							    timeout);
@@ -233,20 +231,18 @@ static void fmctdc_param_test6(struct m_test *m_test)
 	struct fmctdc_board *tdc = d->tdc;
 	unsigned int len;
 	int i, err, ret;
+	enum ft_transfer_mode mode;
+
+	err = fmctdc_transfer_mode(tdc, &mode);
+	m_assert_int_eq(0, err);
+
+	if (mode == FT_ACQ_TYPE_FIFO)
+		return;
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS_TEST; ++i) {
-		enum ft_transfer_mode mode;
-
-		err = fmctdc_buffer_mode(tdc, i, &mode);
-		m_assert_int_eq(0, err);
-
-		if (mode == FT_ACQ_TYPE_FIFO)
-			continue; /* not supported in FIFO mode */
-
 		for (len = 1; len < 64; len <<= 1) {
 			err = fmctdc_set_buffer_len(tdc, i, len);
 			m_assert_int_eq(-1, err);
-
 		}
 
 		for (len = 64; len < (64 << 20); len <<= 1) {

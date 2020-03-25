@@ -928,7 +928,7 @@ int fmctdc_reference_set(struct fmctdc_board *userb,
 		return -1;
 	}
 
-	err = fmctdc_buffer_mode(userb, ch_target, &mode);
+	err = fmctdc_transfer_mode(userb, &mode);
 	if (err)
 		return err;
 
@@ -1085,26 +1085,19 @@ int fmctdc_get_offset_user(struct fmctdc_board *userb,
 }
 
 /**
- * It gets the current buffer mode
+ * It gets the current transfer mode
  * @param[in] userb TDC board instance token
- * @param[in] channel target channel [0, 4]
  * @param[out] mode transfer mode
  * @return 0 on success, otherwise -1 and errno is set appropriately
  */
-int fmctdc_buffer_mode(struct fmctdc_board *userb,
-		       unsigned int channel, enum ft_transfer_mode *mode)
+int fmctdc_transfer_mode(struct fmctdc_board *userb,
+			 enum ft_transfer_mode *mode)
 {
 	struct __fmctdc_board *b = (void *)(userb);
 	uint32_t val;
-	char path[64];
 	int err;
 
-	if (channel >= FMCTDC_NUM_CHANNELS) {
-		errno = EINVAL;
-		return -1;
-	}
-	snprintf(path, sizeof(path), "ft-ch%u/transfer-mode", channel + 1);
-	err = fmctdc_sysfs_get(b, path, &val);
+	err = fmctdc_sysfs_get(b, "transfer-mode", &val);
 	if (err)
 		return -1;
 

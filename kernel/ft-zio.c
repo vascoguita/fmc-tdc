@@ -41,6 +41,8 @@ static struct zio_attribute ft_zattr_dev[] = {
 	ZIO_PARAM_EXT("temperature", ZIO_RO_PERM, FT_ATTR_PARAM_TEMP, 0),
 	ZIO_PARAM_EXT("test_dma_sg", ZIO_WO_PERM, FT_ATTR_PARAM_DMA_SG, 0),
 	ZIO_PARAM_EXT("test_dma", ZIO_WO_PERM, FT_ATTR_PARAM_DMA, 0),
+	ZIO_PARAM_EXT("transfer-mode", ZIO_RO_PERM,
+		      FT_ATTR_TDC_TRANSFER_MODE, 0),
 };
 
 /* Extended attributes for the TDC (== input) cset */
@@ -49,7 +51,6 @@ static struct zio_attribute ft_zattr_input[] = {
 	ZIO_ATTR_EXT("zero-offset", ZIO_RO_PERM, FT_ATTR_TDC_ZERO_OFFSET, 0),
 	ZIO_ATTR_EXT("user-offset", ZIO_RW_PERM, FT_ATTR_TDC_USER_OFFSET, 0),
 	ZIO_ATTR_EXT("diff-reference", ZIO_RW_PERM, FT_ATTR_TDC_DELAY_REF, 0),
-	ZIO_ATTR_EXT("transfer-mode", ZIO_RO_PERM, FT_ATTR_TDC_TRANSFER_MODE, 0),
 	ZIO_ATTR_EXT("irq_coalescing_time", ZIO_RW_PERM,
 		     FT_ATTR_TDC_COALESCING_TIME, 10),
 	ZIO_ATTR_EXT("raw_readout_mode", ZIO_RW_PERM,
@@ -226,9 +227,6 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 		break;
 	case FT_ATTR_TDC_DELAY_REF:
 		return ft_delta_reference_get(ft, cset->index, usr_val);
-	case FT_ATTR_TDC_TRANSFER_MODE:
-		*usr_val = ft->mode;
-		break;
 	case FT_ATTR_TDC_COALESCING_TIME:
 		*usr_val = ft_irq_coalescing_timeout_get(ft, cset->index);
 		break;
@@ -263,6 +261,9 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 	ft = zdev->priv_d;
 
 	switch (zattr->id) {
+	case FT_ATTR_TDC_TRANSFER_MODE:
+		*usr_val = ft->mode;
+		break;
 	case FT_ATTR_PARAM_TEMP:
 		ret = ft_temperature_get(ft, &ft->temp);
 		if (ret < 0)

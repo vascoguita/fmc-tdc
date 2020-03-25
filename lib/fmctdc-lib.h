@@ -185,9 +185,8 @@ extern int fmctdc_set_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t offset);
 extern int fmctdc_get_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t *offset);
-extern int fmctdc_buffer_mode(struct fmctdc_board *userb,
-			      unsigned int channel,
-			      enum ft_transfer_mode *mode);
+extern int fmctdc_transfer_mode(struct fmctdc_board *userb,
+				enum ft_transfer_mode *mode);
 extern int fmctdc_coalescing_timeout_set(struct fmctdc_board *userb,
 					 unsigned int channel,
 					 unsigned int timeout_ms);
