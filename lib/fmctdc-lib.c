@@ -184,6 +184,7 @@ struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 	uint32_t nsamples = NSAMPLE;
 	char path[128];
 	int i;
+	int ret;
 
 	if (offset >= ft_nboards) {
 		errno = ENODEV;
@@ -208,6 +209,9 @@ struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 	return NULL;
 
 found:
+	ret = fmctdc_get_buffer_type((struct fmctdc_board *)b);
+	if (ret < 0)
+		return NULL;
 	/* Trim all block sizes to 1 sample (i.e. 4 bytes) */
 	fmctdc_sysfs_set(b, "ft-ch1/trigger/post-samples", &nsamples);
 	fmctdc_sysfs_set(b, "ft-ch2/trigger/post-samples", &nsamples);
