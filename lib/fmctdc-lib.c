@@ -41,6 +41,10 @@ static char *names[] = { "seconds", "coarse" }; /**< names used to retrive
 static const char *fmctdc_error_string[] = {
 	[FMCTDC_ERR_VMALLOC - __FMCTDC_ERR_MIN] =
 		"Missing ZIO vmalloc support",
+	[FMCTDC_ERR_UNKNOWN_BUFFER_TYPE - __FMCTDC_ERR_MIN] =
+		"Unknown buffer type",
+	[FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE - __FMCTDC_ERR_MIN] =
+		"Buffer type configuration not consistent",
 };
 
 /**
@@ -463,6 +467,138 @@ int fmctdc_channel_enable(struct fmctdc_board *userb, unsigned int channel)
 int fmctdc_channel_disable(struct fmctdc_board *userb, unsigned int channel)
 {
 	return fmctdc_channel_status_set(userb, channel, FMCTDC_STATUS_DISABLE);
+}
+
+/**
+ * The function sets the buffer type for a channel
+ * @param[in] userb TDC board instance token
+ * @param[in] ch to use
+ * @param[in] mode buffer mode to use
+ * @return 0 on success, otherwise a negative errno code is set
+ *         appropriately
+ */
+static int fmctdc_set_buffer_type_chan(struct fmctdc_board *userb,
+				       unsigned int ch,
+				       enum fmctdc_buffer_type type)
+{
+	struct __fmctdc_board *b = (struct __fmctdc_board *)userb;
+	char path[128];
+	int fd;
+	int ret;
+
+	snprintf(path, sizeof(path),
+		 "%s/ft-ch%u/chan0/current_buffer", b->sysbase, ch + 1);
+	fd = open(path, O_WRONLY);
+	if (!fd)
+		return -1;
+	switch (type) {
+	case FMCTDC_BUFFER_KMALLOC:
+		ret = write(fd, "kmalloc", 7);
+		break;
+	case FMCTDC_BUFFER_VMALLOC:
+		ret = write(fd, "vmalloc", 7);
+		break;
+	default:
+		ret = -1;
+		break;
+	}
+	close(fd);
+
+	return ret < 0 || ret != 7 ? -1 : 0;
+}
+
+static int fmctdc_get_buffer_type_chan(struct fmctdc_board *userb,
+				       unsigned int ch,
+				       enum fmctdc_buffer_type *type)
+{
+	struct __fmctdc_board *b = (struct __fmctdc_board *)userb;
+	char path[128];
+	char buffer_type[8];
+	int fd;
+	int ret;
+
+	snprintf(path, sizeof(path),
+		 "%s/ft-ch%u/chan0/current_buffer", b->sysbase, ch + 1);
+	fd = open(path, O_WRONLY);
+	if (!fd)
+		return -1;
+	ret = read(fd, buffer_type, sizeof(buffer_type));
+	close(fd);
+	if (ret < 0)
+		return -1;
+
+	if (strncmp("kmalloc", buffer_type, 8) == 0) {
+		*type = FMCTDC_BUFFER_KMALLOC;
+	} else if (strncmp("vmalloc", buffer_type, 8) == 0) {
+		*type = FMCTDC_BUFFER_VMALLOC;
+	} else {
+		errno = FMCTDC_ERR_UNKNOWN_BUFFER_TYPE;
+		return -1;
+	}
+
+	return 0;
+}
+
+
+/**
+ * The function sets the buffer type for a device
+ * @param[in] userb TDC board instance token
+ * @param[in] mode buffer mode to use
+ * @return 0 on success, otherwise a negative errno code is set
+ *         appropriately
+ */
+int fmctdc_set_buffer_type(struct fmctdc_board *userb,
+			   enum fmctdc_buffer_type type)
+{
+	int i;
+	int err = 0;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		err = fmctdc_set_buffer_type_chan(userb, type, i);
+		if (err) {
+			errno = FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE;
+			break;
+		}
+	}
+
+	return err;
+}
+
+
+/**
+ * The function returns current buffer type: 0 for kmallo, 1 for vmalloc.
+ * @param[in] userb TDC board instance token
+ * @param[in] channel to use
+ * @return buffer type, otherwise a negative errno code is set
+ *         appropriately
+ */
+int fmctdc_get_buffer_type(struct fmctdc_board *userb)
+{
+	int i;
+	int err = 0;
+	enum fmctdc_buffer_type type_prev =  -1, type_cur;
+
+	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
+		err = fmctdc_get_buffer_type_chan(userb, i, &type_cur);
+		if (err) {
+			errno = FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE;
+			break;
+		}
+
+		if (i == 0) {
+			type_prev = type_cur;
+			continue;
+		}
+		if (type_prev != type_cur) {
+			/* There are channels with a different configuration */
+			err = -1;
+			errno = FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE;
+			break;
+		}
+		type_prev = type_cur;
+	}
+
+	return err ? err : type_prev;
 }
 
 /**

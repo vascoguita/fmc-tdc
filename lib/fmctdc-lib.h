@@ -42,6 +42,8 @@ extern "C" {
 #define __FMCTDC_ERR_MIN 4096
 enum fmctdc_error_numbers {
 	FMCTDC_ERR_VMALLOC = __FMCTDC_ERR_MIN,
+	FMCTDC_ERR_UNKNOWN_BUFFER_TYPE,
+	FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE,
 	__FMCTDC_ERR_MAX,
 };
 
@@ -69,6 +71,13 @@ enum fmctdc_buffer_mode {
 			       new ones */
 };
 
+/**
+ * Enumeration of all buffer types
+ */
+enum fmctdc_buffer_type {
+	FMCTDC_BUFFER_KMALLOC = 0, /**< kernel allocator: kmalloc */
+	FMCTDC_BUFFER_VMALLOC, /**< kernel allocator: vmalloc */
+};
 
 /**
  * Enumeration for all possible status of a channel
@@ -166,6 +175,9 @@ extern int fmctdc_channel_status_get(struct fmctdc_board *userb,
 extern int fmctdc_set_termination(struct fmctdc_board *b, unsigned int channel,
 				  int enable);
 extern int fmctdc_get_termination(struct fmctdc_board *b, unsigned int channel);
+extern int fmctdc_get_buffer_type(struct fmctdc_board *userb);
+extern int fmctdc_set_buffer_type(struct fmctdc_board *userb,
+				  enum fmctdc_buffer_type type);
 extern int fmctdc_get_buffer_mode(struct fmctdc_board *userb,
 				  unsigned int channel);
 extern int fmctdc_set_buffer_mode(struct fmctdc_board *userb,
