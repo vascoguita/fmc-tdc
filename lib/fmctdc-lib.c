@@ -851,15 +851,9 @@ err:
 /**
  * It reads a given number of time-stamps from the driver. It will wait at
  * most once and return the number of samples that it received from a given
- * input channel. According to the 'mode' in use the meaning of the time-stamp
- * is different.
+ * input channel.
  *
- * When there is no channel reference for the given channel, the time-stamp
- * is the time-stamp according to the base time.
- *
- * When the reference is setted for the given channel, the time-stamp is the
- * time difference between the the current pulse on the given channel and the
- * last pulse of the reference channel.
+ * Timestamps are to the base time.
  *
  * This "read" behaves like the system call and obeys O_NONBLOCK
  * @param[in] userb TDC board instance token
@@ -1040,80 +1034,6 @@ extern int fmctdc_check_wr_mode(struct fmctdc_board *userb)
 		return 0;
 	return -1;
 }
-
-
-/**
- * It assigns a time reference to a target channel. After you set a reference,
- * you will read, from the target channel, the time-stamp difference between
- * the last reference pulse and the target pulse.
- *
- * DO NOT USE THIS!
- *
- * @param[in] userb TDC board instance token
- * @param[in] ch_target target channel [0, 4]
- * @param[in] ch_reference reference channel [0, 4]. Use -1 to remove reference
- * @return 0 on success, otherwise -1 and errno is set appropriately
- */
-int fmctdc_reference_set(struct fmctdc_board *userb,
-			 unsigned int ch_target, int ch_reference)
-{
-	struct __fmctdc_board *b = (void *)(userb);
-	uint32_t ch_ref = ch_reference;
-	char path[64];
-	int err;
-	enum ft_transfer_mode mode;
-
-	if (ch_target >= FMCTDC_NUM_CHANNELS || ch_reference >= FMCTDC_NUM_CHANNELS ) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	err = fmctdc_transfer_mode(userb, &mode);
-	if (err)
-		return err;
-
-	snprintf(path, sizeof(path), "ft-ch%u/diff-reference", ch_target + 1);
-	return fmctdc_sysfs_set(b, path, &ch_ref);
-}
-
-
-/**
- * It removes the time reference from a target channel
- * @param[in] userb TDC board instance token
- * @param[in] ch_target target channel [0, 4]
- * @return 0 on success, otherwise -1 and errno is set appropriately
- */
-int fmctdc_reference_clear(struct fmctdc_board *userb, int ch_target)
-{
-	return fmctdc_reference_set(userb, ch_target, -1);
-}
-
-
-/**
- * It get the current reference channel of a given target channel
- * @param[in] userb TDC board instance token
- * @param[in] ch_target target channel [0, 4]
- * @return the number of the reference channel [0, 4]on success, otherwise -1 and
- *         errno is set appropriately
- */
-int fmctdc_reference_get(struct fmctdc_board *userb, unsigned int ch_target)
-{
-	struct __fmctdc_board *b = (void *)(userb);
-	uint32_t ch_ref;
-	char path[64];
-	int err;
-
-	if (ch_target >= FMCTDC_NUM_CHANNELS) {
-		errno = EINVAL;
-		return -1;
-	}
-	snprintf(path, sizeof(path), "ft-ch%u/diff-reference", ch_target + 1);
-	err = fmctdc_sysfs_get(b, path, &ch_ref);
-	if (err)
-		return -1;
-	return ch_ref - 1; /* For the driver channel interval is [1, 5]*/
-}
-
 
 /**
  * It removes all samples from the channel buffer. In order to doing this,

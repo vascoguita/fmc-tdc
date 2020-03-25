@@ -188,11 +188,6 @@ extern int fmctdc_get_buffer_len(struct fmctdc_board *userb,
 extern int fmctdc_set_buffer_len(struct fmctdc_board *userb,
 				 unsigned int channel,
 				 unsigned int length);
-extern int fmctdc_reference_set(struct fmctdc_board *userb,
-				unsigned int ch_target, int ch_reference);
-extern int fmctdc_reference_get(struct fmctdc_board *userb,
-				unsigned int ch_target);
-extern int fmctdc_reference_clear(struct fmctdc_board *userb, int ch_target);
 extern int fmctdc_set_offset_user(struct fmctdc_board *userb,
 				  unsigned int channel, int32_t offset);
 extern int fmctdc_get_offset_user(struct fmctdc_board *userb,

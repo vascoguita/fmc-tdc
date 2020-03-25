@@ -53,7 +53,7 @@ static void print_ts(struct fmctdc_time ts, enum tstamp_print_format fmt)
 	}
 }
 
-void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
+void dump(unsigned int ch, struct fmctdc_time *ts)
 {
 	static struct fmctdc_time ts_prev_lst[FMCTDC_NUM_CHANNELS] = {{0, 0, 0, -1, 0},
 								      {0, 0, 0, -1, 0},
@@ -69,9 +69,6 @@ void dump(unsigned int ch, struct fmctdc_time *ts, int diff_mode)
 		ch, ts->seq_id);
 	print_ts(*ts, fmt_wr);
 	fprintf(stdout, "\n");
-
-	if (diff_mode)
-		return;
 
 	/* We are in normal mode, calculate the difference */
 	fmctdc_ts_sub(&ts_tmp, ts, &ts_prev_lst[ch]);
@@ -503,7 +500,7 @@ int main(int argc, char **argv)
 				stop = 1;
 
 			if (n % n_show == 0)
-				dump(chan, &ts[0], 0);
+				dump(chan, &ts[0]);
 			n += n_ts;
 		}
 	}

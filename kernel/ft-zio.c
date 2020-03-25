@@ -96,58 +96,6 @@ static enum ft_devtype __ft_get_type(struct device *dev)
 }
 
 
-/**
- * It sets the channel reference for delta computation
- * @ft FmcTdc instance
- * @chan channel [0, 4]
- * @ref reference channel [0, 4]
- */
-static int ft_delta_reference_set(struct fmctdc_dev *ft,
-				  unsigned int chan,
-				  unsigned int ref)
-{
-	uint32_t csr;
-	void *fifo_addr;
-
-	if (ref > ft->zdev->n_cset || chan > ft->zdev->n_cset)
-		return -EINVAL;
-
-	fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
-	csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
-	csr &= ~TSF_CSR_DELTA_READ;
-	csr &= ~TSF_CSR_DELTA_REF_MASK;
-	csr |= (ref << TSF_CSR_DELTA_REF_SHIFT);
-	csr |= TSF_CSR_DELTA_READ;
-	ft_iowrite(ft, csr, fifo_addr + TSF_REG_CSR);
-
-	return 0;
-}
-
-/**
- * It gets the channel reference for delta computation
- * @ft FmcTdc instance
- * @chan channel [0, 4]
- * Return: reference channel [0, 4], -1 when delta computation is disabled
- */
-static int ft_delta_reference_get(struct fmctdc_dev *ft,
-				  unsigned int chan,
-				  int *ref)
-{
-	uint32_t csr;
-	void *fifo_addr;
-
-	if (chan > ft->zdev->n_cset)
-		return -EINVAL;
-
-	fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
-	csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
-	*ref = TSF_CSR_DELTA_REF_R(csr);
-
-	return 0;
-}
-
-
-
 static void ft_raw_mode_set(struct fmctdc_dev *ft,
 			       unsigned int chan,
 			       unsigned int raw_enable)
@@ -225,8 +173,6 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 	case FT_ATTR_TDC_TERMINATION:
 		*usr_val = test_bit(FT_FLAG_CH_TERMINATED, &st->flags);
 		break;
-	case FT_ATTR_TDC_DELAY_REF:
-		return ft_delta_reference_get(ft, cset->index, usr_val);
 	case FT_ATTR_TDC_COALESCING_TIME:
 		*usr_val = ft_irq_coalescing_timeout_get(ft, cset->index);
 		break;
@@ -321,8 +267,6 @@ static int ft_zio_conf_channel(struct device *dev, struct zio_attribute *zattr,
 
 		spin_unlock(&ft->lock);
 		break;
-	case FT_ATTR_TDC_DELAY_REF:
-		return ft_delta_reference_set(ft, cset->index, usr_val);
 	case FT_ATTR_TDC_COALESCING_TIME:
 		ft_irq_coalescing_timeout_set(ft, cset->index, usr_val);
 		break;
@@ -466,11 +410,6 @@ static void ft_change_flags(struct zio_obj_head *head, unsigned long mask)
 		fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan->cset->index;
 
 		zio_trigger_abort_disable(chan->cset, 0);
-
-		csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
-
-		/* clear delta timestamp ready flag */
-		ft_iowrite(ft, csr | TSF_CSR_DELTA_READ, fifo_addr + TSF_REG_CSR);
 
 		csr = ft_ioread(ft, fifo_addr + TSF_REG_FIFO_CSR);
 		ft_iowrite(ft, csr | TSF_FIFO_CSR_CLEAR_BUS, fifo_addr + TSF_REG_FIFO_CSR);
@@ -745,7 +684,6 @@ int ft_zio_init(struct fmctdc_dev *ft)
 		goto err_dev_reg;
 
 	for(i = 0; i < FT_NUM_CHANNELS; i++) {
-		ft_delta_reference_set(ft, i, -1);
 		ft_raw_mode_set(ft, i, 0);
 		ft_update_offsets(ft, i);
 	}
