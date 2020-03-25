@@ -51,7 +51,7 @@ install:
 modules_install:
 
 cppcheck:
-	$(CPPCHECK) -q -I. -I../kernel  --enable=warning,style,information,missingInclude *.c *.h
+	$(CPPCHECK) -q -I. -I../kernel -I $(ZIO_ABS)/include --suppress=missingIncludeSystem --enable=warning,style,information,missingInclude *.c *.h
 
 -include .depend
 

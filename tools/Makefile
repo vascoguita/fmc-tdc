@@ -44,4 +44,4 @@ install:
 	install -D $(TESTS) $(DESTDIR)/bin
 
 cppcheck:
-	$(CPPCHECK) -q -I. -I../kernel -I$(LIBTDC)  --enable=all *.c *.h
+	$(CPPCHECK) -q -I. -I../kernel -I$(LIBTDC) --suppress=missingIncludeSystem --enable=all *.c *.h
