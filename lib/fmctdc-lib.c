@@ -508,7 +508,7 @@ static int fmctdc_set_buffer_type_chan(struct fmctdc_board *userb,
 	}
 	close(fd);
 
-	return ret < 0 || ret != 7 ? -1 : 0;
+	return ret != 7 ? -1 : 0;
 }
 
 static int fmctdc_get_buffer_type_chan(struct fmctdc_board *userb,
@@ -675,7 +675,7 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
 	int ret;
 	char path[64];
 
-	snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/buffer/max-buffer-kb",
+	snprintf(path, sizeof(path), "%s/ft-ch%u/chan0/buffer/max-buffer-kb",
 		 b->sysbase, channel + 1);
 	if (access(path, R_OK | W_OK)) {
 		errno = FMCTDC_ERR_VMALLOC;
@@ -720,7 +720,7 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 	char attr[64];
 	char path[64];
 
-	snprintf(path, sizeof(path), "%s/ft-ch%d/chan0/buffer/max-buffer-kb",
+	snprintf(path, sizeof(path), "%s/ft-ch%u/chan0/buffer/max-buffer-kb",
 		 b->sysbase, channel + 1);
 	if (access(path, R_OK | W_OK)) {
 		errno = FMCTDC_ERR_VMALLOC;
