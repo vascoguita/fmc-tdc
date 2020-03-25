@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 			read = 1;
 			break;
 		case 'm':
-		        if (strcmp(optarg, "fifo") == 0) {
+			if (strcmp(optarg, "fifo") == 0) {
 				bufmode = FMCTDC_BUFFER_FIFO;
 			} else if (strcmp(optarg, "circ") == 0) {
 				bufmode = FMCTDC_BUFFER_CIRC;
