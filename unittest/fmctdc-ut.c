@@ -339,8 +339,12 @@ static void fmctdc_op_test_setup(struct m_test *m_test)
 		ret = fmctdc_channel_status_get(tdc, i);
 		m_assert_int_eq(FMCTDC_STATUS_DISABLE, ret);
 
-		err = fmctdc_set_buffer_len(tdc, i, 1000000);
-		m_assert_int_eq(0, err);
+		ret = fmctdc_get_buffer_type(tdc);
+		m_assert_int_neq(-1, ret);
+		if (ret == FMCTDC_BUFFER_VMALLOC) {
+			err = fmctdc_set_buffer_len(tdc, i, 1000000);
+			m_assert_int_eq(0, err);
+		}
 		err = fmctdc_ts_mode_set(tdc, i, FMCTDC_TS_MODE_POST);
 		m_assert_int_eq(0, err);
 		err = fmctdc_coalescing_timeout_set(tdc, i, 10);
