@@ -109,6 +109,7 @@ int fmctdc_init(void)
 		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 			b->fdc[j] = -1;
 			b->fdd[j] = -1;
+			b->fdcc[j] = -1;
 		}
 		if (fmctdc_is_verbose()) {
 			fprintf(stderr, "%s: %04x %s %s\n", __func__,
@@ -250,10 +251,13 @@ error:
 	while (i--) {
 		if (b->fdc[i] >= 0)
 			close(b->fdc[i]);
+		b->fdc[i] = -1;
 		if (b->fdd[i] >= 0)
 			close(b->fdd[i]);
+		b->fdd[i] = -1;
 		if (b->fdcc[i] >= 0)
 			close(b->fdcc[i]);
+		b->fdcc[i] = -1;
 	}
 	return NULL;
 }
