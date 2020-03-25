@@ -491,7 +491,7 @@ static int fmctdc_set_buffer_type_chan(struct fmctdc_board *userb,
 	int ret;
 
 	snprintf(path, sizeof(path),
-		 "%s/ft-ch%u/chan0/current_buffer", b->sysbase, ch + 1);
+		 "%s/ft-ch%u/current_buffer", b->sysbase, ch + 1);
 	fd = open(path, O_WRONLY);
 	if (!fd)
 		return -1;
@@ -522,8 +522,8 @@ static int fmctdc_get_buffer_type_chan(struct fmctdc_board *userb,
 	int ret;
 
 	snprintf(path, sizeof(path),
-		 "%s/ft-ch%u/chan0/current_buffer", b->sysbase, ch + 1);
-	fd = open(path, O_WRONLY);
+		 "%s/ft-ch%u/current_buffer", b->sysbase, ch + 1);
+	fd = open(path, O_RDONLY);
 	if (!fd)
 		return -1;
 	ret = read(fd, buffer_type, sizeof(buffer_type));
@@ -531,9 +531,9 @@ static int fmctdc_get_buffer_type_chan(struct fmctdc_board *userb,
 	if (ret < 0)
 		return -1;
 
-	if (strncmp("kmalloc", buffer_type, 8) == 0) {
+	if (strncmp("kmalloc", buffer_type, 7) == 0) {
 		*type = FMCTDC_BUFFER_KMALLOC;
-	} else if (strncmp("vmalloc", buffer_type, 8) == 0) {
+	} else if (strncmp("vmalloc", buffer_type, 7) == 0) {
 		*type = FMCTDC_BUFFER_VMALLOC;
 	} else {
 		errno = FMCTDC_ERR_UNKNOWN_BUFFER_TYPE;
