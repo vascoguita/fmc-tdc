@@ -246,7 +246,7 @@ static int ft_zio_info_channel(struct device *dev, struct zio_attribute *zattr,
 
 /* Overall and device-wide attributes: only get_time is special */
 static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
-			     uint32_t *usr_val)
+			   uint32_t *usr_val)
 {
 	struct zio_device *zdev;
 	struct fmctdc_dev *ft;
