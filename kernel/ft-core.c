@@ -723,7 +723,7 @@ int ft_probe(struct platform_device *pdev)
 		goto err_mode_selection;
 	}
 
-	slot_nr = ft_readl(ft, FT_REG_FMC_SLOT_ID) + 1;
+	slot_nr = stat & TDC_STAT_FMC_SLOT ? 2 : 1;
 	ft->slot = fmc_slot_get(pdev->dev.parent->parent, slot_nr);
 	if (IS_ERR(ft->slot)) {
 		dev_err(&ft->pdev->dev,

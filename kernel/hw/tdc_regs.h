@@ -44,6 +44,7 @@
 /* TDC_REG_STAT bits */
 #define TDC_STAT_DMA BIT(0)
 #define TDC_STAT_FIFO BIT(1)
+#define TDC_STAT_FMC_SLOT BIT(2)
 
 #define TDC_FIFO_OFFSET 0x100
 
