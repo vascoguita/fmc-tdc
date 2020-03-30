@@ -14,6 +14,8 @@
 #include <linux/io.h>
 #include <linux/moduleparam.h>
 #include <linux/interrupt.h>
+#include <linux/dmaengine.h>
+#include <linux/sched.h>
 
 #include <linux/zio.h>
 #include <linux/zio-trigger.h>
@@ -159,7 +161,7 @@ static void ft_irq_enable_restore(struct fmctdc_dev *ft)
 	ft->irq_imr = 0;
 }
 
-
+#if 0
 /**
  * It configures the gennum to run a DMA transfer
  */
@@ -209,6 +211,7 @@ static int gennum_dma_fill(struct zio_dma_sg *zsg)
 
 	return 0;
 }
+#endif
 
 /**
  * It changes the current acquisition buffer
@@ -379,14 +382,262 @@ static inline unsigned int ft_irq_status_is_valid(struct fmctdc_dev *ft,
 	chan_stat = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	chan_stat &= TDC_INPUT_ENABLE_CH_ALL;
 	chan_stat >>= TDC_INPUT_ENABLE_CH1_SHIFT;
-	chan_stat <<= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
 
 	return !WARN((chan_stat & irq_stat) == 0,
 		    "Received an unexpected interrupt: 0x%X 0x%X\n",
 		    chan_stat, irq_stat);
 }
 
+static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
+				   struct zio_block *block,
+				   enum dma_data_direction dir)
+{
+	struct ft_channel_state *st = &ft->channels[ch];
+	struct page **pages;
+	unsigned int nr_pages;
+	size_t max_segment_size;
+	long kaddr = (long)block->data;
+	void *data = (void *) block->data;
+	int i;
+	int err;
+	int sg_len;
 
+	nr_pages = ((kaddr & ~PAGE_MASK) + block->datalen + ~PAGE_MASK);
+	nr_pages >>= PAGE_SHIFT;
+
+	pages = kcalloc(nr_pages, sizeof(struct page *), GFP_KERNEL);
+	if (!pages)
+		return -ENOMEM;
+
+	if (is_vmalloc_addr(data)) {
+		for (i = 0; i < nr_pages; ++i)
+			pages[i] = vmalloc_to_page(data + PAGE_SIZE * i);
+	} else {
+		for (i = 0; i < nr_pages; ++i)
+			pages[i] = virt_to_page(data + PAGE_SIZE * i);
+	}
+
+	max_segment_size = dma_get_max_seg_size(ft->dchan->device->dev);
+	max_segment_size &= PAGE_MASK; /* to make alloc_table happy */
+	err = __sg_alloc_table_from_pages(&st->sgt, pages, nr_pages,
+					  offset_in_page(block->data),
+					  block->datalen,
+					  max_segment_size, GFP_KERNEL);
+	if (err)
+		goto err_alloc;
+
+	sg_len = dma_map_sg(&ft->pdev->dev,
+			    st->sgt.sgl, st->sgt.nents, dir);
+	if (sg_len <= 0) {
+		err = sg_len;
+		goto err_map;
+	}
+
+	kfree(pages);
+
+	return sg_len;
+
+err_map:
+	sg_free_table(&st->sgt);
+err_alloc:
+	kfree(pages);
+	return err;
+}
+
+static void ft_zio_block_dma_unmap_sg(struct fmctdc_dev *ft, unsigned int ch,
+				      enum dma_data_direction dir)
+{
+	struct ft_channel_state *st = &ft->channels[ch];
+
+	dma_unmap_sg(&ft->pdev->dev,
+		     st->sgt.sgl, st->sgt.nents, dir);
+	sg_free_table(&st->sgt);
+}
+
+static void ft_dma_complete(void *arg)
+{
+	struct zio_cset *cset = arg;
+	struct fmctdc_dev *ft =  cset->zdev->priv_d;
+	unsigned long flags;
+
+	if (WARN(!ft->dchan, "Channel unavailable\n"))
+		return;
+
+	ft_zio_block_dma_unmap_sg(ft, cset->index, DMA_DEV_TO_MEM);
+
+	spin_lock_irqsave(&ft->lock, flags);
+	ft->pending_dma--;
+	if (!ft->pending_dma) {
+		dma_release_channel(ft->dchan);
+		ft->dchan = NULL;
+		ft_irq_enable_restore(ft);
+	}
+	spin_unlock_irqrestore(&ft->lock, flags);
+
+	spin_lock(&cset->lock);
+	cset->flags &= ~ZIO_CSET_HW_BUSY;
+	spin_unlock(&cset->lock);
+
+	zio_trigger_data_done(cset);
+}
+
+/**
+ * It matches a valid DMA channel
+ */
+static bool ft_dmaengine_filter(struct dma_chan *dchan, void *arg)
+{
+	struct fmctdc_dev *ft = arg;
+
+	switch (ft->pdev->id_entry->driver_data) {
+	case TDC_VER_PCI:
+		/*
+		 *The DMA channel and the ADC must be on the same carrier
+		 * dev - current device
+		 * parent - the application top level design
+		 * parent - the SPEC device
+		 */
+		return (dchan->device->dev == ft->pdev->dev.parent->parent->parent);
+	default:
+		/* SVEC DMA not supported */
+		dev_warn(&ft->pdev->dev,
+			"Carrier not recognized or not supported\n");
+		return false;
+	}
+}
+
+static int ft_dma_config(struct fmctdc_dev *ft, unsigned int ch)
+{
+	struct zio_cset *cset = &ft->zdev->cset[ch];
+	struct ft_channel_state *st = &ft->channels[ch];
+	struct dma_async_tx_descriptor *tx;
+	unsigned int transfer;
+	int sg_len;
+	struct dma_slave_config sconfig;
+	int err;
+
+
+	transfer = ft_buffer_switch(ft, ch);
+	cset->ti->nsamples = ft_buffer_count(ft, ch);
+	ft->channels[ch].stats.received += cset->ti->nsamples;
+
+	zio_arm_trigger(cset->ti); /* actually arm'n'fire */
+	if (!zio_cset_can_acquire(cset)) {
+		dev_warn(&ft->pdev->dev,
+			 "DMA failed for channel %i: can't arm ZIO trigger\n",
+			 ch);
+		return -EBUSY;
+	}
+
+	memset(&sconfig, 0, sizeof(sconfig));
+	sconfig.direction = DMA_DEV_TO_MEM;
+	sconfig.src_addr = st->buf_addr[transfer];
+	err = dmaengine_slave_config(ft->dchan, &sconfig);
+	if (err) {
+		dev_err(&ft->pdev->dev,
+			"DMA failed for channel %i: can't config %d\n",
+			ch, err);
+		return err;
+	}
+
+	sg_len = ft_zio_block_dma_map_sg(ft, ch, cset->chan->active_block,
+					 DMA_DEV_TO_MEM);
+	if (sg_len <= 0) {
+		err = sg_len;
+		goto err_map;
+	}
+
+	tx = dmaengine_prep_slave_sg(ft->dchan,
+				     st->sgt.sgl, sg_len, DMA_DEV_TO_MEM, 0);
+	if (!tx) {
+		dev_err(&ft->pdev->dev,
+			"DMA failed for channel %i: can't prepare transfer\n",
+			ch);
+		err = -EINVAL;
+		goto err_prep;
+	}
+	tx->callback = ft_dma_complete;
+	tx->callback_param = (void *)cset;
+
+	st->cookie = dmaengine_submit(tx);
+	if (st->cookie < 0) {
+		dev_err(&ft->pdev->dev,
+			"DMA failed for channel %i: can't submit %d\n",
+			ch, st->cookie);
+		err = st->cookie;
+		goto err_submit;
+	}
+
+	return 0;
+
+err_submit:
+err_prep:
+	dma_unmap_sg(&ft->pdev->dev,
+		     st->sgt.sgl, st->sgt.nents, DMA_DEV_TO_MEM);
+err_map:
+	sg_free_table(&st->sgt);
+	return err;
+}
+
+static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
+{
+	struct fmctdc_dev *ft = dev_id;
+	unsigned long *loop;
+	unsigned long flags;
+	unsigned int n_block;
+	unsigned int i;
+	uint32_t irq_stat;
+	dma_cap_mask_t dma_mask;
+
+	WARN(ft->pending_dma,
+	     "Possible data loss: IRQ arrived while pending DMA");
+
+	irq_stat = ft_irq_buff_status(ft);
+	irq_stat &= TDC_EIC_EIC_IMR_TDC_DMA_MASK;
+	irq_stat >>= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
+
+	if (!irq_stat || !ft_irq_status_is_valid(ft, irq_stat))
+		return IRQ_NONE;
+
+	dev_dbg(&ft->pdev->dev, "Start DMA transfer\n");
+	dma_cap_zero(dma_mask);
+	dma_cap_set(DMA_SLAVE, dma_mask);
+	dma_cap_set(DMA_PRIVATE, dma_mask);
+	ft->dchan = dma_request_channel(dma_mask, ft_dmaengine_filter, ft);
+	if (!ft->dchan) {
+		dev_dbg(&ft->pdev->dev,
+			"DMA transfer Failed: can't request channel\n");
+		return IRQ_HANDLED;
+	}
+
+	ft_irq_disable_save(ft);
+
+	ft->dma_chan_mask = irq_stat;
+	loop = (unsigned long *) &irq_stat;
+
+	/* arm all csets */
+	n_block = 0;
+	for_each_set_bit(i, loop, ft->zdev->n_cset) {
+		int err = ft_dma_config(ft, i);
+
+		if (!err)
+			continue;
+		n_block++;
+	}
+
+	if (likely(n_block)) {
+		spin_lock_irqsave(&ft->lock, flags);
+		ft->pending_dma = n_block;
+		spin_unlock_irqrestore(&ft->lock, flags);
+		dma_async_issue_pending(ft->dchan);
+	} else {
+		dma_release_channel(ft->dchan);
+		ft_irq_enable_restore(ft);
+	}
+
+	return IRQ_HANDLED;
+}
+
+#if 0
 static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
 {
 	struct fmctdc_dev *ft = dev_id;
@@ -409,6 +660,7 @@ static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
 	irq_stat >>= TDC_EIC_EIC_IMR_TDC_DMA_SHIFT;
 	ft->dma_chan_mask = irq_stat;
 	loop = (unsigned long *) &irq_stat;
+
 	/* arm all csets */
 	n_block = 0;
 	for_each_set_bit(i, loop, ft->zdev->n_cset) {
@@ -426,6 +678,7 @@ static irqreturn_t ft_irq_handler_ts_dma(int irq, void *dev_id)
 				 "ZIO trigger not armed, or missing block\n");
 			continue;
 		}
+
 		blocks[n_block] = cset->chan->active_block;
 		n_block++;
 	}
@@ -468,6 +721,7 @@ err_alloc:
 
 	return IRQ_HANDLED;
 }
+#endif
 
 /**
  * It configure the double buffers for a given channel

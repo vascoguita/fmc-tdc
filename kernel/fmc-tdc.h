@@ -117,6 +117,7 @@ struct ft_calibration_raw {
 #include <linux/version.h>
 #include <linux/platform_device.h>
 #include <linux/fmc.h>
+#include <linux/dmaengine.h>
 
 struct ft_memory_ops {
 	u32 (*read)(void *addr);
@@ -193,6 +194,8 @@ struct ft_channel_state {
 	uint32_t buf_size; // in timestamps
 
 	struct fmctdc_channel_stats stats;
+	dma_cookie_t cookie;
+	struct sg_table sgt;
 };
 
 enum ft_transfer_mode {
@@ -257,6 +260,8 @@ struct fmctdc_dev {
 
 	struct zio_dma_sgt *zdma;
 	int dma_chan_mask;
+	struct dma_chan *dchan;
+	int pending_dma;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, void *addr)
