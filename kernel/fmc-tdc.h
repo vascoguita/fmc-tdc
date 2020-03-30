@@ -118,6 +118,7 @@ struct ft_calibration_raw {
 #include <linux/platform_device.h>
 #include <linux/fmc.h>
 #include <linux/dmaengine.h>
+#include <linux/workqueue.h>
 
 struct ft_memory_ops {
 	u32 (*read)(void *addr);
@@ -258,9 +259,10 @@ struct fmctdc_dev {
 	uint32_t irq_imr;
 
 	struct zio_dma_sgt *zdma;
-	int dma_chan_mask;
+	unsigned long dma_chan_mask;
 	struct dma_chan *dchan;
 	int pending_dma;
+	struct work_struct irq_work;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, void *addr)

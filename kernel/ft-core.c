@@ -704,13 +704,6 @@ int ft_probe(struct platform_device *pdev)
 	 * time, here for the time being we don't.
 	 */
 	stat = ft_ioread(ft, ft->ft_core_base + TDC_REG_STAT);
-
-	if (dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(64)) ||
-	    dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(32))) {
-		dev_warn(&ft->pdev->dev, "No suitable DMA available\n");
-		stat &= ~TDC_STAT_DMA;
-	}
-
 	if (stat & TDC_STAT_DMA) {
 		ft->mode = FT_ACQ_TYPE_DMA;
 	} else if (stat & TDC_STAT_FIFO) {
