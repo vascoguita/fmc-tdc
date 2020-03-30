@@ -244,7 +244,6 @@ struct fmctdc_dev {
 	void *carrier_data;
 	/* current calibration block */
 	struct ft_calibration calib;
-	int initialized;
 	/* DS18S20 temperature sensor 1-wire ID */
 	uint8_t ds18_id[8];
 	/* next temperature measurement pending? */

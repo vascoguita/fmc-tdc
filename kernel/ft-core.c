@@ -782,8 +782,7 @@ int ft_probe(struct platform_device *pdev)
 	ft_writel(ft, TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
-	ft->initialized = 1;
-
+	platform_set_drvdata(pdev, ft);
 	return 0;
 
 err:
@@ -809,7 +808,7 @@ int ft_remove(struct platform_device *pdev)
 	struct fmctdc_dev *ft = platform_get_drvdata(pdev);
 	int i;
 
-	if (!ft->initialized)
+	if (!ft)
 		return 0;	/* No init, no exit */
 
 	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
