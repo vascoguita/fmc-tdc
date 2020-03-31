@@ -501,6 +501,7 @@ err_mode_selection:
 err_memops:
 	iounmap(ft->ft_base);
 	kfree(ft);
+	platform_set_drvdata(pdev, NULL);
 	return ret;
 }
 
