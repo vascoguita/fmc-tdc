@@ -68,8 +68,6 @@ enum ft_zattr_in_idx {
 
 enum ft_zattr_paremeters {
 	FT_ATTR_PARAM_TEMP = FT_ATTR_TDC__LAST,
-	FT_ATTR_PARAM_DMA,
-	FT_ATTR_PARAM_DMA_SG,
 };
 
 enum ft_command {
@@ -287,16 +285,6 @@ static inline void ft_writel(struct fmctdc_dev *ft, uint32_t v,
 	ft_iowrite(ft, v, ft->ft_core_base + reg);
 }
 
-static inline uint32_t dma_readl(struct fmctdc_dev *ft, uint32_t reg)
-{
-	BUG();
-}
-
-static inline void dma_writel(struct fmctdc_dev *ft, uint32_t data, uint32_t reg)
-{
-	BUG();
-}
-
 
 int ft_calib_init(struct fmctdc_dev *ft);
 void ft_calib_exit(struct fmctdc_dev *ft);
@@ -344,10 +332,6 @@ struct zio_channel;
 
 int ft_enable_termination(struct fmctdc_dev *ft, int channel, int enable);
 
-void gn4124_dma_read(struct fmctdc_dev *ft, uint32_t src, void *dst, int len);
-int gn4124_dma_sg(struct fmctdc_dev *ft,
-		  uint32_t offset, void *buf, int size,
-		  enum dma_data_direction dir);
 void ft_irq_coalescing_size_set(struct fmctdc_dev *ft,
 				unsigned int chan,
 				uint32_t size);
@@ -358,8 +342,6 @@ void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 				       unsigned int chan);
 
-int test_dma(struct fmctdc_dev *ft, unsigned int buf_size,
-	     unsigned int use_sg);
 
 /**
  * It enables the acquisition on a give channel
@@ -387,72 +369,6 @@ static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
 	ien = ft_readl(ft, TDC_REG_INPUT_ENABLE);
 	ien &= ~(TDC_INPUT_ENABLE_CH1 << chan);
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
-}
-
-/**
- * It starts the DMA transfer
- * @ft FmcTdc device instance
- */
-static inline void gn4124_dma_abort(struct fmctdc_dev *ft)
-{
-	dma_writel(ft, GENNUM_DMA_CTL_ABORT, GENNUM_DMA_CTL);
-}
-
-/**
- * It starts the DMA transfer
- * @ft FmcTdc device instance
- */
-static inline void gn4124_dma_start(struct fmctdc_dev *ft)
-{
-	dma_writel(ft, GENNUM_DMA_CTL_START, GENNUM_DMA_CTL);
-}
-
-/**
- * It does an active wait until the DMA transfer is over
- * @ft FmcTdc device instance
- * @timeout_ms timeout in milli-seconds
- */
-static inline enum gncore_dma_status gn4124_dma_wait_done(struct fmctdc_dev *ft,
-							  unsigned int timeout_ms)
-{
-	uint32_t tmp;
-	unsigned long timeout = jiffies + msecs_to_jiffies(timeout_ms);
-
-	while (1) {
-		tmp = dma_readl(ft, GENNUM_DMA_STA);
-		switch (tmp & GENUM_DMA_STA_MASK) {
-		case GENNUM_DMA_STA_ERROR:
-			dev_err(&ft->pdev->dev, "DMA problem: 0x%x", tmp);
-		case GENNUM_DMA_STA_ABORT:
-		case GENNUM_DMA_STA_DONE:
-			return tmp;
-		default:
-			if (time_after(jiffies, timeout)) {
-				dev_err(&ft->pdev->dev, "DMA timeout: 0x%x", tmp);
-				gn4124_dma_abort(ft);
-			}
-			cpu_relax();
-			break;
-		}
-	}
-
-}
-
-/**
- * It configures the DMA engine for the next transfer
- * @ft FmcTdc instance
- * @item gennum DMA transfer descriptor
- */
-static inline void gn4124_dma_config(struct fmctdc_dev *ft,
-				     struct gncore_dma_item *item)
-{
-	dma_writel(ft, item->start_addr, GENNUM_DMA_ADDR);
-	dma_writel(ft, item->dma_addr_h, GENNUM_DMA_ADDR_H);
-	dma_writel(ft, item->dma_addr_l, GENNUM_DMA_ADDR_L);
-	dma_writel(ft, item->dma_len, GENNUM_DMA_LEN);
-	dma_writel(ft, item->next_addr_h, GENNUM_DMA_NEXT_H);
-	dma_writel(ft, item->next_addr_l, GENNUM_DMA_NEXT_L);
-	dma_writel(ft, item->attribute, GENNUM_DMA_ATTR);
 }
 
 #endif // __KERNEL__

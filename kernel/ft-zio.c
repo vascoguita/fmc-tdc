@@ -39,8 +39,6 @@ static struct zio_attribute ft_zattr_dev[] = {
 	ZIO_ATTR_EXT("command", ZIO_WO_PERM, FT_ATTR_DEV_COMMAND, 0),
 	ZIO_ATTR_EXT("wr-offset", ZIO_RO_PERM, FT_ATTR_TDC_WR_OFFSET, 0),
 	ZIO_PARAM_EXT("temperature", ZIO_RO_PERM, FT_ATTR_PARAM_TEMP, 0),
-	ZIO_PARAM_EXT("test_dma_sg", ZIO_WO_PERM, FT_ATTR_PARAM_DMA_SG, 0),
-	ZIO_PARAM_EXT("test_dma", ZIO_WO_PERM, FT_ATTR_PARAM_DMA, 0),
 	ZIO_PARAM_EXT("transfer-mode", ZIO_RO_PERM,
 		      FT_ATTR_TDC_TRANSFER_MODE, 0),
 };
@@ -316,10 +314,6 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	}
 
 	switch (zattr->id) {
-	case FT_ATTR_PARAM_DMA_SG:
-		return test_dma(ft, usr_val, 1);
-	case FT_ATTR_PARAM_DMA:
-		return test_dma(ft, usr_val, 0);
 	case FT_ATTR_DEV_COMMAND:
 		switch (usr_val) {
 		case FT_CMD_SET_HOST_TIME:
