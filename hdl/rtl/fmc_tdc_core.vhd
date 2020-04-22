@@ -123,19 +123,19 @@ use work.genram_pkg.all;
 --=================================================================================================
 entity fmc_tdc_core is
   generic
-    (g_span                   : integer := 32;  -- address span in bus interfaces
-     g_width                  : integer := 32;  -- data width in bus interfaces
-     g_simulation             : boolean := false;
+    (g_SPAN                   : integer := 32;  -- address span in bus interfaces
+     g_WIDTH                  : integer := 32;  -- data width in bus interfaces
+     g_SIMULATION             : boolean := FALSE;
      -- Enable filtering based on pulse width. This will have the following effects:
      -- * Suppress theforwarding of negative slope timestamps.
      -- * Delay the forwarding of timestamps until after the falling edge timestamp.
      -- Once enabled, all pulses wider than 1 second or narrower than
      -- g_pulse_width_filter_min will be dropped.
-     g_pulse_width_filter     : boolean := true;
+     g_PULSE_WIDTH_FILTER     : boolean := true;
      -- In 8ns ticks.
-     g_pulse_width_filter_min : natural := 12;
-     g_with_dma_readout       : boolean := false;
-     g_with_fifo_readout      : boolean := false);
+     g_PULSE_WIDTH_FILTER_MIN : natural := 12;
+     g_USE_DMA_READOUT        : boolean := FALSE;
+     g_USE_FIFO_READOUT       : boolean := FALSE);
   port
     (
       clk_sys_i   : in std_logic;
@@ -174,8 +174,8 @@ entity fmc_tdc_core is
       tdc_led_trig_o         : out   std_logic_vector(4 downto 0); -- one amber led on front pannel per Ch
 
 -- White Rabbit control and status registers
-      wrabbit_status_reg_i : in  std_logic_vector(g_width-1 downto 0);
-      wrabbit_ctrl_reg_o   : out std_logic_vector(g_width-1 downto 0);
+      wrabbit_status_reg_i : in  std_logic_vector(g_WIDTH-1 downto 0);
+      wrabbit_ctrl_reg_o   : out std_logic_vector(g_WIDTH-1 downto 0);
       -- White Rabbit timing
       wrabbit_synched_i    : in  std_logic;
       wrabbit_tai_p_i      : in  std_logic;
@@ -212,10 +212,10 @@ architecture rtl of fmc_tdc_core is
   -- ACAM communication
   signal acm_adr                                             : std_logic_vector(7 downto 0);
   signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
-  signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_width-1 downto 0);
+  signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_WIDTH-1 downto 0);
   signal acam_ef1, acam_ef2                                  : std_logic;
   signal acam_intflag_f_edge_p                               : std_logic;
-  signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_width-1 downto 0);
+  signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_WIDTH-1 downto 0);
   signal acam_tstamp1_ok_p, acam_tstamp2_ok_p                : std_logic;
   -- control unit
   signal activate_acq_p, deactivate_acq_p, load_acam_config  : std_logic;
@@ -223,20 +223,20 @@ architecture rtl of fmc_tdc_core is
   signal read_ififo2, read_start01, reset_acam, load_utc     : std_logic;
   signal roll_over_incr_recent                               : std_logic;
   signal deactivate_chan                                     : std_logic_vector(4 downto 0);
-  signal clk_period                                          : std_logic_vector(g_width-1 downto 0);
-  signal starting_utc, acam_inputs_en                        : std_logic_vector(g_width-1 downto 0);
-  signal acam_ififo1, acam_ififo2, acam_start01              : std_logic_vector(g_width-1 downto 0);
-  signal irq_tstamp_threshold, irq_time_threshold            : std_logic_vector(g_width-1 downto 0);
-  signal local_utc                                           : std_logic_vector(g_width-1 downto 0);
+  signal clk_period                                          : std_logic_vector(g_WIDTH-1 downto 0);
+  signal starting_utc, acam_inputs_en                        : std_logic_vector(g_WIDTH-1 downto 0);
+  signal acam_ififo1, acam_ififo2, acam_start01              : std_logic_vector(g_WIDTH-1 downto 0);
+  signal irq_tstamp_threshold, irq_time_threshold            : std_logic_vector(g_WIDTH-1 downto 0);
+  signal local_utc                                           : std_logic_vector(g_WIDTH-1 downto 0);
   signal acam_config, acam_config_rdbk                       : config_vector;
   signal start_from_fpga, state_active_p                     : std_logic;
   -- retrigger control
-  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset : std_logic_vector(g_width-1 downto 0);
+  signal clk_i_cycles_offset, roll_over_nb, retrig_nb_offset : std_logic_vector(g_WIDTH-1 downto 0);
   signal local_utc_p                                         : std_logic;
-  signal current_retrig_nb                                   : std_logic_vector(g_width-1 downto 0);
+  signal current_retrig_nb                                   : std_logic_vector(g_WIDTH-1 downto 0);
   -- UTC
   signal utc_p                                               : std_logic;
-  signal utc, wrabbit_ctrl_reg                               : std_logic_vector(g_width-1 downto 0);
+  signal utc, wrabbit_ctrl_reg                               : std_logic_vector(g_WIDTH-1 downto 0);
 
   -- LEDs
   signal term_enable_tdc     : std_logic_vector(4 downto 0);
@@ -272,15 +272,15 @@ begin
 --                                   TDC REGISTERS CONTROLLER                                    --
 ---------------------------------------------------------------------------------------------------
 
-  core_status(0)           <= '1' when g_with_dma_readout  else '0';
-  core_status(1)           <= '1' when g_with_fifo_readout else '0';
+  core_status(0)           <= '1' when g_USE_DMA_READOUT  else '0';
+  core_status(1)           <= '1' when g_USE_FIFO_READOUT else '0';
   core_status(2)           <= fmc_id_i;
   core_status(31 downto 3) <= (others => '0');
 
   reg_control_block : entity work.reg_ctrl
     generic map
     (g_span  => g_span,
-     g_width => g_width)
+     g_WIDTH => g_WIDTH)
     port map
     (clk_tdc_i   => clk_tdc_i,
      rst_tdc_n_i => rst_tdc_n_i,
@@ -365,7 +365,7 @@ begin
 ---------------------------------------------------------------------------------------------------
   local_one_second_block : entity work.local_pps_gen
     generic map
-    (g_width => g_width)
+    (g_WIDTH => g_WIDTH)
     port map
     (acam_refclk_r_edge_p_i => acam_refclk_r_edge_p_i,
      clk_i                  => clk_tdc_i,
@@ -510,12 +510,11 @@ begin
 --                                   TSTAMP FINAL FORMAT                                         --
 --                     ADDITION OF FIXED OFFSETS (PER CHANNEL CALIBRATION)                       --
 --                                FILTERING BY PULSE WIDTH                                       --
---                              SUBTRACTIONS BETWEEN CHANNELS                                    --
 ---------------------------------------------------------------------------------------------------
   U_FilterAndConvert : entity work.timestamp_convert_filter
     generic map (
-      g_pulse_width_filter     => g_pulse_width_filter,
-      g_pulse_width_filter_min => g_pulse_width_filter_min)
+      g_pulse_width_filter     => g_PULSE_WIDTH_FILTER,
+      g_pulse_width_filter_min => g_PULSE_WIDTH_FILTER_MIN)
     port map (
       clk_tdc_i   => clk_tdc_i,
       rst_tdc_n_i => rst_tdc_n_i,
@@ -549,7 +548,7 @@ begin
 ---------------------------------------------------------------------------------------------------  
   TDCboard_leds : entity work.leds_manager
     generic map
-    (g_width      => 32,
+    (g_WIDTH      => 32,
      g_simulation => g_simulation)
     port map
     (clk_i            => clk_tdc_i,
@@ -567,7 +566,7 @@ begin
 
   U_Sync_ChannelEnable : entity work.gc_sync_register
     generic map (
-      g_width => 5)
+      g_WIDTH => 5)
     port map (
       clk_i     => clk_sys_i,
       rst_n_a_i => rst_sys_n_i,

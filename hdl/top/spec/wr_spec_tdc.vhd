@@ -102,10 +102,12 @@ use UNISIM.vcomponents.all;
 
 entity wr_spec_tdc is
   generic
-    (g_WRPC_INITF    : string  := "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram";
-     g_simulation                  : boolean := false;
-     g_use_dma_readout             : boolean := true;
-     g_use_fake_timestamps_for_sim : boolean := false  -- when instantiated in a test-bench
+    (g_WRPC_INITF                  : string  := "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram";
+     g_WITH_DIRECT_READOUT         : boolean := FALSE; -- for embedded applications, like WRTD
+     g_USE_FIFO_READOUT            : boolean := TRUE; -- 1x 64-tstamps-long FIFO per channel; used on SVEC
+     g_USE_DMA_READOUT             : boolean := TRUE;  -- DMA; used on SPEC
+     g_SIMULATION                  : boolean := FALSE; -- TRUE only in sim
+     g_USE_FAKE_TIMESTAMPS_FOR_SIM : boolean := FALSE  -- when instantiated in a test-bench
      );
 
   port(
@@ -634,11 +636,11 @@ begin
 
   cmp_fmc_tdc_mezzanine : entity work.fmc_tdc_wrapper
     generic map (
-      g_simulation                  => g_simulation,
-      g_with_direct_readout         => false, -- for embedded applications, like WRTD
-      g_use_dma_readout             => g_use_dma_readout,
-      g_use_fifo_readout            => TRUE,
-      g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
+      g_WITH_DIRECT_READOUT         => g_WITH_DIRECT_READOUT,
+      g_USE_DMA_READOUT             => g_USE_DMA_READOUT,
+      g_USE_FIFO_READOUT            => g_USE_FIFO_READOUT,
+      g_SIMULATION                  => g_SIMULATION,
+      g_USE_FAKE_TIMESTAMPS_FOR_SIM => g_USE_FAKE_TIMESTAMPS_FOR_SIM)
     port map (
       clk_sys_i            => clk_sys_62m5,
       rst_sys_n_i          => rst_sys_62m5_n,
@@ -721,7 +723,7 @@ begin
 
   cmp_pci_access_led : gc_extend_pulse
     generic map (
-      g_width => 2500000)
+      g_WIDTH => 2500000)
     port map (
       clk_i      => clk_sys_62m5,
       rst_n_i    => rst_sys_62m5_n,

@@ -92,21 +92,21 @@ use work.TDC_OW_wbgen2_pkg.all;
 --=================================================================================================
 entity fmc_tdc_mezzanine is
   generic
-    (g_with_wrabbit_core           : boolean := true;
-     g_span                        : integer := 32;
-     g_width                       : integer := 32;
-     g_simulation                  : boolean := false;
+    (g_WITH_WRABBIT_CORE           : boolean := TRUE;
+     g_SPAN                        : integer := 32;
+     g_WIDTH                       : integer := 32;
+     g_SIMULATION                  : boolean := FALSE;
      -- Enable filtering based on pulse width. This will have the following effects:
      -- * Suppress theforwarding of negative slope timestamps.
      -- * Delay the forwarding of timestamps until after the falling edge timestamp.
      -- Once enabled, all pulses wider than 1 second or narrower than
-     -- g_pulse_width_filter_min will be dropped.
-     g_pulse_width_filter          : boolean := true;
+     -- g_PULSE_WIDTH_FILTER_MIN will be dropped.
+     g_PULSE_WIDTH_FILTER          : boolean := TRUE;
      -- In 8ns ticks.
-     g_pulse_width_filter_min      : natural := 12;
-     g_use_dma_readout             : boolean := true;
-     g_use_fifo_readout            : boolean := true;
-     g_use_fake_timestamps_for_sim : boolean := false);
+     g_PULSE_WIDTH_FILTER_MIN      : natural := 12;
+     g_USE_DMA_READOUT             : boolean := TRUE;
+     g_USE_FIFO_READOUT            : boolean := TRUE;
+     g_USE_FAKE_TIMESTAMPS_FOR_SIM : boolean := FALSE);
   port
     -- TDC core
     (
@@ -303,8 +303,8 @@ begin
     generic map
     (g_num_masters => c_NUM_WB_SLAVES,
      g_num_slaves  => c_NUM_WB_MASTERS,
-     g_registered  => true,
-     g_wraparound  => true,
+     g_registered  => TRUE,
+     g_wraparound  => TRUE,
      g_layout      => c_INTERCONNECT_LAYOUT,
      g_sdb_addr    => c_SDB_ADDRESS)
     port map
@@ -321,13 +321,13 @@ begin
 ---------------------------------------------------------------------------------------------------
   cmp_tdc_core : entity work.fmc_tdc_core
     generic map
-    (g_span                   => g_span,
-     g_width                  => g_width,
-     g_simulation             => g_simulation,
-     g_pulse_width_filter     => g_pulse_width_filter,
-     g_pulse_width_filter_min => g_pulse_width_filter_min,
-     g_with_dma_readout       => g_use_dma_readout,
-     g_with_fifo_readout      => g_use_fifo_readout)
+    (g_SPAN                   => g_SPAN,
+     g_WIDTH                  => g_WIDTH,
+     g_SIMULATION             => g_SIMULATION,
+     g_PULSE_WIDTH_FILTER     => g_PULSE_WIDTH_FILTER,
+     g_PULSE_WIDTH_FILTER_MIN => g_PULSE_WIDTH_FILTER_MIN,
+     g_USE_DMA_READOUT        => g_USE_DMA_READOUT,
+     g_USE_FIFO_READOUT       => g_USE_FIFO_READOUT)
     port map
     ( -- clks, rst
       clk_tdc_i   => clk_tdc_i,
@@ -398,7 +398,7 @@ begin
   gen_fifos : for i in 0 to 4 generate
     U_TheFifo : entity work.timestamp_fifo
       generic map (
-        g_use_fifo_readout => g_use_fifo_readout)
+        g_USE_FIFO_READOUT => g_USE_FIFO_READOUT)
       port map (
         clk_sys_i         => clk_sys_i,
         rst_sys_n_i       => rst_sys_n_i,
@@ -421,7 +421,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                             DMA                                               --
 ---------------------------------------------------------------------------------------------------
-  gen_with_dma_readout : if g_use_dma_readout generate
+  gen_with_dma_readout : if g_USE_DMA_READOUT generate
     U_DMA_Engine : entity work.tdc_dma_engine
       generic map (
         g_CLOCK_FREQ => 62500000)
@@ -441,7 +441,7 @@ begin
 
   end generate gen_with_dma_readout;
 
-  gen_without_dma : if not g_use_dma_readout generate
+  gen_without_dma : if not g_USE_DMA_READOUT generate
     irq_dma                                 <= (others => '0');
     cnx_master_in(c_WB_SLAVE_TDC_DMA).stall <= '0';
     cnx_master_in(c_WB_SLAVE_TDC_DMA).err   <= '0';
@@ -470,12 +470,12 @@ begin
   end process;
 ---------------------------------------------------------------------------------------------------
 --                                       WHITE RABBIT STUFF                                      --
---                           only synthesized if g_with_wrabbit_core is TRUE                     --
+--                           only synthesized if g_WITH_WRABBIT_CORE is TRUE                     --
 ---------------------------------------------------------------------------------------------------
   cmp_wrabbit_synch : wrabbit_sync
     generic map
-    (g_simulation        => g_simulation,
-     g_with_wrabbit_core => g_with_wrabbit_core)
+    (g_SIMULATION        => g_SIMULATION,
+     g_WITH_WRABBIT_CORE => g_WITH_WRABBIT_CORE)
     port map
     (clk_sys_i                 => clk_sys_i,
      rst_n_sys_i               => rst_sys_n_i,
@@ -499,7 +499,7 @@ begin
       if rst_tdc_n_i = '0' then
         wrabbit_utc_p <= '0';
       else
-        if wrabbit_clk_aux_locked_i = '1' and g_with_wrabbit_core then
+        if wrabbit_clk_aux_locked_i = '1' and g_WITH_WRABBIT_CORE then
           -- so that the end of the pulse comes exactly upon the UTC change
           if unsigned(wrabbit_cycles_i) = (unsigned(c_CLK_PERIOD) - 3) then
             wrabbit_utc_p <= '1';
@@ -521,7 +521,7 @@ begin
   U_OnewireIF : gc_ds182x_readout
     generic map (
       g_CLOCK_FREQ_KHZ   => 62500,
-      g_USE_INTERNAL_PPS => true)
+      g_USE_INTERNAL_PPS => TRUE)
     port map (
       clk_i              => clk_sys_i,
       rst_n_i            => rst_sys_n_i,
@@ -551,7 +551,7 @@ begin
 -- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
 -- 2 -> ACAM error
 
-  gen_enable_eic : if g_use_fifo_readout or g_use_dma_readout generate
+  gen_enable_eic : if g_USE_FIFO_READOUT or g_USE_DMA_READOUT generate
     cmp_tdc_eic : entity work.tdc_eic
       port map
       (clk_sys_i       => clk_sys_i,
@@ -579,7 +579,7 @@ begin
        );
   end generate gen_enable_eic;
 
-  gen_disable_eic : if not g_use_fifo_readout and not g_use_dma_readout generate
+  gen_disable_eic : if not g_USE_FIFO_READOUT and not g_USE_DMA_READOUT generate
     cnx_master_in(c_WB_SLAVE_TDC_EIC).ack   <= '1';
     cnx_master_in(c_WB_SLAVE_TDC_EIC).stall <= '0';
     wb_irq_o                                <= '0';
@@ -617,7 +617,7 @@ begin
   i2c_scl_oen_o <= sys_scl_oe_n;
   i2c_scl_o     <= sys_scl_out;
 
-  gen_use_fake_timestamps : if g_use_fake_timestamps_for_sim generate
+  gen_use_fake_timestamps : if g_USE_FAKE_TIMESTAMPS_FOR_SIM generate
 
     process(sim_timestamp_i, sim_timestamp_valid_i)
     begin
@@ -636,7 +636,7 @@ begin
 
   end generate gen_use_fake_timestamps;
 
-  gen_use_real_timestamps : if not g_use_fake_timestamps_for_sim generate
+  gen_use_real_timestamps : if not g_USE_FAKE_TIMESTAMPS_FOR_SIM generate
     timestamp           <= tdc_timestamp;
     timestamp_valid     <= tdc_timestamp_valid;
     tdc_timestamp_ready <= timestamp_ready;
