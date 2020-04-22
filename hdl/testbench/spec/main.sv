@@ -2,13 +2,28 @@ import wishbone_pkg::*;
 import tdc_core_pkg::*;
 
 
-`include "simdrv_defs.svh"
 `include "timestamp_fifo_regs.vh"
+`include "tdc_eic_wb_regs.vh"
+`include "tdc_core_csr_wb.vh"
+`include "vic_wb.vh"
+
+`include "gn4124_bfm.svh"
+`include "simdrv_defs.svh"
 `include "if_wb_master.svh"
 `include "vhd_wishbone_master.svh"
-`include "acam_model.svh"
 `include "softpll_regs_ng.vh"
-`include "gn4124_bfm.svh"
+
+`include "acam_model.svh"
+
+`define DMA_BASE 'h00c0
+`define VIC_BASE 'h0100
+
+`define TDC_CORE_BASE 'h20000
+`define TDC_CORE_CFG_BASE 'h2000
+`define FIFO1_BASE 'h5000
+`define FIFO1_BASE 'h5000
+`define TDC_EIC_BASE 'h3000
+`define TDC_DMA_BASE 'h6000
 
 typedef struct {
    uint32_t tai;
@@ -36,13 +51,14 @@ class FmcTdcDriver;
    // writel
    task automatic writel(uint32_t addr, uint32_t value);
       m_acc.write(addr + m_base ,value);
+      //$display("[Info] writel %x: %x", addr+m_base, value);
    endtask
 
    // readl
    task automatic readl( uint32_t addr, ref uint32_t value );
       automatic uint64_t rv;
       m_acc.read(addr + m_base , rv);
-      $display("[Info] readl %x: %x", addr+m_base, rv);
+      //$display("[Info] readl %x: %x", addr+m_base, rv);
       value = rv;
    endtask
    
@@ -55,26 +71,31 @@ class FmcTdcDriver;
       readl('h0, d); 
       if( d != 'h5344422d )
 	  begin
-	   $error("[Error!] Can't read the SDB signature.");
-	   $stop;
+	    $error("[Error!] Can't read the SDB signature, reading: %x.", d);
+	    $stop;
 	   end
 
-      readl('h1000, d); 
-      readl('h1004, d); 
-      readl('h1008, d);
-      readl('h100C, d);  
+      if( d == 'h5344422d )
+ 	  begin
+	    $display("[Info] Found the SDB signature: %x", d);
+	  end
 
-      writel('h20a0, 1234);  // set UTC
-      
+      // Configure the EIC for an interrupt on FIFO
+      writel(`TDC_EIC_BASE + `ADDR_TDC_EIC_EIC_IER, 'h1F);
+
+      // Configure the VIC
+      writel(`VIC_BASE + `ADDR_VIC_IER, 'h7f);
+      writel(`VIC_BASE + `ADDR_VIC_CTL, 'h1);
+
+      // Configure the TDC
       $display("[Info] Setting up TDC core..");
-      writel('h20a0, 1234);  // set UTC
-      writel('h20fc, 1<<9); // load UTC
-      writel('h3004, 'h1f); // enable EIC irqs for all FIFO channels
-      writel('h2084, 'h1f0000); // enable all ACAM inputs
-      writel('h2090, 2); // FIFO threshold = 2 ts
-      writel('h2094, 2); // FIFO threshold = 2 ms
-      writel('h20fc, (1<<0)); // start acquisition
-      writel('h20bc, ((-1)<<1));
+      writel(`ADDR_TDC_CORE_CSR_UTC+`TDC_CORE_CFG_BASE, 1234);  // set UTC
+      writel(`ADDR_TDC_CORE_CSR_CTRL+`TDC_CORE_CFG_BASE, 1<<9); // load UTC
+      writel(`ADDR_TDC_CORE_CSR_ENABLE+`TDC_CORE_CFG_BASE, 'h1f0000); // enable all ACAM inputs
+      writel(`ADDR_TDC_CORE_CSR_IRQ_TSTAMP_THRESH+`TDC_CORE_CFG_BASE, 2); // FIFO threshold = 2 ts
+      writel(`ADDR_TDC_CORE_CSR_IRQ_TIME_THRESH+`TDC_CORE_CFG_BASE, 2); // FIFO threshold = 2 ms
+      writel(`ADDR_TDC_CORE_CSR_CTRL+`TDC_CORE_CFG_BASE, (1<<0)); // start acquisition
+      writel('h20bc, ((-1)<<1)); // test?
       
       $display("[Info] TDC acquisition started");
       
@@ -84,33 +105,41 @@ class FmcTdcDriver;
    task automatic update();
       automatic uint32_t csr, t[4];
 
-      for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 1; i++) // only ch1 for now -- (int i = 0; i < 5; i++)
 	  begin
-	   automatic uint32_t base = 'h5000 + i * 'h100;
-	   automatic fmc_tdc_timestamp_t ts;
+	    automatic uint32_t FIFObase = `FIFO1_BASE + i * 'h100;
+	    automatic fmc_tdc_timestamp_t ts, ts1, ts2;
 	   
-	   readl(base + `ADDR_TSF_FIFO_CSR, csr);
+	    readl(FIFObase + `ADDR_TSF_FIFO_CSR, csr);
+	   
+	    if( ! (csr & `TSF_FIFO_CSR_EMPTY ) )
+	      //$display("FIFO has values");
+	      begin
+		    readl(FIFObase + `ADDR_TSF_FIFO_R0, t[0]);
+		    readl(FIFObase + `ADDR_TSF_FIFO_R1, t[1]);
+		    readl(FIFObase + `ADDR_TSF_FIFO_R2, t[2]);
+		    readl(FIFObase + `ADDR_TSF_FIFO_R3, t[3]);
 
-	   $display("csr %x", csr);
-	   
-	   if( ! (csr & `TSF_FIFO_CSR_EMPTY ) )
-	    begin
-		  readl(base + `ADDR_TSF_FIFO_R0, t[0]);
-		  readl(base + `ADDR_TSF_FIFO_R1, t[1]);
-		  readl(base + `ADDR_TSF_FIFO_R2, t[2]);
-		  readl(base + `ADDR_TSF_FIFO_R3, t[3]);
+            ts.tai = t[0];
+		    ts.coarse = t[1];
+		    ts.frac = t[2] & 'hfff;
+	    	ts.slope = t[3] & 'h8 ? 1: 0;
+	    	ts.seq = t[3] >> 4;
+		    ts.channel = i;
+		
+		    m_queues[i].push_back(ts);	
+	      end
+	   end // for (int i = 0; i < 5; i++)
+  endtask // update_fifo
 
-		  ts.tai     = t[0];
-		  ts.coarse  = t[1];
-		  ts.frac    = t[2] & 'hfff;
-		  ts.slope   = t[3] & 'h8 ? 1: 0;
-		  ts.seq     = t[3] >> 4;
-		  ts.channel = i;
-          m_queues[i].push_back(ts);
-	     end
-	   
-	end // for (int i = 0; i < 5; i++)
-   endtask 
+  function int poll();
+    $display("[Info] m_queues[0].size: %d", m_queues[0].size());
+    return (m_queues[0].size() > 2);
+  endfunction // poll
+
+  function fmc_tdc_timestamp_t get();
+    return m_queues[0].pop_front();
+  endfunction // get
    
 endclass // FmcTdcDriver
 
@@ -152,7 +181,7 @@ module main;
    
    // ACAM model instantiation  
    tdc_gpx_model 
-     #( .g_verbose(1) )
+     #( .g_verbose(0) )
    ACAM
      (
       .PuResN(1'b1),
@@ -185,10 +214,7 @@ module main;
       );
 
    // GN4124 model instantiation  
-   IGN4124PCIMaster Host
-     (
-    
-      );
+   IGN4124PCIMaster Host ();
 
    // TDC core instantiation
    wr_spec_tdc 
@@ -236,32 +262,44 @@ module main;
    initial begin
 	 CBusAccessor acc;
 	 FmcTdcDriver drv;
-	 const uint64_t tdc1_base = 'h20000;
 	 uint64_t d;
 	 acc = Host.get_accessor();
 	
 	 #10us;
 	
-    // reset
-	//$display("Un-reset FMCs...");
-	//acc.write('h02000c, 'h3); 
-
      // test read
      acc.read('h2208c, d); 
 
     // device instantiation
-	drv = new (acc, 'h20000, 0 );
+	drv = new (acc, `TDC_CORE_BASE, 0 );
 	drv.init();
 	
 	$display("[Info] Start operation");
       
 	fork
 	  forever begin
-	    drv.update();
-	    #10us;
-	  end
+	     drv.update();
+         if(drv.poll()) begin
+         fmc_tdc_timestamp_t ts1, ts2;
+	     uint64_t timestmp1, timestmp2, diff;
+           ts1 = drv.get();
+           timestmp1 = ts1.tai*1e12 + ts1.coarse*8e3 + ts1.frac*81.03;
+           $display("[Info] ts%d [%d:%d:%d src %d, slp: %d]: %d ps", ts1.seq, ts1.tai, ts1.coarse, ts1.frac, ts1.channel, ts1.slope, timestmp1);
+           ts2 = drv.get();
+           timestmp2 = ts2.tai*1e12 + ts2.coarse*8e3 + ts2.frac*81.03;
+           $display("[Info] ts%d [%d:%d:%d src %d, slp: %d]:  %d ps", ts2.seq, ts2.tai, ts2.coarse, ts2.frac, ts2.channel, ts2.slope, timestmp2);
+           if (timestmp1 > timestmp2) begin
+             diff = timestmp1 - timestmp2;
+             $display("[Info] Period: ts%d - ts%d:  %d",  ts1.seq, ts2.seq, diff); 
+           end else begin 
+             diff = timestmp2 - timestmp1;
+             $display("[Info] Period: ts%d - ts%d:  %d",  ts2.seq, ts1.seq, diff);       
+           end
+	     end
+	   end
 	   	   
 	  forever begin
+         // generate pulses to TDC channel 1
 	    #700ns;
 	    tdc_stop[1] <= 1;
 	    #300ns;

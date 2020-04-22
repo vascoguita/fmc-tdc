@@ -6,8 +6,8 @@ package buildinfo_pkg is
   constant buildinfo : string :=
        "buildinfo:1" & LF
      & "module:main" & LF
-     & "commit:ca5ace53d7d35580770a3b79359c4a80fdd9775d" & LF
+     & "commit:ac0bebbb3c3f294441ec6282b18a38b27bd8d61b" & LF
      & "syntool:modelsim" & LF
-     & "syndate:2019-11-12, 18:04 CET" & LF
+     & "syndate:2020-04-22, 22:57 CEST" & LF
      & "synauth:Evangelia Gousiou" & LF;
 end buildinfo_pkg;
