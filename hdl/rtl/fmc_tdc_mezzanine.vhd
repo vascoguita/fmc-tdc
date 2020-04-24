@@ -656,7 +656,8 @@ begin
       end loop;
 
     end process;
-    timestamp_ready <= (others => '1');
+
+    sim_timestamp_ready_o <= '1'; -- fixme: do we care about flow control in simulations?
 
   end generate gen_use_fake_timestamps;
 
