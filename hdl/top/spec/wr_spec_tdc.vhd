@@ -705,7 +705,13 @@ begin
       dma_wb_o             => fmc0_wb_ddr_out,
 
       irq_o                => irq_vector(0),
-      clk_125m_tdc_o       => tdc0_clk_125m);
+      clk_125m_tdc_o       => tdc0_clk_125m,
+
+      sim_timestamp_i       => sim_ts,
+      sim_timestamp_valid_i => sim_ts_valid,
+      sim_timestamp_ready_o => sim_ts_ready
+
+      );
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   fmc0_wb_ddr_in.err <= '0';
