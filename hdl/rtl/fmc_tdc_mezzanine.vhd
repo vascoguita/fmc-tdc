@@ -395,28 +395,52 @@ begin
 --                                           x5 FIFOS                                            --
 ---------------------------------------------------------------------------------------------------
 -- A FIFO with the timestamps of each channel
+  gen_enable_fifo_readout : if g_USE_FIFO_READOUT generate
   gen_fifos : for i in 0 to 4 generate
     U_TheFifo : entity work.timestamp_fifo
-      generic map (
-        g_USE_FIFO_READOUT => g_USE_FIFO_READOUT)
-      port map (
-        clk_sys_i         => clk_sys_i,
-        rst_sys_n_i       => rst_sys_n_i,
-        slave_i           => cnx_master_out(c_WB_SLAVE_TDC_CHANNEL0 + i),
-        slave_o           => cnx_master_in(c_WB_SLAVE_TDC_CHANNEL0 + i),
-        irq_o             => irq_fifo(i),
-        enable_i          => channel_enable(i),
-        tick_i            => tick_1ms,
-        irq_threshold_i   => irq_threshold,
-        irq_timeout_i     => irq_timeout,
-        timestamp_i       => timestamp(i),
-        timestamp_valid_i => timestamp_stb(i),
-        ts_offset_o       => ts_offset(i),  -- to be used by the direct readout
-        reset_seq_o       => reset_seq(i),
-        raw_enable_o      => raw_enable(i));
+        generic map (
+          g_channel => i)
+        port map (
+          clk_sys_i         => clk_sys_i,
+          rst_sys_n_i       => rst_sys_n_i,
+          slave_i           => cnx_master_out(c_WB_SLAVE_TDC_CHANNEL0 + i),
+          slave_o           => cnx_master_in(c_WB_SLAVE_TDC_CHANNEL0 + i),
+          irq_o             => irq_fifo(i),
+          enable_i          => channel_enable(i),
+          tick_i            => tick_1ms,
+          irq_threshold_i   => irq_threshold,
+          irq_timeout_i     => irq_timeout,
+          timestamp_i       => timestamp,
+          timestamp_valid_i => timestamp_stb,
+          ts_offset_o       => ts_offset(i),
+          reset_seq_o       => reset_seq(i),
+          raw_enable_o      => raw_enable(i));
 
-    timestamp_stb(i) <= tdc_timestamp_valid_p(i);
-  end generate gen_fifos;
+      timestamp_stb(i) <= tdc_timestamp_valid_p(i);
+    end generate gen_fifos;
+  end generate gen_enable_fifo_readout;
+
+
+      -- generic map (
+        -- g_USE_FIFO_READOUT => g_USE_FIFO_READOUT)
+      -- port map (
+        -- clk_sys_i         => clk_sys_i,
+        -- rst_sys_n_i       => rst_sys_n_i,
+        -- slave_i           => cnx_master_out(c_WB_SLAVE_TDC_CHANNEL0 + i),
+        -- slave_o           => cnx_master_in(c_WB_SLAVE_TDC_CHANNEL0 + i),
+        -- irq_o             => irq_fifo(i),
+        -- enable_i          => channel_enable(i),
+        -- tick_i            => tick_1ms,
+        -- irq_threshold_i   => irq_threshold,
+        -- irq_timeout_i     => irq_timeout,
+        -- timestamp_i       => timestamp(i),
+        -- timestamp_valid_i => timestamp_stb(i),
+        -- ts_offset_o       => ts_offset(i),  -- to be used by the direct readout
+        -- reset_seq_o       => reset_seq(i),
+        -- raw_enable_o      => raw_enable(i));
+
+    -- timestamp_stb(i) <= tdc_timestamp_valid_p(i);
+  -- end generate gen_fifos;
 
 ---------------------------------------------------------------------------------------------------
 --                                             DMA                                               --

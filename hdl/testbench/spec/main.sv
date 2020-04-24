@@ -16,7 +16,6 @@
 `define TDC_CORE_BASE 'h20000
 `define TDC_CORE_CFG_BASE 'h2000
 `define FIFO1_BASE 'h5000
-`define FIFO1_BASE 'h5000
 `define TDC_EIC_BASE 'h3000
 `define TDC_DMA_BASE 'h6000
 
@@ -100,16 +99,17 @@ class FmcTdcDriver;
    task automatic update();
       automatic uint32_t csr, t[4];
 
-    for(int i = 0; i < 1; i++) // only ch1 for now -- (int i = 0; i < 5; i++)
+    for(int i = 0; i < 1; i++) //(int i = 0; i < 5; i++)
 	  begin
 	    automatic uint32_t FIFObase = `FIFO1_BASE + i * 'h100;
 	    automatic fmc_tdc_timestamp_t ts, ts1, ts2;
 	   
 	    readl(FIFObase + `ADDR_TSF_FIFO_CSR, csr);
+        //$display("!!!csr %x: %x", FIFObase + `ADDR_TSF_FIFO_CSR, csr);
+
 	   
-	    if( ! (csr & `TSF_FIFO_CSR_EMPTY ) )
-	      //$display("FIFO has values");
-	      begin
+	    if( ! (csr & `TSF_FIFO_CSR_EMPTY ) ) begin
+            //$display("!!!FIFO not empty!!! csr %x; empty: %x", csr, `TSF_FIFO_CSR_EMPTY);
 		    readl(FIFObase + `ADDR_TSF_FIFO_R0, t[0]);
 		    readl(FIFObase + `ADDR_TSF_FIFO_R1, t[1]);
 		    readl(FIFObase + `ADDR_TSF_FIFO_R2, t[2]);
@@ -123,13 +123,14 @@ class FmcTdcDriver;
 		    ts.channel = i;
 		
 		    m_queues[i].push_back(ts);	
+            //$display("!!!Pushed in FIFO!!!");
 	      end
 	   end // for (int i = 0; i < 5; i++)
-  endtask // update_fifo
+  endtask // update
 
   function int poll();
-    $display("[Info] m_queues[0].size: %d", m_queues[0].size());
-    return (m_queues[0].size() > 10);
+    //$display("[Info] m_queues[0].size: %d", m_queues[0].size());
+    return (m_queues[0].size() > 2);
   endfunction // poll
 
   function fmc_tdc_timestamp_t get();
@@ -372,7 +373,7 @@ module main;
 	 uint64_t d;
 	 acc = Host.get_accessor();
 	
-	 #10us;
+	 #5us;
 	
      // test read
      acc.read('h2208c, d); 
