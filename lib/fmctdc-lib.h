@@ -236,8 +236,6 @@ extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
 		       struct fmctdc_time *t, int n, int flags);
 extern int fmctdc_readhw(struct fmctdc_board *b, unsigned int channel,
 		       struct ft_hw_timestamp *t, int n, int flags);
-extern int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
-			    struct fmctdc_time *t);
 extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
 /**@}*/
 

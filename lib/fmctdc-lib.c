@@ -764,35 +764,6 @@ int fmctdc_fileno_channel(struct fmctdc_board *userb, unsigned int channel)
 	return b->fdc[channel];
 }
 
-
-/**
- * It reads the very last time-stamp produced by a given channel. Note that
- * the last time-stamp is the last produced by the hardware and not the last
- * read by the user. Between the hardware and the user there is a buffer.
- * @param[in] userb TDC board instance token
- * @param[in] channel channel to use [0, 4]
- * @param[out] t where to write the time-stamps
- * @return number of acquired time-stamps, otherwise -1 and errno is set
- */
-int fmctdc_read_last(struct fmctdc_board *userb, unsigned int channel,
-		     struct fmctdc_time *t)
-{
-	__define_board(b, userb);
-	struct zio_control ctrl;
-	int n;
-
-	if (channel >= FMCTDC_NUM_CHANNELS) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	n = read(b->fdcc[channel], &ctrl, sizeof(struct zio_control));
-	if (n != sizeof(struct zio_control))
-		return -1;
-	return 1;
-}
-
-
 static void fmctdc_ts_convert(struct fmctdc_time *t, struct ft_hw_timestamp *o)
 {
 	t->seconds = o->seconds;
