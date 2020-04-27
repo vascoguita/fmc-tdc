@@ -314,6 +314,9 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	}
 
 	switch (zattr->id) {
+	case FT_ATTR_DEV_COARSE:
+		attr[FT_ATTR_DEV_COARSE].value = usr_val;
+		return 0;
 	case FT_ATTR_DEV_COMMAND:
 		switch (usr_val) {
 		case FT_CMD_SET_HOST_TIME:
