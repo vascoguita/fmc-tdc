@@ -52,29 +52,29 @@ class FmcTdc(object):
         def __init__(self, libfmctdc, tkn, channel):
             self.libfmctdc = libfmctdc
             self.tkn = tkn
-            self.chan = channel
+            self.idx = channel
 
         @property
         def termination(self):
             return bool(self.libfmctdc.fmctdc_get_termination(self.tkn,
-                                                              self.chan))
+                                                              self.idx))
 
         @termination.setter
         def termination(self, val):
-            self.libfmctdc.fmctdc_set_termination(self.tkn, self.chan, int(val))
+            self.libfmctdc.fmctdc_set_termination(self.tkn, self.idx, int(val))
 
         @property
         def enable(self):
             return bool(self.libfmctdc.fmctdc_channel_status_get(self.tkn,
-                                                                 self.chan))
+                                                                 self.idx))
 
         @enable.setter
         def enable(self, val):
-            self.libfmctdc.fmctdc_channel_status_set(self.tkn, self.chan, int(val))
+            self.libfmctdc.fmctdc_channel_status_set(self.tkn, self.idx, int(val))
 
         @property
         def buffer_mode(self):
-            ret = self.libfmctdc.fmctdc_get_buffer_mode(self.tkn, self.chan)
+            ret = self.libfmctdc.fmctdc_get_buffer_mode(self.tkn, self.idx)
             for k, v in self.BUFFER_MODE.items():
                 if ret == v:
                     return k
@@ -82,67 +82,67 @@ class FmcTdc(object):
 
         @buffer_mode.setter
         def buffer_mode(self, val):
-            self.libfmctdc.fmctdc_set_buffer_mode(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_set_buffer_mode(self.tkn, self.idx,
                                                   self.BUFFER_MODE[val])
 
         @property
         def buffer_len(self):
-            ret = self.libfmctdc.fmctdc_get_buffer_len(self.tkn, self.chan)
+            ret = self.libfmctdc.fmctdc_get_buffer_len(self.tkn, self.idx)
 
         @buffer_len.setter
         def buffer_len(self, val):
-            self.libfmctdc.fmctdc_set_buffer_len(self.tkn, self.chan, int(val))
+            self.libfmctdc.fmctdc_set_buffer_len(self.tkn, self.idx, int(val))
 
         @property
         def fileno(self):
-            return self.libfmctdc.fmctdc_fileno_channel(self.tkn, self.chan)
+            return self.libfmctdc.fmctdc_fileno_channel(self.tkn, self.idx)
 
         @property
         def offset(self):
             off = ctypes.c_int32(0)
-            self.libfmctdc.fmctdc_get_offset_user(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_get_offset_user(self.tkn, self.idx,
                                                   ctypes.pointer(off))
             return int(off.value)
 
         @offset.setter
         def offset(self, val):
-            self.libfmctdc.fmctdc_set_offset_user(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_set_offset_user(self.tkn, self.idx,
                                                   int(val))
 
         @property
         def coalescing_timeout(self):
             timeout = ctypes.c_uint(0)
-            self.libfmctdc.fmctdc_coalescing_time_out_get(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_coalescing_time_out_get(self.tkn, self.idx,
                                                           ctypes.pointer(timeout))
             return int(timeout.value)
 
         @coalescing_timeout.setter
         def coalescing_timeout(self, val):
-            self.libfmctdc.fmctdc_coalescing_time_out_set(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_coalescing_time_out_set(self.tkn, self.idx,
                                                           int(val))
 
         @property
         def stats(self):
             recv = ctypes.c_uint32(0)
-            self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.idx,
                                                  ctypes.pointer(recv))
             trans = ctypes.c_uint32(0)
-            self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.idx,
                                                  ctypes.pointer(trans))
             return (recv.value, trans.value)
 
         def read(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
-            self.libfmctdc.fmctdc_read(self.tkn, self.chan, ts ,n ,flags)
+            self.libfmctdc.fmctdc_read(self.tkn, self.idx, ts ,n ,flags)
             return list(ts)
 
         def fread(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
-            self.libfmctdc.fmctdc_fread(self.tkn, self.chan, ts ,n ,flags)
+            self.libfmctdc.fmctdc_fread(self.tkn, self.idx, ts ,n ,flags)
             return list(ts)
 
         def flush(self):
-            self.libfmctdc.fmctdc_flush(self.tkn, self.chan)
+            self.libfmctdc.fmctdc_flush(self.tkn, self.idx)
 
     def __init__(self, devid):
         self.tkn = None
