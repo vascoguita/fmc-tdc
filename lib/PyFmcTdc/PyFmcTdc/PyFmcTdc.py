@@ -325,7 +325,7 @@ class FmcTdc(object):
 
     @time.setter
     def time(self, val):
-        self.libfmctdc.fmctdc_set_time(self.tkn, ctypes.pointer(ts))
+        self.libfmctdc.fmctdc_set_time(self.tkn, ctypes.pointer(val))
 
     @property
     def whiterabbit_mode(self):
