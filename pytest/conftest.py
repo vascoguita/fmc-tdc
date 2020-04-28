@@ -5,6 +5,7 @@ SPDX-FileCopyrightText: 2020 CERN
 
 import pytest
 import subprocess
+import time
 import re
 import os
 from PyFmcTdc import FmcTdc
@@ -14,7 +15,7 @@ class FmcFineDelay(object):
         self.dev_id = device_id
 
     def generate_pulse(self, ch, rel_time_us,
-                       period_ns, count):
+                       period_ns, count, sync):
         cmd = ["/usr/local/bin/fmc-fdelay-pulse",
                "-d", "0x{:x}".format(self.dev_id),
                "-o", str(ch),
@@ -25,6 +26,8 @@ class FmcFineDelay(object):
                ]
         proc = subprocess.Popen(cmd)
         proc.wait()
+        if sync:
+            time.sleep(2 * (period_ns * count) / 1000000000.0)
 
 
 @pytest.fixture(scope="module")
