@@ -104,6 +104,10 @@ class FmcTdc(object):
                                                   ctypes.pointer(off))
             return int(off.value)
 
+        @offset.setter
+        def offset(self, val):
+            self.libfmctdc.fmctdc_set_offset_user(self.tkn, self.chan,
+                                                  int(val))
         @property
         def stats(self):
             recv = ctypes.c_uint32(0)
@@ -113,11 +117,6 @@ class FmcTdc(object):
             self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.chan,
                                                  ctypes.pointer(trans))
             return (trans.value, recv.value)
-
-        @offset.setter
-        def offset(self, val):
-            self.libfmctdc.fmctdc_set_offset_user(self.tkn, self.chan,
-                                                  int(val))
 
         def read(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
