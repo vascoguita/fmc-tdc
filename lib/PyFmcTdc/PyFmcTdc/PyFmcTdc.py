@@ -39,6 +39,7 @@ class FmcTdc(object):
     :ivar libfmctdc: the libfmctdc library
     """
 
+    CHANNEL_NUMBER = 5
     BUFFER_TYPE = {"kmalloc": 0,
                    "vmalloc": 1}
     TRANSFER_MODE = {"fifo": 0,
@@ -141,7 +142,7 @@ class FmcTdc(object):
         self.tkn = self.libfmctdc.fmctdc_open(-1, self.device_id)
 
         self.chan = []
-        for i in range(1, 5):
+        for i in range(self.CHANNEL_NUMBER):
             self.chan.append(self.FmcTdcChannel(self.libfmctdc, self.tkn, i))
 
     def __del__(self):
