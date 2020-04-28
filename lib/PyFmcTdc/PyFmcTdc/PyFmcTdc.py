@@ -107,10 +107,10 @@ class FmcTdc(object):
         @property
         def stats(self):
             recv = ctypes.c_uint32(0)
-            self.libfmctdc_fmctdc_stats_recv_get(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.chan,
                                                  ctypes.pointer(recv))
             trans = ctypes.c_uint32(0)
-            self.libfmctdc_fmctdc_stats_recv_get(self.tkn, self.chan,
+            self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.chan,
                                                  ctypes.pointer(trans))
             return (trans.value, recv.value)
 
