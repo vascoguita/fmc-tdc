@@ -5,24 +5,9 @@ SPDX-FileCopyrightText: 2020 CERN
 
 import pytest
 import random
-import time
 from PyFmcTdc import FmcTdc
-from PyFmcTdc import FmcTdcTime
 
 class TestFmctdcGetterSetter(object):
-
-    def test_whiterabbit_mode(self, fmctdc):
-        fmctdc.whiterabbit_mode = True
-        assert fmctdc.whiterabbit_mode == True
-        fmctdc.whiterabbit_mode = False
-        assert fmctdc.whiterabbit_mode == False
-
-    @pytest.mark.parametrize("t", random.sample(range(1000000), 10))
-    def test_time(self, fmctdc, t):
-        fmctdc.whiterabbit_mode = False
-        t_base = FmcTdcTime(t, 0, 0, 0, 0)
-        fmctdc.time = t_base
-        assert t_base.seconds == fmctdc.time.seconds
 
     @pytest.mark.parametrize("i", range(FmcTdc.CHANNEL_NUMBER))
     @pytest.mark.parametrize("term", [True, False])
