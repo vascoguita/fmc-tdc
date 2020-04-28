@@ -145,7 +145,6 @@ class FmcTdc(object):
             self.libfmctdc.fmctdc_flush(self.tkn, self.idx)
 
     def __init__(self, devid):
-        self.tkn = None
         if devid is None:
             raise Exception("Invalid device ID")
         self.__init_library()
@@ -160,8 +159,7 @@ class FmcTdc(object):
             self.chan.append(self.FmcTdcChannel(self.libfmctdc, self.tkn, i))
 
     def __del__(self):
-        if self.tkn is not None:
-            self.libfmctdc.fmctdc_close(self.tkn)
+        self.libfmctdc.fmctdc_close(self.tkn)
         self.libfmctdc.fmctdc_exit()
 
     def __init_library(self):
