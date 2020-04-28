@@ -116,7 +116,7 @@ class FmcTdc(object):
             trans = ctypes.c_uint32(0)
             self.libfmctdc.fmctdc_stats_recv_get(self.tkn, self.chan,
                                                  ctypes.pointer(trans))
-            return (trans.value, recv.value)
+            return (recv.value, trans.value)
 
         def read(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
