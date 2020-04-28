@@ -6,8 +6,10 @@ SPDX-License-Identifier: LGPL-3.0-or-later
 SPDX-FileCopyrightText: 2020 CERN  (home.cern)
 """
 
+import threading
 import ctypes
 import errno
+import time
 import os
 
 class FmcTdcTime(ctypes.Structure):
@@ -338,6 +340,19 @@ class FmcTdc(object):
     @whiterabbit_mode.setter
     def whiterabbit_mode(self, val):
         self.libfmctdc.fmctdc_wr_mode(self.tkn, int(val))
+        end = time.time() + 30
+        timeout = True
+        while time.time() < end:
+            ret = self.libfmctdc.fmctdc_check_wr_mode(self.tkn)
+            if val and ret == 0:
+                timeout = False
+                break
+            if not val and ret == -1 and ctypes.get_errno() == errno.ENODEV:
+                timeout = False
+                break
+        if timeout:
+            raise OSError(ctypes.get_errno(),
+                          self.libfmctdc.fmctdc_strerror(ctypes.get_errno()), "")
 
     @property
     def buffer_type(self):
