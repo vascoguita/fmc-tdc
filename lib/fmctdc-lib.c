@@ -562,7 +562,7 @@ int fmctdc_set_buffer_type(struct fmctdc_board *userb,
 	int err = 0;
 
 	for (i = 0; i < FMCTDC_NUM_CHANNELS; ++i) {
-		err = fmctdc_set_buffer_type_chan(userb, type, i);
+		err = fmctdc_set_buffer_type_chan(userb, i, type);
 		if (err) {
 			errno = FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE;
 			break;
