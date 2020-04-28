@@ -122,10 +122,12 @@ class FmcTdc(object):
         def read(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
             self.libfmctdc.fmctdc_read(self.tkn, self.chan, ts ,n ,flags)
+            return list(ts)
 
         def fread(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
             self.libfmctdc.fmctdc_fread(self.tkn, self.chan, ts ,n ,flags)
+            return list(ts)
 
         def flush(self):
             self.libfmctdc.fmctdc_flush(self.tkn, self.chan)
