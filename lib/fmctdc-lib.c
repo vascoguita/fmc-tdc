@@ -722,7 +722,7 @@ int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 	__define_board(b, userb);
 	uint32_t val;
 	char attr[64];
-	char path[64];
+	char path[128];
 
 	snprintf(path, sizeof(path), "%s/ft-ch%u/chan0/buffer/max-buffer-kb",
 		 b->sysbase, channel + 1);
