@@ -305,6 +305,10 @@ static int ft_zio_conf_set(struct device *dev, struct zio_attribute *zattr,
 	ft = zdev->priv_d;
 
 	if (zattr->id == FT_ATTR_DEV_SECONDS) {
+		int ret = ft_wr_query(ft);
+
+		if (ret != -ENODEV)
+			return -EPERM;
 		attr[FT_ATTR_DEV_SECONDS].value = usr_val;
 
 		ft_set_tai_time(ft,
