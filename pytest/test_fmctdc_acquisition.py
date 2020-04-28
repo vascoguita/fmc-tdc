@@ -16,7 +16,6 @@ def fmctdc_chan(request, fmctdc):
     fmctdc.chan[request.param].enable = True
     fmctdc.chan[request.param].flush()
     yield fmctdc.chan[request.param]
-    print("ciao")
     fmctdc.chan[request.param].enable = False
 
 
