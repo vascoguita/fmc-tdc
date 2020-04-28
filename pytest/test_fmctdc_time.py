@@ -36,7 +36,7 @@ class TestFmctdcTime(object):
         """Just check that the time flows more or less correctly second by
         second for a minute"""
         fmctdc.whiterabbit_mode = whiterabbit
-        for i in range(60):
+        for i in range(20):
             t_prev = fmctdc.time.seconds
             time.sleep(1)
             assert t_prev + 1 == fmctdc.time.seconds
