@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 	struct fmctdc_time *ts;
 	int channels[FMCTDC_NUM_CHANNELS];
 	int chan_count = 0, i, n, ch, fd, n_ts, ret, n_boards;
-	int nblock = 0, buflen = 5000000;
+	int nblock = 0, buflen = 1000000;
 	enum fmctdc_buffer_mode bufmode = FMCTDC_BUFFER_FIFO;
 	int n_samples = -1;
 	unsigned int n_show = 1;
