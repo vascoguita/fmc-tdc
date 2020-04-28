@@ -108,6 +108,19 @@ class FmcTdc(object):
         def offset(self, val):
             self.libfmctdc.fmctdc_set_offset_user(self.tkn, self.chan,
                                                   int(val))
+
+        @property
+        def coalescing_timeout(self):
+            timeout = ctypes.c_uint(0)
+            self.libfmctdc.fmctdc_coalescing_time_out_get(self.tkn, self.chan,
+                                                          ctypes.pointer(timeout))
+            return int(timeout.value)
+
+        @coalescing_timeout.setter
+        def coalescing_timeout(self, val):
+            self.libfmctdc.fmctdc_coalescing_time_out_set(self.tkn, self.chan,
+                                                          int(val))
+
         @property
         def stats(self):
             recv = ctypes.c_uint32(0)
@@ -313,6 +326,18 @@ class FmcTdc(object):
                                                           ctypes.POINTER(ctypes.c_uint32)]
         self.libfmctdc.fmctdc_stats_trans_get.restype = ctypes.c_int
         self.libfmctdc.fmctdc_stats_trans_get.errcheck = self.__errcheck_int
+
+        self.libfmctdc.fmctdc_coalescing_timeout_set.argtypes = [ctypes.c_void_p,
+                                                                 ctypes.c_uint,
+                                                                 ctypes.c_uint]
+        self.libfmctdc.fmctdc_coalescing_timeout_set.restype = ctypes.c_int
+        self.libfmctdc.fmctdc_coalescing_timeout_set.errcheck = self.__errcheck_int
+
+        self.libfmctdc.fmctdc_coalescing_timeout_get.argtypes = [ctypes.c_void_p,
+                                                                 ctypes.c_uint,
+                                                                 ctypes.POINTER(ctypes.c_uint)]
+        self.libfmctdc.fmctdc_coalescing_timeout_get.restype = ctypes.c_int
+        self.libfmctdc.fmctdc_coalescing_timeout_get.errcheck = self.__errcheck_int
 
     @property
     def temperature(self):
