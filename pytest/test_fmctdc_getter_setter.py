@@ -42,12 +42,18 @@ class TestFmctdcGetterSetter(object):
         fmctdc.chan[i].termination = term
         assert term == fmctdc.chan[i].termination
 
-    @pytest.mark.parametrize("i", range(FmcTdc.CHANNEL_NUMBER))
+    @pytest.mark.parametrize("ch", range(FmcTdc.CHANNEL_NUMBER))
     @pytest.mark.parametrize("enable", [True, False])
-    def test_enable(self, fmctdc, i, enable):
+    def test_enable(self, fmctdc, ch, enable):
         """Set enable status and read it back"""
-        fmctdc.chan[i].enable = enable
-        assert enable == fmctdc.chan[i].enable
+        """When a channel gets enabled only that one become enabled all
+        the other remains disables"""
+        fmctdc.chan[ch].enable = True
+        for i in range(FmcTdc.CHANNEL_NUMBER):
+            assert fmctdc.chan[i].enable == (i == ch)
+        fmctdc.chan[ch].enable = False
+        for i in range(FmcTdc.CHANNEL_NUMBER):
+            assert fmctdc.chan[i].enable == False
 
     @pytest.mark.parametrize("i", range(FmcTdc.CHANNEL_NUMBER))
     @pytest.mark.parametrize("buffer_mode", FmcTdc.FmcTdcChannel.BUFFER_MODE.keys())
