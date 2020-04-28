@@ -99,20 +99,20 @@ class FmcTdc(object):
 
         @property
         def offset(self):
-            off = ctypes.c_int32
+            off = ctypes.c_int32(0)
             self.libfmctdc.fmctdc_get_offset_user(self.tkn, self.chan,
                                                   ctypes.pointer(off))
-            return int(off)
+            return int(off.value)
 
         @property
         def stats(self):
-            recv = ctypes.c_uint32
+            recv = ctypes.c_uint32(0)
             self.libfmctdc_fmctdc_stats_recv_get(self.tkn, self.chan,
                                                  ctypes.pointer(recv))
-            trans = ctypes.c_uint32
+            trans = ctypes.c_uint32(0)
             self.libfmctdc_fmctdc_stats_recv_get(self.tkn, self.chan,
                                                  ctypes.pointer(trans))
-            return (trans, recv)
+            return (trans.value, recv.value)
 
         @offset.setter
         def offset(self, val):
@@ -369,10 +369,10 @@ class FmcTdc(object):
 
     @property
     def transfer_mode(self):
-        mode = ctypes.c_int
+        mode = ctypes.c_int(0)
         self.libfmctdc.fmctdc_transfer_mode(self.tkn, ctypes.pointer(mode))
         for k, v in self.TRANSFER_MODE.items():
-            if mode == v:
+            if mode.value == v:
                 return k
         raise Exception("Unknown transfer mode")
 
