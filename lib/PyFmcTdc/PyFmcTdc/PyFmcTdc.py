@@ -370,6 +370,7 @@ class FmcTdc(object):
         end = time.time() + 30
         timeout = True
         while time.time() < end:
+            time.sleep(0.1)
             ret = self.libfmctdc.fmctdc_check_wr_mode(self.tkn)
             if val and ret == 0:
                 timeout = False
