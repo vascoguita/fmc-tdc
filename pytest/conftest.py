@@ -4,8 +4,8 @@ SPDX-FileCopyrightText: 2020 CERN
 """
 
 import pytest
-import PyFmcTdc
 import subprocess
+from PyFmcTdc import FmcTdc
 
 class FmcFineDelay(object):
     def __init__(self, device_id):
@@ -31,7 +31,7 @@ def fmcfd():
 
 @pytest.fixture(scope="module")
 def fmctdc():
-    return PyFmcTdc.FmcTdc(pytest.tdc_id)
+    return FmcTdc(pytest.tdc_id)
 
 def pytest_addoption(parser):
     parser.addoption("--tdc-id", action="store", type=lambda x : int(x, 16),
