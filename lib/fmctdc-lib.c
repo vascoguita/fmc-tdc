@@ -153,6 +153,11 @@ void fmctdc_exit(void)
 				b->fdc[j] = -1;
 				err++;
 			}
+			if (b->fdcc[j] >= 0) {
+				close(b->fdcc[j]);
+				b->fdcc[j] = -1;
+				err++;
+			}
 			if (b->fdd[j] >= 0) {
 				close(b->fdd[j]);
 				b->fdd[j] = -1;
