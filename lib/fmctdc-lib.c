@@ -165,8 +165,10 @@ void fmctdc_exit(void)
 		free(b->sysbase);
 		free(b->devbase);
 	}
-	if (ft_nboards)
+	if (ft_nboards) {
 		free(ft_boards);
+		ft_boards = NULL;
+	}
 }
 
 

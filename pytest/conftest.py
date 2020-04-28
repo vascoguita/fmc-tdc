@@ -27,7 +27,7 @@ class FmcFineDelay(object):
         proc = subprocess.Popen(cmd)
         proc.wait()
         if sync:
-            time.sleep(2 * (period_ns * count) / 1000000000.0)
+            time.sleep(1 + 2 * (period_ns * count) / 1000000000.0)
 
 
 @pytest.fixture(scope="module")
