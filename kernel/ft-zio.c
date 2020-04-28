@@ -670,6 +670,7 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	if (IS_ERR(ft->hwzdev))
 		return PTR_ERR(ft->hwzdev);
 
+	ft->hwzdev->head.dev.parent = &ft->pdev->dev;
 	/* Mandatory fields */
 	ft->hwzdev->owner = THIS_MODULE;
 	ft->hwzdev->priv_d = ft;
