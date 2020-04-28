@@ -17,11 +17,11 @@ class TestFmctdcTime(object):
         fmctdc.whiterabbit_mode = False
         assert fmctdc.whiterabbit_mode == False
 
-    def test_time_set_fail_wr(self, fmctdc, t):
+    def test_time_set_fail_wr(self, fmctdc):
         """Time can't be changed when White-Rabbit is enabled"""
         fmctdc.whiterabbit_mode = True
         with pytest.raises(OSError):
-            fmctdc.time = FmcTdcTime(t, 0, 0, 0, 0)
+            fmctdc.time = FmcTdcTime(10, 0, 0, 0, 0)
 
     @pytest.mark.parametrize("t", random.sample(range(1000000), 10))
     def test_time_set(self, fmctdc, t):
