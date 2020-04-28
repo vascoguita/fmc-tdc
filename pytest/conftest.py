@@ -31,7 +31,16 @@ def fmcfd():
 
 @pytest.fixture(scope="module")
 def fmctdc():
-    return FmcTdc(pytest.tdc_id)
+    tdc = FmcTdc(pytest.tdc_id)
+    for i in range(tdc.CHANNEL_NUMBER):
+        tdc.chan[i].termination = False
+        tdc.chan[i].enable = False
+        tdc.chan[i].flush()
+    yield tdc
+    for i in range(tdc.CHANNEL_NUMBER):
+        tdc.chan[i].termination = False
+        tdc.chan[i].enable = False
+        tdc.chan[i].flush()
 
 def pytest_addoption(parser):
     parser.addoption("--tdc-id", action="store", type=lambda x : int(x, 16),
