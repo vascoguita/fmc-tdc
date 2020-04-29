@@ -159,7 +159,7 @@ package tdc_core_pkg is
      wbd_width     => x"4",                  -- 32-bit port granularity
      sdb_component =>
        (addr_first  => x"0000000000000000",
-        addr_last   => x"000000000000000F",
+        addr_last   => x"000000000000003F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
            device_id => x"00000605",         -- "WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
@@ -192,7 +192,7 @@ package tdc_core_pkg is
     wbd_width     => x"4",                 -- 32-bit port granularity
     sdb_component => (
       addr_first  => x"0000000000000000",
-      addr_last   => x"000000000000000F",
+      addr_last   => x"000000000000003F",
       product     => (
         vendor_id => x"000000000000CE42",  -- CERN
         device_id => x"26ec6086",          -- "WB-FMC-TDC.EIC     " | md5sum | cut -c1-8
