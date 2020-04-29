@@ -448,7 +448,8 @@ begin
   gen_with_dma_readout : if g_USE_DMA_READOUT generate
     U_DMA_Engine : entity work.tdc_dma_engine
       generic map (
-        g_CLOCK_FREQ => 62500000)
+        g_CLOCK_FREQ => 62500000,
+        g_SIMULATION => g_SIMULATION)
       port map (
         clk_i      => clk_sys_i,
         rst_n_i    => rst_sys_n_i,

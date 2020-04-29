@@ -10,7 +10,8 @@ use work.gencores_pkg.all;
 
 entity tdc_dma_engine is
   generic (
-    g_CLOCK_FREQ : integer := 62500000
+    g_CLOCK_FREQ : integer := 62500000;
+    g_SIMULATION : boolean := false
     );
   port (
     clk_i : in std_logic;
@@ -55,9 +56,19 @@ architecture rtl of tdc_dma_engine is
      3 => x"000001c0",
      4 => x"000001c0");
 
-
   constant c_TIMER_PERIOD_MS     : integer := 1;
-  constant c_TIMER_DIVIDER_VALUE : integer := g_CLOCK_FREQ * c_TIMER_PERIOD_MS / 1000 - 1;
+
+  impure function f_pick_timer_divider return integer is
+  begin
+    if g_SIMULATION then
+      return 1000;
+    else
+      return g_CLOCK_FREQ * c_TIMER_PERIOD_MS / 1000 - 1;
+    end if;
+  end f_pick_timer_divider;
+  
+  
+  constant c_TIMER_DIVIDER_VALUE : integer := f_pick_timer_divider;
 
   signal irq_tick_div : unsigned(15 downto 0);
   signal irq_tick     : std_logic;
