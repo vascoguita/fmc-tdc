@@ -29,8 +29,7 @@ class FmcFineDelay(object):
         if sync:
             time.sleep(1 + 2 * (period_ns * count) / 1000000000.0)
 
-
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def fmcfd():
     return FmcFineDelay(pytest.fd_id)
 
