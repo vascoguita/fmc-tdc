@@ -11,25 +11,29 @@ from PyFmcTdc import FmcTdc
 
 TDC_FD_CABLING = [2, 1, 3, 4, 4]
 
-@pytest.fixture(scope="module", params=range(FmcTdc.CHANNEL_NUMBER))
-def fmctdc_chan(request, fmctdc):
-    fmctdc.chan[request.param].enable = True
-    fmctdc.chan[request.param].flush()
-    yield fmctdc.chan[request.param]
-    fmctdc.chan[request.param].enable = False
 
 def fmctdc_acq_100ms():
     return [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]]
 
+@pytest.fixture(scope="function", params=pytest.channels)
+def fmctdc_chan(request):
+    tdc = FmcTdc(pytest.tdc_id)
+    for ch in tdc.chan:
+        ch.enable = False
+    tdc.chan[request.param].termination = False
+    tdc.chan[request.param].timestamp_mode = "post"
+    tdc.chan[request.param].flush()
+    tdc.chan[request.param].enable = True
+    yield tdc.chan[request.param]
+
 class TestFmctdcAcquisition(object):
 
-    @pytest.mark.parametrize("ch", range(FmcTdc.CHANNEL_NUMBER))
-    def test_acq_single_channel_disable(self, fmctdc, fmcfd, ch):
+    def test_acq_single_channel_disable(self, fmctdc_chan, fmcfd):
         """Acquistion does not start if the channel is not enable"""
-        fmctdc.chan[ch].enable = False
-        fmcfd.generate_pulse(TDC_FD_CABLING[ch], 0, 1000000000, 1, True)
+        fmctdc_chan.enable = False
+        fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 0, 1000000000, 1, True)
         with pytest.raises(OSError):
-            ts = fmctdc.chan[ch].read(1, os.O_NONBLOCK)
+            ts = fmctdc_chan.read(1, os.O_NONBLOCK)
 
     @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
     def test_acq_chan_stats(self, fmctdc_chan, fmcfd, period_ns, count):
