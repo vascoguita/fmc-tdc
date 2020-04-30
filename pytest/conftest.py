@@ -45,9 +45,9 @@ def fmctdc():
 
 def pytest_addoption(parser):
     parser.addoption("--tdc-id", type=lambda x : int(x, 16),
-                     required=True)
+                     required=True, help="Fmc TDC Linux Identifier")
     parser.addoption("--fd-id", type=lambda x : int(x, 16),
-                     required=True)
+                     required=True, help="Fmc Fine-Delay Linux Identifier")
 
 def pytest_configure(config):
     pytest.tdc_id = config.getoption("--tdc-id")
