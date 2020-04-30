@@ -146,6 +146,9 @@ void fmctdc_exit(void)
 	struct __fmctdc_board *b;
 	int i, j, err;
 
+	if (!ft_boards)
+		return;
+
 	for (i = 0, err = 0, b = ft_boards; i < ft_nboards; i++, b++) {
 		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 			if (b->fdc[j] >= 0) {
@@ -170,10 +173,9 @@ void fmctdc_exit(void)
 		free(b->sysbase);
 		free(b->devbase);
 	}
-	if (ft_nboards) {
-		free(ft_boards);
-		ft_boards = NULL;
-	}
+
+	free(ft_boards);
+	ft_boards = NULL;
 }
 
 
