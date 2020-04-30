@@ -209,15 +209,6 @@ extern int fmctdc_ts_mode_get(struct fmctdc_board *userb,
 
 /**@}*/
 
-#if 0
-/* Hardware TDC timestamp */
-struct ft_hw_timestamp {
-uint32_t seconds;/* 1 second resolution */
-uint32_t coarse;/* 8 ns resolution */
-uint32_t frac;/* In ACAM bins (81 ps) */
-uint32_t metadata;/* channel, polarity, etc. */
-};
-#endif
 #include "fmctdc-lib-private.h"
 
 
