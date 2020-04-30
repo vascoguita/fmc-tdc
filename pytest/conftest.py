@@ -11,8 +11,19 @@ import os
 from PyFmcTdc import FmcTdc
 
 class FmcFineDelay(object):
+    CHANNEL_NUMBER = 4
+
     def __init__(self, device_id):
         self.dev_id = device_id
+
+    def disable(self, ch):
+        cmd = ["/usr/local/bin/fmc-fdelay-pulse",
+               "-d", "0x{:x}".format(self.dev_id),
+               "-o", str(ch),
+               "-m", "disable",
+               ]
+        proc = subprocess.Popen(cmd)
+        proc.wait()
 
     def generate_pulse(self, ch, rel_time_us,
                        period_ns, count, sync):
@@ -29,9 +40,12 @@ class FmcFineDelay(object):
         if sync:
             time.sleep(1 + 2 * (period_ns * count) / 1000000000.0)
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def fmcfd():
-    return FmcFineDelay(pytest.fd_id)
+    fd =  FmcFineDelay(pytest.fd_id)
+    yield fd
+    for ch in range(FmcFineDelay.CHANNEL_NUMBER):
+        fd.disable(ch + 1)
 
 @pytest.fixture(scope="function")
 def fmctdc():
