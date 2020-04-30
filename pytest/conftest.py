@@ -38,7 +38,7 @@ def fmctdc_channel_default(chan):
     chan.timestamp_mode = "post"
     chan.enable = False
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def fmctdc():
     tdc = FmcTdc(pytest.tdc_id)
     for i in range(tdc.CHANNEL_NUMBER):
