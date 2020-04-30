@@ -36,6 +36,7 @@ def fmcfd():
 
 def fmctdc_channel_default(chan):
     chan.termination = False
+    chan.timestamp_mode = "post"
     chan.enable = False
 
 @pytest.fixture(scope="module")
