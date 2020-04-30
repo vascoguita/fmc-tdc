@@ -18,6 +18,8 @@ def fmctdc_chan(request, fmctdc):
     yield fmctdc.chan[request.param]
     fmctdc.chan[request.param].enable = False
 
+def fmctdc_acq_100ms():
+    return [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]]
 
 class TestFmctdcAcquisition(object):
 
@@ -29,8 +31,7 @@ class TestFmctdcAcquisition(object):
         with pytest.raises(OSError):
             ts = fmctdc.chan[ch].read(1, os.O_NONBLOCK)
 
-    @pytest.mark.parametrize("period_ns,count",
-                             [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]])
+    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
     def test_acq_chan_stats(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton statistics increase
         correctly. Test 100 milli-second acquisition at different
@@ -42,8 +43,7 @@ class TestFmctdcAcquisition(object):
         assert stats_before[0] + count == stats_after[0]
         assert stats_before[1] + count == stats_after[1]
 
-    @pytest.mark.parametrize("period_ns,count",
-                             [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]])
+    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
     def test_acq_chan_read_count(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton the number of read
         timestamps is correct. Test 100 milli-second acquisition at different
@@ -53,8 +53,7 @@ class TestFmctdcAcquisition(object):
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
         assert len(ts) == count
 
-    @pytest.mark.parametrize("period_ns,count",
-                             [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]])
+    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
     def test_acq_timestamp_seq_num(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton the sequence
         number of each timestamps increase by 1. Test 100 milli-second
