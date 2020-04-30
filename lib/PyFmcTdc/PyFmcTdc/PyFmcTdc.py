@@ -48,6 +48,8 @@ class FmcTdc(object):
     class FmcTdcChannel(object):
         BUFFER_MODE = {"fifo": 0,
                        "circ": 1}
+        TIMESTAMP_MODE = {"post": 0,
+                          "raw": 1}
 
         def __init__(self, libfmctdc, tkn, channel):
             self.libfmctdc = libfmctdc
@@ -112,14 +114,29 @@ class FmcTdc(object):
         @property
         def coalescing_timeout(self):
             timeout = ctypes.c_uint(0)
-            self.libfmctdc.fmctdc_coalescing_time_out_get(self.tkn, self.idx,
-                                                          ctypes.pointer(timeout))
+            self.libfmctdc.fmctdc_coalescing_timeout_get(self.tkn, self.idx,
+                                                         ctypes.pointer(timeout))
             return int(timeout.value)
 
         @coalescing_timeout.setter
         def coalescing_timeout(self, val):
-            self.libfmctdc.fmctdc_coalescing_time_out_set(self.tkn, self.idx,
-                                                          int(val))
+            self.libfmctdc.fmctdc_coalescing_timeout_set(self.tkn, self.idx,
+                                                         int(val))
+
+        @property
+        def timestamp_mode(self):
+            mode = ctypes.c_int(0)
+            self.libfmctdc.fmctdc_ts_mode_get(self.tkn, self.idx,
+                                              ctypes.pointer(mode))
+            for k, v in self.TIMESTAMP_MODE.items():
+                if mode.value == v:
+                    return k
+            raise Exception("Unknown buffer mode")
+
+        @timestamp_mode.setter
+        def timestamp_mode(self, val):
+            self.libfmctdc.fmctdc_ts_mode_set(self.tkn, self.idx,
+                                              self.TIMESTAMP_MODE[val])
 
         @property
         def stats(self):

@@ -86,3 +86,11 @@ class TestFmctdcGetterSetter(object):
     def test_stats(self, fmctdc, i):
         """Set user offset and read it back"""
         st = fmctdc.chan[i].stats
+
+    @pytest.mark.parametrize("i", range(FmcTdc.CHANNEL_NUMBER))
+    @pytest.mark.parametrize("timestamp_mode",
+                             FmcTdc.FmcTdcChannel.TIMESTAMP_MODE.keys())
+    def test_timestamp_mode(self, fmctdc, i, timestamp_mode):
+        """Set timestamp mode and read it back"""
+        fmctdc.chan[i].timestamp_mode = timestamp_mode
+        assert timestamp_mode == fmctdc.chan[i].timestamp_mode
