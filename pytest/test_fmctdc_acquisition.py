@@ -5,7 +5,9 @@ SPDX-FileCopyrightText: 2020 CERN
 
 import pytest
 import random
+import select
 import time
+import sys
 import os
 from PyFmcTdc import FmcTdc
 
@@ -61,10 +63,74 @@ class TestFmctdcAcquisition(object):
         """Check that unders a controlled acquisiton the sequence
         number of each timestamps increase by 1. Test 100 milli-second
         acquisition at different frequencies"""
+        prev_seq = None
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
         for i in  range(len(ts)):
-            if i == 0:
+            if prev_seq == None:
+                prev_seq = ts[i].seq_id
                 continue
-            assert ts[i].seq_id == ts[i - 1].seq_id + 1
+            assert ts[i].seq_id == prev_seq + 1
+            prev_seq = ts[i].seq_id
+
+    @pytest.mark.skipif(0 in pytest.usr_acq,
+                        reason="Missing user acquisition option")
+    @pytest.mark.skipif(pytest.carrier == "spec" and \
+                        pytest.transfer_mode == "fifo" and \
+                        pytest.usr_acq[0] < 10000,
+                        reason="On SPEC with FIFO acquisition we can't do more than 100kHz")
+    @pytest.mark.parametrize("period_ns,count", [pytest.usr_acq])
+    def test_acq_timestamp_single_channel(self, capsys, fmctdc_chan, fmcfd,
+                                          period_ns, count):
+        """Run an acquisition with users parameters for period and count.
+        The Fine-Delay can generate a burst of maximum 65536 pulses, so we
+        compute and approximated timeout to stop the test and we let
+        the Fine-Delay generating an infinite train of pulses.
+
+        Since the test can be very long, to see if it is alive it will blink
+        a dot '.' on the screen. If it does not blink start wandering if it
+        is blocked.
+        """
+        poll = select.poll()
+        poll.register(fmctdc_chan.fileno, select.POLLIN)
+        pending = count
+        prev_seq = None
+        with capsys.disabled():
+            char = "."
+            sys.stdout.write(char)
+        fmctdc_chan.buffer_len = 10000
+        stats_o = fmctdc_chan.stats
+        trans_b = stats_o[1]
+        fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
+                             period_ns, 0, False)
+        timeout = time.time() + (period_ns * count) / 1000000000.0
+        while pending > 0:
+            t = time.time()
+            if t >= timeout:
+                break
+            if int(t) & 0x1:
+                with capsys.disabled():
+                    sys.stdout.write("\b{:s}".format(char))
+                    char = " " if char == "." else "."
+
+            ret = poll.poll(1)
+            if len(ret) == 0:
+                continue
+            trans_a = fmctdc_chan.stats[1]
+            diff = trans_a - trans_b
+            trans_b = trans_a
+            assert diff > 0
+
+            ts = fmctdc_chan.read(diff, os.O_NONBLOCK)
+            assert len(ts) == diff
+            for i in  range(len(ts)):
+                if prev_seq == None:
+                    prev_seq = ts[i].seq_id
+                    continue
+                assert ts[i].seq_id == prev_seq + 1, "Missed {:d} timestamps".format(ts[i].seq_id - prev_seq + 1)
+                prev_seq = ts[i].seq_id
+            pending -= diff
+        poll.unregister(fmctdc_chan.fileno)
+        margin = 20
+        assert abs(pending) < margin, "Received {:d} timestamps but expected [{:d}, {:d}] timestamps, timeout".format(count - pending, count, count + margin)

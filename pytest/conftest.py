@@ -67,6 +67,10 @@ def pytest_addoption(parser):
     parser.addoption("--channel", type=int, default=[],
                      action="append", choices=range(FmcTdc.CHANNEL_NUMBER),
                      help="Channel(s) to be used for acquisition tests. Default all channels")
+    parser.addoption("--usr-acq-count", type=int, default=0,
+                     help="Number of pulses to generate during a acquisition test.")
+    parser.addoption("--usr-acq-period-ns", type=int, default=0,
+                     help="Pulses period (ns) during a acquisition test.")
 
 def pytest_configure(config):
     pytest.tdc_id = config.getoption("--tdc-id")
@@ -74,3 +78,19 @@ def pytest_configure(config):
     pytest.channels = config.getoption("--channel")
     if len(pytest.channels) == 0:
         pytest.channels = range(FmcTdc.CHANNEL_NUMBER)
+    pytest.usr_acq = (config.getoption("--usr-acq-period-ns"),
+                      config.getoption("--usr-acq-count"))
+
+    pytest.transfer_mode = None
+    with open("/sys/bus/zio/devices/tdc-1n5c-{:04x}/transfer-mode".format(pytest.tdc_id)) as f_mode:
+        mode = int(f_mode.read().rstrip())
+        for k, v in FmcTdc.TRANSFER_MODE.items():
+            if mode == v:
+                pytest.transfer_mode = k
+
+    pytest.carrier = None
+    full_path = os.readlink("/sys/bus/zio/devices/tdc-1n5c-{:04x}".format(pytest.tdc_id))
+    for carr in ["spec", "svec"]:
+        is_carr = re.search(carr, full_path)
+        if is_carr is not None:
+            pytest.carrier = carr
