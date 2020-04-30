@@ -33,21 +33,15 @@ class FmcFineDelay(object):
 def fmcfd():
     return FmcFineDelay(pytest.fd_id)
 
-def fmctdc_channel_default(chan):
-    chan.termination = False
-    chan.timestamp_mode = "post"
-    chan.enable = False
-
 @pytest.fixture(scope="function")
 def fmctdc():
     tdc = FmcTdc(pytest.tdc_id)
-    for i in range(tdc.CHANNEL_NUMBER):
-        fmctdc_channel_default(tdc.chan[i])
-        tdc.chan[i].flush()
-    yield tdc
-    for i in range(tdc.CHANNEL_NUMBER):
-        fmctdc_channel_default(tdc.chan[i])
-        tdc.chan[i].flush()
+    for ch in tdc.chan:
+        ch.enable = False
+        ch.termination = False
+        ch.timestamp_mode = "post"
+        ch.flush()
+    yield tdc.chan[request.param]
 
 def pytest_addoption(parser):
     parser.addoption("--tdc-id", type=lambda x : int(x, 16),
