@@ -30,6 +30,7 @@ class FmcFineDelay(object):
         cmd = ["/usr/local/bin/fmc-fdelay-pulse",
                "-d", "0x{:x}".format(self.dev_id),
                "-o", str(ch),
+               "-m", "pulse",
                "-r", "{:d}u".format(rel_time_us),
                "-T", "{:d}n".format(period_ns),
                "-c", str(count),
