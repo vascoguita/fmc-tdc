@@ -22,6 +22,7 @@
 #include <linux/zio-buffer.h>
 
 #include "fmc-tdc.h"
+#include "ft-compat.h"
 #include "hw/timestamp_fifo_regs.h"
 
 #define TDC_EIC_EIC_IMR_TDC_DMA_SHIFT 5
@@ -590,6 +591,18 @@ int ft_buf_init(struct fmctdc_dev *ft)
 	ft_irq_coalescing_size_set(ft, -1, 40);
 
 	INIT_WORK(&ft->irq_work, ft_irq_work);
+
+	internal_setup_pdev_dma_masks(ft->pdev);
+	ret = dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(64));
+	if (ret) {
+		ret = dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(32));
+		if (ret) {
+			dev_err(&ft->pdev->dev,
+			"Can't set DMA mask 64,32 bits: %d\n",
+			ret);
+			return ret;
+		}
+	}
 
 	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, TDC_IRQ);
 	ret = request_any_context_irq(r->start, ft_irq_handler_ts_dma, 0,
