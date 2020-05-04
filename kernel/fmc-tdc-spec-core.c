@@ -5,48 +5,51 @@
  */
 
 #include <linux/module.h>
+#include <linux/dma-mapping.h>
 #include <linux/platform_device.h>
 #include <linux/mfd/core.h>
+
+#include "platform_data/fmc-tdc.h"
 
 enum ft_spec_dev_offsets {
 	FT_SPEC_TDC_MEM_START = 0x00001E000,
 	FT_SPEC_TDC_MEM_END = 0x000030000,
 };
 
-/* MFD devices */
-enum spec_fpga_mft_devs_enum {
-	FT_SPEC_MFD_TDC = 0,
+static const struct fmc_tdc_platform_data fmc_tdc_pdata = {
+	.flags = 0,
 };
-
-static struct resource ft_spec_fdt_res[] = {
-	{
-		.name = "fmc-tdc-mem",
-		.flags = IORESOURCE_MEM,
-		.start = FT_SPEC_TDC_MEM_START,
-		.end = FT_SPEC_TDC_MEM_END,
-	}, {
-		.name = "fmc-tdc-irq",
-		.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-		.start = 0,
-		.end = 0,
-	},
-};
-
-static const struct mfd_cell ft_spec_mfd_devs[] = {
-	[FT_SPEC_MFD_TDC] = {
-		.name = "fmc-tdc-pci",
-		.platform_data = NULL,
-		.pdata_size = 0,
-		.num_resources = ARRAY_SIZE(ft_spec_fdt_res),
-		.resources = ft_spec_fdt_res,
-	},
-};
-
 
 static int ft_spec_probe(struct platform_device *pdev)
 {
+	static struct resource ft_spec_fdt_res[] = {
+		{
+			.name = "fmc-tdc-mem",
+			.flags = IORESOURCE_MEM,
+		},
+		{
+			.name = "fmc-tdc-dma",
+			.flags = IORESOURCE_DMA,
+		}, {
+			.name = "fmc-tdc-irq",
+			.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
+		}
+	};
+	struct platform_device_info pdevinfo = {
+		.parent = &pdev->dev,
+		.name = "fmc-tdc",
+		.id = PLATFORM_DEVID_AUTO,
+		.res = ft_spec_fdt_res,
+		.num_res = ARRAY_SIZE(ft_spec_fdt_res),
+		.data = &fmc_tdc_pdata,
+		.size_data = sizeof(fmc_tdc_pdata),
+		.dma_mask = DMA_BIT_MASK(32),
+	};
+	struct platform_device *pdev_child;
 	struct resource *rmem;
+	struct resource *r;
 	int irq;
+	int dma_dev_chan;
 
 	rmem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!rmem) {
@@ -60,21 +63,31 @@ static int ft_spec_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	/*
-	 * We know that this design uses the HTVIC IRQ controller.
-	 * This IRQ controller has a linear mapping, so it is enough
-	 * to give the first one as input
-	 */
+	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+	if (!r) {
+		dev_err(&pdev->dev, "Missing DMA engine\n");
+		return -EINVAL;
+	}
+	dma_dev_chan = r->start;
 
-	return mfd_add_devices(&pdev->dev, PLATFORM_DEVID_AUTO,
-			       ft_spec_mfd_devs,
-			       ARRAY_SIZE(ft_spec_mfd_devs),
-			       rmem, irq, NULL);
+	ft_spec_fdt_res[0].parent = rmem;
+	ft_spec_fdt_res[0].start = rmem->start + FT_SPEC_TDC_MEM_START;
+	ft_spec_fdt_res[0].end = rmem->start + FT_SPEC_TDC_MEM_END;
+	ft_spec_fdt_res[1].start = dma_dev_chan;
+	ft_spec_fdt_res[2].start = irq;
+
+	pdev_child = platform_device_register_full(&pdevinfo);
+	if (IS_ERR(pdev_child))
+		return PTR_ERR(pdev_child);
+	platform_set_drvdata(pdev, pdev_child);
+	return 0;
 }
 
 static int ft_spec_remove(struct platform_device *pdev)
 {
-	mfd_remove_devices(&pdev->dev);
+	struct platform_device *pdev_child = platform_get_drvdata(pdev);
+
+	platform_device_unregister(pdev_child);
 
 	return 0;
 }

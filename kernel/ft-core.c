@@ -27,6 +27,7 @@
 #include <linux/zio-trigger.h>
 
 #include "fmc-tdc.h"
+#include "platform_data/fmc-tdc.h"
 #include "hw/tdc_regs.h"
 
 int irq_timeout_ms_default = 10;
@@ -341,14 +342,11 @@ err:
 
 static int ft_endianess(struct fmctdc_dev *ft)
 {
-	switch (ft->pdev->id_entry->driver_data) {
-	case TDC_VER_PCI:
-		return 0;
-	case TDC_VER_VME:
-		return 1;
-	default:
-		return -1;
-	}
+	const struct fmc_tdc_platform_data *fmc_tdc_pdata;
+
+	fmc_tdc_pdata = ft->pdev->dev.platform_data;
+
+	return !!(fmc_tdc_pdata->flags & FMC_TDC_BIG_ENDIAN);
 }
 static int ft_memops_detect(struct fmctdc_dev *ft)
 {
@@ -542,14 +540,9 @@ int ft_remove(struct platform_device *pdev)
 
 static const struct platform_device_id ft_id[] = {
 	{
-		.name = "fmc-tdc-pci",
-		.driver_data = TDC_VER_PCI,
-	}, {
-		.name = "fmc-tdc-vme",
-		.driver_data = TDC_VER_VME,
+		.name = "fmc-tdc",
+		.driver_data = TDC_VER,
 	},
-
-	/* TODO we should support different version */
 };
 
 static struct platform_driver ft_platform_driver = {

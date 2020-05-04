@@ -370,23 +370,11 @@ static void ft_dma_complete(void *arg)
  */
 static bool ft_dmaengine_filter(struct dma_chan *dchan, void *arg)
 {
-	struct fmctdc_dev *ft = arg;
+	struct dma_device *ddev = dchan->device;
+	int dev_id = (*((int *)arg) >> 16) & 0xFFFF;
+	int chan_id = *((int *)arg) & 0xFFFF;
 
-	switch (ft->pdev->id_entry->driver_data) {
-	case TDC_VER_PCI:
-		/*
-		 *The DMA channel and the ADC must be on the same carrier
-		 * dev - current device
-		 * parent - the application top level design
-		 * parent - the SPEC device
-		 */
-		return (dchan->device->dev == ft->pdev->dev.parent->parent->parent);
-	default:
-		/* SVEC DMA not supported */
-		dev_warn(&ft->pdev->dev,
-			"Carrier not recognized or not supported\n");
-		return false;
-	}
+	return ddev->dev_id == dev_id && dchan->chan_id == chan_id;
 }
 
 static int ft_dma_config(struct fmctdc_dev *ft, unsigned int ch)
@@ -583,6 +571,7 @@ static void ft_buffer_size_clr(struct fmctdc_dev *ft, int channel)
 int ft_buf_init(struct fmctdc_dev *ft)
 {
 	struct resource *r;
+	int dma_dev_id;
 	dma_cap_mask_t dma_mask;
 	unsigned int i;
 	int ret;
@@ -592,17 +581,12 @@ int ft_buf_init(struct fmctdc_dev *ft)
 
 	INIT_WORK(&ft->irq_work, ft_irq_work);
 
-	internal_setup_pdev_dma_masks(ft->pdev);
-	ret = dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(64));
-	if (ret) {
-		ret = dma_set_mask(&ft->pdev->dev, DMA_BIT_MASK(32));
-		if (ret) {
-			dev_err(&ft->pdev->dev,
-			"Can't set DMA mask 64,32 bits: %d\n",
-			ret);
-			return ret;
-		}
+	r = platform_get_resource(ft->pdev, IORESOURCE_DMA, TDC_DMA);
+	if (!r) {
+		dev_err(&ft->pdev->dev, "Can't set find DMA channel\n");
+		return -ENODEV;
 	}
+	dma_dev_id = r->start;
 
 	r = platform_get_resource(ft->pdev, IORESOURCE_IRQ, TDC_IRQ);
 	ret = request_any_context_irq(r->start, ft_irq_handler_ts_dma, 0,
@@ -617,7 +601,8 @@ int ft_buf_init(struct fmctdc_dev *ft)
 	dma_cap_zero(dma_mask);
 	dma_cap_set(DMA_SLAVE, dma_mask);
 	dma_cap_set(DMA_PRIVATE, dma_mask);
-	ft->dchan = dma_request_channel(dma_mask, ft_dmaengine_filter, ft);
+	ft->dchan = dma_request_channel(dma_mask, ft_dmaengine_filter,
+					&dma_dev_id);
 	if (!ft->dchan) {
 		dev_dbg(&ft->pdev->dev,
 			"DMA transfer Failed: can't request channel\n");

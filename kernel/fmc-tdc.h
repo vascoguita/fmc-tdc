@@ -31,9 +31,8 @@
 #define FT_CH_1   1
 #define FT_NUM_CHANNELS 5
 
-enum mock_turtle_versions {
-	TDC_VER_PCI = 0,
-	TDC_VER_VME,
+enum ft_versions {
+	TDC_VER = 0,
 };
 
 
@@ -123,15 +122,14 @@ struct ft_memory_ops {
 	void (*write)(u32 value, void *addr);
 };
 
-enum mockturtle_irq_resource {
-	TDC_IRQ = 0,
-};
+#define TDC_IRQ 0
+#define TDC_DMA 0
 
-enum mockturtle_mem_resource {
+enum ft_mem_resource {
 	TDC_MEM_BASE = 0,
 };
 
-enum mockturtle_bus_resource {
+enum ft_bus_resource {
 	TDC_BUS_FMC_SLOT = 0,
 };
 
