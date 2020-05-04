@@ -115,7 +115,7 @@ irq:
 		loop = (unsigned long *) &tmp_irq_stat;
 		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
 			cset = &ft->zdev->cset[i];
-			ft_readout_fifo_n(cset);
+			ft_readout_fifo_n(cset, 1);
 			fifo_csr_addr = ft->ft_fifo_base +
 				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
 			fifo_stat = ft_ioread(ft, fifo_csr_addr);

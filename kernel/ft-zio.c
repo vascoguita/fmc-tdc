@@ -588,11 +588,11 @@ static int ft_trig_data_done(struct zio_cset *cset)
 
 	ts = cset->chan->active_block->data;
 	for(i = 0; i < cset->ti->nsamples; ++i) {
-		dev_dbg(&cset->head.dev, "%s TS  %d/%d %d.%d.%d %d %d\n",
+		dev_dbg(&cset->head.dev,
+			"%s TS = {ts-num: %d, ts-num-max: %d, sec: 0x%x, coarse: 0x%x frac: 0x%x, meta:  0x%x}\n",
 			__func__, i, cset->ti->nsamples,
 			ts[i].seconds,ts[i].coarse,
-			ts[i].frac, FT_HW_TS_META_CHN(ts[i].metadata),
-			FT_HW_TS_META_SEQ(ts[i].metadata));
+			ts[i].frac, ts[i].metadata);
 	}
 	ft_zio_update_ctrl(cset, &ts[0]);
 
