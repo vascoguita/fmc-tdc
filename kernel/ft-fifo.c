@@ -49,26 +49,28 @@ static int ft_timestamp_get(struct zio_cset *cset, struct ft_hw_timestamp *hwts)
 /**
  * Extract a timestamp from the FIFO
  */
-static void ft_readout_fifo_one(struct zio_cset *cset)
+static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 {
 	struct fmctdc_dev *ft;
 	struct ft_hw_timestamp *hwts;
 	struct ft_channel_state *st;
+	int i;
 
 	ft = cset->zdev->priv_d;
 	st = &ft->channels[cset->index];
 
-	cset->ti->nsamples = 1;
+	cset->ti->nsamples = n;
 	zio_arm_trigger(cset->ti);
 	if (!cset->chan->active_block)
 		goto out;
-	hwts = cset->chan->active_block->data;
 
-	ft_timestamp_get(cset, hwts);
+	hwts = cset->chan->active_block->data;
+	for (i = 0; i < n; ++i)
+		ft_timestamp_get(cset, &hwts[i]);
 out:
 	zio_trigger_data_done(cset);
-	st->stats.received++;
-	st->stats.transferred++;
+	st->stats.received += n;
+	st->stats.transferred += n;
 }
 
 /**
@@ -113,7 +115,7 @@ irq:
 		loop = (unsigned long *) &tmp_irq_stat;
 		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
 			cset = &ft->zdev->cset[i];
-			ft_readout_fifo_one(cset);
+			ft_readout_fifo_n(cset);
 			fifo_csr_addr = ft->ft_fifo_base +
 				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
 			fifo_stat = ft_ioread(ft, fifo_csr_addr);
