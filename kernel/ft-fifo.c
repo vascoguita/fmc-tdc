@@ -95,7 +95,7 @@ static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
 	void *fifo_csr_addr;
 	unsigned long *loop;
 	struct zio_cset *cset;
-	int i;
+	int i, n;
 
 	irq_stat = ft_irq_fifo_status(ft);
 	if (!irq_stat)
@@ -114,18 +114,26 @@ irq:
 		tmp_irq_stat &= irq_stat;
 		loop = (unsigned long *) &tmp_irq_stat;
 		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
+			tmp_irq_stat &= (~(1 << i));
+
 			cset = &ft->zdev->cset[i];
-			ft_readout_fifo_n(cset, 1);
 			fifo_csr_addr = ft->ft_fifo_base +
 				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
+
 			fifo_stat = ft_ioread(ft, fifo_csr_addr);
-			if (!(fifo_stat & TSF_FIFO_CSR_EMPTY))
+			n = TSF_FIFO_CSR_USEDW_R(fifo_stat);
+			WARN(((fifo_stat & TSF_FIFO_CSR_EMPTY) && n != 0) ||
+			     (!(fifo_stat & TSF_FIFO_CSR_EMPTY) && n == 0),
+			     "TSF_FIFO_CSR_EMPTY and TSF_FIFO_CSR_USEDW_R are incosistent 0x%x\n",
+			     fifo_stat);
+
+			if (n == 0)
 				continue; /* Still something to read */
 
+			ft_readout_fifo_n(cset, n);
 			/* Ack the interrupt, nothing to read anymore */
 			ft_iowrite(ft, 1 << i,
 				   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-			tmp_irq_stat &= (~(1 << i));
 		}
 	} while (tmp_irq_stat);
 
