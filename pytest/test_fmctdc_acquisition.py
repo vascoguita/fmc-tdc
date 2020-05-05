@@ -129,5 +129,5 @@ class TestFmctdcAcquisition(object):
                 prev_seq = ts[i].seq_id
             pending -= diff
         poll.unregister(fmctdc_chan.fileno)
-        margin = 20
+        margin = 100
         assert abs(pending) < margin, "Received {:d} timestamps but expected [{:d}, {:d}] timestamps, timeout".format(count - pending, count, count + margin)
