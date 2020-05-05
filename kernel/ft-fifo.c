@@ -130,10 +130,9 @@ static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
 			continue; /* Still something to read */
 
 		ft_readout_fifo_n(cset, n);
-		/* Ack the interrupt, nothing to read anymore */
-		ft_iowrite(ft, 1 << i,
-			   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 	}
+
+	ft_iowrite(ft, irq_stat, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 
 	return IRQ_HANDLED;
 }
