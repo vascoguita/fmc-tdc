@@ -61,8 +61,19 @@ static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 
 	cset->ti->nsamples = n;
 	zio_arm_trigger(cset->ti);
-	if (!cset->chan->active_block)
+	if (unlikely(!cset->chan->active_block)) {
+		void *fifo_csr_addr;
+
+		dev_err(&ft->pdev->dev,
+			"Can't allocate buffer at least %d timestamps lost\n",
+			n);
+
+		fifo_csr_addr = ft->ft_fifo_base +
+			TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
+
+		ft_iowrite(ft, TSF_FIFO_CSR_CLEAR_BUS, fifo_csr_addr);
 		goto out;
+	}
 
 	hwts = cset->chan->active_block->data;
 	for (i = 0; i < n; ++i)
