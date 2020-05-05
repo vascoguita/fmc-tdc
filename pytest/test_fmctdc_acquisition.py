@@ -125,7 +125,7 @@ class TestFmctdcAcquisition(object):
                 if prev_seq == None:
                     prev_seq = ts[i].seq_id
                     continue
-                assert ts[i].seq_id == prev_seq + 1, "Missed {:d} timestamps".format(ts[i].seq_id - prev_seq + 1)
+                assert ts[i].seq_id == (prev_seq + 1) & 0xFFFFFFF, "Missed {:d} timestamps".format(ts[i].seq_id - prev_seq + 1)
                 prev_seq = ts[i].seq_id
             pending -= diff
         poll.unregister(fmctdc_chan.fileno)
