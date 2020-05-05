@@ -91,7 +91,7 @@ static inline uint32_t ft_irq_fifo_status(struct fmctdc_dev *ft)
 static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
 {
 	struct fmctdc_dev *ft = dev_id;
-	uint32_t irq_stat, tmp_irq_stat, fifo_stat;
+	uint32_t irq_stat, fifo_stat;
 	void *fifo_csr_addr;
 	unsigned long *loop;
 	struct zio_cset *cset;
@@ -101,46 +101,28 @@ static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
 	if (!irq_stat)
 		return IRQ_NONE;
 
-irq:
-	/*
-	 * Go through all FIFOs and read data. Democracy is a complicated thing,
-	 * the following loop is a democratic loop, so it goes trough all
-	 * channels without any priority. This avoid to be late to read the last
-	 * channel on high frequency where the risk is to have an oligarchy
-	 * where the first and second channel are read, but not the others.
-	 */
-	tmp_irq_stat = 0xFF;
-	do {
-		tmp_irq_stat &= irq_stat;
-		loop = (unsigned long *) &tmp_irq_stat;
-		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
-			tmp_irq_stat &= (~(1 << i));
 
-			cset = &ft->zdev->cset[i];
-			fifo_csr_addr = ft->ft_fifo_base +
-				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
+	loop = (unsigned long *) &irq_stat;
+	for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
+		cset = &ft->zdev->cset[i];
+		fifo_csr_addr = ft->ft_fifo_base +
+			TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
 
-			fifo_stat = ft_ioread(ft, fifo_csr_addr);
-			n = TSF_FIFO_CSR_USEDW_R(fifo_stat);
-			WARN(((fifo_stat & TSF_FIFO_CSR_EMPTY) && n != 0) ||
-			     (!(fifo_stat & TSF_FIFO_CSR_EMPTY) && n == 0),
-			     "TSF_FIFO_CSR_EMPTY and TSF_FIFO_CSR_USEDW_R are incosistent 0x%x\n",
-			     fifo_stat);
+		fifo_stat = ft_ioread(ft, fifo_csr_addr);
+		n = TSF_FIFO_CSR_USEDW_R(fifo_stat);
+		WARN(((fifo_stat & TSF_FIFO_CSR_EMPTY) && n != 0) ||
+		     (!(fifo_stat & TSF_FIFO_CSR_EMPTY) && n == 0),
+		     "TSF_FIFO_CSR_EMPTY and TSF_FIFO_CSR_USEDW_R are incosistent 0x%x\n",
+		     fifo_stat);
 
-			if (n == 0)
-				continue; /* Still something to read */
+		if (n == 0)
+			continue; /* Still something to read */
 
-			ft_readout_fifo_n(cset, n);
-			/* Ack the interrupt, nothing to read anymore */
-			ft_iowrite(ft, 1 << i,
-				   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-		}
-	} while (tmp_irq_stat);
-
-	/* Meanwhile we got another interrupt? then repeat */
-	irq_stat = ft_ioread(ft, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
-	if (irq_stat)
-		goto irq;
+		ft_readout_fifo_n(cset, n);
+		/* Ack the interrupt, nothing to read anymore */
+		ft_iowrite(ft, 1 << i,
+			   ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+	}
 
 	return IRQ_HANDLED;
 }
