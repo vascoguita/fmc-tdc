@@ -88,17 +88,15 @@ class TestFmctdcAcquisition(object):
         compute and approximated timeout to stop the test and we let
         the Fine-Delay generating an infinite train of pulses.
 
-        Since the test can be very long, to see if it is alive it will blink
-        a dot '.' on the screen. If it does not blink start wandering if it
-        is blocked.
+        Since the test can be very long, periodically this test will print the
+        timestamp sequence number, you should see it increasing.
         """
         poll = select.poll()
         poll.register(fmctdc_chan.fileno, select.POLLIN)
         pending = count
         prev_seq = None
         with capsys.disabled():
-            char = "."
-            sys.stdout.write(char)
+            sys.stdout.write("\n0000000000")
         fmctdc_chan.buffer_len = 10000
         stats_o = fmctdc_chan.stats
         trans_b = stats_o[1]
@@ -109,10 +107,9 @@ class TestFmctdcAcquisition(object):
             t = time.time()
             if t >= timeout:
                 break
-            if int(t) & 0x1:
+            if prev_seq is not None and  prev_seq & 0xF == 0xF:
                 with capsys.disabled():
-                    sys.stdout.write("\b{:s}".format(char))
-                    char = " " if char == "." else "."
+                    sys.stdout.write("\b" * 10 + "{:010d}".format(prev_seq))
 
             ret = poll.poll(1)
             if len(ret) == 0:
