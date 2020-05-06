@@ -42,6 +42,7 @@ class TestFmctdcAcquisition(object):
         correctly. Test 100 milli-second acquisition at different
         frequencies"""
         stats_before = fmctdc_chan.stats
+        fmctdc_chan.buffer_len =  max(count + 1, 64)
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         stats_after = fmctdc_chan.stats
@@ -52,6 +53,7 @@ class TestFmctdcAcquisition(object):
         """Check that unders a controlled acquisiton the number of read
         timestamps is correct. Test 100 milli-second acquisition at different
         frequencies"""
+        fmctdc_chan.buffer_len =  max(count + 1, 64)
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
@@ -62,8 +64,8 @@ class TestFmctdcAcquisition(object):
         """Check that unders a controlled acquisiton the sequence
         number of each timestamps increase by 1. Test 100 milli-second
         acquisition at different frequencies"""
+        fmctdc_chan.buffer_len =  max(count + 1, 64)
         prev_seq = None
-        fmctdc_chan.buffer_len = count
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
