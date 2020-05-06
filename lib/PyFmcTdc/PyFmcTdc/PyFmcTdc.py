@@ -150,13 +150,13 @@ class FmcTdc(object):
 
         def read(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
-            self.libfmctdc.fmctdc_read(self.tkn, self.idx, ts ,n ,flags)
-            return list(ts)
+            ret = self.libfmctdc.fmctdc_read(self.tkn, self.idx, ts ,n ,flags)
+            return list(ts)[:ret]
 
         def fread(self, n=1, flags=0):
             ts = (FmcTdcTime * n)()
             self.libfmctdc.fmctdc_fread(self.tkn, self.idx, ts ,n ,flags)
-            return list(ts)
+            return list(ts)[:ret]
 
         def flush(self):
             self.libfmctdc.fmctdc_flush(self.tkn, self.idx)
