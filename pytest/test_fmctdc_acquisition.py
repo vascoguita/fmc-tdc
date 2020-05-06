@@ -46,7 +46,6 @@ class TestFmctdcAcquisition(object):
                              period_ns, count, True)
         stats_after = fmctdc_chan.stats
         assert stats_before[0] + count == stats_after[0]
-        assert stats_before[1] + count == stats_after[1]
 
     @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
     def test_acq_chan_read_count(self, fmctdc_chan, fmcfd, period_ns, count):
