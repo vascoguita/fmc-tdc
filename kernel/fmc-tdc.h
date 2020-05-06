@@ -31,6 +31,8 @@
 #define FT_CH_1   1
 #define FT_NUM_CHANNELS 5
 
+#define FT_FIFO_MAX 64
+
 enum ft_versions {
 	TDC_VER = 0,
 };
@@ -193,6 +195,8 @@ struct ft_channel_state {
 	struct fmctdc_channel_stats stats;
 	dma_cookie_t cookie;
 	struct sg_table sgt;
+
+	struct ft_hw_timestamp dummy[FT_FIFO_MAX];
 };
 
 enum ft_transfer_mode {

@@ -56,22 +56,12 @@ static void ft_timestamp_get_n(struct zio_cset *cset,
 		ft_timestamp_get(cset, &hwts[i]);
 }
 
-static void ft_fifo_flush(struct fmctdc_dev *ft, unsigned int n)
-{
-	void *fifo_csr_addr = ft->ft_fifo_base
-	                    + TDC_FIFO_OFFSET * n
-		            + TSF_REG_FIFO_CSR;
-
-	ft_iowrite(ft, TSF_FIFO_CSR_CLEAR_BUS, fifo_csr_addr);
-}
-
 /**
  * Extract a timestamp from the FIFO
  */
 static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 {
 	struct fmctdc_dev *ft;
-	struct ft_hw_timestamp *hwts = NULL;
 	struct ft_channel_state *st;
 
 	ft = cset->zdev->priv_d;
@@ -81,23 +71,12 @@ static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 	cset->ti->nsamples = n;
 	zio_arm_trigger(cset->ti);
 	if (likely(cset->chan->active_block)) {
-		hwts = cset->chan->active_block->data;
-		ft_timestamp_get_n(cset, hwts, n);
+		ft_timestamp_get_n(cset, cset->chan->active_block->data, n);
 		st->stats.transferred += n;
 	} else {
-		hwts = kcalloc(sizeof(*hwts), n, GFP_ATOMIC);
-		if (likely(hwts)) {
-			ft_timestamp_get_n(cset, hwts, n);
-			kfree(hwts);
-		} else {  /* last hope */
-			ft_fifo_flush(ft, cset->index);
-			dev_err(&ft->pdev->dev,
-				"Can't transfer timestamp flush FIFO\n");
-			goto out;
-		}
+		ft_timestamp_get_n(cset, st->dummy, n);
 	}
 
-out:
 	zio_trigger_data_done(cset);
 }
 
