@@ -95,9 +95,8 @@ class TestFmctdcAcquisition(object):
         poll.register(fmctdc_chan.fileno, select.POLLIN)
         pending = count
         prev = None
-        with capsys.disabled():
-            sys.stdout.write("\n0000000000")
-        fmctdc_chan.buffer_len = 10000
+        # be able to buffer for 1 second
+        fmctdc_chan.buffer_len = int(1/(period_ns/1000000000.0)) + 1
         stats_o = fmctdc_chan.stats
         trans_b = stats_o[1]
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
