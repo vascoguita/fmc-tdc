@@ -78,7 +78,7 @@ class TestFmctdcAcquisition(object):
                         reason="Missing user acquisition option")
     @pytest.mark.skipif(pytest.carrier == "spec" and \
                         pytest.transfer_mode == "fifo" and \
-                        pytest.usr_acq[0] < 10000,
+                        pytest.usr_acq[0] < 7000,
                         reason="On SPEC with FIFO acquisition we can't do more than 100kHz")
     @pytest.mark.parametrize("period_ns,count", [pytest.usr_acq])
     def test_acq_timestamp_single_channel(self, capsys, fmctdc_chan, fmcfd,
