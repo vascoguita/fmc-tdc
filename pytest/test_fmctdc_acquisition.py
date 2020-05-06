@@ -94,7 +94,7 @@ class TestFmctdcAcquisition(object):
         poll = select.poll()
         poll.register(fmctdc_chan.fileno, select.POLLIN)
         pending = count
-        prev_seq = None
+        prev = None
         with capsys.disabled():
             sys.stdout.write("\n0000000000")
         fmctdc_chan.buffer_len = 10000
@@ -107,9 +107,9 @@ class TestFmctdcAcquisition(object):
             t = time.time()
             if t >= timeout:
                 break
-            if prev_seq is not None and  prev_seq & 0xF == 0xF:
+            if prev is not None and  prev.seq_id & 0xF == 0xF:
                 with capsys.disabled():
-                    sys.stdout.write("\b" * 10 + "{:010d}".format(prev_seq))
+                    sys.stdout.write("\b" * 10 + "{:010d}".format(prev.seq_id))
 
             ret = poll.poll(1)
             if len(ret) == 0:
@@ -120,13 +120,13 @@ class TestFmctdcAcquisition(object):
             assert diff > 0
 
             ts = fmctdc_chan.read(diff, os.O_NONBLOCK)
-            assert len(ts) == diff
-            for i in  range(len(ts)):
-                if prev_seq == None:
-                    prev_seq = ts[i].seq_id
+            assert len(ts) <= diff
+            for i in range(len(ts)):
+                if prev == None:
+                    prev = ts[i]
                     continue
-                assert ts[i].seq_id == (prev_seq + 1) & 0xFFFFFFF, "Missed {:d} timestamps".format(ts[i].seq_id - prev_seq + 1)
-                prev_seq = ts[i].seq_id
+                assert ts[i].seq_id == (prev.seq_id + 1) & 0xFFFFFFF, "Missed {:d} timestamps".format(ts[i].seq_id - prev.seq_id + 1)
+                prev = ts[i]
             pending -= diff
         poll.unregister(fmctdc_chan.fileno)
         margin = 100
