@@ -144,32 +144,35 @@ int fmctdc_init(void)
 void fmctdc_exit(void)
 {
 	struct __fmctdc_board *b;
-	int i, j, err;
+	int i, j;
 
 	if (!ft_boards)
 		return;
 
-	for (i = 0, err = 0, b = ft_boards; i < ft_nboards; i++, b++) {
+	for (i = 0, b = ft_boards; i < ft_nboards; i++, b++) {
 		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 			if (b->fdc[j] >= 0) {
+				fprintf(stderr,
+					"%s: device %s was still open: channel %d control\n",
+					__func__, b->devbase, j);
 				close(b->fdc[j]);
 				b->fdc[j] = -1;
-				err++;
 			}
 			if (b->fdcc[j] >= 0) {
+				fprintf(stderr,
+					"%s: device %s was still open: channel %d current control\n",
+					__func__, b->devbase, j);
 				close(b->fdcc[j]);
 				b->fdcc[j] = -1;
-				err++;
 			}
 			if (b->fdd[j] >= 0) {
+				fprintf(stderr,
+					"%s: device %s was still open: channel %d data\n",
+					__func__, b->devbase, j);
 				close(b->fdd[j]);
 				b->fdd[j] = -1;
-				err++;
 			}
 		}
-		if (err)
-			fprintf(stderr, "%s: device %s was still open\n",
-				__func__, b->devbase);
 		free(b->sysbase);
 		free(b->devbase);
 	}
