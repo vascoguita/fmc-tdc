@@ -63,6 +63,7 @@ static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 {
 	struct fmctdc_dev *ft;
 	struct ft_channel_state *st;
+	int trans;
 
 	ft = cset->zdev->priv_d;
 	st = &ft->channels[cset->index];
@@ -72,12 +73,14 @@ static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 	zio_arm_trigger(cset->ti);
 	if (likely(cset->chan->active_block)) {
 		ft_timestamp_get_n(cset, cset->chan->active_block->data, n);
-		st->stats.transferred += n;
+		trans = n;
 	} else {
 		ft_timestamp_get_n(cset, st->dummy, n);
+		trans = 0;
 	}
 
 	zio_trigger_data_done(cset);
+	st->stats.transferred += trans;
 }
 
 /**
