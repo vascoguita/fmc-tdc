@@ -101,7 +101,7 @@ class TestFmctdcAcquisition(object):
         trans_b = stats_o[1]
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, 0, False)
-        timeout = time.time() + (period_ns * count) / 1000000000.0
+        timeout = time.time() + 1 + (period_ns * count) / 1000000000.0
         while pending > 0:
             t = time.time()
             if t >= timeout:
