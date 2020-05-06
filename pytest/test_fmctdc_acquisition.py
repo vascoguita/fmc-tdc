@@ -106,20 +106,11 @@ class TestFmctdcAcquisition(object):
             t = time.time()
             if t >= timeout:
                 break
-            if prev is not None and  prev.seq_id & 0xF == 0xF:
-                with capsys.disabled():
-                    sys.stdout.write("\b" * 10 + "{:010d}".format(prev.seq_id))
-
             ret = poll.poll(1)
             if len(ret) == 0:
                 continue
-            trans_a = fmctdc_chan.stats[1]
-            diff = trans_a - trans_b
-            trans_b = trans_a
-            assert diff > 0
-
-            ts = fmctdc_chan.read(diff, os.O_NONBLOCK)
-            assert len(ts) <= diff
+            ts = fmctdc_chan.read(1000, os.O_NONBLOCK)
+            assert len(ts) <= 1000
             for i in range(len(ts)):
                 if prev == None:
                     prev = ts[i]
@@ -129,5 +120,7 @@ class TestFmctdcAcquisition(object):
             pending -= len(ts)
         poll.unregister(fmctdc_chan.fileno)
         fmcfd.disable(TDC_FD_CABLING[fmctdc_chan.idx])
+        assert stats_o[0] == stats_o[1]
         assert fmctdc_chan.stats[0] == fmctdc_chan.stats[1]
+        assert fmctdc_chan.stats[0] - stats_o[0] >= count
         assert pending <= 0, "Some timestamp could be missing"
