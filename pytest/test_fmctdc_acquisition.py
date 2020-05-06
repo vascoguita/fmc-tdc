@@ -63,6 +63,7 @@ class TestFmctdcAcquisition(object):
         number of each timestamps increase by 1. Test 100 milli-second
         acquisition at different frequencies"""
         prev_seq = None
+        fmctdc_chan.buffer_len = count
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
