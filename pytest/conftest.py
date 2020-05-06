@@ -56,7 +56,7 @@ def fmctdc():
         ch.termination = False
         ch.timestamp_mode = "post"
         ch.flush()
-    yield tdc.chan[request.param]
+    yield tdc
 
 def pytest_addoption(parser):
     parser.addoption("--tdc-id", type=lambda x : int(x, 16),
