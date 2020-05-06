@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <glob.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
@@ -33,8 +33,6 @@ const char * const libfmctdc_zio_version_s = "libfmctdc is using zio version: " 
 #define NSAMPLE 1 /* fake number of samples for the TDC */
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-static struct __fmctdc_board *ft_boards; /**< list of available boards */
-static int ft_nboards; /**< number of available boards */
 static char *names[] = { "seconds", "coarse" }; /**< names used to retrive
 						   time-stamps from sysfs */
 
@@ -45,6 +43,8 @@ static const char *fmctdc_error_string[] = {
 		"Unknown buffer type",
 	[FMCTDC_ERR_NOT_CONSISTENT_BUFFER_TYPE - __FMCTDC_ERR_MIN] =
 		"Buffer type configuration not consistent",
+	[FMCTDC_ERR_VERSION_MISMATCH - __FMCTDC_ERR_MIN] =
+		"Incompatible version driver-library",
 };
 
 /**
@@ -61,170 +61,91 @@ const char *fmctdc_strerror(int err)
 
 /**
  * Init the library. You must call this function before use any other
- * library function. If your system is plug-and-play and TDC devices may
- * appear and disappear at any moment in time, you have to close
- * (fmctdc_exit()) and initialize again (fmctdc_init()) the library in order
- * to get the correct status. Of course, if your applications are using a
- * device and you remove it you will get a library crash.
- * @return the number of boards found
+ * library function.
+ * @return 0 on success, otherwise -1 and errno is appropriately set
  */
 int fmctdc_init(void)
 {
-	glob_t glob_dev, glob_sys;
-	struct __fmctdc_board *b;
-	int i, j;
-	uint32_t v;
-
-	/* Look for boards in /dev: old and new pathnames: only one matches */
-	glob("/dev/tdc-1n5c-*-0-0-ctrl", 0, NULL, &glob_dev);
-	glob("/dev/zio/tdc-1n5c-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
-	glob("/dev/zio-tdc-1n5c-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
-	glob("/dev/zio/zio-tdc-1n5c-*-0-0-ctrl", GLOB_APPEND, NULL, &glob_dev);
-
-	/* And look in /sys as well */
-	glob("/sys/bus/zio/devices/tdc-1n5c-*", 0, NULL, &glob_sys);
-	glob("/sys/bus/zio/devices/zio-tdc-1n5c-*", GLOB_APPEND, NULL, &glob_sys);
-	assert(glob_dev.gl_pathc == glob_sys.gl_pathc);
-
-	/* Allocate as needed */
-	ft_nboards = glob_dev.gl_pathc;
-	if (!ft_nboards) {
-		ft_boards = NULL;
-		return 0;
-	}
-	ft_boards = calloc(glob_dev.gl_pathc, sizeof(ft_boards[0]));
-	if (!ft_boards) {
-		globfree(&glob_dev);
-		globfree(&glob_sys);
-		return -1;
-	}
-
-	for (i = 0, b = ft_boards; i < ft_nboards; i++, b++) {
-		b->sysbase = strdup(glob_sys.gl_pathv[i]);
-		b->devbase = strdup(glob_dev.gl_pathv[i]);
-		/* trim the "-0-0-ctrl" at the end */
-		b->devbase[strlen(b->devbase) - strlen("-0-0-ctrl")] = '\0';
-		/* extract dev_id */
-		sscanf(b->sysbase, "%*[^t]tdc-1n5c-%x", &b->dev_id);
-		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
-			b->fdc[j] = -1;
-			b->fdd[j] = -1;
-			b->fdcc[j] = -1;
-		}
-		if (fmctdc_is_verbose()) {
-			fprintf(stderr, "%s: %04x %s %s\n", __func__,
-				b->dev_id, b->sysbase, b->devbase);
-		}
-	}
-	globfree(&glob_dev);
-	globfree(&glob_sys);
-
-	/* Now, if at least one board is there, check the version */
-	if (ft_nboards == 0)
-		return 0;
-
-	if (fmctdc_sysfs_get(ft_boards, "version", &v) < 0)
-		return -1;
-
-	if (v != FT_VERSION_MAJ) {
-		fprintf(stderr, "%s: version mismatch, lib(%u) != drv(%u)\n",
-			__func__, FT_VERSION_MAJ, v);
-		errno = EIO;
-		return -1;
-	}
-	return ft_nboards;
+	return 0;
 }
 
 
 /**
  * It releases all the resources used by the library and allocated
- * by fmctdc_init(). Once you call this function you cannot use other function
- * from this library.
+ * by fmctdc_init().
  */
 void fmctdc_exit(void)
 {
-	struct __fmctdc_board *b;
-	int i, j;
 
-	if (!ft_boards)
-		return;
-
-	for (i = 0, b = ft_boards; i < ft_nboards; i++, b++) {
-		for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
-			if (b->fdc[j] >= 0) {
-				fprintf(stderr,
-					"%s: device %s was still open: channel %d control\n",
-					__func__, b->devbase, j);
-				close(b->fdc[j]);
-				b->fdc[j] = -1;
-			}
-			if (b->fdcc[j] >= 0) {
-				fprintf(stderr,
-					"%s: device %s was still open: channel %d current control\n",
-					__func__, b->devbase, j);
-				close(b->fdcc[j]);
-				b->fdcc[j] = -1;
-			}
-			if (b->fdd[j] >= 0) {
-				fprintf(stderr,
-					"%s: device %s was still open: channel %d data\n",
-					__func__, b->devbase, j);
-				close(b->fdd[j]);
-				b->fdd[j] = -1;
-			}
-		}
-		free(b->sysbase);
-		free(b->devbase);
-	}
-
-	free(ft_boards);
-	ft_boards = NULL;
 }
 
 
 /**
  * It opens one specific device. -1 arguments mean "not installed"
- * @param[in] offset board enumeration offset [0, N]. -1 to ignore it and
- *                   use only dev_id
+ * @param[in] offset [deprecated] board enumeration offset [0, N].
+ *                   -1 to ignore it and use only dev_id
  * @param[in] dev_id FMC device id. -1 to ignore it and use only the offset
  * @return an instance token, otherwise NULL and errno is appripriately set.
  *         ENODEV if the device was not found. EINVAL there is a mismatch with
  *         the arguments
  */
+#define __FMCTDC_OPEN_PATH_MAX 128
 struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 {
 	struct __fmctdc_board *b = NULL;
 	uint32_t nsamples = NSAMPLE;
-	char path[128];
+	char path[__FMCTDC_OPEN_PATH_MAX];
+	uint32_t v;
 	int i;
 	int ret;
+	struct stat sb;
 
-	if (offset >= ft_nboards) {
-		errno = ENODEV;
+	if (offset != -1) {
+		errno = EINVAL;
 		return NULL;
 	}
-	if (offset >= 0) {
-		b = ft_boards + offset;
-		if (dev_id >= 0 && dev_id != b->dev_id) {
-			errno = EINVAL;
-			return NULL;
-		}
-		goto found;
-	}
+
 	if (dev_id < 0) {
 		errno = EINVAL;
 		return NULL;
 	}
-	for (i = 0, b = ft_boards; i < ft_nboards; i++, b++)
-		if (b->dev_id == dev_id)
-			goto found;
-	errno = ENODEV;
-	return NULL;
 
-found:
+	b = malloc(sizeof(*b));
+	if (!b)
+		return NULL;
+
+	/* get sysfs */
+	snprintf(path, sizeof(path),
+		 "/sys/bus/zio/devices/tdc-1n5c-%04x", dev_id);
+	ret = stat(path, &sb);
+	if (ret < 0)
+		goto err_stat_s;
+	if (!S_ISDIR(sb.st_mode))
+		goto err_stat_s;
+	b->sysbase = strdup(path);
+
+	/* get dev */
+	snprintf(path, sizeof(path),
+		 "/dev/zio/tdc-1n5c-%04x-0-0-ctrl", dev_id);
+	ret = stat(path, &sb);
+	if (ret < 0)
+		goto err_stat_d;
+	if (!S_ISCHR(sb.st_mode))
+		goto err_stat_d;
+	b->devbase = strndup(path, strlen(path) - strlen("-0-0-ctrl"));
+
+	ret = fmctdc_sysfs_get(b, "version", &v);
+	if (ret)
+		goto err_version;
+
+	if (v != FT_VERSION_MAJ) {
+		errno = FMCTDC_ERR_VERSION_MISMATCH;
+		goto err_version;
+	}
+
 	ret = fmctdc_get_buffer_type((struct fmctdc_board *)b);
 	if (ret < 0)
-		return NULL;
+		goto err_buf;
 	/* Trim all block sizes to 1 sample (i.e. 4 bytes) */
 	fmctdc_sysfs_set(b, "ft-ch1/trigger/post-samples", &nsamples);
 	fmctdc_sysfs_set(b, "ft-ch2/trigger/post-samples", &nsamples);
@@ -263,14 +184,18 @@ error:
 	while (i--) {
 		if (b->fdc[i] >= 0)
 			close(b->fdc[i]);
-		b->fdc[i] = -1;
 		if (b->fdd[i] >= 0)
 			close(b->fdd[i]);
-		b->fdd[i] = -1;
 		if (b->fdcc[i] >= 0)
 			close(b->fdcc[i]);
-		b->fdcc[i] = -1;
 	}
+err_buf:
+err_version:
+	free(b->devbase);
+err_stat_d:
+	free(b->sysbase);
+err_stat_s:
+	free(b);
 	return NULL;
 }
 
@@ -328,14 +253,15 @@ int fmctdc_close(struct fmctdc_board *userb)
 	for (j = 0; j < ARRAY_SIZE(b->fdc); j++) {
 		if (b->fdc[j] >= 0)
 			close(b->fdc[j]);
-		b->fdc[j] = -1;
 		if (b->fdd[j] >= 0)
 			close(b->fdd[j]);
-		b->fdd[j] = -1;
 		if (b->fdcc[j] >= 0)
 			close(b->fdcc[j]);
-		b->fdcc[j] = -1;
 	}
+
+	free(b->devbase);
+	free(b->sysbase);
+	free(b);
 	return 0;
 
 }
