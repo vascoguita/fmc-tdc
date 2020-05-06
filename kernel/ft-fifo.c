@@ -56,6 +56,16 @@ static void ft_timestamp_get_n(struct zio_cset *cset,
 		ft_timestamp_get(cset, &hwts[i]);
 }
 
+static void ft_fifo_flush(struct fmctdc_dev *ft, unsigned int n)
+{
+	void *fifo_csr_addr = ft->ft_fifo_base
+		+ TDC_FIFO_OFFSET * n
+		+ TSF_REG_FIFO_CSR;
+
+	ft_iowrite(ft, TSF_FIFO_CSR_CLEAR_BUS, fifo_csr_addr);
+}
+
+
 /**
  * Extract a timestamp from the FIFO
  */
@@ -63,7 +73,7 @@ static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 {
 	struct fmctdc_dev *ft;
 	struct ft_channel_state *st;
-	int trans;
+	int trans = 0;
 
 	ft = cset->zdev->priv_d;
 	st = &ft->channels[cset->index];
@@ -74,9 +84,6 @@ static void ft_readout_fifo_n(struct zio_cset *cset, unsigned int n)
 	if (likely(cset->chan->active_block)) {
 		ft_timestamp_get_n(cset, cset->chan->active_block->data, n);
 		trans = n;
-	} else {
-		ft_timestamp_get_n(cset, st->dummy, n);
-		trans = 0;
 	}
 
 	zio_trigger_data_done(cset);
@@ -101,37 +108,47 @@ static inline uint32_t ft_irq_fifo_status(struct fmctdc_dev *ft)
 static irqreturn_t ft_irq_handler_ts_fifo(int irq, void *dev_id)
 {
 	struct fmctdc_dev *ft = dev_id;
-	uint32_t irq_stat, fifo_stat;
+	uint32_t irq_stat_orig, fifo_stat, irq_stat;
 	void *fifo_csr_addr;
 	unsigned long *loop;
 	struct zio_cset *cset;
 	int i, n;
+	int redo = 10;
 
-	irq_stat = ft_irq_fifo_status(ft);
-	if (!irq_stat)
+	irq_stat_orig = ft_irq_fifo_status(ft);
+	if (!irq_stat_orig)
 		return IRQ_NONE;
 
-
+	irq_stat = irq_stat_orig;
 	loop = (unsigned long *) &irq_stat;
-	for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
-		cset = &ft->zdev->cset[i];
-		fifo_csr_addr = ft->ft_fifo_base +
-			TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
+	do {
+		for_each_set_bit(i, loop, FT_NUM_CHANNELS) {
+			cset = &ft->zdev->cset[i];
+			fifo_csr_addr = ft->ft_fifo_base +
+				TDC_FIFO_OFFSET * cset->index + TSF_REG_FIFO_CSR;
 
-		fifo_stat = ft_ioread(ft, fifo_csr_addr);
-		n = TSF_FIFO_CSR_USEDW_R(fifo_stat);
-		WARN(((fifo_stat & TSF_FIFO_CSR_EMPTY) && n != 0) ||
-		     (!(fifo_stat & TSF_FIFO_CSR_EMPTY) && n == 0),
-		     "TSF_FIFO_CSR_EMPTY and TSF_FIFO_CSR_USEDW_R are incosistent 0x%x\n",
-		     fifo_stat);
+			fifo_stat = ft_ioread(ft, fifo_csr_addr);
+			n = TSF_FIFO_CSR_USEDW_R(fifo_stat);
+			if (n == 0)
+				continue; /* Still something to read */
 
-		if (n == 0)
-			continue; /* Still something to read */
-
-		ft_readout_fifo_n(cset, n);
-	}
-
-	ft_iowrite(ft, irq_stat, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
+			if (fifo_stat & TSF_FIFO_CSR_FULL) { /* We are loosing TS */
+				ft_fifo_flush(ft, cset->index);
+			} else {
+				ft_readout_fifo_n(cset, n);
+				/*
+				 * If the FIFO is more than half full,
+				 * read again for a maximum of 'redo'
+				 * times. OPTIMIZATION.
+				 */
+				if (n < FT_FIFO_MAX / 2)
+					irq_stat &= ~BIT(i);
+				else
+					redo--;
+			}
+		}
+	} while(irq_stat && redo);
+	ft_iowrite(ft, irq_stat_orig, ft->ft_irq_base + TDC_EIC_REG_EIC_ISR);
 
 	return IRQ_HANDLED;
 }
