@@ -17,8 +17,8 @@
 #include <stdint.h>
 #endif
 
-#define FT_VERSION_MAJ   2U		/* version of the driver */
-#define FT_VERSION_MIN   1U
+#define FT_VERSION_MAJ   8U		/* version of the driver */
+#define FT_VERSION_MIN   0U
 
 #define FT_ZIO_TRIG_TYPE_NAME "tdc1n5c-trg\0"
 
