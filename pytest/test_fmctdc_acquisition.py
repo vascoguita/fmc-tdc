@@ -129,5 +129,6 @@ class TestFmctdcAcquisition(object):
                 prev = ts[i]
             pending -= diff
         poll.unregister(fmctdc_chan.fileno)
-        margin = 100
-        assert abs(pending) < margin, "Received {:d} timestamps but expected [{:d}, {:d}] timestamps, timeout".format(count - pending, count, count + margin)
+        fmcfd.disable(TDC_FD_CABLING[fmctdc_chan.idx])
+        assert fmctdc_chan.stats[0] == fmctdc_chan.stats[1]
+        assert pending <= 0, "Some timestamp could be missing"
