@@ -56,12 +56,16 @@ typedef fmc_tdc_timestamp_t fmc_tdc_timestamp_queue_t[$];
 class FakeTimestampGenerator;
    protected fmc_tdc_timestamp_queue_t m_queue;
    protected int m_seq, m_channel;
-   protected int m_enabled;   
+   protected int m_enabled;
+   protected int m_count;
+   
 
    function new(int channel);
       m_channel = channel;
       m_seq = 0;
       m_enabled = 0;
+      m_count = 0;
+      
    endfunction // new
    
    function int is_enabled();
@@ -82,12 +86,14 @@ class FakeTimestampGenerator;
       fmc_tdc_timestamp_t ts;
       t_tdc_timestamp ts_hw;
       
-      ts.tai = $random % 10000;
-      ts.coarse = $random % 125000000;
-      ts.frac = $random % 4096;
-      ts.seq = m_seq;
+      ts.tai = m_count | ( 1<<11 );
+      ts.coarse = m_count | ( 2 << 11 );
+      ts.frac = m_count;
+      ts.seq = m_seq | (3<<11);
       ts.slope = slope;
       ts.channel = m_channel;
+      m_count++;
+      
 
       ts_hw.tai = ts.tai;
       ts_hw.coarse = ts.coarse;
@@ -95,6 +101,7 @@ class FakeTimestampGenerator;
       ts_hw.channel = ts.channel;
       ts_hw.slope = ts.slope;
       ts_hw.seq = ts.seq;
+      ts_hw.meta = 'hdeadbeef;
       
       m_seq++;
       return ts_hw;
@@ -293,7 +300,7 @@ class FmcTdcSPECDriver extends IBusDevice;
       m_gennum_dma.dma_to_host( m_buffers[channel].addr[transfer_buffer],
 				m_buffers[channel].host_mem_addr, count * 16 );
       
-      m_buffers[channel].host_mem_addr += count + 16;
+      m_buffers[channel].host_mem_addr += count * 16;
       m_buffers[channel].total_timestamps += count;
    endtask // irq_dma_buffer
 
@@ -622,6 +629,119 @@ module IRQLine (
 
 endmodule // IRQLine
 
+module WBBusMonitor
+  #(
+    parameter g_data_width = 32,
+    parameter g_addr_width = 32,
+    parameter string g_name = "")
+   (
+    input 		     clk_i,
+    input 		     rst_n_i,
+
+    input [g_addr_width-1:0] wb_adr_i,
+    input [g_data_width-1:0] wb_dat_i_i,
+    input [g_data_width-1:0] wb_dat_o_i,
+    input 		     wb_stall_i,
+    input 		     wb_ack_i,
+    input 		     wb_cyc_i,
+    input 		     wb_stb_i,
+    input 		     wb_we_i
+    );
+   
+
+   reg 			     inside_cycle = 0;
+
+   typedef struct 
+		  {
+		     bit [g_addr_width-1:0] addr;
+		     bit [g_addr_width-1:0] data;
+		     int 		    is_write;
+		  } request_t;
+
+
+   request_t reqs[$];
+   
+   
+   
+   
+   always@(posedge clk_i)
+     if(!rst_n_i)
+       begin
+	  inside_cycle <= 0;
+	  reqs= '{};
+       end else begin
+	  if(wb_cyc_i)
+	    begin
+	       if(!inside_cycle)
+		 begin
+		    $display("[wbmon-%s] Start cycle", g_name);
+		    inside_cycle <= 1;
+		    reqs = '{};
+		 end
+
+	       if(wb_stb_i && !wb_stall_i)
+		 begin
+		    if(wb_we_i)
+		      begin
+			 automatic request_t req;
+			 req.addr = wb_adr_i;
+			 req.data = wb_dat_i_i;
+			 req.is_write = 1;
+			 reqs.push_back(req);
+		      end
+			   
+		    else 
+		      begin
+		       automatic request_t req;
+		       req.addr = wb_adr_i;
+		       req.is_write = 0;
+		       reqs.push_back(req);
+		    end
+		    
+		    
+		 end
+
+
+	       
+	       if(wb_ack_i)
+		 begin
+		    automatic request_t req = reqs[0];
+
+		    reqs.pop_front();
+
+		    if(req.is_write)
+		      $display("[wbmon-%s] Write %08x = %08x", g_name, req.addr, req.data);
+		    else
+		      $display("[wbmon-%s] Read %08x = %08x", g_name, req.addr, wb_dat_o_i);
+		    
+		 end
+	       
+		 
+	       
+
+
+	    end else begin
+	       if(inside_cycle)
+		 begin
+		    $display("[wbmon-%s] End cycle", g_name);
+		    inside_cycle <= 0;
+		    reqs= '{};
+		    
+		    
+		 end
+
+
+	    end // else: !if(wb_cyc_i)
+	  
+	  
+		 
+
+       end
+   
+   
+
+endmodule // WBBusMonitor
+
 
 
 //////////////// main ////////////////
@@ -870,6 +990,45 @@ module main;
        (
 	.irq_i(gn_gpio[0])
 	);
+
+
+ WBBusMonitor 
+   #(
+     .g_name("dma-ch0") 
+     ) 
+   U_Mon_CH0 
+     (
+      .clk_i(DUT.clk_sys_62m5),
+      .rst_n_i(DUT.rst_sys_62m5_n),
+      
+      .wb_cyc_i(DUT.inst_spec_base.ddr_dma_wb_cyc_i),
+      .wb_adr_i(DUT.inst_spec_base.ddr_dma_wb_adr_i),
+      .wb_stb_i(DUT.inst_spec_base.ddr_dma_wb_stb_i),
+      .wb_we_i(DUT.inst_spec_base.ddr_dma_wb_we_i),
+      .wb_dat_i_i(DUT.inst_spec_base.ddr_dma_wb_dat_i),
+      .wb_ack_i(DUT.inst_spec_base.ddr_dma_wb_ack_o),
+      .wb_stall_i(DUT.inst_spec_base.ddr_dma_wb_stall_o)
+      );
+
+ WBBusMonitor 
+   #(
+     .g_name("gennum-ddr") 
+     ) 
+   U_Mon_DDR2Gennum
+     (
+      .clk_i(DUT.clk_sys_62m5),
+      .rst_n_i(DUT.rst_sys_62m5_n),
+     
+      .wb_cyc_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_cyc_i),
+      .wb_adr_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_addr_i),
+      .wb_stb_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_stb_i),
+      .wb_we_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_we_i),
+      .wb_dat_o_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_data_o),
+      .wb_ack_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_ack_o),
+      .wb_stall_i(DUT.inst_spec_base.gen_with_ddr.cmp_ddr_ctrl_bank3.wb1_stall_o)
+      );
+   
+
    
 
    assign tdc_stop_dis[4] = tdc_stop_dis[1];
@@ -910,7 +1069,7 @@ module main;
 `endif
 
       // let it run for a while
-      #20us;
+      #200us;
       
 
 `ifndef USE_ACAM_MODEL
