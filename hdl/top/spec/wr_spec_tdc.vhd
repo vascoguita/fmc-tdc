@@ -400,7 +400,7 @@ architecture rtl of wr_spec_tdc is
     end if;
   end f_to_string;
   signal dma_reg_adr : std_logic_vector(31 downto 0);
-
+  signal dma_wb_adr : std_logic_vector(31 downto 0);
 
 
 
@@ -408,6 +408,8 @@ architecture rtl of wr_spec_tdc is
 --                                       architecture begin
 --=================================================================================================
 begin
+
+  dma_wb_adr <= "00" & fmc0_wb_ddr_out.adr(31 downto 2);
 
   -- synthesis translate_off
   sim_ts                <= sim_timestamp_i;
@@ -556,11 +558,11 @@ begin
       ddr_udqs_p_b        => ddr_udqs_p_b,
       ddr_we_n_o          => ddr_we_n_o,
       ----------------------------------
-      ddr_dma_clk_i       => clk_ref_125m,
-      ddr_dma_rst_n_i     => rst_ref_125m_n,
+      ddr_dma_clk_i       => clk_sys_62m5,
+      ddr_dma_rst_n_i     => rst_sys_62m5_n,
       ddr_dma_wb_cyc_i    => fmc0_wb_ddr_out.cyc,
       ddr_dma_wb_stb_i    => fmc0_wb_ddr_out.stb,
-      ddr_dma_wb_adr_i    => fmc0_wb_ddr_out.adr,
+      ddr_dma_wb_adr_i    => dma_wb_adr,
       ddr_dma_wb_sel_i    => fmc0_wb_ddr_out.sel,
       ddr_dma_wb_we_i     => fmc0_wb_ddr_out.we,
       ddr_dma_wb_dat_i    => fmc0_wb_ddr_out.dat,
