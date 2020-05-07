@@ -814,6 +814,7 @@ package body tdc_core_pkg is
   function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector is
     variable rv : std_logic_vector(127 downto 0);
   begin
+    rv:= (others => '0');
     rv(31 downto 0) := ts.seconds;
     rv(48 downto 32) := ts.acam_bins(16 downto 0);
     rv(56 downto 49) := ts.acam_start_nb;
