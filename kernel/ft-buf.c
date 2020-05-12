@@ -22,7 +22,6 @@
 #include <linux/zio-buffer.h>
 
 #include "fmc-tdc.h"
-#include "ft-compat.h"
 #include "hw/timestamp_fifo_regs.h"
 
 #define TDC_EIC_EIC_IMR_TDC_DMA_SHIFT 5
