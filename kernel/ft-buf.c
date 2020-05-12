@@ -294,17 +294,20 @@ static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
 	struct page **pages;
 	unsigned int nr_pages;
 	size_t max_segment_size;
-	void *data = (void *) block->data;
+	void *data;
 	int i;
 	int err;
 	int sg_len;
 
+	if (!block)
+		return -EINVAL;
 
 	nr_pages = ft_zio_block_nr_pages(block);
 	pages = kcalloc(nr_pages, sizeof(struct page *), GFP_KERNEL);
 	if (!pages)
 		return -ENOMEM;
 
+	data = (void *) block->data;
 	if (is_vmalloc_addr(data)) {
 		for (i = 0; i < nr_pages; ++i)
 			pages[i] = vmalloc_to_page(data + PAGE_SIZE * i);
@@ -316,7 +319,7 @@ static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
 	max_segment_size = dma_get_max_seg_size(ft->dchan->device->dev);
 	max_segment_size &= PAGE_MASK; /* to make alloc_table happy */
 	err = __sg_alloc_table_from_pages(&st->sgt, pages, nr_pages,
-					  offset_in_page(block->data),
+					  offset_in_page(data),
 					  block->datalen,
 					  max_segment_size, GFP_KERNEL);
 	if (err)
