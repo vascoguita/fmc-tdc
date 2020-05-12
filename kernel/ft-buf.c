@@ -399,7 +399,6 @@ static int ft_dma_config(struct fmctdc_dev *ft, unsigned int ch)
 	struct dma_slave_config sconfig;
 	int err;
 
-
 	transfer = ft_buffer_switch(ft, ch);
 	cset->ti->nsamples = ft_buffer_count(ft, ch);
 	ft->channels[ch].stats.received += cset->ti->nsamples;
@@ -461,7 +460,6 @@ err_prep:
 		     st->sgt.sgl, st->sgt.nents, DMA_DEV_TO_MEM);
 err_map:
 	sg_free_table(&st->sgt);
-	pr_info("%s:%d err %d\n", __func__, __LINE__, err);
 	return err;
 }
 
@@ -474,7 +472,6 @@ static void ft_irq_work(struct work_struct *work)
 	unsigned long flags;
 	unsigned int i;
 
-	pr_info("%s:%d mask %ld\n", __func__, __LINE__, ft->dma_chan_mask);
 	for_each_set_bit(i, &ft->dma_chan_mask, ft->zdev->n_cset) {
 		int err = ft_dma_config(ft, i);
 
@@ -484,13 +481,11 @@ static void ft_irq_work(struct work_struct *work)
 	}
 
 	if (likely(n_transfers)) {
-		pr_info("%s:%d\n", __func__, __LINE__);
 		spin_lock_irqsave(&ft->lock, flags);
 		ft->pending_dma = n_transfers;
 		spin_unlock_irqrestore(&ft->lock, flags);
 		dma_async_issue_pending(ft->dchan);
 	} else {
-		pr_info("%s:%d\n", __func__, __LINE__);
 		ft_irq_enable_restore(ft);
 	}
 }
