@@ -275,6 +275,17 @@ static inline unsigned int ft_irq_status_is_valid(struct fmctdc_dev *ft,
 		    chan_stat, irq_stat);
 }
 
+static int ft_zio_block_nr_pages(struct zio_block *block)
+{
+	unsigned int nr_pages;
+	long kaddr = (long)block->data;
+
+	nr_pages = ((kaddr & ~PAGE_MASK) + block->datalen + ~PAGE_MASK);
+	nr_pages >>= PAGE_SHIFT;
+
+	return nr_pages;
+}
+
 static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
 				   struct zio_block *block,
 				   enum dma_data_direction dir)
@@ -283,15 +294,13 @@ static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
 	struct page **pages;
 	unsigned int nr_pages;
 	size_t max_segment_size;
-	long kaddr = (long)block->data;
 	void *data = (void *) block->data;
 	int i;
 	int err;
 	int sg_len;
 
-	nr_pages = ((kaddr & ~PAGE_MASK) + block->datalen + ~PAGE_MASK);
-	nr_pages >>= PAGE_SHIFT;
 
+	nr_pages = ft_zio_block_nr_pages(block);
 	pages = kcalloc(nr_pages, sizeof(struct page *), GFP_KERNEL);
 	if (!pages)
 		return -ENOMEM;
