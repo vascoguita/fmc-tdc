@@ -404,14 +404,6 @@ static int ft_dma_config(struct fmctdc_dev *ft, unsigned int ch)
 	cset->ti->nsamples = ft_buffer_count(ft, ch);
 	ft->channels[ch].stats.received += cset->ti->nsamples;
 
-	zio_arm_trigger(cset->ti); /* actually arm'n'fire */
-	if (!zio_cset_can_acquire(cset)) {
-		dev_warn(&ft->pdev->dev,
-			 "DMA failed for channel %i: can't arm ZIO trigger\n",
-			 ch);
-		return -EBUSY;
-	}
-
 	memset(&sconfig, 0, sizeof(sconfig));
 	sconfig.direction = DMA_DEV_TO_MEM;
 	sconfig.src_addr = st->buf_addr[transfer];
@@ -423,6 +415,13 @@ static int ft_dma_config(struct fmctdc_dev *ft, unsigned int ch)
 		return err;
 	}
 
+	zio_arm_trigger(cset->ti); /* actually arm'n'fire */
+	if (!zio_cset_can_acquire(cset)) {
+		dev_warn(&ft->pdev->dev,
+			 "DMA failed for channel %i: can't arm ZIO trigger\n",
+			 ch);
+		return -EBUSY;
+	}
 	sg_len = ft_zio_block_dma_map_sg(ft, ch, cset->chan->active_block,
 					 DMA_DEV_TO_MEM);
 	if (sg_len <= 0) {
