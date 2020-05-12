@@ -11,7 +11,7 @@ import sys
 import os
 from PyFmcTdc import FmcTdc
 
-TDC_FD_CABLING = [2, 1, 3, 4, 4]
+TDC_FD_CABLING = [1, 2, 3, 4, 4]
 
 fmctdc_acq_100ms = [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]]
 
