@@ -176,7 +176,8 @@ class FmcTdc(object):
             self.chan.append(self.FmcTdcChannel(self.libfmctdc, self.tkn, i))
 
     def __del__(self):
-        self.libfmctdc.fmctdc_close(self.tkn)
+        if hasattr(self, 'tkn'):
+            self.libfmctdc.fmctdc_close(self.tkn)
         self.libfmctdc.fmctdc_exit()
 
     def __init_library(self):
