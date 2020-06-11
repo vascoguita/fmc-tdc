@@ -159,7 +159,7 @@ package tdc_core_pkg is
      wbd_width     => x"4",                  -- 32-bit port granularity
      sdb_component =>
        (addr_first  => x"0000000000000000",
-        addr_last   => x"000000000000000F",
+        addr_last   => x"000000000000003F",
         product     =>
           (vendor_id => x"000000000000CE42", -- CERN
            device_id => x"00000605",         -- "WB-FMC-ADC.EIC     " | md5sum | cut -c1-8
@@ -192,7 +192,7 @@ package tdc_core_pkg is
     wbd_width     => x"4",                 -- 32-bit port granularity
     sdb_component => (
       addr_first  => x"0000000000000000",
-      addr_last   => x"000000000000000F",
+      addr_last   => x"000000000000003F",
       product     => (
         vendor_id => x"000000000000CE42",  -- CERN
         device_id => x"26ec6086",          -- "WB-FMC-TDC.EIC     " | md5sum | cut -c1-8
@@ -814,6 +814,7 @@ package body tdc_core_pkg is
   function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector is
     variable rv : std_logic_vector(127 downto 0);
   begin
+    rv:= (others => '0');
     rv(31 downto 0) := ts.seconds;
     rv(48 downto 32) := ts.acam_bins(16 downto 0);
     rv(56 downto 49) := ts.acam_start_nb;
