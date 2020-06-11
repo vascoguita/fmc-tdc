@@ -162,7 +162,10 @@ NET "fmc0_tdc_in_fpga_1_i"       IOSTANDARD = "LVCMOS25";
 # Timing constraints and exceptions
 #===============================================================================
 
-
+#----------------------------------------
+# IOB exceptions
+#----------------------------------------
+INST "cmp_fmc_tdc_mezzanine/cmp_tdc_mezz/cmp_fmc_onewire/*" IOB = FALSE;
 
 
 

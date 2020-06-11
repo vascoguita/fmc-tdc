@@ -16,15 +16,15 @@ xilinx::project open $project_file
 # 2. Register Duplication Map
 
 
-xilinx::project set "Enable Multi-Threading" "off"
-xilinx::project set "Enable Multi-Threading" "off" -process "Place & Route"
+xilinx::project set "Enable Multi-Threading" "Off" -process "Map"
+xilinx::project set "Enable Multi-Threading" "2" -process "Place & Route"
 
 xilinx::project set "Pack I/O Registers into IOBs" "Yes"
 xilinx::project set "Pack I/O Registers/Latches into IOBs" "For Inputs and Outputs"
 
-xilinx::project set "Register Duplication Map" "Off"
-
+xilinx::project set "Register Duplication Map" "On"
 xilinx::project set "Register Balancing" "Yes"
+
 
 xilinx::project set "Placer Effort Level Map" "High"
 xilinx::project set "Placer Extra Effort Map" "Continue on Impossible"

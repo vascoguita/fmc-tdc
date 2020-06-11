@@ -543,7 +543,7 @@ begin
 --                        TDC Mezzanine Board UniqueID&Thermometer OneWire                       --
 ---------------------------------------------------------------------------------------------------
 
-  U_OnewireIF : gc_ds182x_readout
+  cmp_fmc_onewire : gc_ds182x_readout
     generic map (
       g_CLOCK_FREQ_KHZ   => 62500,
       g_USE_INTERNAL_PPS => TRUE)
