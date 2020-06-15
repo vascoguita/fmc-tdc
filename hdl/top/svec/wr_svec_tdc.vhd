@@ -368,6 +368,7 @@ architecture rtl of wr_svec_tdc is
   -- CLOCK DOMAIN: 125 MHz clock from PLL on TDC1 and TDC2
   signal clk_ref_125m      : std_logic;
   signal clk_ref_div2      : std_logic;
+  signal clk_dmtd_125m     : std_logic;
   signal fmc0_tdc_clk_125m : std_logic;
   signal fmc1_tdc_clk_125m : std_logic;
   signal areset_n          : std_logic;
@@ -456,6 +457,7 @@ begin
       clk_aux_i(1)         => fmc1_tdc_clk_125m,
       clk_10m_ext_i        => '0',
       pps_ext_i            => '0',
+      clk_dmtd_125m_o      => clk_dmtd_125m,
       clk_sys_62m5_o       => clk_sys_62m5,
       rst_sys_62m5_n_o     => rst_sys_62m5_n,
       clk_ref_125m_o       => clk_ref_125m,

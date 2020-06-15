@@ -387,3 +387,10 @@ NET "fmc1_tdc_data_bus_io[0]" SLEW = FAST;
 
 #TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 1 ns DATAPATHONLY;
 
+
+#----------------------------------------
+# IOB exceptions
+#----------------------------------------
+INST "cmp_tdc_mezzanine_1/cmp_tdc_mezz/cmp_fmc_onewire/*" IOB = FALSE;
+INST "cmp_tdc_mezzanine_2/cmp_tdc_mezz/cmp_fmc_onewire/*" IOB = FALSE;
+

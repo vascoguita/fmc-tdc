@@ -80,7 +80,7 @@ end entity;
 --=================================================================================================
 architecture rtl of acam_timecontrol_interface is
 
-  signal acam_intflag_f_edge_p                                   : std_logic;
+  signal acam_intflag_f_edge_p, stop_dis_d1                      : std_logic;
   signal start_pulse, wait_for_utc, rst_n, wait_for_state_active : std_logic;
 
 --=================================================================================================
@@ -108,7 +108,7 @@ begin
         wait_for_utc          <= '0';
         start_pulse           <= '0';
         wait_for_state_active <= '0';
-        stop_dis_o            <= '1';
+        stop_dis_d1           <= '1';
       else
         if activate_acq_p_i = '1' then
           wait_for_utc <= '1';
@@ -119,13 +119,24 @@ begin
           wait_for_state_active <= '1';
         elsif wait_for_state_active = '1' and state_active_p_i = '1' then
           -- data_engine starts following ACAM EF
-          stop_dis_o            <= '0';
+          stop_dis_d1           <= '0';
           wait_for_state_active <= '0';
         else
           start_pulse <= '0';
         end if;
       end if;
     end if;
+  end process;
+
+  stop_dis_extra_dff : process (clk_i)
+  begin
+    if rising_edge (clk_i) then
+      if rst_i = '1'  then
+        stop_dis_o <= '1';
+      else
+        stop_dis_o <= stop_dis_d1;
+		end if;
+	end if;
   end process;
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

@@ -23,12 +23,12 @@ xilinx::project set "Pack I/O Registers into IOBs" "Yes"
 xilinx::project set "Pack I/O Registers/Latches into IOBs" "For Inputs and Outputs"
 
 xilinx::project set "Register Duplication Map" "On"
+
 xilinx::project set "Register Balancing" "Yes"
 
-
 xilinx::project set "Placer Effort Level Map" "High"
-xilinx::project set "Placer Extra Effort Map" "Normal"
-xilinx::project set "Extra Effort (Highest PAR level only)" "Continue on Impossible"
+xilinx::project set "Placer Extra Effort Map" "Continue on Impossible"
+xilinx::project set "Extra Effort (Highest PAR level only)" "Normal"
 
 xilinx::project save
 
