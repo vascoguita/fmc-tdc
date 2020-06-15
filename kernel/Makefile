@@ -10,7 +10,7 @@ REPO_PARENT ?= $(shell /bin/pwd)/../..
 
 CPPCHECK ?= cppcheck
 DKMS ?= 0
-
+CURDIR := $(shell /bin/pwd)
 KVERSION ?= $(shell uname -r)
 LINUX ?= /lib/modules/$(KVERSION)/build
 
