@@ -24,7 +24,7 @@ GIT_VERSION := $(shell git describe --dirty --long --tags)
 CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
 
 COMMON_SRCS = test-common.c
-LDFLAGS = -L$(LIBTDC) 
+LDFLAGS = -L$(LIBTDC)
 LDLIBS = -lfmctdc -lrt
 
 CPPCHECK ?= cppcheck
