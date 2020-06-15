@@ -11,8 +11,7 @@ REPO_PARENT ?=
 DESTDIR ?= /usr/local/
 LIBTDC = ../lib/
 
-TESTS = fmc-tdc-list \
-	fmc-tdc-term \
+TESTS = fmc-tdc-term \
 	fmc-tdc-temperature \
 	fmc-tdc-time \
 	fmc-tdc-tstamp \
@@ -34,14 +33,17 @@ all: $(TESTS)
 
 $(TESTS): $(COMMON_SRCS:.c=.o) $(LIBTDC)/libfmctdc.a
 
+fmc-tdc-list:
+
 clean:
-	rm -f $(TESTS) test-common.o
+	rm -f $(TESTS) fmc-tdc-list test-common.o
 
 # make nothing for modules_install, but avoid errors
 modules_install:
 
 install:
 	install -d $(DESTDIR)/bin
+	install -D fmc-tdc-list $(DESTDIR)/bin
 	install -D $(TESTS) $(DESTDIR)/bin
 
 cppcheck:
