@@ -22,7 +22,8 @@ void open_board(char *dev_id_str)
 		exit(-1);
 	}
 
-	brd = fmctdc_open(-1, dev_id);
+
+	brd = fmctdc_open(dev_id);
 	if (!brd) {
 		fprintf(stderr, "Can't open device %s: %s\n", dev_id_str,
 			strerror(errno));

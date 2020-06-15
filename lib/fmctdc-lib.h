@@ -218,7 +218,7 @@ extern int fmctdc_ts_mode_get(struct fmctdc_board *userb,
  * Set of functions to read time-stamps from the board
  * @{
  */
-extern struct fmctdc_board *fmctdc_open(int offset, int dev_id);
+extern struct fmctdc_board *fmctdc_open(int dev_id);
 extern struct fmctdc_board *fmctdc_open_by_lun(int lun);
 extern int fmctdc_close(struct fmctdc_board *);
 extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,

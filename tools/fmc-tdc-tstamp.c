@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 
 	/* Open FMC TDC device */
 	if (dev_id != 0xFFFFFFFF) {
-		brd = fmctdc_open(-1, dev_id);
+		brd = fmctdc_open(dev_id);
 		if (!brd) {
 			fprintf(stderr, "Can't open device id 0x%x: %s\n",
 				dev_id, strerror(errno));

@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Open FMC TDC device */
-	brd = fmctdc_open(-1, dev_id); /* look for dev_id form the beginning */
+	brd = fmctdc_open(dev_id); /* look for dev_id form the beginning */
 	if (!brd)
 	{
 		if (dev_id == 0xFFFFFFFF)

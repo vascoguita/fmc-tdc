@@ -82,15 +82,13 @@ void fmctdc_exit(void)
 
 /**
  * It opens one specific device. -1 arguments mean "not installed"
- * @param[in] offset [deprecated] board enumeration offset [0, N].
- *                   -1 to ignore it and use only dev_id
  * @param[in] dev_id FMC device id. -1 to ignore it and use only the offset
  * @return an instance token, otherwise NULL and errno is appripriately set.
  *         ENODEV if the device was not found. EINVAL there is a mismatch with
  *         the arguments
  */
 #define __FMCTDC_OPEN_PATH_MAX 128
-struct fmctdc_board *fmctdc_open(int offset, int dev_id)
+struct fmctdc_board *fmctdc_open(int dev_id)
 {
 	struct __fmctdc_board *b = NULL;
 	uint32_t nsamples = NSAMPLE;
@@ -99,11 +97,6 @@ struct fmctdc_board *fmctdc_open(int offset, int dev_id)
 	int i;
 	int ret;
 	struct stat sb;
-
-	if (offset != -1) {
-		errno = EINVAL;
-		return NULL;
-	}
 
 	if (dev_id < 0) {
 		errno = EINVAL;
@@ -231,7 +224,7 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 		errno = ENODEV;
 		return NULL;
 	}
-	return fmctdc_open(-1, dev_id);
+	return fmctdc_open(dev_id);
 }
 
 
