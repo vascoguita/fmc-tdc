@@ -27,7 +27,7 @@ xilinx::project set "Register Balancing" "Yes"
 
 
 xilinx::project set "Placer Effort Level Map" "High"
-xilinx::project set "Placer Extra Effort Map" "Normal"
+xilinx::project set "Placer Extra Effort Map" "Continue on Impossible"
 xilinx::project set "Extra Effort (Highest PAR level only)" "Continue on Impossible"
 
 xilinx::project save
