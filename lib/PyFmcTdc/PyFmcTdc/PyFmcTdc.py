@@ -169,7 +169,7 @@ class FmcTdc(object):
 
         self.libfmctdc.fmctdc_init()
         ctypes.set_errno(0)
-        self.tkn = self.libfmctdc.fmctdc_open(-1, self.device_id)
+        self.tkn = self.libfmctdc.fmctdc_open(self.device_id)
 
         self.chan = []
         for i in range(self.CHANNEL_NUMBER):
@@ -190,7 +190,7 @@ class FmcTdc(object):
         self.libfmctdc.fmctdc_strerror.argtypes = [ctypes.c_int]
         self.libfmctdc.fmctdc_strerror.restype = ctypes.c_char_p
 
-        self.libfmctdc.fmctdc_open.argtypes = [ctypes.c_int, ctypes.c_int]
+        self.libfmctdc.fmctdc_open.argtypes = [ctypes.c_int]
         self.libfmctdc.fmctdc_open.restype = ctypes.c_void_p
         self.libfmctdc.fmctdc_open.errcheck = self.__errcheck_pointer
 
