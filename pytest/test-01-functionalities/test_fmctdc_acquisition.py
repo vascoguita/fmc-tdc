@@ -66,16 +66,22 @@ class TestFmctdcAcquisition(object):
         number of each timestamps increase by 1. Test 100 milli-second
         acquisition at different frequencies"""
         fmctdc_chan.buffer_len =  max(count + 1, 64)
-        prev_seq = None
+        prev = None
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
         for i in  range(len(ts)):
-            if prev_seq == None:
-                prev_seq = ts[i].seq_id
+            if prev == None:
+                prev = ts[i]
                 continue
-            assert ts[i].seq_id == prev_seq + 1
-            prev_seq = ts[i].seq_id
+            assert ts[i].seq_id == (prev.seq_id + 1) & 0xFFFFFFF, \
+              "Missed {:d} timestamps (idx: {:d}, max: {:d}, prev: {{ {:s}, curr: {:s} }}, full dump;\n{:s}".format(ts[i].seq_id - prev.seq_id + 1,
+                                                                                                                    i,
+                                                                                                                    len(ts),
+                                                                                                                    str(prev),
+                                                                                                                    str(ts[i]),
+                                                                                                                    "\n".join([str(x) for x in ts[max(0, i - 10):min(i + 10, len(ts) -1)]]))
+            prev = ts[i]
 
     @pytest.mark.skipif(0 in pytest.usr_acq,
                         reason="Missing user acquisition option")
@@ -118,7 +124,13 @@ class TestFmctdcAcquisition(object):
                 if prev == None:
                     prev = ts[i]
                     continue
-                assert ts[i].seq_id == (prev.seq_id + 1) & 0xFFFFFFF, "Missed {:d} timestamps (idx: {:d}, max: {:d}, prev: {{ {:s}, curr: {:s} }}, full dump;\n{:s}".format(ts[i].seq_id - prev.seq_id + 1, i, len(ts), str(prev), str(ts[i]), "\n".join([str(t) for t in ts]))
+                assert ts[i].seq_id == (prev.seq_id + 1) & 0xFFFFFFF, \
+                  "Missed {:d} timestamps (idx: {:d}, max: {:d}, prev: {{ {:s}, curr: {:s} }}, full dump;\n{:s}".format(ts[i].seq_id - prev.seq_id + 1,
+                                                                                                                        i,
+                                                                                                                        len(ts),
+                                                                                                                        str(prev),
+                                                                                                                        str(ts[i]),
+                                                                                                                        "\n".join([str(x) for x in ts[max(0, i - 10):min(i + 10, len(ts) -1)]]))
                 prev = ts[i]
             pending -= len(ts)
         poll.unregister(fmctdc_chan.fileno)
