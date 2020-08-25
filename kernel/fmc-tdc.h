@@ -117,6 +117,7 @@ struct ft_calibration_raw {
 #include <linux/fmc.h>
 #include <linux/dmaengine.h>
 #include <linux/workqueue.h>
+#include <linux/debugfs.h>
 
 struct ft_memory_ops {
 	u32 (*read)(void *addr);
@@ -264,6 +265,8 @@ struct fmctdc_dev {
 	struct work_struct irq_work;
 
 	struct dentry *dbg_dir;
+	struct debugfs_regset32 dbg_reg32;
+	struct dentry *dbg_reg;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, void *addr)
