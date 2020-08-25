@@ -45,5 +45,6 @@ fmc-tdc-objs += ft-core.o
 fmc-tdc-objs += ft-fifo.o
 fmc-tdc-objs += ft-time.o
 fmc-tdc-objs += ft-zio.o
+fmc-tdc-objs += ft-debug.o
 
 fmc-tdc-spec-objs := fmc-tdc-spec-core.o

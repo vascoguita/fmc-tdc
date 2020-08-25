@@ -478,6 +478,7 @@ int ft_probe(struct platform_device *pdev)
 	if (ret < 0)
 		goto err;
 
+	ft_debug_init(ft);
 	ft_writel(ft, TDC_INPUT_ENABLE_FLAG, TDC_REG_INPUT_ENABLE);
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
@@ -513,6 +514,8 @@ int ft_remove(struct platform_device *pdev)
 
 	ft_writel(ft, TDC_CTRL_DIS_ACQ, TDC_REG_CTRL);
 	ft_writel(ft, 0, TDC_REG_INPUT_ENABLE);
+
+	ft_debug_exit(ft);
 
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_DMA:

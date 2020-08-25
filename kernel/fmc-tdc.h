@@ -262,6 +262,8 @@ struct fmctdc_dev {
 	struct dma_chan *dchan;
 	int pending_dma;
 	struct work_struct irq_work;
+
+	struct dentry *dbg_dir;
 };
 
 static inline u32 ft_ioread(struct fmctdc_dev *ft, void *addr)
@@ -343,6 +345,8 @@ void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 				       unsigned int chan);
 
+int ft_debug_init(struct fmctdc_dev *ft);
+void ft_debug_exit(struct fmctdc_dev *ft);
 
 /**
  * It enables the acquisition on a give channel
