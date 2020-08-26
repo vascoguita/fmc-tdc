@@ -25,10 +25,10 @@ def fmctdc_chan(request):
     tdc.chan[request.param].termination = False
     tdc.chan[request.param].timestamp_mode = "post"
     tdc.chan[request.param].flush()
-    tdc.chan[request.param].enable = True
     tdc.chan[request.param].coalescing_timeout = 1
     tdc.whiterabbit_mode = False
     tdc.time = FmcTdcTime(0, 0, 0, 0, 0)
+    tdc.chan[request.param].enable = True
     yield tdc.chan[request.param]
 
 class TestFmctdcAcquisition(object):
