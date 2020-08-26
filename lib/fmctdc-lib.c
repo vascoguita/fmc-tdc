@@ -700,7 +700,7 @@ static void fmctdc_ts_convert(struct fmctdc_time *t, struct ft_hw_timestamp *o)
 	t->seconds = o->seconds;
 	t->coarse = o->coarse;
 	t->frac = o->frac & 0xfff;
-	t->debug = o->frac >> 12;
+	t->debug = o->metadata;
 	t->seq_id = FT_HW_TS_META_SEQ(o->metadata);
 }
 
