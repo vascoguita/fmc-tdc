@@ -30,6 +30,8 @@ def fmctdc_chan(request):
     tdc.time = FmcTdcTime(0, 0, 0, 0, 0)
     tdc.chan[request.param].enable = True
     yield tdc.chan[request.param]
+    tdc.chan[request.param].enable = False
+    del tdc
 
 class TestFmctdcAcquisition(object):
 
