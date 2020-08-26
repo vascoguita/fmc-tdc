@@ -75,6 +75,7 @@ class TestFmctdcAcquisition(object):
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
+        assert len(ts) == count
         for i in  range(len(ts)):
             if prev == None:
                 prev = ts[i]
