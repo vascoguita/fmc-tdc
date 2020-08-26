@@ -13,7 +13,8 @@ from PyFmcTdc import FmcTdc
 
 TDC_FD_CABLING = [1, 2, 3, 4, 4]
 
-fmctdc_acq_100ms = [(p, int(10**8 / p)) for p in  [ 10**x for x in range(4, 8)]]
+min_period = 5 if pytest.transfer_mode == "fifo" else 4
+fmctdc_acq_100ms = [(p, int(10**8 / p)) for p in  [ 10**x for x in range(min_period, 8)]]
 
 
 @pytest.fixture(scope="function", params=pytest.channels)
