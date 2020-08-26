@@ -9,7 +9,7 @@ import select
 import time
 import sys
 import os
-from PyFmcTdc import FmcTdc
+from PyFmcTdc import FmcTdc, FmcTdcTime
 
 TDC_FD_CABLING = [1, 2, 3, 4, 4]
 
@@ -27,6 +27,8 @@ def fmctdc_chan(request):
     tdc.chan[request.param].flush()
     tdc.chan[request.param].enable = True
     tdc.chan[request.param].coalescing_timeout = 1
+    tdc.whiterabbit_mode = False
+    tdc.time = FmcTdcTime(0, 0, 0, 0, 0)
     yield tdc.chan[request.param]
 
 class TestFmctdcAcquisition(object):
