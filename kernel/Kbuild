@@ -37,6 +37,7 @@ subdirs-ccflags-y = $(ccflags-y)
 
 obj-m := fmc-tdc.o
 obj-m += fmc-tdc-spec.o
+obj-m += fmc-tdc-svec.o
 
 fmc-tdc-objs := acam.o
 fmc-tdc-objs += calibration.o
@@ -48,3 +49,4 @@ fmc-tdc-objs += ft-zio.o
 fmc-tdc-objs += ft-debug.o
 
 fmc-tdc-spec-objs := fmc-tdc-spec-core.o
+fmc-tdc-svec-objs := fmc-tdc-svec-core.o
