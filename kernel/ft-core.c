@@ -99,7 +99,7 @@ void ft_irq_coalescing_timeout_set(struct fmctdc_dev *ft,
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
 		if (unlikely(chan != -1)) {
-			dev_warn(&ft->pdev->dev,
+			dev_dbg(&ft->pdev->dev,
 				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, set global value\n",
 				 __func__, chan);
 		}
@@ -126,7 +126,7 @@ uint32_t ft_irq_coalescing_timeout_get(struct fmctdc_dev *ft,
 	switch (ft->mode) {
 	case FT_ACQ_TYPE_FIFO:
 		if (unlikely(chan != -1)) {
-			dev_warn(&ft->pdev->dev,
+			dev_dbg(&ft->pdev->dev,
 				 "%s: FIFO acquisition mode has a gobal coalesing timeout. Ignore channel %d, get global value\n",
 				 __func__, chan);
 		}
