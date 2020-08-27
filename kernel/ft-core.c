@@ -598,6 +598,6 @@ module_exit(ft_exit);
 MODULE_VERSION(VERSION);
 MODULE_LICENSE("GPL and additional rights");	/* LGPL */
 
-MODULE_SOFTDEP("pre: zio fmc");
+MODULE_SOFTDEP("pre: zio fmc zio-buf-vmalloc");
 
 ADDITIONAL_VERSIONS;
