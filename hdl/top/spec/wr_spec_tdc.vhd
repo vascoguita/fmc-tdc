@@ -92,10 +92,10 @@ use IEEE.numeric_std.all;
 use work.tdc_core_pkg.all;
 use work.gn4124_core_pkg.all;
 use work.gencores_pkg.all;
-use work.synthesis_descriptor.all;
 use work.wishbone_pkg.all;
 use work.wr_board_pkg.all;
 use work.wr_spec_pkg.all;
+use work.sourceid_wr_spec_tdc_pkg;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -420,10 +420,10 @@ begin
   cmp_xwb_metadata : entity work.xwb_metadata
     generic map (
       g_VENDOR_ID    => x"0000_10DC",
-      g_DEVICE_ID    => x"574E_0001", -- WRTD Node (WN) 1
-      g_VERSION      => x"0100_0000",
+      g_DEVICE_ID    => x"574E_0001",  -- SPEC + TDC
+      g_VERSION      => x"0800_0000",
       g_CAPABILITIES => x"0000_0000",
-      g_COMMIT_ID    => (others => '0'))
+      g_COMMIT_ID    => sourceid_wr_spec_tdc_pkg.sourceid)
     port map (
       clk_i   => clk_sys_62m5,
       rst_n_i => rst_sys_62m5_n,

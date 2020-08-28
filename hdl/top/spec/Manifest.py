@@ -1,5 +1,4 @@
-files = ["synthesis_descriptor.vhd",
-"wr_spec_tdc.ucf",
+files = ["wr_spec_tdc.ucf",
 "wr_spec_tdc.vhd"];
 
 fetchto = "../../ip_cores"

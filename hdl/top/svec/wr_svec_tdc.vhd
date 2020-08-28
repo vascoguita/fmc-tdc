@@ -110,6 +110,7 @@ use work.wishbone_pkg.all;
 use work.vme64x_pkg.all;
 use work.wr_board_pkg.all;
 use work.wr_svec_pkg.all;
+use work.sourceid_wr_svec_tdc_pkg;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -354,7 +355,7 @@ architecture rtl of wr_svec_tdc is
   constant c_WB_LAYOUT_MASK :
     t_wishbone_address_array(c_NUM_WB_SLAVES - 1 downto 0) := (
       c_WB_SLAVE_METADATA  => x"0003_ffc0",  -- 0x40 bytes: not(0x40   -1) = not(0x3F)   = c0
-      c_WB_SLAVE_FMC0_TDC  => x"0003_0000",  -- 0x10000 bytes
+      c_WB_SLAVE_FMC0_TDC  => x"0003_0000",
       c_WB_SLAVE_FMC1_TDC  => x"0003_0000");
 
 
@@ -427,6 +428,24 @@ begin
   areset_n <= vme_sysreset_n_i and rst_n_i;
 
 ---------------------------------------------------------------------------------------------------
+--                                 TDC specific Metadata ROM                                     --
+---------------------------------------------------------------------------------------------------
+
+
+  cmp_xwb_metadata : entity work.xwb_metadata
+    generic map (
+      g_VENDOR_ID    => x"0000_10DC",
+      g_DEVICE_ID    => x"574E_0002", -- SVEC + 2xTDC
+      g_VERSION      => x"0800_0000",
+      g_CAPABILITIES => x"0000_0000",
+      g_COMMIT_ID    => sourceid_wr_svec_tdc_pkg.sourceid)
+    port map (
+      clk_i   => clk_sys_62m5,
+      rst_n_i => rst_sys_62m5_n,
+      wb_i    => cnx_slave_in(c_WB_SLAVE_METADATA),
+      wb_o    => cnx_slave_out(c_WB_SLAVE_METADATA));
+
+---------------------------------------------------------------------------------------------------
 --                                      SVEC Board Base                                       --
 ---------------------------------------------------------------------------------------------------
   inst_svec_base : entity work.svec_base_wr
@@ -488,13 +507,6 @@ begin
       vme_data_b           => vme_data_b,
       vme_am_i             => vme_am_i,
       vme_addr_b           => vme_addr_b,
-      ---------------------------------------------------------
-      -- DDR - not used
-      ---------------------------------------------------------
-    ddr4_clk_i   => '0',
-    ddr4_rst_n_i => '1',
-    ddr5_clk_i   => '0',
-    ddr5_rst_n_i => '1',
       ---------------------------------------------------------
       -- Carrier peripherals
       ---------------------------------------------------------
@@ -618,7 +630,7 @@ begin
       clk_sys_i            => clk_sys_62m5,
       rst_sys_n_i          => rst_sys_62m5_n,
       rst_n_a_i            => rst_sys_62m5_n, ------------ to be removed
-      fmc_id_i             => '1', -- '0' for SPEC; '0' and '1' for each of the TDCs of SVEC
+      fmc_id_i             => '0', -- '0' for SPEC; '0' and '1' for each of the TDCs of SVEC
       pll_sclk_o           => fmc0_tdc_pll_sclk_o,
       pll_sdi_o            => fmc0_tdc_pll_sdi_o,
       pll_cs_o             => fmc0_tdc_pll_cs_n_o,
