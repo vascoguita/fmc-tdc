@@ -117,6 +117,8 @@ struct fmctdc_board *fmctdc_open(int dev_id)
 	if (!S_ISDIR(sb.st_mode))
 		goto err_stat_s;
 	b->sysbase = strdup(path);
+	if (!b->sysbase)
+		goto err_dup_sys;
 
 	/* get dev */
 	snprintf(path, sizeof(path),
@@ -127,6 +129,8 @@ struct fmctdc_board *fmctdc_open(int dev_id)
 	if (!S_ISCHR(sb.st_mode))
 		goto err_stat_d;
 	b->devbase = strndup(path, strlen(path) - strlen("-0-0-ctrl"));
+	if (!b->sysbase)
+		goto err_dup_dev;
 
 	ret = fmctdc_sysfs_get(b, "version", &v);
 	if (ret)
@@ -187,7 +191,9 @@ err_buf:
 err_version:
 	free(b->devbase);
 err_stat_d:
+err_dup_dev:
 	free(b->sysbase);
+err_dup_sys:
 err_stat_s:
 	free(b);
 	return NULL;
