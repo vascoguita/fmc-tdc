@@ -107,9 +107,10 @@ struct fmctdc_board *fmctdc_open(int dev_id)
 	if (!b)
 		return NULL;
 
+	b->dev_id = dev_id;
 	/* get sysfs */
 	snprintf(path, sizeof(path),
-		 "/sys/bus/zio/devices/tdc-1n5c-%04x", dev_id);
+		 "/sys/bus/zio/devices/tdc-1n5c-%04x", b->dev_id);
 	ret = stat(path, &sb);
 	if (ret < 0)
 		goto err_stat_s;
@@ -119,7 +120,7 @@ struct fmctdc_board *fmctdc_open(int dev_id)
 
 	/* get dev */
 	snprintf(path, sizeof(path),
-		 "/dev/zio/tdc-1n5c-%04x-0-0-ctrl", dev_id);
+		 "/dev/zio/tdc-1n5c-%04x-0-0-ctrl", b->dev_id);
 	ret = stat(path, &sb);
 	if (ret < 0)
 		goto err_stat_d;
