@@ -240,23 +240,14 @@ architecture rtl of fmc_tdc_mezzanine is
 ---------------------------------------------------------------------------------------------------
 --                                            Signals                                            --
 ---------------------------------------------------------------------------------------------------
-  -- resets
-  signal general_rst_n, rst_ref_0_n : std_logic;
   -- Wishbone buse(s) from crossbar master port(s)
   signal cnx_master_out             : t_wishbone_master_out_array(c_NUM_WB_MASTERS-1 downto 0);
   signal cnx_master_in              : t_wishbone_master_in_array (c_NUM_WB_MASTERS-1 downto 0);
 
-  -- WISHBONE addresses
-  signal tdc_core_wb_adr           : std_logic_vector(31 downto 0);
-  signal tdc_mem_wb_adr            : std_logic_vector(31 downto 0);
-  -- 1-wire
-  signal mezz_owr_en, mezz_owr_i   : std_logic_vector(0 downto 0);
   -- I2C
-  signal sys_scl_in, sys_scl_out   : std_logic;
-  signal sys_scl_oe_n, sys_sda_in  : std_logic;
+  signal sys_scl_out   : std_logic;
+  signal sys_scl_oe_n  : std_logic;
   signal sys_sda_out, sys_sda_oe_n : std_logic;
-  -- IRQ
-  signal irq_tstamp                : std_logic;
 
   signal reg_to_wr, reg_from_wr : std_logic_vector(31 downto 0);
   signal wrabbit_utc_p          : std_logic;

@@ -288,16 +288,6 @@ end wr_spec_tdc;
 --=================================================================================================
 architecture rtl of wr_spec_tdc is
 
-  function f_bool2int (x : boolean) return integer is
-  begin
-    if(x) then
-      return 1;
-    else
-      return 0;
-    end if;
-  end f_bool2int;
-
-
   -----------------------------------------------------------------------------
   -- Constants
   -----------------------------------------------------------------------------
@@ -344,8 +334,7 @@ architecture rtl of wr_spec_tdc is
   -- WISHBONE to crossbar slave port
   signal cnx_slave_out             : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
   signal cnx_slave_in              : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
-  signal gn_wb_adr                 : std_logic_vector(31 downto 0);
-
+  
   -- WRPC TM interface and status
   signal tm_link_up, tm_time_valid : std_logic;
   signal tm_dac_wr_p               : std_logic;
@@ -358,7 +347,6 @@ architecture rtl of wr_spec_tdc is
 
   -- Interrupts and status
   signal ddr_wr_fifo_empty  : std_logic;  -- not used
-  signal fmc0_irq           : std_logic;
   signal irq_vector         : std_logic_vector(0 downto 0);
   signal gn4124_access      : std_logic;
 
@@ -366,20 +354,6 @@ architecture rtl of wr_spec_tdc is
   signal tdc_scl_oen, tdc_scl_in   : std_logic;
   signal tdc_sda_oen, tdc_sda_in   : std_logic;
   -- aux
-
-
-  signal tdc0_soft_rst_n : std_logic;
-
-  signal ddr3_tdc_adr : std_logic_vector(31 downto 0);
-
-  signal powerup_rst_cnt      : unsigned(7 downto 0) := "00000000";
-  signal carrier_info_fmc_rst : std_logic_vector(30 downto 0);
-
-
-
-  signal tdc_dma_out : t_wishbone_master_out;
-  signal tdc_dma_in  : t_wishbone_master_in;
-
 
   -- Wishbone buses from FMC ADC cores to DDR controller
   signal fmc0_wb_ddr_in  : t_wishbone_master_in;
@@ -389,20 +363,7 @@ architecture rtl of wr_spec_tdc is
   signal sim_ts_valid, sim_ts_ready : std_logic;
   signal sim_ts                     : t_tdc_timestamp;
 
-  signal ddr3_status : std_logic_vector(31 downto 0);
-
-  function f_to_string(x : boolean) return string is
-  begin
-    if x then
-      return "TRUE";
-    else
-      return "FALSE";
-    end if;
-  end f_to_string;
-  signal dma_reg_adr : std_logic_vector(31 downto 0);
   signal dma_wb_adr : std_logic_vector(31 downto 0);
-
-
 
 --=================================================================================================
 --                                       architecture begin

@@ -224,9 +224,6 @@ architecture rtl of fmc_tdc_wrapper is
 
   signal pll_sclk, pll_sdi, pll_dac_sync : std_logic;
 
-  signal fmc_eic_irq       : std_logic;
-  signal fmc_eic_irq_synch : std_logic_vector(1 downto 0);
-
   signal tdc_scl_out, tdc_scl_oen, tdc_sda_out, tdc_sda_oen : std_logic;
 
   signal timestamp       : t_tdc_timestamp_array(4 downto 0);

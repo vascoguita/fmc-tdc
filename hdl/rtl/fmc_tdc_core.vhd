@@ -214,7 +214,6 @@ architecture rtl of fmc_tdc_core is
   signal acm_cyc, acm_stb, acm_we, acm_ack                   : std_logic;
   signal acm_dat_r, acm_dat_w                                : std_logic_vector(g_WIDTH-1 downto 0);
   signal acam_ef1, acam_ef2                                  : std_logic;
-  signal acam_intflag_f_edge_p                               : std_logic;
   signal acam_tstamp1, acam_tstamp2                          : std_logic_vector(g_WIDTH-1 downto 0);
   signal acam_tstamp1_ok_p, acam_tstamp2_ok_p                : std_logic;
   -- control unit
@@ -222,7 +221,6 @@ architecture rtl of fmc_tdc_core is
   signal read_acam_config, read_acam_status, read_ififo1     : std_logic;
   signal read_ififo2, read_start01, reset_acam, load_utc     : std_logic;
   signal roll_over_incr_recent                               : std_logic;
-  signal deactivate_chan                                     : std_logic_vector(4 downto 0);
   signal clk_period                                          : std_logic_vector(g_WIDTH-1 downto 0);
   signal starting_utc, acam_inputs_en                        : std_logic_vector(g_WIDTH-1 downto 0);
   signal acam_ififo1, acam_ififo2, acam_start01              : std_logic_vector(g_WIDTH-1 downto 0);
