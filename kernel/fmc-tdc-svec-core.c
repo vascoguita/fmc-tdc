@@ -116,6 +116,7 @@ static int ft_svec_probe(struct platform_device *pdev)
 		}
 
 		present = fmc_slot_present(slot);
+		fmc_slot_put(slot);
 		dev_dbg(&pdev->dev, "FMC-TDC slot: %d, present: %d\n",
 			i, present);
 		if (present)
