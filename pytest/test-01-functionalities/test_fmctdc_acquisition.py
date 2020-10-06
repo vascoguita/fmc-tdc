@@ -14,7 +14,13 @@ from PyFmcTdc import FmcTdc, FmcTdcTime
 TDC_FD_CABLING = [1, 2, 3, 4, 4]
 
 min_period = 5 if pytest.transfer_mode == "fifo" else 4
-fmctdc_acq_100ms = [(p, int(10**8 / p)) for p in  [ 10**x for x in range(min_period, 8)]]
+fmctdc_acq_100ms = [(1875, 60000),
+                    (2500, 40000),
+                    (5000, 20000),
+                    (10000, 10000),
+                    (100000, 1000),
+                    (1000000, 100),
+                    (10000000, 10)]
 
 
 @pytest.fixture(scope="function", params=pytest.channels)
