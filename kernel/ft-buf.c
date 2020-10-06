@@ -285,60 +285,76 @@ static int ft_zio_block_nr_pages(struct zio_block *block)
 	return nr_pages;
 }
 
+static int sg_alloc_table_from_block(struct sg_table *sgt,
+				     struct zio_block *block)
+{
+	struct scatterlist *sg;
+	unsigned int nr_pages;
+	int bytesleft = 0;
+	void *bufp = NULL;
+	int mapbytes;
+	int i;
+	int err;
+
+	nr_pages = ft_zio_block_nr_pages(block);
+	err = sg_alloc_table(sgt, nr_pages, GFP_KERNEL);
+	if (err)
+		return err;
+
+	bytesleft = block->datalen;
+	bufp = block->data;
+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+		/*
+		 * If there are less bytes left than what fits
+		 * in the current page (plus page alignment offset)
+		 * we just feed in this, else we stuff in as much
+		 * as we can.
+		 */
+		if (bytesleft < (PAGE_SIZE - offset_in_page(bufp)))
+			mapbytes = bytesleft;
+		else
+			mapbytes = PAGE_SIZE - offset_in_page(bufp);
+		/* Map the page */
+		if (is_vmalloc_addr(bufp))
+			sg_set_page(sg, vmalloc_to_page(bufp), mapbytes,
+				    offset_in_page(bufp));
+		else
+			sg_set_buf(sg, bufp, mapbytes);
+		/* Configure next values */
+		bufp += mapbytes;
+		bytesleft -= mapbytes;
+		pr_debug("sg item (%p(+0x%lx), len:%d, left:%d)\n",
+			 virt_to_page(bufp), offset_in_page(bufp),
+			 mapbytes, bytesleft);
+	}
+
+        return 0;
+}
+
 static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
 				   struct zio_block *block,
 				   enum dma_data_direction dir)
 {
 	struct ft_channel_state *st = &ft->channels[ch];
-	struct page **pages;
-	unsigned int nr_pages;
-	size_t max_segment_size;
-	void *data;
-	int i;
 	int err;
 	int sg_len;
 
 	if (!block)
 		return -EINVAL;
 
-	nr_pages = ft_zio_block_nr_pages(block);
-	pages = kcalloc(nr_pages, sizeof(struct page *), GFP_KERNEL);
-	if (!pages)
-		return -ENOMEM;
-
-	data = (void *) block->data;
-	if (is_vmalloc_addr(data)) {
-		for (i = 0; i < nr_pages; ++i)
-			pages[i] = vmalloc_to_page(data + PAGE_SIZE * i);
-	} else {
-		for (i = 0; i < nr_pages; ++i)
-			pages[i] = virt_to_page(data + PAGE_SIZE * i);
-	}
-
-	max_segment_size = dma_get_max_seg_size(ft->dchan->device->dev);
-	max_segment_size &= PAGE_MASK; /* to make alloc_table happy */
-	err = __sg_alloc_table_from_pages(&st->sgt, pages, nr_pages,
-					  offset_in_page(data),
-					  block->datalen,
-					  max_segment_size, GFP_KERNEL);
+	err = sg_alloc_table_from_block(&st->sgt, block);
 	if (err)
-		goto err_alloc;
-
+		return err;
 	sg_len = dma_map_sg(&ft->pdev->dev,
 			    st->sgt.sgl, st->sgt.nents, dir);
 	if (sg_len <= 0) {
 		err = sg_len;
 		goto err_map;
 	}
-
-	kfree(pages);
-
 	return sg_len;
 
 err_map:
 	sg_free_table(&st->sgt);
-err_alloc:
-	kfree(pages);
 	return err;
 }
 
