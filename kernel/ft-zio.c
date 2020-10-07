@@ -665,6 +665,8 @@ int ft_zio_init(struct fmctdc_dev *ft)
 	/* Mandatory fields */
 	ft->hwzdev->owner = THIS_MODULE;
 	ft->hwzdev->priv_d = ft;
+	ft->hwzdev->head.dev.parent = &ft->pdev->dev;
+
 
 	dev_id = ft->pdev->id;
 
