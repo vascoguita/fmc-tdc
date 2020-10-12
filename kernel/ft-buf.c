@@ -354,9 +354,9 @@ static int sg_alloc_table_from_block_kmalloc(struct device *dev,
        max_segment_size = dma_get_max_seg_size(dev);
        max_segment_size &= PAGE_MASK; /* to make alloc_table happy */
        err = __sg_alloc_table_from_pages(sgt, pages, nr_pages,
-                                         offset_in_page(data),
-                                         block->datalen,
-                                         max_segment_size, GFP_KERNEL);
+					 offset_in_page(data),
+					 block->datalen,
+					 max_segment_size, GFP_KERNEL);
        if (err)
 	       sg_free_table(sgt);
        kfree(pages);
