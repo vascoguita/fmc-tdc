@@ -99,7 +99,7 @@ class TestFmctdcAcquisition(object):
                                                                                                                     len(ts),
                                                                                                                     str(prev),
                                                                                                                     str(ts[i]),
-                                                                                                                    "\n".join([str(x) for x in ts[max(0, i - 10):min(i + 10, len(ts) -1)]]))
+                                                                                                                    "\n".join([str(x) for x in ts[max(0, i - pytest.dump_range):min(i + pytest.dump_range, len(ts) -1)]]))
             prev = ts[i]
 
     @pytest.mark.skipif(0 in pytest.usr_acq,
@@ -149,7 +149,7 @@ class TestFmctdcAcquisition(object):
                                                                                                                         len(ts),
                                                                                                                         str(prev),
                                                                                                                         str(ts[i]),
-                                                                                                                        "\n".join([str(x) for x in ts[max(0, i - 10):min(i + 10, len(ts) -1)]]))
+                                                                                                                        "\n".join([str(x) for x in ts[max(0, i - pytest.dump_range):min(i + pytest.dump_range, len(ts) -1)]]))
                 prev = ts[i]
             pending -= len(ts)
         poll.unregister(fmctdc_chan.fileno)

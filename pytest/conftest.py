@@ -64,6 +64,8 @@ def pytest_addoption(parser):
     parser.addoption("--fd-id", type=lambda x : int(x, 16),
                      required=True, help="Fmc Fine-Delay Linux Identifier")
 
+    parser.addoption("--dump-range", type=int, default=10,
+                     help="Timestamps to show before and after an error")
     parser.addoption("--channel", type=int, default=[],
                      action="append", choices=range(FmcTdc.CHANNEL_NUMBER),
                      help="Channel(s) to be used for acquisition tests. Default all channels")
@@ -80,6 +82,7 @@ def pytest_configure(config):
         pytest.channels = range(FmcTdc.CHANNEL_NUMBER)
     pytest.usr_acq = (config.getoption("--usr-acq-period-ns"),
                       config.getoption("--usr-acq-count"))
+    pytest.dump_range = config.getoption("--dump-range")
 
     pytest.transfer_mode = None
     with open("/sys/bus/zio/devices/tdc-1n5c-{:04x}/transfer-mode".format(pytest.tdc_id)) as f_mode:
