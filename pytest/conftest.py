@@ -10,15 +10,66 @@ import re
 import os
 from PyFmcTdc import FmcTdc
 
-class FmcFineDelay(object):
+class PulseGenerator(object):
+    def __init__(self, id):
+        self.id = id
+
+    def disable(self, ch):
+        pass
+    def generate_pulse(self, ch, rel_time_us,
+                       period_ns, count, sync):
+        pass
+
+class SCPI(PulseGenerator):
+    def __init__(self, scpi_id):
+        super(SCPI, self).__init__(scpi_id)
+        import pyvisa
+        self.mgr = pyvisa.ResourceManager()
+        self.instr = self.mgr.open_resource(self.id)
+        self.instr.query_delay=10
+        self.instr.write("*RST")
+        self.wait_completion()
+        self.instr.write("*CLS")
+        self.instr.write("INITIATE:CONTINUOUS OFF")
+        self.instr.write("OUTPUT:STATE OFF")
+
+    def wait_completion(self):
+        if int(self.instr.query_ascii_values("*OPC?")[0]) != 1:
+            raise Exception("Failed to reset the waveform generator")
+
+    def disable(self, ch):
+        self.instr.write("OUTPUT:STATE OFF")
+
+    def generate_pulse(self, ch, rel_time_us,
+                       period_ns, count, sync):
+        import pdb; pdb.set_trace()
+        self.instr.write("OUTPUT:STATE OFF")
+        self.instr.write("SOURCE:VOLTAGE:LEVEL:IMMEDIATE:AMPLITUDE 5.0V")
+        self.instr.write("SOURCE:FUNCTION:SHAPE PULSE")
+        self.instr.write("SOURCE:PULSE:WIDTH 100ns")
+        self.instr.write("SOURCE:PULSE:PERIOD {:d}ns".format(period_ns))
+
+        # START Custom Agilent 33600A commands
+        self.instr.write("SOURCE:BURST:STATE ON")
+        self.instr.write("SOURCE:BURST:NCYCLES {:d}".format(count))
+#        self.instr.write("TRIGGER:DELAY {:d}us".format(rel_time_us))
+        # END Custom Agilent 33600A commands
+
+        self.instr.write("OUTPUT:STATE ON")
+        self.wait_completion()
+        self.instr.write("INITIATE:IMMEDIATE")
+        if sync:
+            self.wait_completion()
+
+class FmcFineDelay(PulseGenerator):
     CHANNEL_NUMBER = 4
 
-    def __init__(self, device_id):
-        self.dev_id = device_id
+    def __init__(self, fd_id):
+        super(FmcFineDelay, self).__init__(fd_id)
 
     def disable(self, ch):
         cmd = ["/usr/local/bin/fmc-fdelay-pulse",
-               "-d", "0x{:x}".format(self.dev_id),
+               "-d", "0x{:x}".format(self.id),
                "-o", str(ch),
                "-m", "disable",
                ]
@@ -28,7 +79,7 @@ class FmcFineDelay(object):
     def generate_pulse(self, ch, rel_time_us,
                        period_ns, count, sync):
         cmd = ["/usr/local/bin/fmc-fdelay-pulse",
-               "-d", "0x{:x}".format(self.dev_id),
+               "-d", "0x{:x}".format(self.id),
                "-o", str(ch),
                "-m", "pulse",
                "-r", "{:d}u".format(rel_time_us),
@@ -41,12 +92,20 @@ class FmcFineDelay(object):
         if sync:
             time.sleep(1 + 2 * (period_ns * count) / 1000000000.0)
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def fmcfd():
-    fd =  FmcFineDelay(pytest.fd_id)
-    yield fd
-    for ch in range(FmcFineDelay.CHANNEL_NUMBER):
-        fd.disable(ch + 1)
+    if pytest.fd_id is not None:
+        gen =  FmcFineDelay(pytest.fd_id)
+    elif pytest.scpi is not None:
+        gen = SCPI(pytest.scpi)
+
+    yield gen
+
+    if isinstance(gen, FmcFineDelay):
+        for ch in range(FmcFineDelay.CHANNEL_NUMBER):
+            gen.disable(ch + 1)
+    elif isinstance(gen, SCPI):
+        gen.disable(0)
 
 @pytest.fixture(scope="function")
 def fmctdc():
@@ -61,9 +120,10 @@ def fmctdc():
 def pytest_addoption(parser):
     parser.addoption("--tdc-id", type=lambda x : int(x, 16),
                      required=True, help="Fmc TDC Linux Identifier")
-    parser.addoption("--fd-id", type=lambda x : int(x, 16),
-                     required=True, help="Fmc Fine-Delay Linux Identifier")
-
+    parser.addoption("--fd-id", type=lambda x : int(x, 16), default=None,
+                     help="Fmc Fine-Delay Linux Identifier")
+    parser.addoption("--scpi", type=str, default=None,
+                     help="SCPI Connection String")
     parser.addoption("--dump-range", type=int, default=10,
                      help="Timestamps to show before and after an error")
     parser.addoption("--channel", type=int, default=[],
@@ -77,9 +137,16 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     pytest.tdc_id = config.getoption("--tdc-id")
     pytest.fd_id = config.getoption("--fd-id")
+    pytest.scpi = config.getoption("--scpi")
+    if pytest.scpi is None and pytest.fd_id is None:
+        raise Exception("You must set --fd-id or --scpi")
+
     pytest.channels = config.getoption("--channel")
     if len(pytest.channels) == 0:
         pytest.channels = range(FmcTdc.CHANNEL_NUMBER)
+    if len(pytest.channels) != 1 and pytest.scpi is not None:
+        raise Exception("With --scpi we can test only the channel connected to the Waveform generator. Set --channel")
+
     pytest.usr_acq = (config.getoption("--usr-acq-period-ns"),
                       config.getoption("--usr-acq-count"))
     pytest.dump_range = config.getoption("--dump-range")
