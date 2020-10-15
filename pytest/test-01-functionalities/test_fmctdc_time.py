@@ -37,6 +37,7 @@ class TestFmctdcTime(object):
         second for a minute"""
         fmctdc.whiterabbit_mode = whiterabbit
         for i in range(20):
-            t_prev = fmctdc.time.seconds
+            t_prev = fmctdc.time
             time.sleep(1)
-            assert t_prev + 1 == fmctdc.time.seconds
+            t_diff = abs(float(fmctdc.time) - float(t_prev))
+            assert 0.999 < t_diff < 1.001
