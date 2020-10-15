@@ -8,12 +8,12 @@
 NET "fmc0_tdc_clk_125m_p_i"      LOC = "L20";
 NET "fmc0_tdc_clk_125m_p_i"      IOSTANDARD = "LVDS_25";
 NET "fmc0_tdc_clk_125m_p_i"      TNM_NET = "tdc_clk_125m_p_i";
-TIMESPEC TS_fmc0_tdc_clk_125m_p_i = PERIOD "fmc0_tdc_clk_125m_p_i" 8 ns HIGH 50%;
+TIMESPEC TS_fmc0_tdc_clk_125m_p_i = PERIOD "tdc_clk_125m_p_i" 8 ns HIGH 50%;
 
 NET "fmc0_tdc_clk_125m_n_i"      LOC = "L22";
 NET "fmc0_tdc_clk_125m_n_i"      IOSTANDARD = "LVDS_25";
 NET "fmc0_tdc_clk_125m_n_i"      TNM_NET = "tdc_clk_125m_n_i";
-TIMESPEC TS_fmc0_tdc_clk_125m_n_i = PERIOD "fmc0_tdc_clk_125m_n_i" 8 ns HIGH 50%;
+TIMESPEC TS_fmc0_tdc_clk_125m_n_i = PERIOD "tdc_clk_125m_n_i" 8 ns HIGH 50%;
 
 #----------------------------------------
 # Others
@@ -157,6 +157,15 @@ NET "fmc0_tdc_onewire_b"         IOSTANDARD = "LVCMOS25";
 ### TDC IN FPGA (not used):
 NET "fmc0_tdc_in_fpga_1_i"       LOC = V17;
 NET "fmc0_tdc_in_fpga_1_i"       IOSTANDARD = "LVCMOS25";
+
+NET "aux_leds_o[0]"              LOC = G19;
+NET "aux_leds_o[0]"              IOSTANDARD = "LVCMOS18";
+NET "aux_leds_o[1]"              LOC = F20;
+NET "aux_leds_o[1]"              IOSTANDARD = "LVCMOS18";
+NET "aux_leds_o[2]"              LOC = F18;
+NET "aux_leds_o[2]"              IOSTANDARD = "LVCMOS18";
+NET "aux_leds_o[3]"              LOC = C20;
+NET "aux_leds_o[3]"              IOSTANDARD = "LVCMOS18";
 
 #===============================================================================
 # Timing constraints and exceptions
