@@ -26,40 +26,46 @@ class SCPI(PulseGenerator):
         import pyvisa
         self.mgr = pyvisa.ResourceManager()
         self.instr = self.mgr.open_resource(self.id)
-        self.instr.query_delay=10
+        self.instr.query_delay=0
+        self.instr.timeout = 10000
+        self.instr.read_termination = '\n'
+        self.instr.write_termination = '\n'
         self.instr.write("*RST")
-        self.wait_completion()
+        self.instr.query_ascii_values("*OPC?")
         self.instr.write("*CLS")
         self.instr.write("INITIATE:CONTINUOUS OFF")
         self.instr.write("OUTPUT:STATE OFF")
-
-    def wait_completion(self):
-        if int(self.instr.query_ascii_values("*OPC?")[0]) != 1:
-            raise Exception("Failed to reset the waveform generator")
 
     def disable(self, ch):
         self.instr.write("OUTPUT:STATE OFF")
 
     def generate_pulse(self, ch, rel_time_us,
                        period_ns, count, sync):
-        import pdb; pdb.set_trace()
         self.instr.write("OUTPUT:STATE OFF")
-        self.instr.write("SOURCE:VOLTAGE:LEVEL:IMMEDIATE:AMPLITUDE 5.0V")
+        # START Custom Agilent 33600A commands
+        self.instr.write("SOURCE:BURST:STATE OFF")
+        # END Custom Agilent 33600A commands
+
+        self.instr.write("SOURCE:VOLTAGE:LEVEL:IMMEDIATE:AMPLITUDE 2.5V")
+        self.instr.write("SOURCE:VOLTAGE:LEVEL:IMMEDIATE:OFFSET 1.25V")
         self.instr.write("SOURCE:FUNCTION:SHAPE PULSE")
         self.instr.write("SOURCE:PULSE:WIDTH 100ns")
         self.instr.write("SOURCE:PULSE:PERIOD {:d}ns".format(period_ns))
 
         # START Custom Agilent 33600A commands
-        self.instr.write("SOURCE:BURST:STATE ON")
-        self.instr.write("SOURCE:BURST:NCYCLES {:d}".format(count))
-#        self.instr.write("TRIGGER:DELAY {:d}us".format(rel_time_us))
-        # END Custom Agilent 33600A commands
+        self.instr.write("TRIGGER:DELAY {:d}e-6".format(rel_time_us))
 
+        burst_period_ns = int(count/(1/period_ns)) + 500
+        self.instr.write("SOURCE:BURST:INTERNAL:PERIOD {:d}ns".format(burst_period_ns))
+        self.instr.write("SOURCE:BURST:NCYCLES {:d}".format(count))
+        self.instr.write("SOURCE:BURST:STATE ON")
+        # END Custom Agilent 33600A commands
         self.instr.write("OUTPUT:STATE ON")
-        self.wait_completion()
+
+        self.instr.query_ascii_values("*OPC?")
         self.instr.write("INITIATE:IMMEDIATE")
         if sync:
-            self.wait_completion()
+            self.instr.query_ascii_values("*OPC?")
 
 class FmcFineDelay(PulseGenerator):
     CHANNEL_NUMBER = 4
