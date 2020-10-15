@@ -4,13 +4,14 @@ files = ["wr_spec_tdc.ucf",
 fetchto = "../../ip_cores"
 
 modules = {
-    "local" : [	"../../rtl/", 
-		"../../ip_cores/general-cores",
-		"../../ip_cores/gn4124-core",
-		"../../ip_cores/wr-cores",
-       "../../ip_cores/wr-cores/board/spec",
-       "../../ip_cores/ddr3-sp6-core",
-       "../../ip_cores/spec"
+    "local" : [	"../../rtl/" ],
+    "git" : [
+       "https://ohwr.org/project/general-cores.git",
+       "https://ohwr.org/project/gn4124-core.git",
+       "https://ohwr.org/project/wr-cores.git",
+       "https://ohwr.org/project/wr-cores/board/spec.git",
+       "https://ohwr.org/project/ddr3-sp6-core.git",
+       "https://ohwr.org/project/spec.git"
 	    ]
     }
 

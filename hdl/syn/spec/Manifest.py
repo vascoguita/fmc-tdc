@@ -2,7 +2,8 @@ board  = "spec"
 target = "xilinx"
 action = "synthesis"
 
-fetchto = "../../ip_cores"
+if locals().get('fetchto', None) is None:
+  fetchto = "../../ip_cores"
 
 syn_device = "xc6slx45t"
 syn_grade = "-3"
@@ -10,6 +11,7 @@ syn_package = "fgg484"
 syn_top = "wr_spec_tdc"
 syn_project = "wr_spec_tdc.xise"
 syn_tool = "ise"
+#syn_tool = "planahead"
 top_module = "wr_spec_tdc"
 
 files = ["buildinfo_pkg.vhd", "sourceid_wr_spec_tdc_pkg.vhd"]
