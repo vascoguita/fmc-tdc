@@ -49,7 +49,7 @@ class SCPI(PulseGenerator):
         self.instr.write("SOURCE:VOLTAGE:LEVEL:IMMEDIATE:AMPLITUDE 2.5V")
         self.instr.write("SOURCE:VOLTAGE:LEVEL:IMMEDIATE:OFFSET 1.25V")
         self.instr.write("SOURCE:FUNCTION:SHAPE PULSE")
-        self.instr.write("SOURCE:PULSE:WIDTH 100ns")
+        self.instr.write("SOURCE:PULSE:WIDTH 101ns")
         self.instr.write("SOURCE:PULSE:PERIOD {:d}ns".format(period_ns))
 
         # START Custom Agilent 33600A commands
