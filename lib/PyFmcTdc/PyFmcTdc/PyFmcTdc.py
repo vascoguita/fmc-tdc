@@ -22,10 +22,14 @@ class FmcTdcTime(ctypes.Structure):
                 ]
 
     def __str__(self):
+        return "seq: {:d} timestamp: {:f} raw: {:08x}:{:08x}:{:08x}, debug: {:08x}".format(self.seq_id, float(self), self.seconds, self.coarse, self.frac, self.debug)
+
+    def __float__(self):
         ts = self.seconds
         ts = ts + (self.coarse / 1000000000.0 * 8)
         ts = ts + ((self.frac * 7.999) / 4095) / 1000000000
-        return "seq: {:d} timestamp: {:f} raw: {:08x}:{:08x}:{:08x}, debug: {:08x}".format(self.seq_id, ts, self.seconds, self.coarse, self.frac, self.debug)
+        return ts
+
 
 
 def libfmctdc_create():
