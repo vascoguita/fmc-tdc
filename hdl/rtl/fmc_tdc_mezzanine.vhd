@@ -386,10 +386,10 @@ begin
 --                                           x5 FIFOS                                            --
 ---------------------------------------------------------------------------------------------------
 -- A FIFO with the timestamps of each channel
-  gen_enable_fifo_readout : if g_USE_FIFO_READOUT generate
   gen_fifos : for i in 0 to 4 generate
     U_TheFifo : entity work.timestamp_fifo
         generic map (
+          g_enable => g_USE_FIFO_READOUT,
           g_channel => i)
         port map (
           clk_sys_i         => clk_sys_i,
@@ -408,9 +408,7 @@ begin
           raw_enable_o      => raw_enable(i));
 
       timestamp_stb(i) <= tdc_timestamp_valid_p(i);
-    end generate gen_fifos;
-  end generate gen_enable_fifo_readout;
-
+  end generate gen_fifos;
 
       -- generic map (
         -- g_USE_FIFO_READOUT => g_USE_FIFO_READOUT)
