@@ -104,7 +104,7 @@ entity wr_spec_tdc is
   generic
     (g_WRPC_INITF                  : string  := "../../ip_cores/wr-cores/bin/wrpc/wrc_phy8.bram";
      g_WITH_DIRECT_READOUT         : boolean := FALSE; -- for embedded applications, like WRTD
-     g_USE_FIFO_READOUT            : boolean := TRUE; -- 1x 64-tstamps-long FIFO per channel; used on SVEC
+     g_USE_FIFO_READOUT            : boolean := FALSE; -- 1x 64-tstamps-long FIFO per channel; used on SVEC
      g_USE_DMA_READOUT             : boolean := TRUE;  -- DMA; used on SPEC
      g_SIMULATION                  : boolean := FALSE; -- TRUE only in sim
      g_USE_FAKE_TIMESTAMPS_FOR_SIM : boolean := FALSE  -- when instantiated in a test-bench
