@@ -19,4 +19,6 @@
 [submodule "hdl/ip_cores/svec"]
 	path = hdl/ip_cores/svec
 	url = https://ohwr.org/project/svec.git
-
+[submodule "zio"]
+	path = software/zio
+	url = git://ohwr.org/misc/zio.git

@@ -1,0 +1,4 @@
+libfmctdc.a
+libfmctdc.so*
+.depend
+Makefile.specific
