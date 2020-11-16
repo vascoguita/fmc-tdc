@@ -11,6 +11,7 @@ ccflags-y = -DVERSION=\"$(VERSION)\"
 ccflags-y += -I$(src)
 ccflags-y += -I$(ZIO_ABS)/include
 ccflags-y += -I$(FMC_ABS)/include
+ccflags-y += -I$(FMC_ABS)/include/uapi
 
 
 ccflags-$(CONFIG_FMC_TDC_DEBUG) += -DDEBUG

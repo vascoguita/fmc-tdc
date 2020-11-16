@@ -285,52 +285,9 @@ static int ft_zio_block_nr_pages(struct zio_block *block)
 	return nr_pages;
 }
 
-
-static int sg_alloc_table_from_block_vmalloc(struct sg_table *sgt,
-					     struct zio_block *block)
-{
-	struct scatterlist *sg;
-	unsigned int nr_pages;
-	int bytesleft = 0;
-	void *bufp = NULL;
-	int mapbytes;
-	int i;
-	int err;
-
-	nr_pages = ft_zio_block_nr_pages(block);
-	err = sg_alloc_table(sgt, nr_pages, GFP_KERNEL);
-	if (err)
-		return err;
-
-	bytesleft = block->datalen;
-	bufp = block->data;
-	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-		/*
-		 * If there are less bytes left than what fits
-		 * in the current page (plus page alignment offset)
-		 * we just feed in this, else we stuff in as much
-		 * as we can.
-		 */
-		if (bytesleft < (PAGE_SIZE - offset_in_page(bufp)))
-			mapbytes = bytesleft;
-		else
-			mapbytes = PAGE_SIZE - offset_in_page(bufp);
-		sg_set_page(sg, vmalloc_to_page(bufp), mapbytes,
-			    offset_in_page(bufp));
-		/* Configure next values */
-		bufp += mapbytes;
-		bytesleft -= mapbytes;
-		pr_debug("sg item (%p(+0x%lx), len:%d, left:%d)\n",
-			 virt_to_page(bufp), offset_in_page(bufp),
-			 mapbytes, bytesleft);
-	}
-
-        return 0;
-}
-
-static int sg_alloc_table_from_block_kmalloc(struct device *dev,
-					     struct sg_table *sgt,
-					     struct zio_block *block)
+static int sg_alloc_table_from_block(struct device *dev,
+				     struct sg_table *sgt,
+				     struct zio_block *block)
 {
        struct page **pages;
        unsigned int nr_pages;
@@ -348,8 +305,14 @@ static int sg_alloc_table_from_block_kmalloc(struct device *dev,
                return -ENOMEM;
 
        data = (void *) block->data;
-       for (i = 0; i < nr_pages; ++i)
-	       pages[i] = virt_to_page(data + PAGE_SIZE * i);
+       if (is_vmalloc_addr(data)) {
+	       for (i = 0; i < nr_pages; ++i) {
+		       pages[i] = vmalloc_to_page(data + PAGE_SIZE * i);
+	       }
+       } else {
+	       for (i = 0; i < nr_pages; ++i)
+		       pages[i] = virt_to_page(data + PAGE_SIZE * i);
+       }
 
        max_segment_size = dma_get_max_seg_size(dev);
        max_segment_size &= PAGE_MASK; /* to make alloc_table happy */
@@ -361,15 +324,6 @@ static int sg_alloc_table_from_block_kmalloc(struct device *dev,
 	       sg_free_table(sgt);
        kfree(pages);
        return err;
-}
-static int sg_alloc_table_from_block(struct device *dev,
-				     struct sg_table *sgt,
-				     struct zio_block *block)
-{
-	if (is_vmalloc_addr(block->data))
-		return sg_alloc_table_from_block_vmalloc(sgt, block);
-	else
-		return sg_alloc_table_from_block_kmalloc(dev, sgt, block);
 }
 
 static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,

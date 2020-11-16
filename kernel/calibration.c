@@ -14,7 +14,7 @@
 #include <linux/jhash.h>
 #include <linux/slab.h>
 #include <linux/fmc.h>
-#include <linux/ipmi-fru.h>
+#include <linux/ipmi/fru.h>
 #include <linux/zio.h>
 
 #include "fmc-tdc.h"
