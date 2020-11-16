@@ -5,14 +5,18 @@
 -include Makefile.specific
 # include parent_common.mk for buildsystem's defines
 #use absolute path for REPO_PARENT
-REPO_PARENT ?= $(shell /bin/pwd)/../..
+TOPDIR ?= $(shell /bin/pwd)/../../
+REPO_PARENT ?= $(TOPDIR)/../
 -include $(REPO_PARENT)/parent_common.mk
+
+TDC_HDL := $(TOPDIR)/hdl
 
 CPPCHECK ?= cppcheck
 DKMS ?= 0
 CURDIR := $(shell /bin/pwd)
 KVERSION ?= $(shell uname -r)
 LINUX ?= /lib/modules/$(KVERSION)/build
+WBGEN2 ?= wbgen2
 
 ifdef REPO_PARENT
 ZIO ?= $(REPO_PARENT)/fmc/zio
@@ -49,7 +53,29 @@ VMEBUS_ABS ?= $(abspath $(VMEBUS) )
 
 GIT_VERSION = $(shell git describe --always --dirty --long --tags)
 
-all modules:
+all: modules
+
+hw_headers: tdc_eic.h tdc_dma_eic.h tdc_onewire_regs.h tdc_buffer_control_regs.h timestamp_fifo_regs.h channel_regs.h
+
+tdc_eic.h: $(TDC_HDL)/rtl/wbgen/tdc_eic.wb
+	$(WBGEN2) -s defines -C hw/$@ $<
+
+tdc_dma_eic.h: $(TDC_HDL)/rtl/wbgen/dma_eic.wb
+	$(WBGEN2) -s defines -C hw/$@ $<
+
+tdc_onewire_regs.h: $(TDC_HDL)/rtl/wbgen/tdc_onewire_wb.wb
+	$(WBGEN2) -s defines -C hw/$@ $<
+
+tdc_buffer_control_regs.h: $(TDC_HDL)/rtl/wbgen/tdc_buffer_control_regs.wb
+	$(WBGEN2) -s defines -C hw/$@ $<
+
+timestamp_fifo_regs.h: $(TDC_HDL)/rtl/wbgen/timestamp_fifo_wb.wb
+	$(WBGEN2) -s defines -C hw/$@ $<
+
+channel_regs.h: $(TDC_HDL)/rtl/wbgen/channel_regs.wb
+	$(WBGEN2) -s defines -C hw/$@ $<
+
+modules: hw_headers
 	$(MAKE) -C $(LINUX) M=$(CURDIR) ZIO_ABS=$(ZIO_ABS) FMC_ABS=$(FMC_ABS) \
 		ZIO_EXTRA_SYMBOLS-y=$(ZIO_EXTRA_SYMBOLS-y) \
 		FMC_EXTRA_SYMBOLS-y=$(FMC_EXTRA_SYMBOLS-y) \
@@ -64,6 +90,9 @@ install modules_install: modules
 clean:
 	rm -rf *.o *~  .*.cmd *.ko *.mod.c .tmp_versions Module.symvers \
 		Module.markers modules.order
+	rm -f hw/tdc_eic.h hw/tdc_dma_eic.h hw/tdc_onewire_regs.h
+	rm -f hw/tdc_buffer_control_regs.h hw/timestamp_fifo_regs.h
+	rm -f hw/channel_regs.h
 
 cppcheck:
 	$(CPPCHECK) -q -I. -I$(ZIO_ABS)/include -I$(FMC_BUS_ABS)/  --enable=all *.c *.h

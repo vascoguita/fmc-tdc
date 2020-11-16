@@ -12,7 +12,6 @@
 #ifndef __TDC_REGISTERS_H
 #define __TDC_REGISTERS_H
 
-#include <hw/gennum-dma.h>
 #include <hw/tdc_buffer_control_regs.h>
 
 /* Gennum chip register */
