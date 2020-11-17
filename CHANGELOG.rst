@@ -6,8 +6,13 @@
 Changelog
 =========
 
-Unreleased
-==========
+8.0.0.rc1 - 2020-11-17
+======================
+Added
+-----
+- hdl,sw: double buffering DMA support for faster timestamping
+- hdl,sw: design built on top of spec-base and svec-base
+- tst: integration tests with pytest
 
 Changed
 -------
