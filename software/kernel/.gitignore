@@ -1,4 +1,3 @@
-hw/tdc_eic.h
 hw/tdc_dma_eic.h
 hw/tdc_onewire_regs.h
 hw/tdc_buffer_control_regs.h
