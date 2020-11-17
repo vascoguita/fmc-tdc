@@ -13,3 +13,14 @@ work/
 NullFile
 *.orig
 *.html
+*.o
+*.ko
+*~
+*.mod.c
+/.tmp_versions
+.*cmd
+modules.order
+Module.symvers
+*TAGS
+GPATH
+Makefile.specific

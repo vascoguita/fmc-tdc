@@ -1,0 +1,833 @@
+\input texinfo    @c -*-texinfo-*-
+%
+% fmc-tdc.in - main file for the documentation
+%
+%%%%
+
+%------------------------------------------------------------------------------
+%
+%                         NOTE FOR THE UNAWARE USER
+%                         =========================
+%
+%    This file is a texinfo source. It isn't the binary file of some strange
+%    editor of mine. If you want ASCII, you should "make fine-delay.txt".
+%
+%------------------------------------------------------------------------------
+
+%
+% This is not a conventional info file...
+% I use three extra features:
+%   - The '%' as a comment marker, if at beginning of line ("\%" -> "%")
+%   - leading blanks are allowed (this is something I can't live without)
+%   - braces are automatically escaped when they appear in example blocks
+%
+
+@comment %**start of header
+@documentlanguage en
+@documentencoding ISO-8859-1
+@setfilename fmc-tdc.info
+@settitle fmc-tdc
+@iftex
+@afourpaper
+@end iftex
+@paragraphindent none
+@comment %**end of header
+
+@setchapternewpage off
+
+@set update-month July 2013
+@c @set release 1.1
+@set tagname fmc-tdc-sw-v1.0
+@c WARNING: in @example I Can't use @value{tagname}, so please look for this
+@c string when updating the document.
+
+@finalout
+
+@titlepage
+@title FMC TDC User's Manual
+@subtitle @value{update-month}
+@subtitle FMC TDC 1ns-5cha hardware and software manual
+@author CERN BE-CO-HT / Tomasz Wlostowski, Alessandro Rubini
+@end titlepage
+@headings single
+
+@c ##########################################################################
+@iftex
+@contents
+@end iftex
+
+@c ##########################################################################
+@node Top
+@top Introduction
+
+This is the user manual for the
+@i{FmcTdc1ns5cha} board developed on @code{ohwr.org}, referenced futher
+as the @i{FmcTdc}. The manual is heavily based on the documentation
+of the @i{Fine Delay} card, written by Alessandro Rubini. 
+ 
+@c ##########################################################################
+@node Repositories and Releases
+@chapter Repositories and Releases
+
+The code and documentation are distributed in the following places:
+
+@table @code
+
+@item http://www.ohwr.org/projects/fmc-tdc-sw/documents
+
+	This place hosts the pdf documentation for official releases.
+
+@item http://www.ohwr.org/projects/fmc-tdc-sw/files
+
+	Here we place the @i{.tar.gz} file for every release,
+        including the @i{git} tree and compiled documentation (for
+        those who lack TeX).
+
+@item git://ohwr.org/fmc-projects/fmc-tdc/fmc-tdc-sw.git
+
+	Read-only repository for the software and documentation.
+
+@item git@@ohwr.org:fmc-projects/fmc-tdc/fmc-tdc-sw.git
+
+	Read-write repositories, for those authorized.
+
+@end table
+
+@c The official release of this
+@c repository has a tag called called
+@c @code{@value{tagname}}. The same tag is used in related
+@c repositories (@i{zio}, @i{spec-sw} and the hardware repository).
+@c Any official hot fixes, if any,  for this
+@c release live in the branch called
+@c @code{@value{tagname}-fixes}, in each repository.
+
+@b{Note:} If you got this from the repository (as opposed to a named
+@i{tar.gz} or @i{pdf} file) it may happen that you are looking at a later commit
+than the release this manual claims to document.
+It is a fact of life that developers forget
+to re-read and fix documentation while updating the code. In that case,
+please run ``@code{git describe HEAD}'' to ensure where you are.
+
+@c ##########################################################################
+@node Hardware Description
+@chapter Hardware Description
+
+The @i{FmcTdc} is an FPGA Mezzanine Card (FMC - VITA 57 standard), containing a 5-channel Time To
+Digital Converter (TDC). All channels share same time base, therefore one can relate timestamps of pulses coming to different channels. 
+
+@c ==========================================================================
+@node Requirements and Supported Platforms
+@section Requirements and Supported Platforms
+
+@i{FmcTdc} can work with any VITA 57-compliant FMC carrier, provided that the carrier's FPGA has enough logic resources. 
+This release of the driver software supports the following carriers:
+@itemize
+@item SPEC (Simple PCI-Express Carrier),
+@item SVEC (Simple VME64x Carrier)
+@end itemize
+
+In order to operate @i{FmcTdc}, the following hardware/software components are required:
+
+@itemize @bullet
+@item A standard PC with at least one free 4x (or wider) PCI-Express slot and a SPEC PCI-Express FMC carrier (supplied with an @i{FmcTdc}),
+@item In case of a VME version: any VME64x crate with a controller (tested on a MEN A20) and a SVEC VME64x FMC carrier (supplied with one or two @i{FmcTdc}s),
+@item 50-ohm cables with 1-pin LEMO 00 plugs for connecting the I/O signals,
+@item Any Linux (kernel 2.6 or 3.0+) distribution.
+@end itemize
+
+@b{Note}: The software has been developed on Linux-3.11, and supports legacy kernels down to 2.6.24 (CERN RT-patched kernel).
+@c ==========================================================================
+
+@node Mechanical/Environmental
+@section Mechanical/Environmental
+
+@noindent @b{Mechanical and environmental specs:}
+@itemize @bullet
+@item Format: FMC (VITA 57),
+@item Operating temperature range: 0 - 90 degC,
+@item Carrier connection: 160-pin Low Pin Count FMC connector.
+@end itemize
+
+@c ==========================================================================
+@node Electrical
+@section Electrical
+
+@noindent @b{Inputs/Outputs:}
+@itemize @bullet
+@item 5 trigger inputs (LEMO 00),
+@item 6 LEDs: 5 for indicating input termination, 1 as a general-purpose status indicator,
+@item Carrier communication via 160-pin Low Pin Count FMC connector.
+@end itemize
+
+@noindent @b{Trigger input:}
+@itemize
+@item TTL/LVTTL levels, DC-coupled,
+@item 2 kOhm or 50 Ohm input impedance (software-selectable). 50 Ohm termination is indicated by a corresponding LED in the front panel,
+@item Power-up input impedance: 2 kOhm,
+@item Protected against short circuit, overcurrent (> 200 mA) and overvoltage (up to +15 V),
+@item Maximum input pulse edge rise time: 20 ns.
+@end itemize
+
+@noindent @b{Power supply:}
+@itemize
+@item Used power supplies: P12V0, P3V3, P3V3_AUX, VADJ (voltage monitor only).
+@item Typical current consumption: FIXME (P12V0) + FIXME (P3V3).
+@item Power dissipation: [fixme: Eva] W.
+@end itemize
+
+@c ==========================================================================
+@node Timing
+@section Timing
+
+@noindent @b{Time base:}
+@itemize @bullet
+@item On-board oscillator accuracy: +/- 4 ppm (i.e. max. 4 ns error for pulses separated by 1 ms).
+@item When using White Rabbit as the timing reference: depending on the characteristics of the grandmaster clock and the carrier used. 
+%On SPEC v 4.0 FMC carrier, the accuracy is better than 1 ns.
+@end itemize
+
+@noindent @b{Input timing:}
+@itemize @bullet
+@item Minimum pulse width: @math{t_{IW}} = 100 ns. Pulses below 100 ns are rejected. Width checking is done in software by subtracting rising and falling edge timestamps.
+@item Minimum pulse spacing: 100 ns.
+@item Only rising edges are time tagged.
+@item TDC accuracy: 700 ps peak-peak (six sigma)
+@item TDC precision: 500 ps peak-peak (six sigma).
+@item TDC resolution: 81 ps.
+@end itemize
+
+@c ##########################################################################
+@node Driver Features
+@chapter Driver Features
+
+This driver is based on @i{ZIO} and @i{fmc-bus}. The features it provides are:
+@itemize
+@item Setting up the board.
+@item Reading time.
+@item The obvious: reading timestamps of incoming pulses.
+@item User-defined input offsets.
+@item Readout of card temperature.
+@item Controlling channel termination.
+@item Globally enabling/disabling timestamp acquisition.
+@end itemize
+
+The features that are planned, but are @b{not supported} in this release are:
+@itemize
+@item White Rabbit synchronization
+@end itemize
+
+For each feature offered the driver (and documentation) the driver
+tries to offer the following items; sometimes however one of them is missing for a specific
+driver functionality, if we don't consider it important enough.
+
+@itemize @bullet
+@item A description how does the feature work.
+@item A C-language API to access the feature with data structures.
+@item An example program based on that API.
+@end itemize
+
+@c ##########################################################################
+@node Installation
+@chapter Installation
+
+This driver depends on three other modules (three @code{ohwr.org}
+packages), as well as the Linux kernel.  Also, it
+must talk to a specific FPGA binary file running in the device.
+
+@c ==========================================================================
+@node Gateware Dependencies
+@section Gateware Dependencies
+
+This version of the driver has been developed to run with
+the FPGA binary included in the
+package as @code{binaries/[carrier]-fmc-tdc.bin}.
+The @code{[carrier]} prefix denotes the type of FMC carrier the gateware is for - 
+that is, @code{spec} or @code{svec}. These binary files are included in the software release package. They are also
+available directly in the @i{Files} tab on the OHWR project website.
+
+If the gateware is updated, I'll take care to always include in this
+package the exact binary the software is developed and verified
+against.
+
+@c ==========================================================================
+@node Gateware Installation
+@section Gateware Installation
+
+To install the FPGA image in the target system, please follow the
+instructions in the documentation of @i{spec-sw} or @i{svec-sw}.
+To summarize, you'll need to place the @code{.bin} file, properly renamed, in
+@i{/lib/firmware} or a subdirectory thereof.
+The default name used by this driver is
+@file{fmc/spec-fmc-tdc.bin} or @file{fmc/svec-fmc-tdc.bin}.
+
+If you have several @i{FMC TDC} cards in the same host, you can
+load different binaries in different cards, using appropriate
+module parameters.
+
+The following example commands are sufficient for most users:
+@smallexample
+$ sudo mkdir -p /lib/firmware/fmc
+$ sudo cp spec-fmc-tdc.bin svec-fmc-tdc.bin /lib/firmware/fmc
+@end smallexample
+
+
+@c ==========================================================================
+@node Software Dependencies
+@section Software Dependencies
+
+The kernel versions I am using during development is 3.11. Everything
+used here is known to build with all versions since 2.6.32 and up to 3.11. Note that the @i{FmcTdc} driver
+will compile older kernels (such as 2.6.24-rt that is used at CERN), but the modules it depends on will have to 
+be built from backport branches.
+
+The driver, then, is based on the ZIO framework, available from
+@code{ohwr.org}.  I'm developing with the @code{v1.0-fixes} branch of
+the framework.  Again, this commit of ZIO is known
+to work in the kernel range 2.6.32..3.11 and a backport to 2.6.24 is
+available.
+
+The FMC mezzanine is supported by means of the @i{fmc-bus}
+software project. Such support used to be part of the @i{spec-sw}
+package, but is not a project of its own.  This @i{FmcTdc}
+kernel module registers as a @i{driver} for the FMC bus abstraction,
+and is verified with version @t{v2013-05.1} of the FMC package.
+The same kernel range applies.
+
+Both packages (ZIO and @i{fmc-bus})
+are currently checked out as @i{git submodules}
+of this package, and each of them is retrieved at the right version
+to be compatible with this driver.  This means you may just
+ignore software dependencies and everything should work.
+
+The carrier driver is not strictly related to this package, but
+@i{FmcTdc} is released against version @t{v2013-04} of
+@i{spec-sw} and version [fixme] of @i{svec-sw}.
+
+Unfortunately, all the packages are moving fast: we are approaching a stable
+and long-lasting status but we are not there yet. Please stick
+to the released versions named in this section, unless you are involved
+in development.
+
+@c ==========================================================================
+@node Software Installation
+@section Software Installation
+
+To install this software package, you need to tell it where your
+kernel sources live, so the package can pick the right header files.
+You need to set only one environment variable:
+
+@table @code
+@item LINUX
+
+	The top-level directory of the Linux kernel you are compiling
+        against. If not set, the default may work if you compile in the same
+        host where you expect to run the driver.
+
+@end table
+
+Most likely, this is all you need to set. After this, you can
+run:
+
+@example
+    make 
+    sudo make install LINUX=$LINUX
+@end example
+
+In addition to the normal installation procedure for
+@code{fmc-tdc.ko} you'll see the following message:
+
+@example
+    WARNING: Consider "make prereq_install"
+@end example
+
+The @i{prerequisite} packages are @i{zio} and @i{fmc-bus};
+unless you already installed your own preferred version, you are
+expected to install the version this packages suggests. This step
+can be performed by:
+
+@example
+    make
+    sudo make prereq_install LINUX=$LINUX
+@end example
+
+The step is not performed by default to avoid overwriting some
+other versions of the drivers. After @code{make prereq_install},
+the warning message won't be repeated any more if you change this
+driver and @code{make install} again.
+
+After installation, your carrier driver should load automatically
+(for example, the PCI bus will load @code{spec.ko}), but @code{
+fmc-tdc.ko} must be loaded manually, because support for
+automatic loading is not yet in place. The suggested command is
+one or the other of the following two:
+
+@smallexample
+   modprobe fmc-tdc [<parameter> ...]         # after make install
+   insmod kernel/fmc-tdc.ko [<parameter> ...]  # if not installed
+@end smallexample
+
+Available module parameters are described in @ref{Module Parameters}.
+Unless you customized or want to customize one of the three
+related packages, you can skip the rest of this section.
+
+Note that in case of the VME version, one must configure VME base addresses/LUNs
+through parameters of the SVEC driver. A sample set of commands is below:
+
+@smallexample
+   modprobe fmc-tdc [<parameter> ...]         # after make install
+   modprobe svec slot=4 vmebase=0xa0000000 lun=0 vector=0x86
+@end smallexample
+
+It assumes a SVEC with A32 mapping at @code{0xa0000000}, identified as card @code{0} in the system and residing in slot @code{4} of the VME crate.
+
+@sp 1
+
+In order to compile @i{FmcTdc} against a specific repository of one
+of the related packages, ignoring the local @i{submodule}
+you can use one or more of the following
+environment variables:
+
+@table @code
+
+@item ZIO
+@itemx FMC_BUS
+
+	The top-level directory of the repository checkout of each
+        package. Most users won't need to set them, as the Makefiles
+        point them to the proper place by default.
+
+@end table
+
+If any of the above is set, headers and dependencies for the
+respective package are taken from the chosen directory. If you
+@code{make prereq_install} with any of these variables set, they are
+be used to know where to install from, instead of using local submodules.
+
+@c ==========================================================================
+@node Module Parameters
+@section Module Parameters
+
+The driver accepts a few load-time parameters for configuration. You
+can pass them to @i{insmod} amd @i{modprobe} directly, or write them
+in @code{/etc/modules.conf} or the proper file in @code{/etc/modutils/}.
+
+The following parameters are used:
+
+@table @code
+
+@item verbose=
+
+	The parameter defaults to 0. If set, it enables more diagnostic
+        messages during probe (you may find it is not used, but it is
+        left in to be useful during further development, and avoid
+        compile-time changes like use of @code{#ifdef DEBUG}).
+
+@item poll_interval=
+
+	The period of the buffer polling timer.
+        The timer is used to poll for input events on the SVEC card, whose software does
+        not support interrupts yet. The default interval is 10 milliseconds. 
+        You may want to use the timer while porting to a different carrier, 
+        before sorting out IRQ issues.
+
+@item buffer_size
+      
+      Numer of entries in the software timestamp buffer (independent buffers
+      per channel). Defaults to 8192.
+
+@item show_sdb
+      
+      Defaults to 0. If enabled, the driver will print out the contents of the SDB device tree
+      in the gateware. Reserved for debugging purposes.
+
+@end table
+
+The module also uses the two parameters provided by the @i{fmc}
+framework:
+
+@table @code
+
+@item busid=
+
+	A list of bus identifiers the driver will accept to driver.
+        Other identifiers will lead to a failure in the @i{probe}
+        function. The meaning of the identifiers is carrier-specific;
+        the SPEC uses the bus number and @i{devfn}, where the latter
+        is most likely zero.
+
+@item gateware=
+
+	A list of gateware file names. The names passed are made to
+        match the @i{busid} parameters, in the same order. This
+        means that you can't make the driver load a different gateware
+        file without passing the respective @i{busid}. Actually, to
+        change the gateware for all boards, you may just replace
+        the file in @file{/lib/firmware}. (Maybe I'll add an
+        option to change the name at load time for all boards).
+@c FIXME: name for gateware file (the global one)
+
+@end table
+
+For example, this host has one SPEC cards:
+
+@smallexample
+   # lspci | grep CERN
+   01:00.0 Non-VGA unclassified device: CERN/ECP/EDU Device 018d (rev 03)
+@end smallexample
+
+Installing the @code{fmc-tdc} driver should show the following output:
+
+@smallexample
+  # insmod fmc-tdc.ko
+  [321272.596475] spec 0000:01:00.0: reprogramming with fmc/spec-fmc-tdc.bin
+  [321272.791378] spec 0000:01:00.0: FPGA programming successful
+  [321272.791478] spec 0000:01:00.0: Gateware successfully loaded 
+  [321272.791483] fmc_tdc FmcTdc1ns5cha-0100: ft_spec_reset: resetting TDC core through Gennum.
+  [321275.798831] fmc_tdc FmcTdc1ns5cha-0100: calib: zero_offset[0] = 0
+  [321275.798835] fmc_tdc FmcTdc1ns5cha-0100: calib: zero_offset[1] = 86
+  [321275.798837] fmc_tdc FmcTdc1ns5cha-0100: calib: zero_offset[2] = 609
+  [321275.798840] fmc_tdc FmcTdc1ns5cha-0100: calib: zero_offset[3] = 572
+  [321275.798842] fmc_tdc FmcTdc1ns5cha-0100: calib: zero_offset[4] = 335
+  [321275.798844] fmc_tdc FmcTdc1ns5cha-0100: calib: vcxo_default_tune 43343
+  [321275.814487] fmc_tdc FmcTdc1ns5cha-0100: ft_acam_init: ACAM initialization OK.
+  [321276.580679] fmc_tdc FmcTdc1ns5cha-0100: ft_read_temp: Scratchpad: 
+  [321276.580683] e3:02:4b:46:7f:ff:0d:10:c0
+  [321276.580692] fmc_tdc FmcTdc1ns5cha-0100: ft_read_temp: Temperature 0x2e3 (12 bits: 46.187)
+@end smallexample
+
+@c ##########################################################################
+@node Source Code Conventions
+@chapter Source Code Conventions
+
+This is a random list of conventions I use in this package
+
+@itemize @bullet
+
+@item All internal symbols in the driver begin with @code{ft_}
+(excluding local variables like @i{i} and similar stuff). So you know
+if something is local or comes from the kernel.
+
+@item All library functions and public data begin with @code{fmctdc_}.
+
+@item The board passed as a library token (@code{struct fmctdc_board})
+is opaque, so the user doesn't access it.  Internally it is called
+@code{userb} because @code{b} is the real one being used. If you need
+to access library internals from a user file just include @code{fmctdc-lib-private.h}
+after including @code{fmctdc-lib.h}.
+
+@item The driver header is called @code{fmc-tdc.h} while the user one
+is @code{fmctdc-lib.h}. The latter includes the former, which user
+programs should not refer to.  
+
+@item The @i{test} contains a set of example programs for the library.
+
+@end itemize
+
+@c ##########################################################################
+@node API Overview
+@chapter API Overview
+
+In this chapter we will not discuss about the details of the API; for this
+purpose please generate (and read) the doxygen documentation:
+
+@smallexample
+        cd doc
+        make doxygen
+@end smallexample
+
+Here we will present generic concept behind the API, all implementation details
+are available on the doxygen documentation.
+
+@c ==========================================================================
+@node Time-Stamp modes
+@section Time-Stamp modes
+The driver provides two time-stamp modes that you can configure for
+each channel:
+
+@itemize @bullet
+@item base time
+@item difference time
+@end itemize
+
+The standard mode is the @i{base time} mode. When this mode is enabled for a
+given channel, the provided time-stamps will be a pure time-stamp according to
+the TDC internal base-time. You can change the internal base-time of a TDC
+board when the acquisition is off.
+
+The @i{difference time} mode can be enabled by assigning a channel reference
+to a given channel (target). When you assing a channel reference to a channel
+the time-stamps produced by the driver will be a time difference between the
+pulse on the target channel and the last pulse on the reference channel.
+In order to disable the difference mode, and go back to the base time mode,
+you must remove the channel reference.
+
+
+@c ##########################################################################
+@chapter Example programs
+@c ==========================================================================
+@node Initialization and Cleanup
+@section Initialization and Cleanup
+
+The sample program @i{fmctdc-list} lists the boards currently on the system,
+using @i{fmctdc_init}:
+
+@smallexample
+        # ./fmctdc-list 
+        Found 1 board(s): 
+        0100, /dev/zio/ft-0100, /sys/bus/zio/devices/ft-0100
+@end smallexample
+
+@c ==========================================================================
+@node Time Management
+@section Time Management
+
+The program @i{fmctdc-board} is a command-line front-end to the library,
+to validate the library works as expected. The first parameter is the board bus ID, the second one is the command, the third one is the new seconds counter value:
+
+@smallexample
+        # ./fmctdc-time 0100 get
+        Current TAI time is 813.000000000 s
+        # ./fmctdc-time 0100 set 10000
+        # ./fmctdc-time 0100 get
+        Current TAI time is 10001.000000000 s
+        # ./fmctdc-time 0100 host
+        # ./fmctdc-time 0100 get
+        Current TAI time is 1376987950.000000000 s
+@end smallexample
+
+
+
+@c ==========================================================================
+@node Input Configuration
+@section Input Configuration
+
+The example program @i{fmctdc-term} demonstrates use of the function.
+It just enables or disables the 50-ohm resistor.  The effect is
+usually verifiable by hooking a scope to the input signal:
+
+@smallexample
+        # ./fmctdc-term 0100
+        channel 1: 50 Ohm termination is off
+        channel 2: 50 Ohm termination is off
+        channel 3: 50 Ohm termination is off
+        channel 4: 50 Ohm termination is off
+        channel 5: 50 Ohm termination is off
+        # ./fmctdc-term 0100 1 on
+        channel 1: 50 Ohm termination is on
+@end smallexample
+
+The other example, @i{fmctdc-acquisition}, works as follows:
+
+@smallexample
+        # ./fmctdc-acquisition 0100 off
+        # ./fmctdc-acquisition 0100 
+        board 0100: acquisition is off
+@end smallexample
+
+
+
+@c ==========================================================================
+@node Reading Input Time-stamps
+@section Reading Input Time-stamps
+
+There is an example program provided, called @i{fmctdc-read}:
+
+Calling @i{fmctdc-read} with just the board ID will keep reading all timestamps from
+all channels. One can limit the number of samples to be read by using @code{-s} parameter. 
+
+@smallexample
+        # fmctdc-read 0100
+        channel 1 seq 1699         ts 1376988979.899,210,574,710 ps
+        channel 3 seq 11           ts 1376988979.899,210,599,375 ps
+        channel 1 seq 1700         ts 1376988980.055,610,386,324 ps
+        channel 3 seq 12           ts 1376988980.055,610,410,908 ps
+        (...)
+@end smallexample
+
+The program also demonstrates the non-blocking mode, which can be enabled by @code{-n} parameter. 
+Unfortunately, even if there are samples pending, @i{read}
+will only return one of them, because the ZIO device will only see the
+next sample slightly after returning the previous one. This is a buffering
+problem with our use of ZIO. Therefore, calling @i{read} in non-blocking mode will only return the first
+pending sample from each channel.
+
+The @i{read} utility can also dump hardware (WR) timestamps instead of converting them to seconds. It is also possible to specify
+the range of channels to be read:
+
+@smallexample
+        # ./fmctdc-read -w 0100 1
+        channel 1 seq 1981         ts 1376989024:000548630:2712
+        channel 1 seq 1982         ts 1376989024:020097955:1262
+        channel 1 seq 1983         ts 1376989024:039649072:3338
+@end smallexample
+
+Note that if the input pulses come too often, the timestamp buffers will overflow. This is indicated by making a gap in the sequence ID. Due to gateware 
+issues, it is @b{not possible} to determine the exact number of lost samples by subtracting the sequence IDs.
+
+@node Setting user input offsets
+@section Setting user input offsets
+
+It is possible to add an user-defined offset to all timestamps coming to a particular channel, for example to compensate for cabling delay.
+There is no dedicated API function for that purpose, it may be added in future relases. Setting the offset currently can be done through ZIO @code{sysfs} parameters.
+For example:
+
+@smallexample
+        # echo 10000 > /sys/bus/zio/devices/ft-0100/ft-ch1/user-offset 
+@end smallexample
+
+will result with the driver adding extra 10 ns (= 10000 ps) to each timestamp coming to channel 1 of the card @code{0100}. 
+
+
+@c ##########################################################################
+@node Known Bugs and Missing Features
+@chapter Known Bugs and Missing Features
+
+This package is still work in progress, and unfortunately the same
+applies to the packages it depends on -- @i{zio} and @i{fmc-bus}.
+
+@c ==========================================================================
+@node Bugs in Related Packages
+@section Bugs in Related Packages
+
+The current package set (i.e., @i{zio}, @i{fmc-bus} and this one) has
+the following known issues exposed by @i{fine-delay}:
+
+@itemize @bullet
+@item The auto-loading of @i{fmc} modules is not yet working:
+
+@item The @i{user} trigger of ZIO is really user-driven, so the driver
+can't push stuff to the buffer until asked to. Also, a related buglet
+prevents to return data immediately when asked. This will be fixed,
+but it currently results in the @i{read} function only returning one
+sample, and an immediately-following non-blocking @i{read} will say
+nothing is there, yet.
+
+@end itemize
+
+@c ==========================================================================
+@node Bugs in This Package
+@section Bugs in This Package
+
+This is the list of known bugs and missing features over what hardware
+allows:
+
+@itemize @bullet
+
+@item Calibration information in the EEPROM is not verified, as its the format does not include
+any means of verification (hash, checksum, etc.)
+
+@item Purging the buffers by disabling acquisition sometimes leaves a single old sample in the
+ZIO buffer. This is probably due to a bug in ZIO.
+
+@end itemize
+
+@node Gateware issues
+@section Gateware issues
+
+This is the list of known gateware issues, that sometimes affected the architecture and features of the driver.
+
+@itemize @bullet
+@item Time setting is possible only when acquisition is disabled.
+@item No coarse time counter setting possible.
+@item Seconds counter has 32 bits. This may bring a surprise in 2038 if the time is set according to the Unix epoch.
+@item No White Rabbit support.
+@item Acquisition can be only enabled/disabled globally for all channels.
+@item No support for hardware sequence numbers. This, combined with the HW timestamp buffer shared between all channels,
+makes it impossible to count the number of lost samples if the HW buffer overflows.
+@item Pulse width checking has to be done in software.
+@item No possibility to check FMC's PLL status on the SPEC (if the mezznanine is broken, the OS will
+freeze without reporting any error).
+@item SVEC version must have two mezzanines inserted, even if only one of them is used. This is due to clocking internal
+Wishbone bus directly from FMC PLLs. Both of them need to be running before the driver can read the SDB tree without dropping
+an error and/or crashing the machine.
+@end itemize
+
+
+@c ==========================================================================
+@node Wish List
+@section Wish List
+
+Other less important issues may be dealt with over time, but are not
+urgent as I write this:
+
+@itemize 
+
+@item The driver should register its own ZIO trigger, or use the new
+attribute for ``greedy-input'' planned in new versions of ZIO
+(thank you Federico). Currently there's no buffering and reading is
+slower than it could be.
+
+@item White Rabbit support, as in the @i{Fine Delay}.
+
+@end itemize
+
+
+@c ##########################################################################
+@node Troubleshooting
+@chapter Troubleshooting
+
+This chapters lists a few errors that may happen and how to deal with
+them.
+
+@c ==========================================================================
+@node ZIO Doesn't Compile
+@section ZIO Doesn't Compile
+
+Compilation of ZIO ma fail with error like:
+
+@smallexample
+   zio-ad788x.c:180: error: implicit declaration of function "spi_async_locked"
+@end smallexample
+
+This happens because the function wasn't there in your older kernel
+version, and your system is configured to enable @code{CONFIG_SPI}.
+
+To fix, please just remove the @i{zio-ad788x} line from
+@code{drivers/Makefile}.
+
+@c ==========================================================================
+@node make modules_install misbehaves
+@section make modules_install misbehaves
+
+The command @i{sudo make modules_install} may place the modules in the wrong
+directory or fail with an error like:
+
+@smallexample
+   make: *** /lib/modules/2.6.37+/build: No such file or directory.
+@end smallexample
+
+This happens when you compiled by setting @code{LINUX=} and your
+@i{sudo} is not propagating the environment to its child processes.
+In this case, you should run this command instead
+
+@smallexample
+   sudo make modules_install  LINUX=$LINUX
+@end smallexample
+
+@c ==========================================================================
+@node Version Mismatch
+@section Version Mismatch
+
+The @i{fmctdc} library may report a version mismatch like this:
+
+@example
+   spusa# ./lib/fmctdc-time  get
+   fmctdc_init: version mismatch, lib(1) != drv(2)
+   ./lib/fmctdc-time: fmctdc_init(): Input/output error
+@end example
+
+This reports a difference in the way ZIO attributes are laid out, so user
+space may exchange wrong data in the ZIO control block, or may try to
+access inexistent files in @i{/sys}. I suggest recompiling both the kernel
+driver and user space from a single release of the source package.
+
+
+@c ##########################################################################
+@bye
+
+@c  LocalWords:  gnudd titlepage iftex texinfo CERN documentlanguage settitle
+@c  LocalWords:  documentencoding setfilename afourpaper paragraphindent FPGA
+@c  LocalWords:  setchapternewpage finalout gateware ohwr modprobe insmod cset
+@c  LocalWords:  smallexample ctrl timestamp fdelay struct spusa gitorious http
+@c  LocalWords:  tagname FmcDelay timestamping Timestamps perf picosecond ATTR
+@c  LocalWords:  usec EEPROM sudo

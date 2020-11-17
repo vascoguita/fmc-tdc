@@ -11,14 +11,11 @@ use work.dr_wbgen2_pkg.all;
 entity fmc_tdc_direct_readout is
   port
     (
-      clk_tdc_i   : in std_logic;
-      rst_tdc_n_i : in std_logic;
-
       clk_sys_i   : in std_logic;
       rst_sys_n_i : in std_logic;
 
-      direct_timestamp_i    : in std_logic_vector(127 downto 0);
-      direct_timestamp_wr_i : in std_logic;
+      timestamp_i       : in t_tdc_timestamp_array(4 downto 0);
+      timestamp_valid_i : in std_logic_vector(4 downto 0);
 
       direct_slave_i : in  t_wishbone_slave_in;
       direct_slave_o : out t_wishbone_slave_out
@@ -29,31 +26,16 @@ end entity;
 
 architecture rtl of fmc_tdc_direct_readout is
 
-  component fmc_tdc_direct_readout_wb_slave is
-    port (
-      rst_n_i    : in  std_logic;
-      clk_sys_i  : in  std_logic;
-      wb_adr_i   : in  std_logic_vector(2 downto 0);
-      wb_dat_i   : in  std_logic_vector(31 downto 0);
-      wb_dat_o   : out std_logic_vector(31 downto 0);
-      wb_cyc_i   : in  std_logic;
-      wb_sel_i   : in  std_logic_vector(3 downto 0);
-      wb_stb_i   : in  std_logic;
-      wb_we_i    : in  std_logic;
-      wb_ack_o   : out std_logic;
-      wb_stall_o : out std_logic;
-      clk_tdc_i  : in  std_logic;
-      regs_i     : in  t_dr_in_registers;
-      regs_o     : out t_dr_out_registers);
-  end component fmc_tdc_direct_readout_wb_slave;
-
   constant c_num_channels : integer := 5;
 
   type t_channel_state is record
     enable  : std_logic;
     timeout : unsigned(23 downto 0);
-    fifo_wr : std_logic;
+    ready   : std_logic;
   end record;
+
+  --  Bit is set when timestamp for channel has to be written in fifo.
+  signal fifo_wr : std_logic_vector(c_num_channels-1 downto 0);
 
   type t_channel_state_array is array(0 to c_num_channels-1) of t_channel_state;
 
@@ -62,24 +44,33 @@ architecture rtl of fmc_tdc_direct_readout is
   signal regs_out : t_dr_out_registers;
   signal regs_in  : t_dr_in_registers;
 
-  signal ts_cycles  : std_logic_vector(31 downto 0);
-  signal ts_seconds : std_logic_vector(31 downto 0);
-  signal ts_bins    : std_logic_vector(17 downto 0);
-  signal ts_edge    : std_logic;
-  signal ts_channel : std_logic_vector(2 downto 0);
-
   signal direct_slave_out: t_wishbone_slave_out;
-  
+
+  signal channel_select : integer := 0;
+
 begin
 
+  p_channel_select: process (timestamp_valid_i) is
+  begin
+    case timestamp_valid_i is
+      when "00001" => channel_select <= 0;
+      when "00010" => channel_select <= 1;
+      when "00100" => channel_select <= 2;
+      when "01000" => channel_select <= 3;
+      when "10000" => channel_select <= 4;
+      when others  => channel_select <= 0;
+    end case;
+  end process p_channel_select;
 
-  ts_channel <= direct_timestamp_i(98 downto 96);
-  ts_edge    <= direct_timestamp_i(100);
-  ts_seconds <= direct_timestamp_i(95 downto 64);
-  ts_cycles  <= direct_timestamp_i(63 downto 32);
-  ts_bins    <= direct_timestamp_i(17 downto 0);
+  regs_in.fifo_cycles_i  <= timestamp_i(channel_select).coarse;
+  regs_in.fifo_edge_i    <= timestamp_i(channel_select).slope;
+  regs_in.fifo_seconds_i <= timestamp_i(channel_select).tai;
+  regs_in.fifo_channel_i <= '0' & timestamp_i(channel_select).channel;
+  regs_in.fifo_bins_i    <= "000000" & timestamp_i(channel_select).frac;
+  regs_in.fifo_wr_req_i  <= f_to_std_logic(fifo_wr(channel_select) = '1' and
+                                           regs_out.fifo_wr_full_o = '0');
 
-  U_WB_Slave : fmc_tdc_direct_readout_wb_slave
+  U_WB_Slave : entity work.fmc_tdc_direct_readout_wb_slave
     port map (
       rst_n_i    => rst_sys_n_i,
       clk_sys_i  => clk_sys_i,
@@ -92,7 +83,6 @@ begin
       wb_we_i    => direct_slave_i.we,
       wb_ack_o   => direct_slave_out.ack,
       wb_stall_o => direct_slave_out.stall,
-      clk_tdc_i  => clk_tdc_i,
       regs_i     => regs_in,
       regs_o     => regs_out);
 
@@ -101,61 +91,36 @@ begin
 
   direct_slave_o <= direct_slave_out;
 
-  regs_in.fifo_cycles_i  <= ts_cycles;
-  regs_in.fifo_edge_i    <= '1';
-  regs_in.fifo_seconds_i <= ts_seconds;
-  regs_in.fifo_channel_i <= '0'&ts_channel;
-  regs_in.fifo_bins_i    <= ts_bins;
-
 
   gen_channels : for i in 0 to c_num_channels-1 generate
 
-    p_dead_time : process (clk_tdc_i)
-    begin
-      if rising_edge(clk_tdc_i) then
-        if rst_tdc_n_i = '0' then
-          c(i).timeout <= (others => '0');
-          c(i).enable  <= '0';
-          c(i).fifo_wr <= '0';
-        else
-          c(i).enable <= regs_out.chan_enable_o(i);
+    c(i).enable <= regs_out.chan_enable_o(i);
+    fifo_wr(i) <= f_to_std_logic(timestamp_valid_i(i) = '1' and
+                                 c(i).ready = '1');
 
-          if c(i).enable = '1' then
-            if direct_timestamp_wr_i = '1' and unsigned(ts_channel) = i and ts_edge = '1' and c(i).timeout = 0 then
-              c(i).timeout <= unsigned(regs_out.dead_time_o);
-              c(i).fifo_wr <= '1';
-            elsif c(i).timeout /= 0 then
-              c(i).fifo_wr <= '0';
-              c(i).timeout <= c(i).timeout - 1;
-            end if;
-            
+    p_dead_time : process (clk_sys_i)
+    begin
+      if rising_edge(clk_sys_i) then
+        if rst_sys_n_i = '0' or c(i).enable = '0' then
+          c(i).timeout <= (others => '0');
+          c(i).ready <= '0';
+        else
+          if fifo_wr(i) = '1' then
+            --  Ignore this channel for the dead time.
+            c(i).timeout <= unsigned(regs_out.dead_time_o);
+            c(i).ready <= '0';
+          elsif c(i).timeout /= 0 then
+            --  In dead time.
+            c(i).ready <= '0';
+            c(i).timeout <= c(i).timeout - 1;
           else
-            c(i).fifo_wr <= '0';
+            -- Waiting for the next timestamp.
+            c(i).ready <= '1';
             c(i).timeout <= (others => '0');
           end if;
         end if;
       end if;
     end process;
-    
   end generate gen_channels;
 
-  p_fifo_write : process(clk_tdc_i)
-  begin
-    if rising_edge(clk_tdc_i) then
-      if rst_tdc_n_i = '0' then
-        regs_in.fifo_wr_req_i <= '0';
-      else
-        regs_in.fifo_wr_req_i <= '0';
-
-        for i in 0 to c_num_channels-1 loop
-          if(c(i).fifo_wr = '1' and regs_out.fifo_wr_full_o = '0') then
-            regs_in.fifo_wr_req_i <= '1';
-          end if;
-        end loop;
-      end if;
-    end if;
-  end process;
-
 end rtl;
-
-

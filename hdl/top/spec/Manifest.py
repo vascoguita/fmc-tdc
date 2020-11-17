@@ -1,18 +1,17 @@
-files = ["synthesis_descriptor.vhd",
-"wr_spec_tdc.ucf",
+files = ["wr_spec_tdc.ucf",
 "wr_spec_tdc.vhd"];
 
 fetchto = "../../ip_cores"
 
 modules = {
-    "local" : [	"../../rtl/", 
-		"../../ip_cores/gn4124-core",
-		"../../ip_cores/general-cores",
-		"../../ip_cores/wr-cores",
-                "../../ip_cores/wr-cores/board/spec"
-	    ],
-    "git"   :   [
-        "git://ohwr.org/hdl-core-lib/etherbone-core.git",
-        ],
+    "local" : [	"../../rtl/" ],
+    "git" : [
+       "https://ohwr.org/project/general-cores.git",
+       "https://ohwr.org/project/gn4124-core.git",
+       "https://ohwr.org/project/wr-cores.git",
+       "https://ohwr.org/project/wr-cores/board/spec.git",
+       "https://ohwr.org/project/ddr3-sp6-core.git",
+       "https://ohwr.org/project/spec.git"
+	    ]
     }
 

@@ -88,19 +88,6 @@
 --              To conclude, the final Coarse time is: (Part(2) + Part(3)_Start#)*Retrigger period|
 --              and the  Fine time is : Part(3)_Hit                                               |
 --                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v1                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     07/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2014  v1    EG  Changed roll_over_counter to add rare case where utc_p_i and            |
---                        acam_intflag_f_edge_p_i arrive at the same time                         |
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -123,36 +110,39 @@
 
 -- Standard library
 library IEEE;
-use IEEE.STD_LOGIC_1164.all; -- std_logic definitions
-use IEEE.NUMERIC_STD.all;    -- conversion functions-- Specific library
+use IEEE.STD_LOGIC_1164.all;  -- std_logic definitions
+use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific library
 library work;
-use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
 
+
+library unisim;
+use unisim.vcomponents.all;
 
 --=================================================================================================
 --                            Entity declaration for start_retrig_ctrl
 --=================================================================================================
 
 entity start_retrig_ctrl is
-  generic
-    (g_width                 : integer := 32);
   port
-  -- INPUTS
-     -- Signal from the clk_rst_manager
-    (clk_i                   : in std_logic;
-     rst_i                   : in std_logic;
+    -- INPUTS
+    -- Signal from the clk_rst_manager
+    (clk_i                  : in std_logic;
+     rst_i                  : in std_logic;
      -- Signal from the acam_timecontrol_interface
-     acam_intflag_f_edge_p_i : in std_logic;
+     int_flag_i             : in std_logic;
+     int_flag_delay_i : in std_logic_vector(15 downto 0);
+
      -- Signal from the one_hz_generator unit
-     utc_p_i                 : in std_logic;
-  -- OUTPUTS
+     utc_p_i                 : in  std_logic;
+     -- OUTPUTS
      -- Signals to the data_formatting unit
-	 current_retrig_nb_o     : out std_logic_vector(g_width-1 downto 0);
+     current_retrig_nb_o     : out std_logic_vector(31 downto 0);
      roll_over_incr_recent_o : out std_logic;
-     clk_i_cycles_offset_o   : out std_logic_vector(g_width-1 downto 0);
-     roll_over_nb_o          : out std_logic_vector(g_width-1 downto 0);
-     retrig_nb_offset_o      : out std_logic_vector(g_width-1 downto 0));
+     clk_i_cycles_offset_o   : out std_logic_vector(31 downto 0);
+     roll_over_nb_o          : out std_logic_vector(31 downto 0);
+     retrig_nb_offset_o      : out std_logic_vector(31 downto 0));
 end start_retrig_ctrl;
 
 
@@ -163,19 +153,23 @@ end start_retrig_ctrl;
 
 architecture rtl of start_retrig_ctrl is
 
-  signal clk_i_cycles_offset : std_logic_vector(g_width-1 downto 0);
-  signal current_cycles      : std_logic_vector(g_width-1 downto 0);
-  signal current_retrig_nb   : std_logic_vector(g_width-1 downto 0);
-  signal retrig_nb_offset    : std_logic_vector(g_width-1 downto 0);
-  signal retrig_p            : std_logic;
-  signal roll_over_c         : unsigned(g_width-1 downto 0);
+  signal clk_i_cycles_offset : std_logic_vector(31 downto 0);
+  signal current_cycles      : std_logic_vector(31 downto 0);
+  signal current_retrig_nb   : std_logic_vector(31 downto 0);
+  signal retrig_nb_offset    : std_logic_vector(31 downto 0);
+  signal roll_over_c         : unsigned(31 downto 0);
 
+  signal int_flag_r, int_flag_f, int_flag, int_flag_d, int_flag_p : std_logic;
+
+  constant c_full_retrig_period : integer := 64 * 256;
+
+  signal retrig_cnt : unsigned(15 downto 0);
 
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
-
+  
 -- retrigger #      :   0    1          127  128        255  256  257        383  384  385         511  512  513
 -- retriggers       :  _|____|____...____|____|____...____|____|____|____...___|____|____|____...____|____|____|___
 -- IrFlag           :  __________________|---------------------|____________________|---------------------|________
@@ -230,65 +224,86 @@ begin
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
+  p_sample_int_flag_r : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      int_flag_r <= int_flag_i;
+    end if;
+  end process;
 
--- These two counters keep a track of the current internal start retrigger
--- of the ACAM in parallel with the ACAM itself. Counting up to c_ACAM_RETRIG_PERIOD = 64
- retrig_period_counter: free_counter  -- retrigger periods
-   generic map
-     (width             => g_width)
-   port map
-     (clk_i             => clk_i,
-      rst_i             => acam_intflag_f_edge_p_i,
-      counter_en_i      => '1',
-      counter_top_i     => c_ACAM_RETRIG_PERIOD,
-     -------------------------------------------
-      counter_is_zero_o => retrig_p,
-      counter_o         => current_cycles);
-     -------------------------------------------
+  p_sample_int_flag_f : process(clk_i)
+  begin
+    if falling_edge(clk_i) then
+      int_flag_f <= int_flag_i;
+    end if;
+  end process;
 
-  retrig_nb_counter: incr_counter    -- number of retriggers counting from 0 to 255 and restarting
-    generic map                      -- through the acam_intflag_f_edge_p_i
-      (width             => g_width)
-    port map
-      (clk_i             => clk_i,
-       rst_i             => acam_intflag_f_edge_p_i,  
-       counter_top_i     => x"00000100",
-       counter_incr_en_i => retrig_p,
-       counter_is_full_o => open,
-     -------------------------------------------
-       counter_o         => current_retrig_nb);
-     -------------------------------------------
+  p_pulse_detect : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if rst_i = '1' then
+        int_flag_d <= '0';
+        int_flag_p <= '0';
+        int_flag   <= '0';
+      else
+        if(int_flag_delay_i(0) = '0') then
+          int_flag <= int_flag_r;
+        else
+          int_flag <= int_flag_f;
+        end if;
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- This counter keeps track of the number of overflows of the ACAM counter within one second
-  roll_over_counter: process (clk_i)
+        int_flag_d <= int_flag;
+        int_flag_p <= int_flag_d and not int_flag;
+      end if;
+    end if;
+  end process;
+
+  p_count_retrig_periods : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if rst_i = '1' then
+        retrig_cnt <= (others => '0');
+      elsif int_flag_p = '1' then
+        retrig_cnt(6 downto 0) <= unsigned(int_flag_delay_i(7 downto 1));
+        for i in 7 to 15 loop
+          retrig_cnt(i) <= int_flag_delay_i(8);
+        end loop;
+      else
+        retrig_cnt <= retrig_cnt + 1;
+      end if;
+    end if;
+  end process;
+
+  current_cycles <= std_logic_vector(resize(63 - retrig_cnt(5 downto 0), 32));
+  current_retrig_nb <= std_logic_vector(resize(retrig_cnt(13 downto 6), 32));
+
+  roll_over_counter : process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if utc_p_i = '1' and acam_intflag_f_edge_p_i = '0' then
-        roll_over_c   <= x"00000000";
+      if utc_p_i = '1' and retrig_cnt /= (c_full_retrig_period- 1) then
+        roll_over_c <= x"00000000";
 
-       -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
-       -- arrive on the exact same moment 
-	   elsif utc_p_i = '1' and acam_intflag_f_edge_p_i = '1' then
-        roll_over_c   <= x"00000001";
-		
-      elsif acam_intflag_f_edge_p_i = '1' then
+                                        -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
+                                        -- arrive on the exact same moment 
+      elsif utc_p_i = '1' and retrig_cnt = (c_full_retrig_period - 1) then
+        roll_over_c <= x"00000001";
+      elsif retrig_cnt = (c_full_retrig_period - 1) then
         roll_over_c <= roll_over_c + "1";
       end if;
     end if;
   end process;
 
+
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- When a new second starts, all values are captured and stored as offsets.
   -- when a timestamp arrives, these offsets will be subtracted in order
   -- to base the final timestamp with respect to the current second.
-  capture_offset: process (clk_i)
+  capture_offset : process (clk_i)
   begin
     if rising_edge (clk_i) then
-      if rst_i ='1' then
-        clk_i_cycles_offset <= (others=>'0');
-        retrig_nb_offset    <= (others=>'0');
-
+      if rst_i = '1' then
+        clk_i_cycles_offset <= (others => '0');
+        retrig_nb_offset    <= (others => '0');
       elsif utc_p_i = '1' then
         clk_i_cycles_offset <= current_cycles;
         retrig_nb_offset    <= current_retrig_nb;
@@ -302,7 +317,9 @@ begin
   clk_i_cycles_offset_o   <= clk_i_cycles_offset;
   retrig_nb_offset_o      <= retrig_nb_offset;
   roll_over_nb_o          <= std_logic_vector(roll_over_c);
-  current_retrig_nb_o     <= current_retrig_nb; -- for debug
+  current_retrig_nb_o     <= current_retrig_nb;  -- for debug
+
+
 
 end architecture rtl;
 

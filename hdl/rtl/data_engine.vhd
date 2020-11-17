@@ -30,23 +30,7 @@
 --                 be in inactive mode (deactivate_acq = 1).                                      |
 --                                                                                                |
 --              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE     |
---              master fetching/ sending data from/to the ACAM interface.                         |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v1                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     06/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2014  v1    EG  added states for reading the  RD_START01 (currently though the start01  |
---                        is not essential absolute timestamp calculations). added wait state     |
---                        before starting receiving timestamps, to ensure that the start pulse has|
---                        been sent and the ACAM IRflag has toggled once                          |
+--              master fetching/sending data from/to the ACAM interface.                          |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -76,6 +60,8 @@ use IEEE.NUMERIC_STD.all;    -- conversion functions
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;   -- definitions of types, constants, entities
+use work.reg_ctrl_pkg.all;   -- reg map
+use work.gencores_pkg.all;
 
 
 --=================================================================================================
@@ -95,7 +81,7 @@ entity data_engine is
      activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition 
      deactivate_acq_p_i   : in std_logic;                     -- for configuration readings/ writings
      acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
-     acam_rst_p_i         : in std_logic;                     -- enables writing c_RESET_WORD         to ACAM reg 4
+     acam_rst_p_i         : in std_logic;                     -- enables writing reset_word           to ACAM reg 4
      acam_rdbk_config_p_i : in std_logic;                     -- enables reading of ACAM regs 0-7, 11, 12, 14 
      acam_rdbk_status_p_i : in std_logic;                     -- enables reading of ACAM reg  12
      acam_rdbk_ififo1_p_i : in std_logic;                     -- enables reading of ACAM reg  8
@@ -107,9 +93,7 @@ entity data_engine is
 
      -- Signals from the acam_databus_interface unit: empty FIFO flags
      acam_ef1_i           : in std_logic;                     -- empty fifo 1 (fully synched signal; ef1 after 2 DFFs)
-     acam_ef1_meta_i      : in std_logic;                     -- empty fifo 1 (possibly metestable;  ef1 after 1 DFF)
      acam_ef2_i           : in std_logic;                     -- empty fifo 2 (fully synched signal; ef2 after 2 DFFs)
-     acam_ef2_meta_i      : in std_logic;                     -- empty fifo 2 (possibly metestable;  ef2 after 1 DFF)
 
      -- Signals from the acam_databus_interface unit: communication with ACAM for configuration or tstamps retreival
      acam_ack_i           : in std_logic;                     -- WISHBONE ack
@@ -198,7 +182,7 @@ begin
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- Combinatorial process
   data_engine_fsm_comb: process (engine_st, activate_acq_p_i, deactivate_acq_p_i, acam_ef1_i, acam_adr,
-                                 acam_ef2_i, acam_ef1_meta_i, acam_ef2_meta_i, acam_wr_config_p_i,
+                                 acam_ef2_i, acam_wr_config_p_i,
                                  acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
                                  acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i,
 											start_from_fpga_i, time_c, time_c_full_p)
@@ -400,9 +384,6 @@ begin
 
                           if acam_ef2_i = '0' then
                             nxt_engine_st <= GET_STAMP2;
-  
-                          elsif acam_ef1_meta_i ='0' then
-                            nxt_engine_st <= GET_STAMP1;
                           else
                             nxt_engine_st <= ACTIVE;
                           end if;
@@ -428,9 +409,6 @@ begin
 
                           if acam_ef1_i ='0' then
                             nxt_engine_st <= GET_STAMP1;
-
-                          elsif acam_ef2_meta_i ='0' then
-                            nxt_engine_st <= GET_STAMP2;
                           else
                             nxt_engine_st <= ACTIVE;
                           end if;
@@ -808,7 +786,7 @@ begin
   port map
     (clk_i             => clk_i,
      rst_i             => time_c_rst,
-     counter_top_i     => f_pick(g_simulation, x"00005000", x"0EE6B280"),
+     counter_top_i     => work.tdc_core_pkg.f_pick(g_simulation, x"00005000", x"0EE6B280"),
      counter_incr_en_i => time_c_en,
      counter_is_full_o => time_c_full_p,
      counter_o         => time_c);

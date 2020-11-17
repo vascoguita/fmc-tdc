@@ -18,26 +18,6 @@
 --                o plus the coarse timing internally measured in the core                        |
 --                o plus the UTC time, coming from the WRabbit core if synchronization is         |
 --                  established or from the internal local counter                                |
---              and writes the word to the circular buffer                                        |
---                                                                                                |
---                                                                                                |
--- Authors      Gonzalo Penacoba  (Gonzalo.Penacoba@cern.ch)                                      |
---              Evangelia Gousiou (Evangelia.Gousiou@cern.ch)                                     |
--- Date         04/2014                                                                           |
--- Version      v3                                                                                |
--- Depends on                                                                                     |
---                                                                                                |
-----------------                                                                                  |
--- Last changes                                                                                   |
---     05/2011  v0.1  GP  First version                                                           |
---     04/2012  v0.11 EG  Revamping; Comments added, signals renamed                              |
---     04/2013  v1    EG  Fixed bug when timestamp comes on the first retrigger after a new       |
---                        second; fixed bug on rollover that is a bit delayed wrt ACAM IrFlag     |
---     07/2013  v2    EG  Cleaner writing with addition of intermediate DFF on the acam_tstamp    |
---                        calculations                                                            |
---     09/2013  v2.1  EG  added wr_index clearing upon dacapo_c_rst_p_i pulse; before only the    |
---                        dacapo_counter was being reset with the dacapo_c_rst_p_i                |
---     04/2014  v3    EG  added logic for channels deactivation                                   |
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
@@ -62,7 +42,7 @@
 -- Standard library
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;            -- std_logic definitions
-use IEEE.NUMERIC_STD.all;  -- conversion functions-- Specific library
+use IEEE.NUMERIC_STD.all;     -- conversion functions-- Specific library
 -- Specific library
 library work;
 use work.tdc_core_pkg.all;    -- definitions of types, constants, entities
@@ -86,7 +66,7 @@ entity data_formatting is
      acam_tstamp2_i      : in std_logic_vector(31 downto 0);  -- 32 bits tstamp to be treated and stored;
                                           -- includes ef1 & ef2 & 0 & 0 & 28 bits tstamp from FIFO2
 
--- Signals from the one_hz_gen unit
+     -- Signals from the one_hz_gen unit
      utc_i : in std_logic_vector(31 downto 0);  -- local UTC time
 
      -- Signals from the start_retrig_ctrl unit
@@ -94,14 +74,18 @@ entity data_formatting is
      clk_i_cycles_offset_i   : in std_logic_vector(31 downto 0);
      roll_over_nb_i          : in std_logic_vector(31 downto 0);
      retrig_nb_offset_i      : in std_logic_vector(31 downto 0);
+     current_retrig_nb_i     : in std_logic_vector(31 downto 0);
+
+     gen_fake_ts_enable_i  : in std_logic;
+     gen_fake_ts_period_i  : in std_logic_vector(27 downto 0);
+     gen_fake_ts_channel_i : in std_logic_vector(2 downto 0);
 
      -- Signal from the WRabbit core or the one_hz_generator unit
      utc_p_i : in std_logic;
 
-
      -- OUTPUTS
 
-     timestamp_o       : out std_logic_vector(127 downto 0);
+     timestamp_o       : out t_acam_timestamp;
      timestamp_valid_o : out std_logic
 
      );
@@ -137,13 +121,21 @@ architecture rtl of data_formatting is
   signal un_current_retrig_from_roll_over                     : unsigned(31 downto 0);
   signal un_acam_fine_time                                    : unsigned(31 downto 0);
   signal previous_utc                                         : std_logic_vector(31 downto 0);
-  signal timestamp_valid_int : std_logic;
+  signal timestamp_valid_int                                  : std_logic;
+
+  signal fake_cnt_coarse : unsigned(27 downto 0);
+  signal fake_cnt_period : unsigned(27 downto 0);
+  signal fake_cnt_tai    : unsigned(31 downto 0);
+  signal fake_ts_valid   : std_logic;
+
+  signal timestamp_valid_int_d : std_logic;
+
+  signal raw_ts, raw_ts_d : t_raw_acam_timestamp;
 
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
 begin
-
 
   p_gen_timestamp_valid : process (clk_i)
   begin
@@ -151,13 +143,14 @@ begin
       if rst_i = '1' then
         timestamp_valid_int <= '0';
       else
-        timestamp_valid_int <= acam_tstamp1_ok_p_i or acam_tstamp2_ok_p_i;
+        timestamp_valid_int   <= acam_tstamp1_ok_p_i or acam_tstamp2_ok_p_i;
+        timestamp_valid_int_d <= timestamp_valid_int;
       end if;
     end if;
   end process;
 
 ---------------------------------------------------------------------------------------------------
---                                   Final Timestamp Formatting                                  --
+-- Final Timestamp Formatting                                  --
 ---------------------------------------------------------------------------------------------------   
 -- tstamp_formatting: slicing of the 32-bits word acam_tstamp1_i and acam_tstamp2_i as received
 -- from the data_engine unit, to construct the final timestamps to be stored in the circular_buffer
@@ -200,16 +193,36 @@ begin
         acam_channel        <= "0" & acam_tstamp1_i(27 downto 26);
         acam_fine_timestamp <= acam_tstamp1_i(16 downto 0);
         acam_slope          <= acam_tstamp1_i(17);
-        acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18))-1;
+        acam_start_nb       <= unsigned(acam_tstamp1_i(25 downto 18));
 
       elsif acam_tstamp2_ok_p_i = '1' then
         acam_channel        <= "1" & acam_tstamp2_i(27 downto 26);
         acam_fine_timestamp <= acam_tstamp2_i(16 downto 0);
         acam_slope          <= acam_tstamp2_i(17);
-        acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18))-1;
+        acam_start_nb       <= unsigned(acam_tstamp2_i(25 downto 18));
       end if;
     end if;
   end process;
+
+  p_tstamp_raw_latch : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if timestamp_valid_int = '1' then
+        raw_ts.seconds       <= utc_i;
+        raw_ts.acam_bins     <= acam_fine_timestamp;
+        raw_ts.acam_start_nb <= std_logic_vector(acam_start_nb);
+        raw_ts.slope         <= acam_slope;
+        raw_ts.channel       <= acam_channel;
+        raw_ts.roll_over_incr_recent <= roll_over_incr_recent_i;
+        raw_ts.clk_i_cycles_offset <= clk_i_cycles_offset_i(7 downto 0);
+        raw_ts.roll_over_nb <= roll_over_nb_i(15 downto 0);
+        raw_ts.retrig_nb_offset <= retrig_nb_offset_i(8 downto 0);
+        raw_ts.current_retrig_nb <= current_retrig_nb_i(8 downto 0);
+      end if;
+      raw_ts_d <= raw_ts;
+    end if;
+  end process;
+
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   reg_info_of_previous_sec : process (clk_i)
@@ -232,11 +245,12 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- all the values needed for the calculations have to be converted to unsigned
-  un_acam_fine_time                <= unsigned(fine_time);
-  acam_start_nb_32                 <= x"000000" & acam_start_nb;
-  un_acam_start_nb                 <= unsigned(acam_start_nb_32);
-  un_current_retrig_nb_offset      <= unsigned(retrig_nb_offset_i);
-  un_current_roll_over_nb          <= unsigned(roll_over_nb_i);
+  un_acam_fine_time           <= unsigned(fine_time);
+  acam_start_nb_32            <= x"000000" & acam_start_nb;
+  un_acam_start_nb            <= unsigned(acam_start_nb_32);
+  un_current_retrig_nb_offset <= unsigned(retrig_nb_offset_i);
+  un_current_roll_over_nb     <= unsigned(roll_over_nb_i);
+
   un_current_retrig_from_roll_over <= shift_left(un_current_roll_over_nb-1, 8) when roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 and un_current_roll_over_nb > 0
                                       else shift_left(un_current_roll_over_nb, 8);
 
@@ -290,7 +304,7 @@ begin
           un_retrig_nb_offset    <= unsigned(retrig_nb_offset_i);
           utc                    <= utc_i;
           coarse_zero            <= '0';
-          if roll_over_incr_recent_i = '1' and un_acam_start_nb > 192 then
+          if acam_start_nb = 255 and unsigned(current_retrig_nb_i) = 0 then
             un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i)-1, 8);
           else
             un_retrig_from_roll_over <= shift_left(unsigned(roll_over_nb_i), 8);
@@ -322,27 +336,75 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
   -- metadata: information about the timestamp
-  metadata <= std_logic_vector(acam_start_nb(7 downto 0)) &  -- for debug
-              coarse_zero & std_logic_vector(un_retrig_nb_offset(7 downto 0)) &  -- for debug
-              std_logic_vector(roll_over_nb_i(2 downto 0)) &
-              std_logic_vector(un_clk_i_cycles_offset(6 downto 0)) &  -- for debug
-              acam_slope & roll_over_incr_recent_i & acam_channel;  -- 5 LSbits used for slope and acam_channel
+  -- for debug
+  metadata(31 downto 24) <= std_logic_vector(acam_start_nb(7 downto 0));
+  metadata(23)           <= coarse_zero;
+  metadata(22 downto 15) <= std_logic_vector(un_retrig_nb_offset(7 downto 0));
+  metadata(14 downto 12) <= std_logic_vector(roll_over_nb_i(2 downto 0));
+  metadata(11 downto 5)  <= std_logic_vector(un_clk_i_cycles_offset(6 downto 0));
+   -- 5 LSbits used for slope and acam_channel
+  metadata(4)            <= acam_slope;
+  metadata(3)            <= roll_over_incr_recent_i;
+  metadata(2 downto 0)   <= acam_channel;
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  full_timestamp(31 downto 0)   <= fine_time;
-  full_timestamp(63 downto 32)  <= coarse_time;
-  full_timestamp(95 downto 64)  <= utc;
-  full_timestamp(127 downto 96) <= metadata;
+
+  process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if gen_fake_ts_enable_i = '0' then
+        fake_cnt_coarse <= (others => '0');
+        fake_cnt_tai    <= (others => '0');
+        fake_cnt_period <= (others => '0');
+      else
+        if unsigned(gen_fake_ts_period_i) = fake_cnt_period then
+          fake_cnt_period <= (others => '0');
+          fake_ts_valid   <= '1';
+        else
+          fake_cnt_period <= fake_cnt_period + 1;
+          fake_ts_valid   <= '0';
+        end if;
+
+        if fake_cnt_coarse = 124999999 then
+          fake_cnt_coarse <= (others => '0');
+          fake_cnt_tai    <= fake_cnt_tai + 1;
+        else
+          fake_cnt_coarse <= fake_cnt_coarse + 1;
+        end if;
+      end if;
+    end if;
+  end process;
 
 
   process(clk_i)
   begin
     if rising_edge(clk_i) then
-      timestamp_o <= full_timestamp;
-      timestamp_valid_o <= timestamp_valid_int;
+      if rst_i = '1' then
+      else
+        if(gen_fake_ts_enable_i = '1' and fake_ts_valid = '1')then
+          timestamp_o.slope   <= '1';
+          timestamp_o.channel <= gen_fake_ts_channel_i;
+          timestamp_o.n_bins  <= (others => '0');
+          timestamp_o.coarse  <= std_logic_vector(resize(fake_cnt_coarse, 32));
+          timestamp_o.tai     <= std_logic_vector(fake_cnt_tai);
+          timestamp_valid_o   <= '1';
+        elsif(timestamp_valid_int_d = '1') then
+          timestamp_o.raw <= raw_ts_d;
+          timestamp_o.slope   <= acam_slope;
+          timestamp_o.channel <= acam_channel;
+          timestamp_o.n_bins  <= fine_time(16 downto 0);
+          timestamp_o.coarse  <= coarse_time;
+          timestamp_o.tai     <= utc(31 downto 0);
+          timestamp_o.meta <= x"000" & std_logic_vector(acam_start_nb(6 downto 0)) & fine_time(12 downto 0);
+
+          timestamp_valid_o   <= '1';
+        else
+          timestamp_valid_o <= '0';
+        end if;
       end if;
+    end if;
   end process;
-  
+
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

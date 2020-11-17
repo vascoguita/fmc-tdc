@@ -1,0 +1,6 @@
+hw/tdc_dma_eic.h
+hw/tdc_onewire_regs.h
+hw/tdc_buffer_control_regs.h
+hw/timestamp_fifo_regs.h
+hw/channel_regs.h
+.tmp_versions

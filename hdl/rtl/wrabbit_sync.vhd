@@ -6,7 +6,7 @@
 -- Author     : Tomasz Wlostowski
 -- Company    : CERN
 -- Created    : 2011-08-24
--- Last update: 2012-11-26
+-- Last update: 2018-08-09
 -- Platform   : FPGA-generic
 -- Standard   : VHDL'93
 -------------------------------------------------------------------------------
@@ -112,15 +112,15 @@ architecture rtl of wrabbit_sync is
   type   t_wrabbit_sync_state is (wrabbit_CORE_OFFLINE, wrabbit_WAIT_READY, wrabbit_SYNCING, wrabbit_SYNCED);
   signal wrabbit_state                     : t_wrabbit_sync_state;
   signal wrabbit_state_changed             : std_logic;
-  signal wrabbit_state_syncing, wrabbit_en : std_logic;
+  signal wrabbit_state_syncing             : std_logic;
   signal wrabbit_clk_aux_lock_en           : std_logic;
     -- FSM timeout counter
   signal tmo_restart, tmo_hit              : std_logic;
   signal tmo_cntr                          : unsigned(f_log2_size(c_wrabbit_STATE_TIMEOUT)-1 downto 0);
   -- synchronizers
-  signal wrabbit_en_sync, time_valid       : std_logic_vector (1 downto 0);
-  signal clk_aux_locked, link_up           : std_logic_vector (1 downto 0);
-  signal state_syncing, clk_aux_lock_en    : std_logic_vector (1 downto 0);
+  signal wrabbit_en, time_valid            : std_logic;
+  signal clk_aux_locked, link_up           : std_logic;
+  signal state_syncing, clk_aux_lock_en    : std_logic;
   -- aux
   signal with_wrabbit_core                 : std_logic;
   signal dac_p_c                           : unsigned(23 downto 0); -- for debug
@@ -130,17 +130,13 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Synchronization of the wrabbit_reg_i(0) of the reg_ctrl unit to the 62.5 MHz domain 
-  input_synchronizer: process (clk_sys_i)
-  begin
-    if rising_edge (clk_sys_i) then
-      if rst_n_sys_i = '0' then
-        wrabbit_en_sync <= (others => '0');
-      else
-        wrabbit_en_sync <= wrabbit_en_sync(0) & wrabbit_reg_i(0);
-      end if;
-    end if;
-  end process;
-  wrabbit_en <= wrabbit_en_sync(1);
+
+  input_synchronizer : gc_sync_ffs
+    port map (
+      clk_i    => clk_sys_i,
+      rst_n_i  => '1',
+      data_i   => wrabbit_reg_i(0),
+      synced_o => wrabbit_en);
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- FSM timeout counter
@@ -222,40 +218,56 @@ begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- Synchronization of the outputs to the 125 MHz domain to be used by the reg_ctrl unit
-  outputs_synchronizer: process (clk_ref_i)
-  begin
-    if rising_edge (clk_ref_i) then
-      if rst_n_ref_i = '0' then
-        clk_aux_locked  <= (others => '0');
-        link_up         <= (others => '0');
-        state_syncing   <= (others => '0');
-        clk_aux_lock_en <= (others => '0');
-        time_valid      <= (others => '0');
-      else
-        clk_aux_locked  <= clk_aux_locked(0)  & wrabbit_clk_aux_locked_i;
-        link_up         <= link_up(0)         & wrabbit_link_up_i;
-        state_syncing   <= state_syncing(0)   & wrabbit_state_syncing;
-        clk_aux_lock_en <= clk_aux_lock_en(0) & wrabbit_clk_aux_lock_en;
-        time_valid      <= time_valid(0)      & wrabbit_time_valid_i;
-      end if;
-    end if;
-  end process;
+  outputs_synchronizer1 : gc_sync_ffs
+    port map (
+      clk_i    => clk_ref_i,
+      rst_n_i  => '1',
+      data_i   => wrabbit_clk_aux_locked_i,
+      synced_o => clk_aux_locked);
+
+  outputs_synchronizer2 : gc_sync_ffs
+    port map (
+      clk_i    => clk_ref_i,
+      rst_n_i  => '1',
+      data_i   => wrabbit_link_up_i,
+      synced_o => link_up);
+
+  outputs_synchronizer3 : gc_sync_ffs
+    port map (
+      clk_i    => clk_ref_i,
+      rst_n_i  => '1',
+      data_i   => wrabbit_state_syncing,
+      synced_o => state_syncing);
+
+  outputs_synchronizer4 : gc_sync_ffs
+    port map (
+      clk_i    => clk_ref_i,
+      rst_n_i  => '1',
+      data_i   => wrabbit_clk_aux_lock_en,
+      synced_o => clk_aux_lock_en);
+
+  outputs_synchronizer5 : gc_sync_ffs
+    port map (
+      clk_i    => clk_ref_i,
+      rst_n_i  => '1',
+      data_i   => wrabbit_time_valid_i,
+      synced_o => time_valid);
 
   with_wrabbit_core           <= '1' when g_with_wrabbit_core else '0';
-  wrabbit_synched_o           <= clk_aux_locked(1)  and with_wrabbit_core;
-  wrabbit_clk_aux_lock_en_o   <= clk_aux_lock_en(1) and with_wrabbit_core;
+  wrabbit_synched_o           <= clk_aux_locked  and with_wrabbit_core;
+  wrabbit_clk_aux_lock_en_o   <= clk_aux_lock_en and with_wrabbit_core;
   wrabbit_state_syncing       <= '1' when ((wrabbit_state = wrabbit_SYNCING or wrabbit_state = wrabbit_SYNCED) and with_wrabbit_core = '1') else '0';
 
   wrabbit_reg_o(0)            <= '1'; -- reserved
   wrabbit_reg_o(1)            <= with_wrabbit_core;
-  wrabbit_reg_o(2)            <= link_up(1)         and with_wrabbit_core;
-  wrabbit_reg_o(3)            <= state_syncing(1)   and with_wrabbit_core;
-  wrabbit_reg_o(4)            <= clk_aux_locked(1)  and with_wrabbit_core;
-  wrabbit_reg_o(5)            <= time_valid(1)      and with_wrabbit_core;
-  wrabbit_reg_o(6)            <= wrabbit_reg_i(0)   and with_wrabbit_core;
-  wrabbit_reg_o(7)            <= clk_aux_locked(1)  and with_wrabbit_core;
-  wrabbit_reg_o(8)            <= time_valid(1)      and with_wrabbit_core;
-  wrabbit_reg_o(9)            <= clk_aux_lock_en(1) and with_wrabbit_core;
+  wrabbit_reg_o(2)            <= link_up          and with_wrabbit_core;
+  wrabbit_reg_o(3)            <= state_syncing    and with_wrabbit_core;
+  wrabbit_reg_o(4)            <= clk_aux_locked   and with_wrabbit_core;
+  wrabbit_reg_o(5)            <= time_valid       and with_wrabbit_core;
+  wrabbit_reg_o(6)            <= wrabbit_reg_i(0) and with_wrabbit_core;
+  wrabbit_reg_o(7)            <= clk_aux_locked   and with_wrabbit_core;
+  wrabbit_reg_o(8)            <= time_valid       and with_wrabbit_core;
+  wrabbit_reg_o(9)            <= clk_aux_lock_en  and with_wrabbit_core;
   wrabbit_reg_o(15 downto 10) <= (others => '0') when with_wrabbit_core = '1' else std_logic_vector(dac_p_c(5 downto 0));
   wrabbit_reg_o(31 downto 16) <= (others => '0') when with_wrabbit_core = '1' else wrabbit_dac_value_i(15 downto 0);
 
