@@ -17,6 +17,7 @@ extern "C" {
 
 #include <inttypes.h>
 #include <stdint.h>
+#include <fmc-tdc.h>
 
 /**
  * printf format for timestamps with pico-second resolution
@@ -209,9 +210,6 @@ extern int fmctdc_ts_mode_get(struct fmctdc_board *userb,
 			      enum fmctdc_ts_mode *mode);
 
 /**@}*/
-
-#include "fmctdc-lib-private.h"
-
 
 /**
  * @defgroup libacq Time-stamps Acquisition
