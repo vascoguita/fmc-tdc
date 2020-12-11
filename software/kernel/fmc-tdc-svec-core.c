@@ -21,6 +21,7 @@ enum ft_svec_dev_offsets {
 
 static struct fmc_tdc_platform_data fmc_tdc_pdata = {
 	.flags = FMC_TDC_BIG_ENDIAN,
+	.wr_calibration_offset_carrier = 3000,
 };
 
 /* MFD devices */

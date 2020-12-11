@@ -22,6 +22,7 @@
 #include <linux/zio-trigger.h>
 
 #include "fmc-tdc.h"
+#include "platform_data/fmc-tdc.h"
 #include "hw/channel_regs.h"
 #include "hw/timestamp_fifo_regs.h"
 #include "hw/tdc_onewire_regs.h"
@@ -68,14 +69,17 @@ enum ft_devtype {
  */
 static void ft_update_offsets(struct fmctdc_dev *ft, int channel)
 {
+	struct fmc_tdc_platform_data *pdata = ft->pdev->dev.platform_data;
 	struct ft_channel_state *st = &ft->channels[channel];
 	struct ft_hw_timestamp hw_offset = {0, 0, 0, 0};
+	int32_t wr_offset = 0;
 	void *fifo_addr;
 
 	fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * channel;
 
 	ft_ts_apply_offset(&hw_offset, ft->calib.zero_offset[channel]);
-	ft_ts_apply_offset(&hw_offset, -ft->calib.wr_offset);
+	wr_offset = ft->calib.wr_offset + pdata->wr_calibration_offset_carrier;
+	ft_ts_apply_offset(&hw_offset, -wr_offset);
 	if (st->user_offset)
 		ft_ts_apply_offset(&hw_offset, st->user_offset);
 

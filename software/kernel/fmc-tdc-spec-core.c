@@ -18,6 +18,7 @@ enum ft_spec_dev_offsets {
 
 static const struct fmc_tdc_platform_data fmc_tdc_pdata = {
 	.flags = 0,
+	.wr_calibration_offset_carrier = 0,
 };
 
 static int ft_spec_probe(struct platform_device *pdev)

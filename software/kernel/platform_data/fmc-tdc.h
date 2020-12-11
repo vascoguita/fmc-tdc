@@ -11,6 +11,7 @@
 
 struct fmc_tdc_platform_data {
 	unsigned long flags;
+	uint32_t wr_calibration_offset_carrier;
 };
 
 #endif
