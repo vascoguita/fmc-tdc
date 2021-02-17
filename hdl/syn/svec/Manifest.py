@@ -12,7 +12,9 @@ syn_project = "wr_svec_tdc.xise"
 syn_tool = "ise"
 #top_module = "wr_svec_tdc"
 
-files = ["buildinfo_pkg.vhd", "sourceid_wr_svec_tdc_pkg.vhd"]
+files = ["buildinfo_pkg.vhd",
+         "sourceid_wr_svec_tdc_pkg.vhd",
+         "wr_svec_tdc.ucf",]
 
 modules = { "local" : [ "../../top/svec" ] }
 
