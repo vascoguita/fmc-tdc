@@ -14,6 +14,8 @@ syn_tool = "ise"
 
 files = ["buildinfo_pkg.vhd",
          "sourceid_wr_svec_tdc_pkg.vhd",
+         "svec-tdc0.ucf",
+         "svec-tdc1.ucf",
          "wr_svec_tdc.ucf",]
 
 modules = { "local" : [ "../../top/svec" ] }
