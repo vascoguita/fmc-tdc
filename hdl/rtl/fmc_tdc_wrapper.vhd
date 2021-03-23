@@ -356,98 +356,94 @@ begin
 --                                            TDC BOARD                                          --
 ---------------------------------------------------------------------------------------------------
   cmp_tdc_mezz : entity work.fmc_tdc_mezzanine
-    generic map
-    (g_span                        => 32,
-     g_width                       => 32,
-     g_simulation                  => g_simulation,
-     g_pulse_width_filter          => g_pulse_width_filter,
-     g_pulse_width_filter_min      => g_pulse_width_filter_min,
-     g_use_fifo_readout            => g_use_fifo_readout,
-     g_use_dma_readout             => g_use_dma_readout,
-     g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
-    port map
-    -- 62M5 clk and reset
-    (clk_sys_i   => clk_sys_i,
-     rst_sys_n_i => rst_sys_n_i,
-     -- 125M clk and reset
-     clk_tdc_i   => clk_125m_mezz,
-     rst_tdc_n_i => rst_125m_mezz_n,
-     -- FMC slot identification
-     fmc_id_i    => fmc_id_i,
-     -- Wishbone
-     slave_i => cnx_master_out(c_slave_regs),
-     slave_o => cnx_master_in(c_slave_regs),
+    generic map (
+      g_span                        => 32,
+      g_width                       => 32,
+      g_simulation                  => g_simulation,
+      g_pulse_width_filter          => g_pulse_width_filter,
+      g_pulse_width_filter_min      => g_pulse_width_filter_min,
+      g_use_fifo_readout            => g_use_fifo_readout,
+      g_use_dma_readout             => g_use_dma_readout,
+      g_use_fake_timestamps_for_sim => g_use_fake_timestamps_for_sim)
+    port map (
+      -- 62M5 clk and reset
+      clk_sys_i   => clk_sys_i,
+      rst_sys_n_i => rst_sys_n_i,
+      -- 125M clk and reset
+      clk_tdc_i   => clk_125m_mezz,
+      rst_tdc_n_i => rst_125m_mezz_n,
+      -- FMC slot identification
+      fmc_id_i    => fmc_id_i,
+      -- Wishbone
+      slave_i => cnx_master_out(c_slave_regs),
+      slave_o => cnx_master_in(c_slave_regs),
 
-     dma_wb_i => dma_wb_i,
-     dma_wb_o => dma_wb_o,
+      dma_wb_i => dma_wb_i,
+      dma_wb_o => dma_wb_o,
 
-     -- Interrupt line from EIC
-     wb_irq_o => irq_o,
+      -- Interrupt line from EIC
+      wb_irq_o => irq_o,
 
-     -- Configuration of the DAC on the TDC mezzanine, non White Rabbit
-     acam_refclk_r_edge_p_i => acam_refclk_r_edge_p,
-     send_dac_word_p_o      => send_dac_word_p,
-     dac_word_o             => dac_word,
-     -- ACAM interface
-     start_from_fpga_o      => start_from_fpga_o,
-     err_flag_i             => err_flag_i,
-     int_flag_i             => int_flag_i,
-     start_dis_o            => start_dis_o,
-     stop_dis_o             => stop_dis_o,
-     data_bus_io            => data_bus_io,
-     address_o              => address_o,
-     cs_n_o                 => cs_n_o,
-     oe_n_o                 => oe_n_o,
-     rd_n_o                 => rd_n_o,
-     wr_n_o                 => wr_n_o,
-     ef1_i                  => ef1_i,
-     ef2_i                  => ef2_i,
-     -- Input channels enable
-     enable_inputs_o        => enable_inputs_o,
-     term_en_1_o            => term_en_1_o,
-     term_en_2_o            => term_en_2_o,
-     term_en_3_o            => term_en_3_o,
-     term_en_4_o            => term_en_4_o,
-     term_en_5_o            => term_en_5_o,
-     -- LEDs on TDC mezzanine
-     tdc_led_stat_o         => tdc_led_stat_o,
-     tdc_led_trig_o         => tdc_led_trig_o,
-     -- WISHBONE interface with the GN4124 core
+      -- Configuration of the DAC on the TDC mezzanine, non White Rabbit
+      acam_refclk_r_edge_p_i => acam_refclk_r_edge_p,
+      send_dac_word_p_o      => send_dac_word_p,
+      dac_word_o             => dac_word,
+      -- ACAM interface
+      start_from_fpga_o      => start_from_fpga_o,
+      err_flag_i             => err_flag_i,
+      int_flag_i             => int_flag_i,
+      start_dis_o            => start_dis_o,
+      stop_dis_o             => stop_dis_o,
+      data_bus_io            => data_bus_io,
+      address_o              => address_o,
+      cs_n_o                 => cs_n_o,
+      oe_n_o                 => oe_n_o,
+      rd_n_o                 => rd_n_o,
+      wr_n_o                 => wr_n_o,
+      ef1_i                  => ef1_i,
+      ef2_i                  => ef2_i,
+      -- Input channels enable
+      enable_inputs_o        => enable_inputs_o,
+      term_en_1_o            => term_en_1_o,
+      term_en_2_o            => term_en_2_o,
+      term_en_3_o            => term_en_3_o,
+      term_en_4_o            => term_en_4_o,
+      term_en_5_o            => term_en_5_o,
+      -- LEDs on TDC mezzanine
+      tdc_led_stat_o         => tdc_led_stat_o,
+      tdc_led_trig_o         => tdc_led_trig_o,
+      -- WISHBONE interface with the GN4124 core
 
-     -- White Rabbit
-     wrabbit_link_up_i         => tm_link_up_i,
-     wrabbit_time_valid_i      => tm_time_valid_i,
-     wrabbit_cycles_i          => tm_cycles_i,
-     wrabbit_utc_i             => tm_tai_i(31 downto 0),
-     wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en_o,
-     wrabbit_clk_aux_locked_i  => tm_clk_aux_locked_i,
-     wrabbit_clk_dmtd_locked_i => '1',  -- FIXME: fan out real signal from the WRCore
-     wrabbit_dac_value_i       => tm_dac_value_i,
-     wrabbit_dac_wr_p_i        => tm_dac_wr_i,
+      -- White Rabbit
+      wrabbit_link_up_i         => tm_link_up_i,
+      wrabbit_time_valid_i      => tm_time_valid_i,
+      wrabbit_cycles_i          => tm_cycles_i,
+      wrabbit_utc_i             => tm_tai_i(31 downto 0),
+      wrabbit_clk_aux_lock_en_o => tm_clk_aux_lock_en_o,
+      wrabbit_clk_aux_locked_i  => tm_clk_aux_locked_i,
+      wrabbit_clk_dmtd_locked_i => '1',  -- FIXME: fan out real signal from the WRCore
+      wrabbit_dac_value_i       => tm_dac_value_i,
+      wrabbit_dac_wr_p_i        => tm_dac_wr_i,
 
-     -- EEPROM I2C on TDC mezzanine
-     i2c_scl_oen_o            => tdc_scl_oen,
-     i2c_scl_i                => mezz_scl_i,
-     i2c_sda_oen_o            => tdc_sda_oen,
-     i2c_sda_i                => mezz_sda_i,
-     i2c_scl_o                => tdc_scl_out,
-     i2c_sda_o                => tdc_sda_out,
-     -- 1-Wire on TDC mezzanine
-     onewire_b                => mezz_one_wire_b,
+      -- EEPROM I2C on TDC mezzanine
+      i2c_scl_oen_o            => tdc_scl_oen,
+      i2c_scl_i                => mezz_scl_i,
+      i2c_sda_oen_o            => tdc_sda_oen,
+      i2c_sda_i                => mezz_sda_i,
+      i2c_scl_o                => tdc_scl_out,
+      i2c_sda_o                => tdc_sda_out,
+      -- 1-Wire on TDC mezzanine
+      onewire_b                => mezz_one_wire_b,
 
-     timestamp_o       => timestamp,
-     timestamp_valid_o => timestamp_valid,
+      timestamp_o           => timestamp,
+      timestamp_valid_o     => timestamp_valid,
 
-     sim_timestamp_ready_o => sim_timestamp_ready_o,
-     sim_timestamp_valid_i => sim_timestamp_valid_i,
-     sim_timestamp_i       => sim_timestamp_i);
-
+      sim_timestamp_ready_o => sim_timestamp_ready_o,
+      sim_timestamp_valid_i => sim_timestamp_valid_i,
+      sim_timestamp_i       => sim_timestamp_i);
 
   mezz_scl_o <= '0' when tdc_scl_out = '0' and tdc_scl_oen = '0' else '1';
   mezz_sda_o <= '0' when tdc_sda_out = '0' and tdc_sda_oen = '0' else '1';
-
-
-
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends

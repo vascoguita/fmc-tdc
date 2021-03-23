@@ -9,18 +9,15 @@ use work.wishbone_pkg.all;
 use work.dr_wbgen2_pkg.all;
 
 entity fmc_tdc_direct_readout is
-  port
-    (
-      clk_sys_i   : in std_logic;
-      rst_sys_n_i : in std_logic;
+  port (
+    clk_sys_i         : in std_logic;
+    rst_sys_n_i       : in std_logic;
 
-      timestamp_i       : in t_tdc_timestamp_array(4 downto 0);
-      timestamp_valid_i : in std_logic_vector(4 downto 0);
+    timestamp_i       : in t_tdc_timestamp_array(4 downto 0);
+    timestamp_valid_i : in std_logic_vector(4 downto 0);
 
-      direct_slave_i : in  t_wishbone_slave_in;
-      direct_slave_o : out t_wishbone_slave_out
-      );
-
+    direct_slave_i : in  t_wishbone_slave_in;
+    direct_slave_o : out t_wishbone_slave_out);
 end entity;
 
 
