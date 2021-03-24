@@ -176,6 +176,7 @@ begin
             else
               wrabbit_state_changed <= '0';
             end if;
+            
           when wrabbit_WAIT_READY =>
             wrabbit_clk_aux_lock_en <= '0';
 
