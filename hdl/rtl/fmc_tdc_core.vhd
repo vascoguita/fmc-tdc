@@ -198,8 +198,7 @@ entity fmc_tdc_core is
       irq_threshold_o  : out std_logic_vector(9 downto 0);
       irq_timeout_o    : out std_logic_vector(9 downto 0);
 
-      fmc_id_i         : in std_logic
-      );
+      fmc_id_i         : in std_logic);
 end fmc_tdc_core;
 
 

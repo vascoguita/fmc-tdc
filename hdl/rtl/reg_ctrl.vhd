@@ -94,7 +94,7 @@ entity reg_ctrl is
       local_utc_i : in std_logic_vector(g_width-1 downto 0);  -- local utc time
 
       -- Signals not used so far
-      core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word currently unused
+      core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
 
       -- White Rabbit status
       wrabbit_status_reg_i : in std_logic_vector(g_width-1 downto 0);  -- 
@@ -173,15 +173,8 @@ architecture rtl of reg_ctrl is
   signal wb_in     : t_wishbone_slave_in;
   signal wb_out    : t_wishbone_slave_out;
 
-
-
---=================================================================================================
---                                       architecture begin
---=================================================================================================
-
   signal cc_rst_n        : std_logic;
   signal cc_rst_n_or_sys : std_logic;
-
 begin
 
   wb_out.stall <= '0';
