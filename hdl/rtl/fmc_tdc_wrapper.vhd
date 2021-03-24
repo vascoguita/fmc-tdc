@@ -116,6 +116,7 @@ entity fmc_tdc_wrapper is
       rst_n_a_i   : in std_logic;
 
       fmc_id_i    : in std_logic;
+      fmc_present_n_i : in std_logic;
 
       -- Interface with the PLL AD9516 and DAC AD5662 on TDC mezzanine
       pll_sclk_o       : out std_logic;  -- SPI clock
@@ -282,6 +283,7 @@ begin
       port map (
         clk_sys_i         => clk_sys_i,
         rst_sys_n_i       => rst_sys_n_i,
+        fmc_present_n_i   => fmc_present_n_i,
         timestamp_i       => timestamp,
         timestamp_valid_i => timestamp_valid,
         direct_slave_i    => cnx_master_out(c_slave_direct),

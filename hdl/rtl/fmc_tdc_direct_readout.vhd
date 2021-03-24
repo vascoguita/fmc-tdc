@@ -12,6 +12,7 @@ entity fmc_tdc_direct_readout is
   port (
     clk_sys_i         : in std_logic;
     rst_sys_n_i       : in std_logic;
+    fmc_present_n_i   : in std_logic;
 
     timestamp_i       : in t_tdc_timestamp_array(4 downto 0);
     timestamp_valid_i : in std_logic_vector(4 downto 0);
@@ -66,6 +67,7 @@ begin
   regs_in.fifo_bins_i    <= "000000" & timestamp_i(channel_select).frac;
   regs_in.fifo_wr_req_i  <= f_to_std_logic(fifo_wr(channel_select) = '1' and
                                            regs_out.fifo_wr_full_o = '0');
+  regs_in.status_i <= not fmc_present_n_i;
 
   U_WB_Slave : entity work.fmc_tdc_direct_readout_wb_slave
     port map (
