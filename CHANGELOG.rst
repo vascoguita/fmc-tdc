@@ -6,6 +6,18 @@
 Changelog
 =========
 
+8.0.0.rc2 - 2021-07-29
+======================
+Changed
+-------
+- sw: better naming in `/dev`
+- sw: better hierarchy in `/sys`
+
+Removed
+-------
+- sw: module parameter to se offset. This is not handled with platform_data from
+  the top level driver.
+
 8.0.0.rc1 - 2020-11-17
 ======================
 Added
