@@ -20,7 +20,7 @@
 #include <linux/list.h>
 #include <linux/io.h>
 #include <linux/platform_device.h>
-#include <linux/ipmi/fru.h>
+#include <uapi/linux/ipmi/fru.h>
 #include <linux/fmc.h>
 
 #include <linux/zio.h>
@@ -453,7 +453,15 @@ int ft_probe(struct platform_device *pdev)
 	if(!ft_fmc_slot_is_valid(ft))
 		goto out_fmc_err;
 
-	ret = ft_calib_init(ft);
+	err = sysfs_create_link(&ft->pdev->dev.kobj, &ft->slot->dev.kobj,
+				dev_name(&ft->slot->dev));
+	if (err) {
+		dev_err(&ft->pdev->dev, "Failed to create FMC symlink to %s\n",
+			dev_name(&ft->slot->dev));
+		goto err_fmc_link;
+	}
+
+        ret = ft_calib_init(ft);
 	if (ret < 0)
 		goto err_calib;
 
@@ -491,6 +499,8 @@ err:
 			m->exit(ft);
 	ft_calib_exit(ft);
 err_calib:
+	sysfs_remove_link(&ft->pdev->dev.kobj, dev_name(&ft->slot->dev));
+err_fmc_link:
 out_fmc_err:
 out_fmc_eeprom:
 out_fmc_pre:
@@ -533,6 +543,7 @@ int ft_remove(struct platform_device *pdev)
 			m->exit(ft);
 	}
 	ft_calib_exit(ft);
+	sysfs_remove_link(&ft->pdev->dev.kobj, dev_name(&ft->slot->dev));
 	fmc_slot_put(ft->slot);
 	iounmap(ft->ft_base);
 	kfree(ft);

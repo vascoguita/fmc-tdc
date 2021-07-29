@@ -213,7 +213,7 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 {
 	ssize_t ret;
 	char dev_id_str[4];
-	char path_pattern[] = "/dev/fmc-tdc.%d";
+	char path_pattern[] = "/dev/tdc-1n5c.%d";
 	char path[sizeof(path_pattern) + 1];
 	uint32_t dev_id;
 

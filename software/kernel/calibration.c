@@ -14,7 +14,7 @@
 #include <linux/jhash.h>
 #include <linux/slab.h>
 #include <linux/fmc.h>
-#include <linux/ipmi/fru.h>
+#include <uapi/linux/ipmi/fru.h>
 #include <linux/zio.h>
 
 #include "fmc-tdc.h"
@@ -24,12 +24,6 @@ static u32 wr_calibration_offset = WR_CALIB_OFFSET;
 module_param_named(wr_offset_fix, wr_calibration_offset, int, 0444);
 MODULE_PARM_DESC(wr_offset_fix,
 		 "Overwrite the White-Rabbit calibration offset for calibration value computer before 2018. (Default: 229460 [ps])");
-
-static u32 wr_calibration_offset_carrier = 0;
-module_param_named(wr_offset_carrier, wr_calibration_offset_carrier, int, 0444);
-MODULE_PARM_DESC(wr_offset_carrier,
-		 "White-Rabbit carrier calibration offset. (Default SPEC: 0 [ps])");
-
 
 /* dummy calibration data - used in case of empty/corrupted EEPROM */
 static struct ft_calibration default_calibration = {
@@ -124,7 +118,6 @@ static void ft_calib_cpy_from_raw(struct ft_calibration *calib,
 	calib->vcxo_default_tune = calib_raw->vcxo_default_tune / 100;
 	calib->calibration_temp = calib_raw->calibration_temp;
 	calib->wr_offset = calib_raw->wr_offset / 100;
-	calib->wr_offset += wr_calibration_offset_carrier;
 }
 
 static void ft_calib_cpy_to_raw(struct ft_calibration_raw *calib_raw,
@@ -136,7 +129,7 @@ static void ft_calib_cpy_to_raw(struct ft_calibration_raw *calib_raw,
 		calib_raw->zero_offset[i - 1] = calib->zero_offset[i] * 100;
 	calib_raw->vcxo_default_tune = calib->vcxo_default_tune * 100;
 	calib_raw->calibration_temp = calib->calibration_temp;
-	calib_raw->wr_offset = (calib->wr_offset - wr_calibration_offset_carrier) * 100;
+	calib_raw->wr_offset = calib->wr_offset * 100;
 
 	ft_calib_cpu_to_le32s(calib_raw);
 }
@@ -206,7 +199,6 @@ int ft_calib_init(struct fmctdc_dev *ft)
 		ft->calib.wr_offset = wr_calibration_offset;
 
 out:
-	ft->calib.wr_offset += wr_calibration_offset_carrier;
 	return 0;
 }
 
