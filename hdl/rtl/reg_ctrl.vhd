@@ -94,7 +94,7 @@ entity reg_ctrl is
       local_utc_i : in std_logic_vector(g_width-1 downto 0);  -- local utc time
 
       -- Signals not used so far
-      core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word currently unused
+      core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
 
       -- White Rabbit status
       wrabbit_status_reg_i : in std_logic_vector(g_width-1 downto 0);  -- 
@@ -149,17 +149,17 @@ end reg_ctrl;
 --=================================================================================================
 architecture rtl of reg_ctrl is
 
-  signal acam_config                                  : config_vector;
-  signal reg_adr, reg_adr_pipe0                       : std_logic_vector(7 downto 0);
-  signal starting_utc, acam_inputs_en                 : std_logic_vector(g_width-1 downto 0);
-  signal ctrl_reg, local_pps_phase, irq_tstamp_threshold : std_logic_vector(g_width-1 downto 0);
-  signal irq_time_threshold                           : std_logic_vector(g_width-1 downto 0);
-  signal clear_ctrl_reg, send_dac_word_p              : std_logic;
-  signal dac_word                                     : std_logic_vector(23 downto 0);
-  signal pulse_extender_en                            : std_logic;
-  signal pulse_extender_c                             : std_logic_vector(2 downto 0);
-  signal dat_out, wrabbit_ctrl_reg                    : std_logic_vector(g_span-1 downto 0);
-  signal ack_out_pipe0, ack_out_pipe1                 : std_logic;
+  signal acam_config                     : config_vector;
+  signal reg_adr, reg_adr_pipe0          : std_logic_vector(7 downto 0);
+  signal starting_utc, acam_inputs_en    : std_logic_vector(g_width-1 downto 0);
+  signal ctrl_reg, irq_tstamp_threshold  : std_logic_vector(g_width-1 downto 0);
+  signal irq_time_threshold              : std_logic_vector(g_width-1 downto 0);
+  signal clear_ctrl_reg, send_dac_word_p : std_logic;
+  signal dac_word                        : std_logic_vector(23 downto 0);
+  signal pulse_extender_en               : std_logic;
+  signal pulse_extender_c                : std_logic_vector(2 downto 0);
+  signal wrabbit_ctrl_reg                : std_logic_vector(g_span-1 downto 0);
+  signal ack_out_pipe0, ack_out_pipe1    : std_logic;
 
 
   signal dat_out_comb0, dat_out_comb1 : std_logic_vector(g_span-1 downto 0);
@@ -169,20 +169,12 @@ architecture rtl of reg_ctrl is
   signal dat_out_pipe2, dat_out_pipe3 : std_logic_vector(g_span-1 downto 0);
 
   signal cyc_in_progress : std_logic;
-  signal cyc2_in_progress : std_logic;
 
   signal wb_in     : t_wishbone_slave_in;
   signal wb_out    : t_wishbone_slave_out;
 
-
-
---=================================================================================================
---                                       architecture begin
---=================================================================================================
-
   signal cc_rst_n        : std_logic;
   signal cc_rst_n_or_sys : std_logic;
-
 begin
 
   wb_out.stall <= '0';

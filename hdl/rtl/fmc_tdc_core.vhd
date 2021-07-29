@@ -122,22 +122,21 @@ use work.genram_pkg.all;
 --                                Entity declaration for fmc_tdc_core
 --=================================================================================================
 entity fmc_tdc_core is
-  generic
-    (g_SPAN                   : integer := 32;  -- address span in bus interfaces
-     g_WIDTH                  : integer := 32;  -- data width in bus interfaces
-     g_SIMULATION             : boolean := FALSE;
-     -- Enable filtering based on pulse width. This will have the following effects:
-     -- * Suppress theforwarding of negative slope timestamps.
-     -- * Delay the forwarding of timestamps until after the falling edge timestamp.
-     -- Once enabled, all pulses wider than 1 second or narrower than
-     -- g_pulse_width_filter_min will be dropped.
-     g_PULSE_WIDTH_FILTER     : boolean := true;
-     -- In 8ns ticks.
-     g_PULSE_WIDTH_FILTER_MIN : natural := 12;
-     g_USE_DMA_READOUT        : boolean := FALSE;
-     g_USE_FIFO_READOUT       : boolean := FALSE);
-  port
-    (
+  generic (
+      g_SPAN                   : integer := 32;  -- address span in bus interfaces
+      g_WIDTH                  : integer := 32;  -- data width in bus interfaces
+      g_SIMULATION             : boolean := FALSE;
+      -- Enable filtering based on pulse width. This will have the following effects:
+      -- * Suppress theforwarding of negative slope timestamps.
+      -- * Delay the forwarding of timestamps until after the falling edge timestamp.
+      -- Once enabled, all pulses wider than 1 second or narrower than
+      -- g_pulse_width_filter_min will be dropped.
+      g_PULSE_WIDTH_FILTER     : boolean := true;
+      -- In 8ns ticks.
+      g_PULSE_WIDTH_FILTER_MIN : natural := 12;
+      g_USE_DMA_READOUT        : boolean := FALSE;
+      g_USE_FIFO_READOUT       : boolean := FALSE);
+  port (
       clk_sys_i   : in std_logic;
       rst_sys_n_i : in std_logic;
 
@@ -173,7 +172,7 @@ entity fmc_tdc_core is
       tdc_led_stat_o         : out   std_logic;  -- amber led on front pannel, division of clk_tdc_i
       tdc_led_trig_o         : out   std_logic_vector(4 downto 0); -- one amber led on front pannel per Ch
 
--- White Rabbit control and status registers
+      -- White Rabbit control and status registers
       wrabbit_status_reg_i : in  std_logic_vector(g_WIDTH-1 downto 0);
       wrabbit_ctrl_reg_o   : out std_logic_vector(g_WIDTH-1 downto 0);
       -- White Rabbit timing
@@ -199,8 +198,7 @@ entity fmc_tdc_core is
       irq_threshold_o  : out std_logic_vector(9 downto 0);
       irq_timeout_o    : out std_logic_vector(9 downto 0);
 
-      fmc_id_i         : in std_logic
-      );
+      fmc_id_i         : in std_logic);
 end fmc_tdc_core;
 
 
@@ -285,7 +283,6 @@ begin
      clk_sys_i   => clk_sys_i,
      rst_sys_n_i => rst_sys_n_i,
 
-
      slave_i => cfg_slave_i,
      slave_o => cfg_slave_o,
 
@@ -329,8 +326,6 @@ begin
     end if;
   end process;
 
-
-
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   wrabbit_ctrl_reg_o <= wrabbit_ctrl_reg;
 
@@ -362,25 +357,25 @@ begin
 --                                   LOCAL ONE HZ GENERATOR                                      --
 ---------------------------------------------------------------------------------------------------
   local_one_second_block : entity work.local_pps_gen
-    generic map
-    (g_WIDTH => g_WIDTH)
-    port map
-    (acam_refclk_r_edge_p_i => acam_refclk_r_edge_p_i,
-     clk_i                  => clk_tdc_i,
-     clk_period_i           => clk_period,
-     load_utc_p_i           => load_utc,
-     rst_i                  => rst_tdc,
-     starting_utc_i         => starting_utc,
-     local_utc_o            => local_utc,
-     local_utc_p_o          => local_utc_p);
+    generic map (
+      g_WIDTH => g_WIDTH)
+    port map (
+      acam_refclk_r_edge_p_i => acam_refclk_r_edge_p_i,
+      clk_i                  => clk_tdc_i,
+      clk_period_i           => clk_period,
+      load_utc_p_i           => load_utc,
+      rst_i                  => rst_tdc,
+      starting_utc_i         => starting_utc,
+      local_utc_o            => local_utc,
+      local_utc_p_o          => local_utc_p);
 
   clk_period <= work.tdc_core_pkg.f_pick(g_simulation, c_SIM_CLK_PERIOD, c_SYN_CLK_PERIOD);
+
 ---------------------------------------------------------------------------------------------------
 --                                   ACAM TIMECONTROL INTERFACE                                  --
 ---------------------------------------------------------------------------------------------------
   acam_timing_block : entity work.acam_timecontrol_interface
-    port map
-    (
+    port map (
      start_from_fpga_o       => start_from_fpga,
      stop_dis_o              => stop_dis_o,
      utc_p_i                 => utc_p,
@@ -442,7 +437,7 @@ begin
 --                                          DATA ENGINE                                          --
 ---------------------------------------------------------------------------------------------------
   data_engine_block : entity work.data_engine
-    generic map(
+    generic map (
       g_simulation => g_simulation)
     port map
     (acam_ack_i            => acm_ack,
@@ -545,17 +540,17 @@ begin
 --                                              TDC LEDs                                         --
 ---------------------------------------------------------------------------------------------------  
   TDCboard_leds : entity work.leds_manager
-    generic map
-    (g_WIDTH      => 32,
-     g_simulation => g_simulation)
-    port map
-    (clk_i            => clk_tdc_i,
-     rst_i            => rst_tdc,
-     utc_p_i          => utc_p,
-     tstamp_valid_p_i => final_timestamp_valid,
-     term_en_i        => term_enable_tdc,
-     tdc_led_stat_o   => tdc_led_stat_o,
-     tdc_led_trig_o   => tdc_led_trig_o);
+    generic map (
+      g_WIDTH      => 32,
+      g_simulation => g_simulation)
+    port map (
+      clk_i            => clk_tdc_i,
+      rst_i            => rst_tdc,
+      utc_p_i          => utc_p,
+      tstamp_valid_p_i => final_timestamp_valid,
+      term_en_i        => term_enable_tdc,
+      tdc_led_stat_o   => tdc_led_stat_o,
+      tdc_led_trig_o   => tdc_led_trig_o);
 
 ---------------------------------------------------------------------------------------------------
 --                                    ACAM start_dis, not used                                   --
@@ -571,7 +566,7 @@ begin
       d_i       => channel_enable_tdc,
       q_o       => channel_enable_sys);
 
-  term_enable_tdc <= acam_inputs_en(4 downto 0);
+  term_enable_tdc    <= acam_inputs_en(4 downto 0);
   channel_enable_tdc <= acam_inputs_en(20 downto 16);
   channel_enable_o   <= channel_enable_sys;
 

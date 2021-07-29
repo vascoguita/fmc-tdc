@@ -1,0 +1,119 @@
+
+#----------------------------------------
+# Clock stuff
+#----------------------------------------
+NET "fp_gpio3_b" TNM_NET = fp_gpio3;
+TIMESPEC TS_fp_gpio3 = PERIOD "fp_gpio3" 100 ns HIGH 50%;
+
+
+# 125MHz TDC PLL clock
+NET "fmc0_tdc_clk_125m" TNM_NET = "fmc0_tdc_clk_125m";
+NET "fmc1_tdc_clk_125m" TNM_NET = "fmc1_tdc_clk_125m";
+
+NET "fmc0_tdc_clk_125m_n_i" TNM_NET = "fmc0_tdc_clk_125m_n_i";
+TIMESPEC TS_fmc0_tdc_tdc_125m_clk_n_i = PERIOD "fmc0_tdc_clk_125m_n_i" 8 ns HIGH 50 %;
+
+NET "fmc0_tdc_clk_125m_p_i" TNM_NET = "fmc0_tdc_clk_125m_p_i";
+TIMESPEC TS_fmc0_tdc_clk_125m_p_i = PERIOD "fmc0_tdc_clk_125m_p_i" 8 ns HIGH 50 %;
+
+NET "fmc1_tdc_clk_125m_p_i" TNM_NET = "fmc1_tdc_clk_125m_p_i";
+TIMESPEC TS_fmc1_tdc_tdc_125m_clk_p_i = PERIOD "fmc1_tdc_clk_125m_p_i" 8 ns HIGH 50 %;
+
+NET "fmc1_tdc_clk_125m_n_i" TNM_NET = "fmc1_tdc_clk_125m_n_i";
+TIMESPEC TS_fmc1_tdc_tdc_125m_clk_n_i = PERIOD "fmc1_tdc_clk_125m_n_i" 8 ns HIGH 50 %;
+
+# TS_IGNORE
+TIMESPEC ts_ignore_xclock1 = FROM "clk_sys_62m5" TO "fmc0_tdc_clk_125m" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock2 = FROM "fmc0_tdc_clk_125m" TO "clk_sys_62m5" 20ns DATAPATHONLY;
+
+TIMESPEC ts_ignore_xclock3 = FROM "clk_sys_62m5" TO "fmc1_tdc_clk_125m" 20ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "fmc1_tdc_clk_125m" TO "clk_sys_62m5" 20ns DATAPATHONLY;
+
+TIMESPEC ts_ignore_xclock4 = FROM "clk_20m_vcxo_i" TO "clk_sys_62m5" 200ns DATAPATHONLY;
+TIMESPEC ts_ignore_xclock4 = FROM "clk_sys_62m5" TO "clk_20m_vcxo_i" 200ns DATAPATHONLY;
+#TIMESPEC TS_gen_with_wr_phy_U_GTP_ch1_gtp_clkout_int_1_ = PERIOD "gen_with_wr_phy.U_GTP/ch1_gtp_clkout_int<1>" 8 ns HIGH 50 %;
+#Created by Constraints Editor (xc6slx150t-fgg900-3) - 2017/12/06
+#NET "cmp_xwrc_board_svec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" TNM_NET = cmp_xwrc_board_svec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>;
+#TIMESPEC TS_cmp_xwrc_board_svec_cmp_xwrc_platform_gen_phy_spartan6_cmp_gtp_ch1_gtp_clkout_int_1_ = PERIOD "cmp_xwrc_board_svec/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch1_gtp_clkout_int<1>" 8 ns HIGH 50%;
+
+
+
+
+# PlanAhead Generated miscellaneous constraints 
+NET "fmc0_tdc_address_o[3]" SLEW = FAST;
+NET "fmc0_tdc_address_o[2]" SLEW = FAST;
+NET "fmc0_tdc_address_o[1]" SLEW = FAST;
+NET "fmc0_tdc_address_o[0]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[27]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[26]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[25]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[24]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[23]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[22]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[21]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[20]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[19]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[18]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[17]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[16]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[15]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[14]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[13]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[12]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[11]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[10]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[9]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[8]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[7]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[6]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[5]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[4]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[3]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[2]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[1]" SLEW = FAST;
+NET "fmc0_tdc_data_bus_io[0]" SLEW = FAST;
+NET "fmc1_tdc_address_o[3]" SLEW = FAST;
+NET "fmc1_tdc_address_o[2]" SLEW = FAST;
+NET "fmc1_tdc_address_o[1]" SLEW = FAST;
+NET "fmc1_tdc_address_o[0]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[27]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[26]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[25]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[24]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[23]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[22]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[21]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[20]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[19]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[18]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[17]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[16]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[15]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[14]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[13]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[12]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[11]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[10]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[9]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[8]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[7]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[6]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[5]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[4]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[3]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[2]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[1]" SLEW = FAST;
+NET "fmc1_tdc_data_bus_io[0]" SLEW = FAST;
+
+#INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_feedback_dmtds*/clk_in" TNM = skew_limit;
+#INST "*/U_SOFTPLL/U_Wrapped_Softpll/gen_ref_dmtds*/clk_in" TNM = skew_limit;
+
+#TIMESPEC TS_skew_limit = FROM "skew_limit" TO "FFS" 1 ns DATAPATHONLY;
+
+
+#----------------------------------------
+# IOB exceptions
+#----------------------------------------
+INST "cmp_tdc_mezzanine_1/cmp_tdc_mezz/cmp_fmc_onewire/*" IOB = FALSE;
+INST "cmp_tdc_mezzanine_2/cmp_tdc_mezz/cmp_fmc_onewire/*" IOB = FALSE;
+
