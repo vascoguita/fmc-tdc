@@ -1,0 +1,4 @@
+_build
+_static
+doxygen-lib-output
+*.htm

@@ -130,25 +130,16 @@ struct fmctdc_time {
 };
 
 
-/**
- * @file fmctdc-lib.c
- */
-/**
- * @defgroup libutil Utilities
+/*
  * Set of library utilities
- * @{
  */
 extern const char *fmctdc_strerror(int err);
 extern int fmctdc_init(void);
 extern void fmctdc_exit(void);
-/**@}*/
 
-
-/**
- * @defgroup libboard Board Configuration
+/*
  * Set of function to configure TDC board and retrieve information
  * about the current status
- * @{
  */
 extern int fmctdc_set_time(struct fmctdc_board *b, struct fmctdc_time *t);
 extern int fmctdc_get_time(struct fmctdc_board *b, struct fmctdc_time *t);
@@ -156,14 +147,11 @@ extern int fmctdc_set_host_time(struct fmctdc_board *b);
 extern int fmctdc_wr_mode(struct fmctdc_board *b, int on);
 extern int fmctdc_check_wr_mode(struct fmctdc_board *b);
 extern float fmctdc_read_temperature(struct fmctdc_board *b);
-/**@}*/
 
 
-/**
- * @defgroup libchan Channel Configuration
+/*
  * Set of function to configure TDC channels and retrieve information
  * about the current status
- * @{
  */
 extern int fmctdc_channel_status_set(struct fmctdc_board *userb,
 				     unsigned int channel,
@@ -209,12 +197,8 @@ extern int fmctdc_ts_mode_get(struct fmctdc_board *userb,
 			      unsigned int channel,
 			      enum fmctdc_ts_mode *mode);
 
-/**@}*/
-
-/**
- * @defgroup libacq Time-stamps Acquisition
+/*
  * Set of functions to read time-stamps from the board
- * @{
  */
 extern struct fmctdc_board *fmctdc_open(int dev_id);
 extern struct fmctdc_board *fmctdc_open_by_lun(int lun);
@@ -224,15 +208,10 @@ extern int fmctdc_fread(struct fmctdc_board *b, unsigned int channel,
 extern int fmctdc_fileno_channel(struct fmctdc_board *b, unsigned int channel);
 extern int fmctdc_read(struct fmctdc_board *b, unsigned int channel,
 		       struct fmctdc_time *t, int n, int flags);
-extern int fmctdc_readhw(struct fmctdc_board *b, unsigned int channel,
-			 struct ft_hw_timestamp *t, int n, int flags);
 extern int fmctdc_flush(struct fmctdc_board *userb, unsigned int channel);
-/**@}*/
 
-/**
- * @defgroup libstats Statistics
+/*
  * Set of functions to get statistics
- * @{
  */
 extern int fmctdc_stats_recv_get(struct fmctdc_board *userb,
 				 unsigned int channel,
@@ -240,18 +219,10 @@ extern int fmctdc_stats_recv_get(struct fmctdc_board *userb,
 extern int fmctdc_stats_trans_get(struct fmctdc_board *userb,
 				  unsigned int channel,
 				  uint32_t *val);
-/**@}*/
 
 /**
- *@file fmctdc-lib-math.c
- */
-/**
- * @defgroup libmath Time-Stamp Math
  * Set of mathematical functions on time-stamps
- * @{
  */
-
-
 extern uint64_t fmctdc_ts_approx_ns(struct fmctdc_time *a);
 extern uint64_t fmctdc_ts_ps(struct fmctdc_time *a);
 extern void fmctdc_ts_norm(struct fmctdc_time *a);
@@ -262,7 +233,6 @@ extern void fmctdc_ts_add(struct fmctdc_time *r,
 			  const struct fmctdc_time *a,
 			  const struct fmctdc_time *b);
 extern int _fmctdc_tscmp(struct fmctdc_time *a, struct fmctdc_time *b);
-/**@}*/
 
 /**
  * libfmctdc version string

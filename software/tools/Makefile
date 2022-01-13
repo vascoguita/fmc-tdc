@@ -19,6 +19,8 @@ TESTS = fmc-tdc-term \
 	fmc-tdc-offset \
 	fmc-tdc-calibration
 
+OTHERS = example
+
 CFLAGS = -ggdb -I. -I$(LIBTDC) -I../kernel -Wall -Werror $(EXTRACFLAGS)
 GIT_VERSION := $(shell git describe --dirty --long --tags)
 CFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
@@ -29,9 +31,11 @@ LDLIBS = -lfmctdc -lrt
 
 CPPCHECK ?= cppcheck
 
-all: $(TESTS)
+all: $(TESTS) $(OTHERS)
 
 $(TESTS): $(COMMON_SRCS:.c=.o) $(LIBTDC)/libfmctdc.a
+
+$(OTHERS): $(LIBTDC)/libfmctdc.a
 
 fmc-tdc-list:
 

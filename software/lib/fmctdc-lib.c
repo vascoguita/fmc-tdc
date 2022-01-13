@@ -651,7 +651,9 @@ int fmctdc_get_buffer_len(struct fmctdc_board *userb, unsigned int channel)
  * Internally, the buffer allocates memory in chunks of minimun 1KiB. This
  * means, for example, that if you ask for 65 timestamp the buffer will
  * allocate space for 128. This because 64 timestamps fit in 1KiB, to store
- * 65 we need 2KiB (128 timestamps)
+ * 65 we need 2KiB (128 timestamps).
+ *
+ * NOTE: it works only with the VMALLOC allocator.
  */
 int fmctdc_set_buffer_len(struct fmctdc_board *userb, unsigned int channel,
 			  unsigned int length)

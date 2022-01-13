@@ -8,4 +8,5 @@ fmc-tdc-tstamp
 fmc-tdc-offset
 fmc-tdc-perftest
 fmc-tdc-calibration
+example
 Makefile.specific
