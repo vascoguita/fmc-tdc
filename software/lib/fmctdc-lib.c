@@ -419,7 +419,7 @@ int fmctdc_channel_disable(struct fmctdc_board *userb, unsigned int channel)
  * The function sets the buffer type for a channel
  * @param[in] userb TDC board instance token
  * @param[in] ch to use
- * @param[in] mode buffer mode to use
+ * @param[in] type buffer type to use
  * @return 0 on success, otherwise a negative errno code is set
  *         appropriately
  */
@@ -489,7 +489,7 @@ static int fmctdc_get_buffer_type_chan(struct fmctdc_board *userb,
 /**
  * The function sets the buffer type for a device
  * @param[in] userb TDC board instance token
- * @param[in] mode buffer mode to use
+ * @param[in] type buffer type to use
  * @return 0 on success, otherwise a negative errno code is set
  *         appropriately
  */
@@ -514,7 +514,6 @@ int fmctdc_set_buffer_type(struct fmctdc_board *userb,
 /**
  * The function returns current buffer type: 0 for kmallo, 1 for vmalloc.
  * @param[in] userb TDC board instance token
- * @param[in] channel to use
  * @return buffer type, otherwise a negative errno code is set
  *         appropriately
  */
@@ -726,7 +725,7 @@ static void fmctdc_ts_convert_n(struct fmctdc_time *t,
  * @param[in] userb TDC board instance token
  * @param[in] channel channel to use [0, 4]
  * @param[out] t array of time-stamps
- * @param[in] n number of elements to save in the array
+ * @param[in] max maximum number of elements to save in the array
  * @return the number of samples read
  */
 static int __fmctdc_read(struct fmctdc_board *userb, unsigned int channel,

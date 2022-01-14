@@ -20,14 +20,16 @@
 
 #include <fmc-tdc.h>
 
-/* Internal structure */
+/**
+ * Internal structure for the FMC TDC
+ */
 struct __fmctdc_board {
-	uint32_t dev_id;
-	char *devbase;
-	char *sysbase;
-	int fdcc[FMCTDC_NUM_CHANNELS]; /**< current controls */
-	int fdc[5];		/* The 5 control channels */
-	int fdd[5];		/* The 5 data channels */
+	uint32_t dev_id; /**< FMC TDC device identifier */
+	char *devbase; /**< base path to char device */
+	char *sysbase; /**< base path to sysfs attribute */
+	int fdcc[FMCTDC_NUM_CHANNELS]; /**< Channel's current controls file descriptors */
+	int fdc[FMCTDC_NUM_CHANNELS]; /**< Channel's control char-device File descriptors */
+	int fdd[FMCTDC_NUM_CHANNELS]; /**< Channel's data char-device file descriptor */
 	int ch_ref[FMCTDC_NUM_CHANNELS];  /**< reference channel */
 };
 
