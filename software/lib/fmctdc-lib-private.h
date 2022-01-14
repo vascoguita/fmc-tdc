@@ -30,7 +30,6 @@ struct __fmctdc_board {
 	int fdcc[FMCTDC_NUM_CHANNELS]; /**< Channel's current controls file descriptors */
 	int fdc[FMCTDC_NUM_CHANNELS]; /**< Channel's control char-device File descriptors */
 	int fdd[FMCTDC_NUM_CHANNELS]; /**< Channel's data char-device file descriptor */
-	int ch_ref[FMCTDC_NUM_CHANNELS];  /**< reference channel */
 };
 
 static inline int fmctdc_is_verbose(void)
