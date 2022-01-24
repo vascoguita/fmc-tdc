@@ -439,7 +439,7 @@ int ft_probe(struct platform_device *pdev)
 
 	if (strcmp(fmc_slot_eeprom_type_get(ft->slot), FT_EEPROM_TYPE)) {
 		dev_warn(&ft->pdev->dev,
-			 "use non standard EERPOM type \"%s\"\n",
+			 "use non standard EEPROM type \"%s\"\n",
 			 FT_EEPROM_TYPE);
 		ret = fmc_slot_eeprom_type_set(ft->slot, FT_EEPROM_TYPE);
 		if (ret < 0) {
