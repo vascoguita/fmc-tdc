@@ -27,7 +27,7 @@ class FmcTdcTime(ctypes.Structure):
     def __float__(self):
         ts = self.seconds
         ts = ts + (self.coarse / 1000000000.0 * 8)
-        ts = ts + ((self.frac * 7.999) / 4095) / 1000000000
+        ts = ts + ((self.frac * 8.0) / 4096) / 1000000000
         return ts
 
 
