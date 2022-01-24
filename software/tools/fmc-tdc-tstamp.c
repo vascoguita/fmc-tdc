@@ -105,27 +105,28 @@ enum tstamp_testing_modes {
  */
 static void help(char *name)
 {
-	fprintf(stderr, "%s [options] -D <device_id> -L <cern-lun> [channels]\n",
+	fprintf(stderr, "%s [options] -D <device_id> -L <cern-lun>\n",
 		basename(name));
 	fprintf(stderr,
-		"reads timestamps from fmc-tdc channels. No [channels] means all channels.\n\n");
+		"reads timestamps from fmc-tdc channels.\n\n");
 	fprintf(stderr, "Options are:\n");
 	fprintf(stderr, "  -D          : device identifier in hex, e.g. 0x1234\n");
 	fprintf(stderr, "  -L          : CERN LUN number\n");
 	fprintf(stderr, "  -n          : non-blocking mode\n");
 	fprintf(stderr, "  -s n_samples: dump 'n_samples' timestamps\n");
 	fprintf(stderr, "  -w          : user White Rabbit format\n");
-	fprintf(stderr, "  -f:           flush buffer\n");
-	fprintf(stderr, "  -r:           read buffer, no acquisition start\n");
-	fprintf(stderr, "  -m:           buffer mode: 'fifo' or 'circ'\n");
-	fprintf(stderr, "  -l:           maximum buffer lenght\n");
+	fprintf(stderr, "  -f          : flush buffer\n");
+	fprintf(stderr, "  -r          : read buffer, no acquisition start\n");
+	fprintf(stderr, "  -m          : buffer mode: 'fifo' or 'circ'\n");
+	fprintf(stderr, "  -l          : maximum buffer length\n");
 	fprintf(stderr, "  -S n_samples: output decimation, number of samples to skip\n");
-	fprintf(stderr, "  -h:           print this message\n\n");
-	fprintf(stderr, "  -V:           print version info\n\n");
-	fprintf(stderr, "  -t <mode>:    It does some test of the incoming timestampts\n\n");
-	fprintf(stderr, "  -o <ms>:      IRQ coalescing milleseconds timeout\n\n");
-	fprintf(stderr, "  -e:           stop on error\n\n");
-	fprintf(stderr, "  -a <ch>       Enable raw-timestamps\n\n");
+	fprintf(stderr, "  -h          : print this message\n");
+	fprintf(stderr, "  -V          : print version info\n");
+	fprintf(stderr, "  -t <mode>   : It does some test of the incoming timestampts\n");
+	fprintf(stderr, "  -o <ms>     : IRQ coalescing milleseconds timeout\n");
+	fprintf(stderr, "  -e          : stop on error\n");
+	fprintf(stderr, "  -a <ch>     : Enable raw-timestamps\n");
+	fprintf(stderr, "  -c <ch>     : Set channel. All channels if not specified.\n");
 
 	fprintf(stderr, " channels enumerations go from %d to %d \n\n",
 		FMCTDC_CH_1, FMCTDC_CH_LAST);
