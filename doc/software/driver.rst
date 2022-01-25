@@ -32,7 +32,8 @@ The compile and install the fmctdc1ns5ch device driver you need
 first to export the path to its direct dependencies, and then you
 execute ``make``. This driver depends on the `zio`_ framework and
 `fmc`_ library; on a VME system it depends also on the VME bridge
-driver from CERN BE-CEM.
+driver from CERN BE-CEM. Additionally it is assumed that location of wbgen2 is
+available via PATH variable.
 
 ::
 
@@ -52,6 +53,153 @@ driver from CERN BE-CEM.
 The building process generates 3 Linux modules:
 *kernel/fmc-tdc.ko*, *kernel/fmc-tdc-spec.ko*, and
 *kernel/fmc-tdc-svec.ko*.
+
+Building Dependencies
+---------------------
+
+The TDC driver requires the following drivers to function:
+
+* from `spec`_ repository: *gn412x-fcl.ko*, *gn412x-gpio.ko*,
+  *spec-gn412x-dma.ko* and *spec-fmc-carrier.ko*
+* from `general-cores`_ repository: *spi-ocores.ko*, *i2c-ocores.ko*
+  and  *htvic.ko*
+* from `zio`_ repository: *zio-buf-vmalloc.ko* and *zio.ko*
+* from `fmc`_ repository: *fmc.ko*
+* drivers from the kernel tree: *mtd.ko*, *at24.ko*, *m25p80.ko*,
+  *i2c_mux.ko* and *fpga-mgr.ko* (available in kernels v4.4 and newer,
+  for older kernels see FPGA manager subsection)
+
+In addition the following tools are required to build above drivers:
+
+* `cheby`_
+* `wbgen2`_
+
+Please read the following subsections for details
+
+
+Cheby
+-----
+Clone *cheby* repository:
+::
+
+    $ git clone https://gitlab.cern.ch/cohtdrivers/cheby.git
+
+Install cheby:
+::
+
+    $ cd cheby
+    $ python setup.py install
+
+It may be required to install *python-setuptools* or *python-setuptools.noarch*
+package using your Linux distribution's software manager.
+
+Wbgen2
+------
+
+Clone *wbgen2* repository:
+::
+
+    $ git clone https://ohwr.org/project/wishbone-gen.git
+
+If needed export the location of *wbgen2* (needed for *fmc-tdc* drivers
+compilation):
+::
+
+    export WBGEN2=/path/to/wishbone-gen/wbgen2
+
+
+FPGA Manager
+------------
+
+If kernel module *fpga-mgr.ko* is not available in the kernel that is used,
+probably the backported version is needed.
+
+Clone backported *fpga-manager* repository:
+::
+
+    $ git clone https://gitlab.cern.ch/coht/fpga-manager.git
+
+
+Build and install kernel module (*fpga-mgr.ko*):
+::
+
+    $ cd fpga-manager
+    $ export LINUX=/path/to/linux/sources
+    $ make
+    $ make install
+
+ZIO
+---
+
+
+Clone *zio* repository:
+::
+
+    $ git clone https://ohwr.org/misc/zio.git
+
+
+Build and install kernel modules (*zio-buf-vmalloc.ko* and *zio.ko*):
+::
+
+    $ cd zio
+    $ export LINUX=/path/to/linux/sources
+    $ make
+    $ make install
+
+
+General cores
+-------------
+
+Clone *general-cores* repository:
+::
+
+    $ git clone https://ohwr.org/project/general-cores.git
+
+
+Build and install kernel modules (*spi-ocores.ko*, *i2c-ocores.ko*
+and *htvic.ko*):
+::
+
+    $ cd general-cores/software
+    $ export LINUX=/path/to/linux/sources
+    $ make
+    $ make install
+
+
+
+Spec
+----
+
+Clone *spec* repository:
+::
+
+    $ git clone https://ohwr.org/project/spec.git
+
+
+Build and install kernel modules (*gn412x-fcl.ko*, *gn412x-gpio.ko*,
+*spec-gn412x-dma.ko* and *spec-fmc-carrier.ko*):
+::
+
+    $ cd spec/software
+    $ export CHEBY=/path/to/cheby/bin/cheby
+    $ export I2C=/path/to/general-cores/software/i2c-ocores
+    $ export SPI=/path/to/general-cores/software/spi-ocores
+    $ export FPGA_MGR=/path/to/fpga-manager
+    $ export FMC=/path/to/fmc-sw
+    $ export LINUX=/path/to/linux/sources
+    $ make
+    $ make install
+
+
+.. _zio: https://www.ohwr.org/project/zio
+.. _fmc: https://www.ohwr.org/project/fmc-sw
+.. _`fmc-bus`: http://www.ohwr.org/projects/fmc-bus
+.. _`SVEC`: https://www.ohwr.org/projects/svec
+.. _`SPEC`: https://www.ohwr.org/projects/spec
+.. _`general-cores`: https://ohwr.org/project/general-cores
+.. _`fpga-manager`: https://gitlab.cern.ch/coht/fpga-manager
+.. _`wbgen2`: https://ohwr.org/project/wishbone-gen
+.. _`cheby`: https://gitlab.cern.ch/cohtdrivers/cheby
 
 Top Level Driver
 ================
@@ -93,11 +241,6 @@ wr_offset_fix=NUMBER
     It overwrites the White-Rabbit calibration offset for calibration
     value computed before 2018. By default this is set to 229460 ps.
 
-.. _zio: https://www.ohwr.org/project/zio
-.. _fmc: https://www.ohwr.org/project/fmc-sw
-.. _`fmc-bus`: http://www.ohwr.org/projects/fmc-bus
-.. _`SVEC`: https://www.ohwr.org/projects/svec
-.. _`SPEC`: https://www.ohwr.org/projects/spec
 
 Device Abstraction
 ==================
