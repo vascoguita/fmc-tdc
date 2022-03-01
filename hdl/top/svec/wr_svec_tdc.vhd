@@ -342,7 +342,7 @@ architecture rtl of wr_svec_tdc is
   constant c_WB_MASTER_VME     : integer := 0;
 
   -- Convention metadata base address
-  constant c_METADATA_ADDR  : t_wishbone_address := x"0000_2000";
+  constant c_METADATA_ADDR  : t_wishbone_address := x"0000_4000";
 
   -- Primary wishbone crossbar layout
   constant c_WB_LAYOUT_ADDR :
