@@ -13,10 +13,10 @@
 #include "platform_data/fmc-tdc.h"
 
 enum ft_svec_dev_offsets {
-	FT_SVEC_TDC1_MEM_START = 0x00000E000,
-	FT_SVEC_TDC1_MEM_END = 0x0001DFFF,
-	FT_SVEC_TDC2_MEM_START = 0x0001E000,
-	FT_SVEC_TDC2_MEM_END = 0x000030000,
+	FT_SVEC_TDC1_MEM_START = 0x0000C000,
+	FT_SVEC_TDC1_MEM_END =   0x0001BFFF,
+	FT_SVEC_TDC2_MEM_START = 0x0001C000,
+	FT_SVEC_TDC2_MEM_END =   0x0002BFFF,
 };
 
 static struct fmc_tdc_platform_data fmc_tdc_pdata = {
