@@ -55,7 +55,7 @@ GIT_VERSION = $(shell git describe --always --dirty --long --tags)
 
 all: modules
 
-hw_headers: tdc_dma_eic.h tdc_onewire_regs.h tdc_buffer_control_regs.h timestamp_fifo_regs.h channel_regs.h
+hw_headers: tdc_dma_eic.h tdc_onewire_regs.h tdc_buffer_control_regs.h timestamp_fifo_regs.h
 
 tdc_dma_eic.h: $(TDC_HDL)/rtl/wbgen/dma_eic.wb
 	$(WBGEN2) -s defines -C hw/$@ $<
@@ -67,9 +67,6 @@ tdc_buffer_control_regs.h: $(TDC_HDL)/rtl/wbgen/tdc_buffer_control_regs.wb
 	$(WBGEN2) -s defines -C hw/$@ $<
 
 timestamp_fifo_regs.h: $(TDC_HDL)/rtl/wbgen/timestamp_fifo_wb.wb
-	$(WBGEN2) -s defines -C hw/$@ $<
-
-channel_regs.h: $(TDC_HDL)/rtl/wbgen/channel_regs.wb
 	$(WBGEN2) -s defines -C hw/$@ $<
 
 modules: hw_headers
