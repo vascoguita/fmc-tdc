@@ -8,10 +8,11 @@ Here you can find all the information about the *fmc-tdc* API and the
 main library behaviour that you need to be aware of to write
 applications.
 
-This document introduces the developers to the development with the ADC library.
+This document introduces the developers to the development with the TDC library.
 Here you can find an overview about the API, the rational behind it and
 examples of its usage. It is not the purpose of the document to describe
-the API details. The complete API is available in the Library API document.
+the API details. The complete API is available in
+:doc:`the Library API <library-api>` section.
 
 .. note::
 
@@ -62,7 +63,7 @@ variable is set appropriately.
 
 The :manpage:`errno` values can be standard Posix items like
 ``EINVAL``, or library-specific values, for example
-``ADC_ERR_VMALLOC`` (*driver vmalloc allocator not available*). All
+``FMCTDC_ERR_VMALLOC`` (*driver vmalloc allocator not available*). All
 library-specific error values have a value greater than 4096, to
 prevent collision with standard values. To convert such values to a
 string please use :cpp:func:`fmctdc_strerror()`
@@ -97,7 +98,7 @@ needs. Function :cpp:func:`fmctdc_open_by_lun()`  is the open by LUN
 The usage is exactly the same as :cpp:func:`fmctdc_open()` only that it uses
 the LUN instead of the device ID.
 
-No automatic action is take by :cpp:func:`fmctdc_open()`. Hence, you
+No automatic action is taken by :cpp:func:`fmctdc_open()`. Hence, you
 may want to flush the buffers before starting a new acquisition
 session. You can do this with :cpp:func:`fmctdc_flush()`
 
@@ -105,7 +106,7 @@ session. You can do this with :cpp:func:`fmctdc_flush()`
    :language: c
    :lines: 72-90
 
-Configuration And Status
+Configuration and Status
 ------------------------
 
 The TDC configuration API is based on a number of getter and setter
@@ -229,7 +230,7 @@ gateware using, respectivily, :cpp:func:`fmctdc_channel_enable()` and
    :language: c
    :lines: 194-204
 
-You have to may functions to read timestamp :cpp:func:`fmctdc_read()`
+To read timestamps you may use functions :cpp:func:`fmctdc_read()`
 and :cpp:func:`fmctdc_fread()`. As the name may suggest, the first
 behaves like :manpage:`read` and the second as :manpage:`fread`.
 
@@ -246,11 +247,13 @@ If you need to flush the buffer, you can use :cpp:func:`fmctdc_flush()`.
 Timestamp Math
 --------------
 The TDC library API has functions to support timestamp math. They
-allow you to *add*, *subtract*, *compare*, *normalize*, and
+allow you to *add*, *subtract*, *normalize*, and
 *approximate*. These functions are: :cpp:func:`fmctdc_ts_add()`,
-:cpp:func:`fmctdc_ts_sub()`, :cpp:func:`_fmctdc_tscmp()`,
-:cpp:func:`fmctdc_ts_norm()`, :cpp:func:`fmctdc_ts_ps()`,and
+:cpp:func:`fmctdc_ts_sub()`,
+:cpp:func:`fmctdc_ts_norm()`, :cpp:func:`fmctdc_ts_ps()`, and
 :cpp:func:`fmctdc_ts_approx_ns()`.
+
+.. # NOTE: the "compare " function is not implemented in the library
 
 .. _`ZIO`: https://www.ohwr.org/project/zio
 .. _`SVEC`: https://www.ohwr.org/projects/svec

@@ -6,7 +6,7 @@
 The Memory Map
 ==============
 
-Following the memory map for the part of the ADC design that drives
+Following the memory map for the part of the TDC design that drives
 the FMC-TDC-1NS-5CH modules.
 
 .. only:: latex
@@ -21,7 +21,7 @@ the FMC-TDC-1NS-5CH modules.
 Supported Designs
 =================
 Here you can find the complete memory MAP for the supported
-designs. This will include the TDC register as well as the carrier
+designs. This will include the TDC registers as well as the carrier
 registers and any other component used in an FMC-TDC-1NS-5CH design.
 
 .. toctree::

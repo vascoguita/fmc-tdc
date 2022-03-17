@@ -20,11 +20,11 @@ Here is the procedure to build the FPGA binary image from the hdl
 source.::
 
   # Install ``hdlmake`` (version 3.4).
-  # Get fmc-adc hdl sources.
-  git clone git://ohwr.org/project/fmc-adc-100m14b4cha.git <src_dir>
+  # Get fmc-tdc hdl sources.
+  git clone https://ohwr.org/project/fmc-tdc.git <src_dir>
 
   # Goto the synthesis directory.
-  cd <src_dir>/hdl/<carrier>/syn/
+  cd <src_dir>/hdl/syn/<carrier>/
 
   # Fetch the dependencies and generate a synthesis Makefile.
   hdlmake
@@ -36,17 +36,10 @@ Source Code Organisation
 ------------------------
 
 hdl/rtl/
-    ADC specific hdl sources.
-
-hdl/cheby/
-    ADC specific ``cheby`` sources, html documentation and C header
-    file.
+    TDC specific hdl sources.
 
 hdl/ip_cores/
     Location of fetched hdl cores and libraries.
-
-hdl/platform/<platform>
-    Platform related hdl sources.
 
 hdl/top/<design>
     Top-level hdl module for selected design.
@@ -63,7 +56,7 @@ hdl/testbench/
 Dependencies
 ------------
 
-The fmc-adc gateware depends on the following hdl cores and libraries:
+The fmc-tdc gateware depends on the following hdl cores and libraries:
 `General Cores`_, `DDR3 SP6 core`_, `GN4124 core`_ (SPEC only),
 `SPEC`_ (SPEC only) `VME64x Slave`_ (SVEC only), `SVEC`_ (SVEC only),
 `WR Cores`_.

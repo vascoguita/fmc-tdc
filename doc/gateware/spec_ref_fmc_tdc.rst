@@ -12,12 +12,22 @@ FMC-TDC-1NS-5CHA mezzanine.
 
 Carrier
 =======
+.. only:: latex
+
+   .. warning::
+      Unfortunatelly we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
 
 .. raw:: html
    :file: regs/spec_base_regs.htm
 
 FMC-TDC-1NS-5CHA
 ================
+.. only:: latex
+
+   .. warning::
+      Unfortunatelly we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
 
 .. raw:: html
    :file: regs/spec_ref_fmc_tdc_mmap.htm

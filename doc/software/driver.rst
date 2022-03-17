@@ -12,7 +12,7 @@ Driver Features
 Requirements
 ============
 
-The fmcadc100m14b4ch device driver has been developed and tested on Linux
+The fmc-tdc device driver has been developed and tested on Linux
 3.10. Other Linux versions might work as well but it is not guaranteed.
 
 This driver depends on the `zio`_ framework and `fmc`_ library; we
@@ -46,16 +46,16 @@ available via PATH variable.
       $ make install
 
 .. note::
-   Since version v8.0.0 the fmctdc1ns5ch device driver does not
+   Since version v8.0.0 the fmc-tdc device driver does not
    depend anymore on `fmc-bus`_ subsystem, instead it uses a new
    `fmc`_ library
 
 The building process generates 3 Linux modules:
-*kernel/fmc-tdc.ko*, *kernel/fmc-tdc-spec.ko*, and
-*kernel/fmc-tdc-svec.ko*.
+*kernel/fmc-tdc.ko*, *kernel/fmc-tdc-spec.ko* (for SPEC card), and
+*kernel/fmc-tdc-svec.ko* (for SVEC card).
 
-Building Dependencies
----------------------
+Drivers' Dependencies
+=====================
 
 The TDC driver requires the following drivers to function:
 
@@ -78,7 +78,7 @@ Please read the following subsections for details
 
 
 Cheby
------
+'''''
 Clone *cheby* repository:
 ::
 
@@ -94,7 +94,7 @@ It may be required to install *python-setuptools* or *python-setuptools.noarch*
 package using your Linux distribution's software manager.
 
 Wbgen2
-------
+''''''
 
 Clone *wbgen2* repository:
 ::
@@ -109,7 +109,7 @@ compilation):
 
 
 FPGA Manager
-------------
+''''''''''''
 
 If kernel module *fpga-mgr.ko* is not available in the kernel that is used,
 probably the backported version is needed.
@@ -148,7 +148,7 @@ Build and install kernel modules (*zio-buf-vmalloc.ko* and *zio.ko*):
 
 
 General cores
--------------
+'''''''''''''
 
 Clone *general-cores* repository:
 ::
@@ -167,8 +167,8 @@ and *htvic.ko*):
 
 
 
-Spec
-----
+SPEC
+''''
 
 Clone *spec* repository:
 ::
@@ -204,7 +204,7 @@ Build and install kernel modules (*gn412x-fcl.ko*, *gn412x-gpio.ko*,
 Top Level Driver
 ================
 
-The fmctdc is a generic driver for an FPGA device that could
+The fmc-tdc is a generic driver for an FPGA device that could
 be instanciated on a number of FMC carriers. For each carrier we write
 a little Linux module which acts as a top level driver (like the MFD
 drivers in the Linux kernel). In these modules there is the knowledge
@@ -288,33 +288,48 @@ channel set represents a single TDC channel.
      cset4 -- chan0;
     }
 
-The TDC registers can be accessed in the proper sysfs directory:::
+The TDC registers can be accessed in the proper sysfs directory:
+::
 
-  cd /sys/bus/zio/devices/tdc-1n5c-${ID}.
+  cd /sys/bus/zio/devices/tdc-1n5c-${ID}
 
 The overall device (*tdc-1n5c*) provides the following attributes:
 
 calibration_data
-  It is a binary attribute which allows the user to change the runt-time
+  It is a binary attribute which allows the user to change the run-time
   calibration data (the EEPROM will not be touched). The ``fmc-tdc-calibration``
   tool can be used to read write calibration data.
   To be consistent, this binary interface expects **only** little endian
-  values because this is the endianess used to store calibration data for
+  values because this is the endianness used to store calibration data for
   this device.
 
 coarse
+ Coarse part of the current TAI time. This value is in nanoseconds with
+ 8 ns resolution.
+ The ``fmc-tdc-time`` tool can be used to read TAI time.
 
 command
+ Send the command to the driver. As today it is possible to enable/disable
+ White Rabbit, set the board to the current time or check the source of
+ the timing.
+ The ``fmc-tdc-time`` tool can be used to send the commands related to the
+ current time source.
 
 seconds
+ Current TAI time in seconds. The ``fmc-tdc-time`` tool can be used to read TAI
+ time.
 
 temperature
-  It shows the current temperature
+  It shows the current temperature. To get the temperature in C degrees use
+  the formula ``temperature/16``. The ``fmc-tdc-temperature`` tool can be used
+  to read the temperature.
 
 transfer-mode
+ It shows the current transfer mode. 0 for FIFO, 1 for DMA.
 
 wr-offset
-  
+ Offset used by White Rabbit.
+
 The Channel Set
 '''''''''''''''
 
@@ -366,12 +381,12 @@ allocate each block, the latter uses vmalloc to allocate the whole data
 area. While the kmalloc buffer is linked with the core ZIO kernel
 module, vmalloc is a separate module. The driver currently prefers
 kmalloc, but even when it preferred vmalloc (up to mid June 2013), if
-the respective module wad not loaded, ZIO would instantiate kmalloc.
+the respective module was not loaded, ZIO would instantiate kmalloc.
 
 You can change the buffer type, while not acquiring, by writing its name
 to the proper attribute. For example::
 
-     echo vmalloc > /sys/bus/zio/devices/adc-100m14b-0200/cset0/current_buffer
+     echo vmalloc > /sys/bus/zio/devices/tdc-1n5c-0004/cset0/current_buffer
 
 The disadvantage of kmalloc is that each block is limited in size.
 usually 128kB (but current kernels allows up to 4MB blocks). The bigger
@@ -381,7 +396,7 @@ buffer size is defined for each buffer instance, i.e. for each channel.
 In this case we acquire only from the interleaved channel, so before
 making a 1000-long multishot acquisition you can do::
 
-     export DEV=/sys/bus/zio/devices/adc-100m14b-0200
+     export DEV=/sys/bus/zio/devices/tdc-1n5c-0004
      echo 1000 > $DEV/cset0/chani/buffer/max-buffer-len
 
 The vmalloc buffer allows mmap support, so when using vmalloc you can
@@ -395,13 +410,14 @@ The vmalloc buffer type starts off with a size of 128kB, but you can
 change it (while not acquiring), by writing to the associated attribute
 of the interleaved channel. For example this sets it to 10MB::
 
-     export DEV=/sys/bus/zio/devices/adc-100m14b-0200
+     export DEV=/sys/bus/zio/devices/tdc-1n5c-0004
      echo 10000 > $DEV/cset0/chani/buffer/max-buffer-kb
 
 The debugfs Interface
 =====================
 
-The fmctdc1ns5cha driver exports a set of debugfs attributes which
+When the DMA mode is used, the fmctdc1ns5cha driver exports a set of debugfs
+attributes which
 are supposed to be used only for debugging activities. For each device
 instance you will see a directory in ``/sys/kernel/debug/fmc-tdc.*``.
 
