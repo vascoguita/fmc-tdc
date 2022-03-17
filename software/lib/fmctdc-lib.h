@@ -141,7 +141,7 @@ extern void fmctdc_exit(void);
  * Set of function to configure TDC board and retrieve information
  * about the current status
  */
-extern int fmctdc_set_time(struct fmctdc_board *b, struct fmctdc_time *t);
+extern int fmctdc_set_time(struct fmctdc_board *b, const struct fmctdc_time *t);
 extern int fmctdc_get_time(struct fmctdc_board *b, struct fmctdc_time *t);
 extern int fmctdc_set_host_time(struct fmctdc_board *b);
 extern int fmctdc_wr_mode(struct fmctdc_board *b, int on);

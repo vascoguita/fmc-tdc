@@ -861,7 +861,7 @@ int fmctdc_fread(struct fmctdc_board *userb, unsigned int channel,
  * @param[in] t time-stamp
  * @return 0 on success, otherwise -1 and errno is set
  */
-int fmctdc_set_time(struct fmctdc_board *userb, struct fmctdc_time *t)
+int fmctdc_set_time(struct fmctdc_board *userb, const struct fmctdc_time *t)
 {
 	__define_board(b, userb);
 	uint32_t attrs[ARRAY_SIZE(names)];
