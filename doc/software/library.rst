@@ -120,7 +120,7 @@ termination. You can use the following getter and setter:
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 123-128
+   :lines: 124-129
 
 The *IRQ coalescing timeout* option allows to force an IRQ when the
 timeout expire to inform the driver that there is at least one pending
@@ -130,7 +130,7 @@ timestamp to be transfered. You can use the following getter and setter:
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 131-136
+   :lines: 132-137
 
 The TDC main functionality is to timestap incoming pulses. To assign a
 timestamp the board needs a time reference. This can be provided by
@@ -143,7 +143,7 @@ network.
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 139-144
+   :lines: 140-145
 
 If you do not have white-rabbit connected to the TDC, or simply this
 is not what you want, then be sure to disable. When white-rabbit is
@@ -154,14 +154,14 @@ the time using :cpp:func:`fmctdc_set_time()` or
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 147-149
+   :lines: 148-150
 
 Whater you are using white-rabbit or not, you can get the current
 board time with :cpp:func:`fmctdc_get_time()`.
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 150-152
+   :lines: 151-153
 
 Still about time, the user can add it's own offset without changing
 the timebase using :cpp:func:`fmctdc_get_offset_user()` and
@@ -169,7 +169,7 @@ the timebase using :cpp:func:`fmctdc_get_offset_user()` and
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 155-160
+   :lines: 156-161
 
 Finally, you can monitor the board temperature using
 :cpp:func:`fmctdc_read_temperature()`, and pulse and timestamps
@@ -178,7 +178,7 @@ statistics with :cpp:func:`fmctdc_stats_recv_get()` and
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 226-231
+   :lines: 227-232
 
 .. note::
    If it can be useful there is one last status function in the API
@@ -195,7 +195,7 @@ allocator type. You can handle this option with the pair:
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 163-168
+   :lines: 164-169
 
 You can configure - and get - the buffer size (number of
 timestamps) with: :cpp:func:`fmctdc_get_buffer_len()` and
@@ -204,7 +204,7 @@ only when using :cpp:any:`FMCTDC_BUFFER_VMALLOC`.
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 171-176
+   :lines: 172-177
 
 Finally, you can select between to modes to handle buffer's overflows:
 :cpp:any:`FMCTDC_BUFFER_CIRC` and :cpp:any:`FMCTDC_BUFFER_FIFO`. The
@@ -216,7 +216,7 @@ consumed. To configure this option you can use:
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 179-184
+   :lines: 180-185
 
 Acquisiton
 ----------
@@ -228,7 +228,7 @@ gateware using, respectivily, :cpp:func:`fmctdc_channel_enable()` and
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 194-204
+   :lines: 195-205
 
 To read timestamps you may use functions :cpp:func:`fmctdc_read()`
 and :cpp:func:`fmctdc_fread()`. As the name may suggest, the first
@@ -236,7 +236,7 @@ behaves like :manpage:`read` and the second as :manpage:`fread`.
 
 .. literalinclude:: ../../software/tools/example.c
    :language: c
-   :lines: 218-222
+   :lines: 219-223
 
 If you need to flush the buffer, you can use :cpp:func:`fmctdc_flush()`.
 

@@ -43,7 +43,7 @@ static int fetch_and_process(struct fmctdc_board *tdc);
 static int acquire(struct fmctdc_board *tdc);
 static int config(struct fmctdc_board *tdc);
 static int config_and_acquire(struct fmctdc_board *tdc);
-static int use_fmctdc_library();
+static int use_fmctdc_library(void);
 
 int main(int argc, char *argv[])
 {
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	exit(EXIT_SUCCESS);
 }
 
-static int use_fmctdc_library()
+static int use_fmctdc_library(void)
 {
 	struct fmctdc_board *tdc;
 	int err;
@@ -117,6 +117,7 @@ static int config(struct fmctdc_board *tdc)
 	enum fmctdc_buffer_mode buffer_mode_rb;
 	int buffer_len_rb;
 	int wr_mode_rb;
+	unsigned int coalescing_timeout = 50; /* a number */
 	unsigned int coalescing_timeout_rb;
 	struct fmctdc_time time_rb;
 
@@ -131,12 +132,12 @@ static int config(struct fmctdc_board *tdc)
 	err = fmctdc_coalescing_timeout_set(tdc, channel, coalescing_timeout);
 	if (err)
 		return err;
-	err = fmctdc_get_coalescing_timeout(tdc, channel, &coalescing_timeout_rb);
+	err = fmctdc_coalescing_timeout_get(tdc, channel, &coalescing_timeout_rb);
 	if (err)
 		return err;
 	assert(coalescing_timeout == coalescing_timeout_rb);
 
-	err = fmctdc_wr_mode(tdc, wr_mode)
+	err = fmctdc_wr_mode(tdc, wr_mode);
 	if (err)
 		return err;
 	wr_mode_rb = fmctdc_check_wr_mode(tdc);
@@ -144,13 +145,13 @@ static int config(struct fmctdc_board *tdc)
 		return wr_mode_rb;
 	assert(wr_mode == wr_mode_rb);
 
-	err = fmctdc_set_time(tdc, channel, time);
+	err = fmctdc_set_time(tdc, &time);
 	if (err)
 		return err;
-	err = fmctdc_get_time(tdc, channel, &time_rb);
+	err = fmctdc_get_time(tdc, &time_rb);
 	if (err)
 		return err;
-	assert(time == time_rb);
+	/* time_rbx and time_rb may be different, no need to compare */
 
 	err = fmctdc_set_offset_user(tdc, channel, offset_user);
 	if (err)
