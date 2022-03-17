@@ -19,6 +19,7 @@ TESTS = fmc-tdc-term \
 	fmc-tdc-offset \
 	fmc-tdc-calibration
 
+LIST_TOOL = fmc-tdc-list
 OTHERS = example
 
 CFLAGS = -ggdb -I. -I$(LIBTDC) -I../kernel -Wall -Werror $(EXTRACFLAGS)
@@ -31,13 +32,14 @@ LDLIBS = -lfmctdc -lrt
 
 CPPCHECK ?= cppcheck
 
-all: $(TESTS) $(OTHERS)
+all: $(TESTS) $(OTHERS) $(LIST_TOOL)
 
 $(TESTS): $(COMMON_SRCS:.c=.o) $(LIBTDC)/libfmctdc.a
 
 $(OTHERS): $(LIBTDC)/libfmctdc.a
 
-fmc-tdc-list:
+fmc-tdc-list: LDLIBS=
+fmc-tdc-list: LDFLAGS=
 
 clean:
 	rm -f $(TESTS) fmc-tdc-list test-common.o
