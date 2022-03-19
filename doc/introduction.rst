@@ -51,4 +51,4 @@ this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 .. _`FMC TDC 1ns 5 Channels`: https://ohwr.org/project/fmc-tdc
 .. _`Open HardWare Repository`: https://ohwr.org/
 .. _`Semantic Versioning`: https://semver.org/
-.. _`FPGA Release Page`: https://ohwr.org/project/fmc-tdc/wikis/Releases
+.. _`FPGA Bitstream Page`: https://ohwr.org/project/fmc-tdc/wikis/Releases

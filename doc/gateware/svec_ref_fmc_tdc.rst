@@ -6,29 +6,46 @@
 SVEC FMC-TDC-1NS-5CHA
 =====================
 
-The memory map is divided in two parts: the `Carrier`_ part common to
-all SPEC designs, and the `FMC-TDC-1NS-5CHA`_ part specific to the
+The memory map is divided in two parts:
+the :ref:`Carrier (SVEC) <SVEC base regs>` part common to
+all SVEC designs, and two memory regions for TDCs
+(:ref:`TDC1 <TDC1 base regs>` and :ref:`TDC2 <TDC2 base regs>`) part specific to the
 FMC-TDC-1NS-5CHA mezzanine.
 
-Carrier
-=======
 .. only:: latex
 
    .. warning::
-      Unfortunatelly we are not able to include the memory map in PDF format.
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/svec_ref_fmc_tdc_mmap.htm
+
+.. _`SVEC base regs`:
+
+SVEC base registers
+===================
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
       Please for the memory map refer to the online documentation,
 
 .. raw:: html
    :file: regs/svec_base_regs.htm
 
-FMC-TDC-1NS-5CHA
-================
 
-.. only:: latex
+.. _`TDC1 base regs`:
 
-   .. warning::
-      Unfortunatelly we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+First FMC-TDC-1NS-5CHA
+======================
 
-.. raw:: html
-   :file: regs/svec_ref_fmc_tdc_mmap.htm
+See :ref:`tdc_memory_map`.
+
+.. _`TDC2 base regs`:
+
+Second FMC-TDC-1NS-5CHA
+=======================
+
+See :ref:`tdc_memory_map`.

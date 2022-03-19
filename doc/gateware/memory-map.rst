@@ -6,17 +6,6 @@
 The Memory Map
 ==============
 
-Following the memory map for the part of the TDC design that drives
-the FMC-TDC-1NS-5CH modules.
-
-.. only:: latex
-
-   .. warning::
-      Unfortunatelly we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
-
-.. raw:: html
-   :file: regs/fmc_tdc_mezzanine_mmap.htm
 
 Supported Designs
 =================
@@ -30,3 +19,92 @@ registers and any other component used in an FMC-TDC-1NS-5CH design.
 
    spec_ref_fmc_tdc
    svec_ref_fmc_tdc
+
+.. _tdc_memory_map:
+
+TDC memory map
+==============
+
+Following the memory map for the part of the TDC design that drives
+the FMC-TDC-1NS-5CH modules.
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/fmc_tdc_mezzanine_mmap.htm
+
+One wire
+--------
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/tdc_onewire_wb.html
+
+Core
+----
+
+.. #note map not in wb nor cheby file
+
+EIC
+---
+
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/tdc_eic.html
+
+I2C
+---
+
+Not used.
+
+Mem
+---
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/timestamp_fifo_wb.html
+
+Mem DMA
+-------
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/tdc_buffer_control_regs.html
+
+Mem DMA EIC
+-----------
+
+.. only:: latex
+
+   .. warning::
+      Unfortunately we are not able to include the memory map in PDF format.
+      Please for the memory map refer to the online documentation,
+
+.. raw:: html
+   :file: regs/dma_eic.html
+

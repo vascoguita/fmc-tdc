@@ -6,4 +6,47 @@ memory-map:
   name: fmc_tdc_mezzanine_mmap
   bus: wb-32-be
   description: FMC-TDC-1NS-5CH mezzanine memory map
-  size: 0x2000
+  size: 0x8000
+  children:
+    - submap:
+        name: one-wire
+        description: One wire
+        address: 0x1000
+        size: 0x1000
+        interface: wb-32-be
+    - submap:
+        name: core
+        description: One wire
+        address: 0x2000
+        size: 0x1000
+        interface: wb-32-be
+    - submap:
+        name: eic
+        description: One wire
+        address: 0x3000
+        size: 0x1000
+        interface: wb-32-be
+    - submap:
+        name: i2c
+        description: One wire
+        address: 0x4000
+        size: 0x1000
+        interface: wb-32-be
+    - submap:
+        name: mem
+        description: One wire
+        address: 0x5000
+        size: 0x1000
+        interface: wb-32-be
+    - submap:
+        name: mem-dma
+        description: One wire
+        address: 0x6000
+        size: 0x1000
+        interface: wb-32-be
+    - submap:
+        name: mem-dma-eic
+        description: mem dma eic
+        address: 0x7000
+        size: 0x1000
+        interface: wb-32-be

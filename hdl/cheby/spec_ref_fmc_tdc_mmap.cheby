@@ -6,4 +6,17 @@ memory-map:
   name: spec_ref_fmc_tdc_mmap
   bus: wb-32-be
   description: SPEC FMC-TDC-1NS-5CHA memory map
-  size: 0x10000
+  size: 0x20000
+  children:
+    - submap:
+        name: spec-base-regs
+        description: spec-base-regs
+        address: 0x0
+        size: 0x2000
+        interface: wb-32-be
+    - submap:
+        name: tdc-base-regs
+        description: tdc-base-regs
+        address: 0x10000
+        size: 0x10000
+        interface: wb-32-be
