@@ -33,7 +33,7 @@ first to export the path to its direct dependencies, and then you
 execute ``make``. This driver depends on the `zio`_ framework and
 `fmc`_ library; on a VME system it depends also on the VME bridge
 driver from CERN BE-CEM. Additionally it is assumed that location of wbgen2 is
-available via PATH variable.
+available via ``PATH`` variable.
 
 ::
 
@@ -59,26 +59,35 @@ Drivers' Dependencies
 
 The TDC driver requires the following drivers to function:
 
-* from `spec`_ repository: *gn412x-fcl.ko*, *gn412x-gpio.ko*,
-  *spec-gn412x-dma.ko* and *spec-fmc-carrier.ko*
+* if the used carrier is SPEC then from `spec`_ repository: *gn412x-fcl.ko*,
+  *gn412x-gpio.ko*, *spec-gn412x-dma.ko* and *spec-fmc-carrier.ko*
+* if the used carrier is SVEC then *vmebus.ko*
 * from `general-cores`_ repository: *spi-ocores.ko*, *i2c-ocores.ko*
-  and  *htvic.ko*
+  and  *htvic.ko* (more details in the section
+  `Building General Cores drivers`_)
 * from `zio`_ repository: *zio-buf-vmalloc.ko* and *zio.ko*
+  (more details in the section `Building ZIO drivers`_)
 * from `fmc`_ repository: *fmc.ko*
+  (more details in the section `Building FMC driver`_)
 * drivers from the kernel tree: *mtd.ko*, *at24.ko*, *m25p80.ko*,
   *i2c_mux.ko* and *fpga-mgr.ko* (available in kernels v4.4 and newer,
-  for older kernels see FPGA manager subsection)
+  for older kernels see section `Building FPGA manager driver`_)
 
 In addition the following tools are required to build above drivers:
 
-* `cheby`_
-* `wbgen2`_
+* `cheby`_ (more details in the section `Installing Cheby`_)
+* `wbgen2`_ (more details in the section `Installing Wbgen2`_)
 
 Please read the following subsections for details
 
+Building Drivers 
+================
+This subsection describes the build process of Linux Device Drivers used by
+the TDC and tools needed during their build. 
 
-Cheby
-'''''
+Installing Cheby
+''''''''''''''''
+
 Clone *cheby* repository:
 ::
 
@@ -93,8 +102,8 @@ Install cheby:
 It may be required to install *python-setuptools* or *python-setuptools.noarch*
 package using your Linux distribution's software manager.
 
-Wbgen2
-''''''
+Installing Wbgen2
+'''''''''''''''''
 
 Clone *wbgen2* repository:
 ::
@@ -107,9 +116,8 @@ compilation):
 
     export WBGEN2=/path/to/wishbone-gen/wbgen2
 
-
-FPGA Manager
-''''''''''''
+Building FPGA Manager driver
+''''''''''''''''''''''''''''
 
 If kernel module *fpga-mgr.ko* is not available in the kernel that is used,
 probably the backported version is needed.
@@ -128,8 +136,8 @@ Build and install kernel module (*fpga-mgr.ko*):
     $ make
     $ make install
 
-ZIO
----
+Building ZIO drivers
+''''''''''''''''''''
 
 
 Clone *zio* repository:
@@ -146,9 +154,8 @@ Build and install kernel modules (*zio-buf-vmalloc.ko* and *zio.ko*):
     $ make
     $ make install
 
-
-General cores
-'''''''''''''
+Building General cores drivers
+''''''''''''''''''''''''''''''
 
 Clone *general-cores* repository:
 ::
@@ -166,9 +173,23 @@ and *htvic.ko*):
     $ make install
 
 
+Building FMC driver
+'''''''''''''''''''
 
-SPEC
-''''
+Clone *fmc* repository:
+::
+
+    $ git clone https://ohwr.org/project/fmc-sw.git
+
+Build and install kernel module (*fmc.ko*):
+
+    $ cd fmc-sw/
+    $ export LINUX=/path/to/linux/sources
+    $ make
+    $ make install
+
+Building SPEC drivers
+'''''''''''''''''''''
 
 Clone *spec* repository:
 ::
@@ -190,6 +211,33 @@ Build and install kernel modules (*gn412x-fcl.ko*, *gn412x-gpio.ko*,
     $ make
     $ make install
 
+Building SVEC drivers
+'''''''''''''''''''''
+
+Building missing mainline drivers 
+'''''''''''''''''''''''''''''''''
+
+It may happen that your system lacks of drivers that are included into
+the mainline Linux kernel. This section describes how to build *i2c-mux.ko*
+and *m25p80.ko* drivers for CENTOS 7.
+
+The first step is to download the Linux sources that mach the version used
+in your system and unpack them using your favorite method. Then prepare sources
+for a compilation:
+    
+::
+    make prepare
+
+Select missing drivers by adding ``CONFIG_I2C_MUX=m`` and
+``CONFIG_MTD_M25P80=m`` to .config manually, or with a favorite tool (like
+``menuconfig``. Start the build of missing drivers:
+::
+
+    make M=drivers/i2c/
+    make M=drivers/mtd/devices/
+
+Copy drivers from ``drivers/mtd/devices/m25p80.ko`` and ``drivers/i2c/i2c-mux.ko``
+to a known place.
 
 .. _zio: https://www.ohwr.org/project/zio
 .. _fmc: https://www.ohwr.org/project/fmc-sw
@@ -215,6 +263,97 @@ The top level driver is a platform driver that matches a string
 containing the application identifier. The carrier driver builds this
 identification string from the device ID embedded into the FPGA
 (https://ohwr.org/project/fpga-dev-id).
+
+Loading drivers for SPEC
+========================
+
+Load drivers *at24.ko* and *mtd.ko*. They should be distributed with
+your Linux distribution in package like ``kernel-plus`` for CENTOS 7 of
+``linux-modules`` for Ubuntu. 
+
+::
+
+    sudo modprobe at24
+    sudo modprobe mtd
+
+Load drivers from the mainline Linux:
+::
+
+    sudo insmod i2c-mux.ko
+    sudo insmod m25p80.ko
+
+Load *fmc* drivers:
+::
+
+    sudo insmod fmc.ko
+
+Load *fpga-manager* drivers:
+::
+
+    sudo insmod fpga-mgr.ko
+
+Load drivers from *general-cores*:
+::
+
+    sudo insmod htvic.ko 
+    sudo insmod i2c-ocores.ko
+    sudo insmod spi-ocores.ko
+
+Load drivers from *spec-sw*:
+::
+
+    sudo insmod spec-gn412x-dma.ko 
+    sudo insmod gn412x-gpio.ko
+    sudo insmod gn412x-fcl.ko
+    sudo insmod spec-fmc-carrier.ko 
+
+If you use the custom path to the firmware, set it at the latest at this point.
+
+::
+
+    echo -n <path_to_bitstreams> | sudo tee /sys/module/firmware_class/parameters/path
+
+Load bitstream into SPEC's FPGA:
+
+::
+
+    echo -n <bitstream.bin> | sudo tee /sys/kernel/debug/<PCIe_device>/fpga_firmware
+
+Load the ZIO and TDC drivers:
+::
+
+    sudo insmod zio.ko 
+    sudo insmod zio-buf-vmalloc.ko 
+    sudo insmod fmc-tdc.ko 
+    sudo insmod fmc-tdc-spec.ko 
+
+Loading drivers for SVEC
+========================
+
+For SVEC the loading procedure is very similar to SPEC. It is required to load
+*svec-fmc-carrier.ko* and *fmc-tdc-svec.ko* instead of *spec-fmc-carrier.ko*
+and *fmc-tdc-spec.ko*. Additionally, there is no need to load
+*spec-gn412x-dma.ko*, *gn412x-gpio.ko* and *gn412x-fcl.ko*, since these
+drivers are specific to SPEC.
+
+::
+
+    sudo modprobe at24
+    sudo modprobe mtd
+    sudo insmod i2c-mux.ko
+    sudo insmod m25p80.ko
+    sudo insmod fmc.ko
+    sudo insmod fpga-mgr.ko
+    sudo insmod htvic.ko 
+    sudo insmod i2c-ocores.ko
+    sudo insmod spi-ocores.ko
+    sudo insmod svec-fmc-carrier.ko 
+    echo -n <path_to_bitstreams> | sudo tee /sys/module/firmware_class/parameters/path
+    echo -n <bitstream.bin> | sudo tee /sys/kernel/debug/svec-vme.<slot>/fpga_firmware
+    sudo insmod zio.ko 
+    sudo insmod zio-buf-vmalloc.ko 
+    sudo insmod fmc-tdc.ko 
+    sudo insmod fmc-tdc-svec.ko 
 
 Module Parameters
 =================
