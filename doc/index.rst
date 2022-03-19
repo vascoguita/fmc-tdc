@@ -14,6 +14,7 @@ FMC-TDC 1ns 5 Channel Documentation
    :caption: Table of Contents
 
    introduction
+   hardware
    gateware/index
    software/index
    gateware/memory-map
