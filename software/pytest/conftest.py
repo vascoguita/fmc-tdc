@@ -90,6 +90,7 @@ class FmcFineDelay(PulseGenerator):
                "-m", "pulse",
                "-r", "{:d}u".format(rel_time_us),
                "-T", "{:d}n".format(period_ns),
+               "-w", "{:d}n".format(int(period_ns/2)),
                "-c", str(count),
                "-t"
                ]
