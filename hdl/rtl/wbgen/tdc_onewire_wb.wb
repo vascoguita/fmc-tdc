@@ -11,7 +11,7 @@ peripheral {
 			prefix = "CSR";
 
 			field {
-				 name = "Temperature & ID valid";
+				 name = "Temperature and ID valid";
 				 prefix = "VALID";
 				 description = "read 1: the values in the TEMP, ID_H, ID_L registers contain a valid readout from the DS18xx chip";
 				 type = BIT;
