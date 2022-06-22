@@ -14,9 +14,7 @@ FMC-TDC-1NS-5CHA mezzanine.
 
 .. only:: latex
 
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+   .. include:: regs/svec_ref_fmc_tdc_mmap.rst
 
 .. raw:: html
    :file: regs/svec_ref_fmc_tdc_mmap.htm
@@ -28,9 +26,7 @@ SVEC base registers
 
 .. only:: latex
 
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+   .. include:: regs/svec_base_regs.rst
 
 .. raw:: html
    :file: regs/svec_base_regs.htm

@@ -30,9 +30,7 @@ the FMC-TDC-1NS-5CH modules.
 
 .. only:: latex
 
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+   .. include:: regs/fmc_tdc_mezzanine_mmap.rst
 
 .. raw:: html
    :file: regs/fmc_tdc_mezzanine_mmap.htm
@@ -40,11 +38,9 @@ the FMC-TDC-1NS-5CH modules.
 One wire
 --------
 
-.. only:: latex
+.. raw:: latex
+    :file: regs/tdc_onewire_wb.tex
 
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
 
 .. raw:: html
    :file: regs/tdc_onewire_wb.html
@@ -58,11 +54,8 @@ EIC
 ---
 
 
-.. only:: latex
-
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+.. raw:: latex
+    :file: regs/tdc_eic.tex
 
 .. raw:: html
    :file: regs/tdc_eic.html
@@ -75,11 +68,8 @@ Not used.
 Mem
 ---
 
-.. only:: latex
-
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+.. raw:: latex
+    :file: regs/timestamp_fifo_wb.tex
 
 .. raw:: html
    :file: regs/timestamp_fifo_wb.html
@@ -87,11 +77,8 @@ Mem
 Mem DMA
 -------
 
-.. only:: latex
-
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
+.. raw:: latex
+    :file: regs/tdc_buffer_control_regs.tex
 
 .. raw:: html
    :file: regs/tdc_buffer_control_regs.html
@@ -99,11 +86,9 @@ Mem DMA
 Mem DMA EIC
 -----------
 
-.. only:: latex
+.. raw:: latex
+    :file: regs/dma_eic.tex
 
-   .. warning::
-      Unfortunately we are not able to include the memory map in PDF format.
-      Please for the memory map refer to the online documentation,
 
 .. raw:: html
    :file: regs/dma_eic.html

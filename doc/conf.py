@@ -89,6 +89,11 @@ latex_documents = [
      'manual'),
 ]
 
+latex_elements = {
+    'passoptionstopackages': r'\PassOptionsToPackage{table}{xcolor}',
+    'preamble' : r'\definecolor{RoyalPurple}{cmyk}{1, 0.50, 0, 0}',
+}
+
 
 breathe_projects = {
     "fmctdc-lib":"doxygen-lib-output/xml/",
