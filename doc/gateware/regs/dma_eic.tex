@@ -1,0 +1,249 @@
+\subsection{GN4124 DMA enhanced interrupt controller}
+\label{subsec:wbgen:dma_eic}
+Enhanced interrrupt controller for GN4124 DMA.
+\subsubsection{Memory map summary}
+\rowcolors{2}{gray!25}{white}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|}
+\rowcolor{RoyalPurple}
+\color{white} SW Offset & \color{white} Type & \color{white} Name &
+\color{white} HW prefix & \color{white} C prefix\\
+0x20& REG & Interrupt disable register & dma\_eic\_eic\_idr & EIC\_IDR\\
+0x24& REG & Interrupt enable register & dma\_eic\_eic\_ier & EIC\_IER\\
+0x28& REG & Interrupt mask register & dma\_eic\_eic\_imr & EIC\_IMR\\
+0x2c& REG & Interrupt status register & dma\_eic\_eic\_isr & EIC\_ISR\\
+\hline
+\end{tabular}
+}
+
+\subsubsection{Register description}
+\paragraph*{Interrupt disable register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dma\_eic\_eic\_idr\\
+{\bf HW address:}  & 0x8\\
+{\bf SW prefix:}  & EIC\_IDR\\
+{\bf SW offset:}  & 0x20\\
+\end{tabular}
+
+\vspace{12pt}
+Writing 1 disables handling of the interrupt associated with corresponding bit. Writin 0 has no effect.
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_ERROR} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_DONE}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+DMA\_DONE
+} [\emph{write-only}]: DMA done interrupt
+\\
+write 1: disable interrupt 'DMA done interrupt'\\write 0: no effect
+\end{small}
+\item \begin{small}
+{\bf 
+DMA\_ERROR
+} [\emph{write-only}]: DMA error interrupt
+\\
+write 1: disable interrupt 'DMA error interrupt'\\write 0: no effect
+\end{small}
+\end{itemize}
+\paragraph*{Interrupt enable register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dma\_eic\_eic\_ier\\
+{\bf HW address:}  & 0x9\\
+{\bf SW prefix:}  & EIC\_IER\\
+{\bf SW offset:}  & 0x24\\
+\end{tabular}
+
+\vspace{12pt}
+Writing 1 enables handling of the interrupt associated with corresponding bit. Writin 0 has no effect.
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_ERROR} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_DONE}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+DMA\_DONE
+} [\emph{write-only}]: DMA done interrupt
+\\
+write 1: enable interrupt 'DMA done interrupt'\\write 0: no effect
+\end{small}
+\item \begin{small}
+{\bf 
+DMA\_ERROR
+} [\emph{write-only}]: DMA error interrupt
+\\
+write 1: enable interrupt 'DMA error interrupt'\\write 0: no effect
+\end{small}
+\end{itemize}
+\paragraph*{Interrupt mask register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dma\_eic\_eic\_imr\\
+{\bf HW address:}  & 0xa\\
+{\bf SW prefix:}  & EIC\_IMR\\
+{\bf SW offset:}  & 0x28\\
+\end{tabular}
+
+\vspace{12pt}
+Shows which interrupts are enabled. 1 means that the interrupt associated with the bitfield is enabled
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_ERROR} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_DONE}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+DMA\_DONE
+} [\emph{read-only}]: DMA done interrupt
+\\
+read 1: interrupt 'DMA done interrupt' is enabled\\read 0: interrupt 'DMA done interrupt' is disabled
+\end{small}
+\item \begin{small}
+{\bf 
+DMA\_ERROR
+} [\emph{read-only}]: DMA error interrupt
+\\
+read 1: interrupt 'DMA error interrupt' is enabled\\read 0: interrupt 'DMA error interrupt' is disabled
+\end{small}
+\end{itemize}
+\paragraph*{Interrupt status register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dma\_eic\_eic\_isr\\
+{\bf HW address:}  & 0xb\\
+{\bf SW prefix:}  & EIC\_ISR\\
+{\bf SW offset:}  & 0x2c\\
+\end{tabular}
+
+\vspace{12pt}
+Each bit represents the state of corresponding interrupt. 1 means the interrupt is pending. Writing 1 to a bit clears the corresponding interrupt. Writing 0 has no effect.
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_ERROR} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DMA\_DONE}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+DMA\_DONE
+} [\emph{read/write}]: DMA done interrupt
+\\
+read 1: interrupt 'DMA done interrupt' is pending\\read 0: interrupt not pending\\write 1: clear interrupt 'DMA done interrupt'\\write 0: no effect
+\end{small}
+\item \begin{small}
+{\bf 
+DMA\_ERROR
+} [\emph{read/write}]: DMA error interrupt
+\\
+read 1: interrupt 'DMA error interrupt' is pending\\read 0: interrupt not pending\\write 1: clear interrupt 'DMA error interrupt'\\write 0: no effect
+\end{small}
+\end{itemize}
+
+
+\subsubsection{Interrupts}
+\paragraph*{DMA done interrupt}\mbox{}\\\vskip 6pt
+\begin{small}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dma\_eic\_dma\_done\\
+{\bf C prefix:}  & DMA\_DONE\\
+{\bf Trigger:}  & rising edge\\
+\end{tabular}
+
+\end{small}
+\vspace{12pt}
+DMA done interrupt line (rising edge sensitive).
+\paragraph*{DMA error interrupt}\mbox{}\\\vskip 6pt
+\begin{small}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dma\_eic\_dma\_error\\
+{\bf C prefix:}  & DMA\_ERROR\\
+{\bf Trigger:}  & rising edge\\
+\end{tabular}
+
+\end{small}
+\vspace{12pt}
+DMA error interrupt line (rising edge sensitive).
+

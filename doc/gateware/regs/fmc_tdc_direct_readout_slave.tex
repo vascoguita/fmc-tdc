@@ -1,0 +1,290 @@
+\subsection{TDC Direct Readout WB Slave}
+\label{subsec:wbgen:dr}
+
+\subsubsection{Memory map summary}
+\rowcolors{2}{gray!25}{white}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|}
+\rowcolor{RoyalPurple}
+\color{white} SW Offset & \color{white} Type & \color{white} Name &
+\color{white} HW prefix & \color{white} C prefix\\
+0x0& REG & Channel Enable Register & dr\_chan\_enable & CHAN\_ENABLE\\
+0x4& REG & Dead Time Register & dr\_dead\_time & DEAD\_TIME\\
+0x8& FIFOREG & FIFO 'Readout FIFO' data output register 0 & dr\_fifo\_r0 & FIFO\_R0\\
+0xc& FIFOREG & FIFO 'Readout FIFO' data output register 1 & dr\_fifo\_r1 & FIFO\_R1\\
+0x10& FIFOREG & FIFO 'Readout FIFO' data output register 2 & dr\_fifo\_r2 & FIFO\_R2\\
+0x14& REG & FIFO 'Readout FIFO' control/status register & dr\_fifo\_csr & FIFO\_CSR\\
+\hline
+\end{tabular}
+}
+
+\subsubsection{Register description}
+\paragraph*{Channel Enable Register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dr\_chan\_enable\\
+{\bf HW address:}  & 0x0\\
+{\bf SW prefix:}  & CHAN\_ENABLE\\
+{\bf SW offset:}  & 0x0\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & \multicolumn{5}{|c|}{\cellcolor{RoyalPurple!25}CHAN\_ENABLE[4:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+CHAN\_ENABLE
+} [\emph{read/write}]: Channel enable
+\end{small}
+\end{itemize}
+\paragraph*{Dead Time Register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dr\_dead\_time\\
+{\bf HW address:}  & 0x1\\
+{\bf SW prefix:}  & DEAD\_TIME\\
+{\bf SW offset:}  & 0x4\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}DEAD\_TIME[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}DEAD\_TIME[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}DEAD\_TIME[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+DEAD\_TIME
+} [\emph{read/write}]: Dead time (8ns ticks)
+\end{small}
+\end{itemize}
+\paragraph*{FIFO 'Readout FIFO' data output register 0}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dr\_fifo\_r0\\
+{\bf HW address:}  & 0x2\\
+{\bf SW prefix:}  & FIFO\_R0\\
+{\bf SW offset:}  & 0x8\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SECONDS[31:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SECONDS[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SECONDS[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SECONDS[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+SECONDS
+} [\emph{read-only}]: Seconds
+\end{small}
+\end{itemize}
+\paragraph*{FIFO 'Readout FIFO' data output register 1}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dr\_fifo\_r1\\
+{\bf HW address:}  & 0x3\\
+{\bf SW prefix:}  & FIFO\_R1\\
+{\bf SW offset:}  & 0xc\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CYCLES[31:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CYCLES[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CYCLES[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CYCLES[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+CYCLES
+} [\emph{read-only}]: Cycles
+\end{small}
+\end{itemize}
+\paragraph*{FIFO 'Readout FIFO' data output register 2}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dr\_fifo\_r2\\
+{\bf HW address:}  & 0x4\\
+{\bf SW prefix:}  & FIFO\_R2\\
+{\bf SW offset:}  & 0x10\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & \multicolumn{4}{|c|}{\cellcolor{RoyalPurple!25}CHANNEL[3:0]} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}EDGE} & \multicolumn{2}{|c|}{\cellcolor{RoyalPurple!25}BINS[17:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}BINS[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}BINS[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+BINS
+} [\emph{read-only}]: Bins
+\end{small}
+\item \begin{small}
+{\bf 
+EDGE
+} [\emph{read-only}]: Edge
+\end{small}
+\item \begin{small}
+{\bf 
+CHANNEL
+} [\emph{read-only}]: Channel
+\end{small}
+\end{itemize}
+\paragraph*{FIFO 'Readout FIFO' control/status register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & dr\_fifo\_csr\\
+{\bf HW address:}  & 0x5\\
+{\bf SW prefix:}  & FIFO\_CSR\\
+{\bf SW offset:}  & 0x14\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}EMPTY} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}FULL}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}USEDW[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+FULL
+} [\emph{read-only}]: FIFO full flag
+\\
+1: FIFO 'Readout FIFO' is full\\0: FIFO is not full
+\end{small}
+\item \begin{small}
+{\bf 
+EMPTY
+} [\emph{read-only}]: FIFO empty flag
+\\
+1: FIFO 'Readout FIFO' is empty\\0: FIFO is not empty
+\end{small}
+\item \begin{small}
+{\bf 
+USEDW
+} [\emph{read-only}]: FIFO counter
+\\
+Number of data records currently being stored in FIFO 'Readout FIFO'
+\end{small}
+\end{itemize}
+
+
+

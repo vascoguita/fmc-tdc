@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<TITLE>fmc_tdc_mezzanine_mmap</TITLE>
+<STYLE TYPE="text/css" MEDIA="all">
+<!--
+  BODY { background: white; color: black;
+         font-family: Arial,Helvetica; font-size:12; }
+  h1 { font-family: Trebuchet MS,Arial,Helvetica; font-size:30;
+       color:#404040; }
+  h2 { font-family: Trebuchet MS,Arial,Helvetica; font-size:22;
+       color:#404040; }
+  h3 { font-family: Trebuchet MS,Arial,Helvetica; font-size:16;
+       color:#404040; }
+  .td_arrow_left { padding:0px; background: #ffffff; text-align: right;
+                   font-size:12; }
+  .td_arrow_right { padding:0px; background: #ffffff; text-align: left;
+                    font-size:12; }
+  .td_code { font-family:Courier New,Courier; padding: 3px; }
+  .td_desc { padding: 3px; }
+  .td_sym_center { background: #e0e0f0; padding: 3px; }
+  .td_port_name { font-family:Courier New,Courier; background: #e0e0f0;
+                  text-align: right; font-weight:bold;
+                  padding: 3px; width:200px; }
+  .td_pblock_left { font-family:Courier New,Courier; background: #e0e0f0;
+                    padding: 0px; text-align: left; }
+  .td_pblock_right { font-family:Courier New,Courier;
+                     background: #e0e0f0;
+                     padding: 0px; text-align: right; }
+  .td_bit { background: #ffffff; color:#404040;
+            font-size:10; width: 70px;
+            font-family:Courier New,Courier; padding: 3px;
+            text-align:center; }
+  .td_field { background: #e0e0f0; padding: 3px; text-align:center;
+              border: solid 1px black; }
+  .td_unused { background: #a0a0a0; padding: 3px; text-align:center;  }
+  th { font-weight:bold; color:#ffffff; background: #202080;
+       padding:3px; }
+  .tr_even { background: #f0eff0; }
+  .tr_odd { background: #e0e0f0; }
+-->
+</STYLE>
+</HEAD>
+<BODY>
+<h1 class="heading">fmc_tdc_mezzanine_mmap</h1>
+<h3>FMC-TDC-1NS-5CH mezzanine memory map</h3>
+<h3><a name="sect_1_0">1. Memory map summary</a></h3>
+<table cellpadding=2 cellspacing=0 border=0>
+<tr>
+<th>HW address</th>
+<th>Type</th>
+<th>Name</th>
+<th>HDL prefix</th>
+<th>C prefix</th>
+</tr>
+<tr class="tr_odd">
+<td class="td_code">0x1000-0x1fff</td>
+<td>SUBMAP</td>
+<td><A href="#one-wire">one-wire</a></td>
+<td class="td_code">one-wire</td>
+<td class="td_code">one-wire</td>
+</tr>
+<tr class="tr_even">
+<td class="td_code">0x2000-0x2fff</td>
+<td>SUBMAP</td>
+<td><A href="#core">core</a></td>
+<td class="td_code">core</td>
+<td class="td_code">core</td>
+</tr>
+<tr class="tr_odd">
+<td class="td_code">0x3000-0x3fff</td>
+<td>SUBMAP</td>
+<td><A href="#eic">eic</a></td>
+<td class="td_code">eic</td>
+<td class="td_code">eic</td>
+</tr>
+<tr class="tr_even">
+<td class="td_code">0x4000-0x4fff</td>
+<td>SUBMAP</td>
+<td><A href="#i2c">i2c</a></td>
+<td class="td_code">i2c</td>
+<td class="td_code">i2c</td>
+</tr>
+<tr class="tr_odd">
+<td class="td_code">0x5000-0x5fff</td>
+<td>SUBMAP</td>
+<td><A href="#mem">mem</a></td>
+<td class="td_code">mem</td>
+<td class="td_code">mem</td>
+</tr>
+<tr class="tr_even">
+<td class="td_code">0x6000-0x6fff</td>
+<td>SUBMAP</td>
+<td><A href="#mem-dma">mem-dma</a></td>
+<td class="td_code">mem-dma</td>
+<td class="td_code">mem-dma</td>
+</tr>
+<tr class="tr_odd">
+<td class="td_code">0x7000-0x7fff</td>
+<td>SUBMAP</td>
+<td><A href="#mem-dma-eic">mem-dma-eic</a></td>
+<td class="td_code">mem-dma-eic</td>
+<td class="td_code">mem-dma-eic</td>
+</tr>
+</table>
+
+<h3><a name="sect_3_0">2. Register description</a></h3>
+
+
+</BODY>
+</HTML>

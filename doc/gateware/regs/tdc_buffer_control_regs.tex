@@ -1,0 +1,319 @@
+\subsection{TDC DMA Buffer Control Registers}
+\label{subsec:wbgen:TDC_BUF}
+
+\subsubsection{Memory map summary}
+\rowcolors{2}{gray!25}{white}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|}
+\rowcolor{RoyalPurple}
+\color{white} SW Offset & \color{white} Type & \color{white} Name &
+\color{white} HW prefix & \color{white} C prefix\\
+0x0& REG & Control/Status register & tdc\_buf\_csr & CSR\\
+0x4& REG & Current buffer base address register & tdc\_buf\_cur\_base & CUR\_BASE\\
+0x8& REG & Current buffer base count register & tdc\_buf\_cur\_count & CUR\_COUNT\\
+0xc& REG & Current buffer base size/valid flag register & tdc\_buf\_cur\_size & CUR\_SIZE\\
+0x10& REG & Next buffer base address register & tdc\_buf\_next\_base & NEXT\_BASE\\
+0x14& REG & Next buffer base size/valid flag register & tdc\_buf\_next\_size & NEXT\_SIZE\\
+\hline
+\end{tabular}
+}
+
+\subsubsection{Register description}
+\paragraph*{Control/Status register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & tdc\_buf\_csr\\
+{\bf HW address:}  & 0x0\\
+{\bf SW prefix:}  & CSR\\
+{\bf SW offset:}  & 0x0\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & - & - & - & - & - & - & \multicolumn{1}{c|}{-}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}OVERFLOW} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}DONE} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}SWITCH\_BUFFERS} & \multicolumn{5}{|c|}{\cellcolor{RoyalPurple!25}BURST\_SIZE[9:5]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{5}{|c|}{\cellcolor{RoyalPurple!25}BURST\_SIZE[4:0]} & \multicolumn{3}{|c|}{\cellcolor{RoyalPurple!25}IRQ\_TIMEOUT[9:7]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{7}{|c|}{\cellcolor{RoyalPurple!25}IRQ\_TIMEOUT[6:0]} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}ENABLE}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+ENABLE
+} [\emph{read/write}]: Enable acquisition
+\\
+1: timestamps of the given channel will be sequentially written to the current buffer, provided it's valid (CUR\_SIZE.VALID=1) \\0: acquisition off
+\end{small}
+\item \begin{small}
+{\bf 
+IRQ\_TIMEOUT
+} [\emph{read/write}]: IRQ Timeout (ms)
+\\
+Interrupt coalescing timeout in milliseconds. Pick a high enough value to avoid too frequent interrupts and a low enough one to prevent buffer contention. 10 ms should be OK for most of the cases
+\end{small}
+\item \begin{small}
+{\bf 
+BURST\_SIZE
+} [\emph{read/write}]: Burst size (timestamps)
+\\
+Number of timestamps in a single burst to the DDR memory. Default = 16
+\end{small}
+\item \begin{small}
+{\bf 
+SWITCH\_BUFFERS
+} [\emph{write-only}]: Switch buffers
+\\
+write 1: atomically switches the acquisition buffer from the current one (base/size in CUR\_BASE/CUR\_SIZE) to the next one (described in NEXT\_BASE/NEXT\_SIZE registers)\\write 0: no action
+\end{small}
+\item \begin{small}
+{\bf 
+DONE
+} [\emph{read/write}]: Burst complete
+\\
+read 1: the current buffer has been fully committed to the DDR memory after writing 1 to SWITCH\_BUFFERS field.\\read 0: still some transfers pending
+\end{small}
+\item \begin{small}
+{\bf 
+OVERFLOW
+} [\emph{read/write}]: DMA overflow
+\\
+read 1: both the current and the next buffer have been filled with timestamps. Dropping all new incoming TS.
+\end{small}
+\end{itemize}
+\paragraph*{Current buffer base address register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & tdc\_buf\_cur\_base\\
+{\bf HW address:}  & 0x1\\
+{\bf SW prefix:}  & CUR\_BASE\\
+{\bf SW offset:}  & 0x4\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_BASE[31:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_BASE[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_BASE[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_BASE[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+CUR\_BASE
+} [\emph{read/write}]: Base address
+\\
+Base address of the current buffer (in bytes) relative to the DDR3 chip (0 = first word in the memory)
+\end{small}
+\end{itemize}
+\paragraph*{Current buffer base count register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & tdc\_buf\_cur\_count\\
+{\bf HW address:}  & 0x2\\
+{\bf SW prefix:}  & CUR\_COUNT\\
+{\bf SW offset:}  & 0x8\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_COUNT[31:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_COUNT[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_COUNT[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}CUR\_COUNT[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+CUR\_COUNT
+} [\emph{read-only}]: Number of data samples
+\\
+Number of data samples in the buffer (1 sample = 1 timestamp)
+\end{small}
+\end{itemize}
+\paragraph*{Current buffer base size/valid flag register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & tdc\_buf\_cur\_size\\
+{\bf HW address:}  & 0x3\\
+{\bf SW prefix:}  & CUR\_SIZE\\
+{\bf SW offset:}  & 0xc\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}VALID} & \multicolumn{6}{|c|}{\cellcolor{RoyalPurple!25}SIZE[29:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SIZE[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SIZE[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SIZE[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+SIZE
+} [\emph{read/write}]: Size
+\\
+Number of data samples the buffer can hold (1 sample = 1 timestamp)
+\end{small}
+\item \begin{small}
+{\bf 
+VALID
+} [\emph{read/write}]: Valid flag
+\\
+write 1: indicate that this buffer is ready for acquisition and correctly configured
+\end{small}
+\end{itemize}
+\paragraph*{Next buffer base address register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & tdc\_buf\_next\_base\\
+{\bf HW address:}  & 0x4\\
+{\bf SW prefix:}  & NEXT\_BASE\\
+{\bf SW offset:}  & 0x10\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}NEXT\_BASE[31:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}NEXT\_BASE[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}NEXT\_BASE[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}NEXT\_BASE[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+NEXT\_BASE
+} [\emph{read/write}]: Base address
+\end{small}
+\end{itemize}
+\paragraph*{Next buffer base size/valid flag register}\mbox{}\\\vskip 6pt
+\rowcolors{1}{white}{white}
+\begin{tabular}{l l }
+{\bf HW prefix:}  & tdc\_buf\_next\_size\\
+{\bf HW address:}  & 0x5\\
+{\bf SW prefix:}  & NEXT\_SIZE\\
+{\bf SW offset:}  & 0x14\\
+\end{tabular}
+
+
+\vspace{12pt}
+\noindent
+\resizebox{\textwidth}{!}{
+\begin{tabular}{>{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.5cm} }
+31 & 30 & 29 & 28 & 27 & 26 & 25 & 24\\
+\hline
+\multicolumn{1}{|c}{-} & \multicolumn{1}{|c|}{\cellcolor{RoyalPurple!25}VALID} & \multicolumn{6}{|c|}{\cellcolor{RoyalPurple!25}SIZE[29:24]}\\
+\hline
+23 & 22 & 21 & 20 & 19 & 18 & 17 & 16\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SIZE[23:16]}\\
+\hline
+15 & 14 & 13 & 12 & 11 & 10 & 9 & 8\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SIZE[15:8]}\\
+\hline
+7 & 6 & 5 & 4 & 3 & 2 & 1 & 0\\
+\hline
+\multicolumn{8}{|c|}{\cellcolor{RoyalPurple!25}SIZE[7:0]}\\
+\hline
+\end{tabular}
+}
+
+\begin{itemize}
+\item \begin{small}
+{\bf 
+SIZE
+} [\emph{read/write}]: Size (in transfers)
+\end{small}
+\item \begin{small}
+{\bf 
+VALID
+} [\emph{read/write}]: Valid flag
+\end{small}
+\end{itemize}
+
+
+
