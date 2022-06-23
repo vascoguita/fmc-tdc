@@ -21,4 +21,4 @@
 	url = https://ohwr.org/project/svec.git
 [submodule "zio"]
 	path = software/zio
-	url = git://ohwr.org/misc/zio.git
+	url = https://ohwr.org/misc/zio.git
