@@ -85,7 +85,9 @@ latex_documents = [
     (master_doc,
      'FMCTDC1ns5cha.tex',
      'FMC TDC 1ns 5 Channel Documentation',
-     'Federico Vaga \\textless{}federico.vaga@cern.ch\\textgreater{}',
+     'Federico Vaga \\textless{}federico.vaga@cern.ch\\textgreater{}\\\\'
+     'Adam Wujek \\textless{}dev\_public@wujek.eu\\textgreater{}'
+     ,
      'manual'),
 ]
 
