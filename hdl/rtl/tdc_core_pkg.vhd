@@ -56,7 +56,7 @@ package tdc_core_pkg is
   type t_raw_acam_timestamp is record
     seconds               : std_logic_vector(31 downto 0);  -- 32
     acam_bins             : std_logic_vector(16 downto 0);  -- 32 + 17 = 49
-    acam_start_nb         : std_logic_vector(7 downto 0);      
+    acam_start_nb         : std_logic_vector(7 downto 0);
     roll_over_incr_recent : std_logic;
     clk_i_cycles_offset   : std_logic_vector(7 downto 0);   -- 60 + 8 = 68
     roll_over_nb          : std_logic_vector(15 downto 0);  -- 68 + 16 = 84
@@ -77,8 +77,8 @@ package tdc_core_pkg is
     slope : std_logic;
     meta : std_logic_vector(31 downto 0);
   end record;
-  
-  
+
+
   constant c_dummy_raw_acam_timestamp : t_raw_acam_timestamp :=
     (
       x"00000000",
@@ -93,7 +93,7 @@ package tdc_core_pkg is
       '0',
       "000000000000000000000000"
       );
-  
+
   type t_tdc_timestamp is record
     raw : t_raw_acam_timestamp;
     slope : std_logic;
@@ -107,9 +107,9 @@ package tdc_core_pkg is
 
   constant c_dummy_timestamp : t_tdc_timestamp :=
     ( c_dummy_raw_acam_timestamp, '0', "000", x"000", x"00000000", x"00000000", x"00000000", x"00000000" );
-  
+
   type t_tdc_timestamp_array is array(integer range<>) of t_tdc_timestamp;
-  
+
 ---------------------------------------------------------------------------------------------------
 --                      Constant regarding the Mezzanine DAC configuration                       --
 ---------------------------------------------------------------------------------------------------
@@ -277,7 +277,7 @@ package tdc_core_pkg is
 ---------------------------------------------------------------------------------------------------
   -- Number of clk_i cycles corresponding to the Acam retrigger period;
   -- through Acam Reg 4 StartTimer the chip is programmed to retrigger every:
-  -- (15+1) * acam_ref_clk = (15+1) * 32 ns 
+  -- (15+1) * acam_ref_clk = (15+1) * 32 ns
   -- x"00000040" * clk_i   =  64    * 8  ns
   -- 512 ns
   constant c_ACAM_RETRIG_PERIOD       : std_logic_vector(31 downto 0) := x"00000040";
@@ -325,11 +325,11 @@ package tdc_core_pkg is
      fmc_id_i                : in    std_logic;
 
      -- WISHBONE interface with the GN4124/VME_core (clk_sys)
-     -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C 
+     -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C
 
      slave_i: in t_wishbone_slave_in;
      slave_o: out t_wishbone_slave_out;
-     
+
      wb_irq_o                  : out   std_logic;
 
      acam_refclk_r_edge_p_i    : in    std_logic;
@@ -349,7 +349,7 @@ package tdc_core_pkg is
      wr_n_o                    : out   std_logic;
      ef1_i                     : in    std_logic;
      ef2_i                     : in    std_logic;
-     -- Channels termination 
+     -- Channels termination
      enable_inputs_o           : out   std_logic;
      term_en_1_o               : out   std_logic;
      term_en_2_o               : out   std_logic;
@@ -370,7 +370,7 @@ package tdc_core_pkg is
      wrabbit_dac_value_i       : in    std_logic_vector(23 downto 0);
      wrabbit_dac_wr_p_i        : in    std_logic;
 
- 
+
 
      -- I2C EEPROM interface
      i2c_scl_o                 : out   std_logic;
@@ -437,7 +437,7 @@ package tdc_core_pkg is
       -- irq_threshold_o        : out   std_logic_vector(9 downto 0);
       -- irq_timeout_o          : out   std_logic_vector(9 downto 0));
   -- end component fmc_tdc_core;
-  
+
 ---------------------------------------------------------------------------------------------------
   component wrabbit_sync is
   generic
@@ -506,7 +506,7 @@ package tdc_core_pkg is
       -------------------------------------------------------------
        counter_is_full_o : out std_logic;
        counter_o         : out std_logic_vector(width-1 downto 0));
-      ------------------------------------------------------------- 
+      -------------------------------------------------------------
  end component;
 ---------------------------------------------------------------------------------------------------
 
@@ -615,7 +615,7 @@ package tdc_core_pkg is
        acam_intflag_f_edge_p_o : out std_logic);
       ----------------------------------------------------------------------
   end component;
-  
+
   component data_formatting is
     port (
       clk_i                   : in  std_logic;
@@ -791,15 +791,15 @@ package tdc_core_pkg is
       irq_o                : out   std_logic;
       clk_125m_tdc_o       : out   std_logic);
   end component fmc_tdc_wrapper;
-  
+
 
   function f_pick(cond:boolean; if_true: std_logic_vector; if_false: std_logic_vector) return std_logic_vector;
 
   function f_pack_raw_acam_timestamp ( ts : t_raw_acam_timestamp ) return std_logic_vector;
-  
 
-  
-  
+
+
+
 end tdc_core_pkg;
 --=================================================================================================
 --                                        package body
@@ -830,7 +830,7 @@ package body tdc_core_pkg is
     rv(102 downto 100) := ts.channel;
     rv(103) := ts.slope;
     rv(127 downto 104) := ts.seq;
-    
+
     return rv;
   end f_pack_raw_acam_timestamp;
 

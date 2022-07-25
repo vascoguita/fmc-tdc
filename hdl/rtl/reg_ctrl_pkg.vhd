@@ -47,7 +47,7 @@ package reg_ctrl_pkg is
 
 
 ---------------------------------------------------------------------------------------------------
--- Addresses of ACAM configuration readback registers, to be written by the ACAM 
+-- Addresses of ACAM configuration readback registers, to be written by the ACAM
                                                                           -- corresponds to host address:
   constant c_ACAM_REG0_RDBK_ADR  : std_logic_vector(7 downto 0) := x"10"; -- [core base] + 0x40
   constant c_ACAM_REG1_RDBK_ADR  : std_logic_vector(7 downto 0) := x"11"; -- [core base] + 0x44

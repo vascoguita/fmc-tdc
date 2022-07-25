@@ -23,7 +23,7 @@ entity tdc_dma_engine is
 
     enable_i : in std_logic_vector(4 downto 0);
     raw_mode_i : in std_logic_vector(4 downto 0);
-    
+
     ts_i       : in  t_tdc_timestamp_array(4 downto 0);
     ts_valid_i : in  std_logic_vector(4 downto 0);
     ts_ready_o : out std_logic_vector(4 downto 0);
@@ -70,8 +70,8 @@ architecture rtl of tdc_dma_engine is
       return g_CLOCK_FREQ * c_TIMER_PERIOD_MS / 1000 - 1;
     end if;
   end f_pick_timer_divider;
-  
-  
+
+
   constant c_TIMER_DIVIDER_VALUE : integer := f_pick_timer_divider;
 
   signal irq_tick_div : unsigned(15 downto 0);

@@ -68,11 +68,11 @@ signal allzeros                                 : std_logic_vector(31 downto 0);
 begin
 -- Some internal signals assignments
   wrdata_reg <= wb_dat_i;
--- 
+--
 -- Main register bank access process.
   process (clk_sys_i, rst_n_i)
   begin
-    if (rst_n_i = '0') then 
+    if (rst_n_i = '0') then
       ack_sreg <= "0000000000";
       ack_in_progress <= '0';
       rddata_reg <= "00000000000000000000000000000000";
@@ -91,7 +91,7 @@ begin
       else
         if ((wb_cyc_i = '1') and (wb_stb_i = '1')) then
           case rwaddr_reg(2 downto 0) is
-          when "000" => 
+          when "000" =>
             if (wb_we_i = '1') then
               dr_chan_enable_int <= wrdata_reg(4 downto 0);
             end if;
@@ -125,7 +125,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "001" => 
+          when "001" =>
             if (wb_we_i = '1') then
               dr_dead_time_int <= wrdata_reg(23 downto 0);
             end if;
@@ -140,7 +140,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "010" => 
+          when "010" =>
             if (wb_we_i = '1') then
             end if;
             rddata_reg(0) <= regs_i.status_i;
@@ -177,7 +177,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "011" => 
+          when "011" =>
             if (wb_we_i = '1') then
             end if;
             if (dr_fifo_rdreq_int_d0 = '0') then
@@ -187,13 +187,13 @@ begin
               ack_in_progress <= '1';
               ack_sreg(0) <= '1';
             end if;
-          when "100" => 
+          when "100" =>
             if (wb_we_i = '1') then
             end if;
             rddata_reg(31 downto 0) <= dr_fifo_out_int(63 downto 32);
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "101" => 
+          when "101" =>
             if (wb_we_i = '1') then
             end if;
             rddata_reg(17 downto 0) <= dr_fifo_out_int(81 downto 64);
@@ -210,7 +210,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "110" => 
+          when "110" =>
             if (wb_we_i = '1') then
             end if;
             rddata_reg(16) <= dr_fifo_full_int;
@@ -249,8 +249,8 @@ begin
       end if;
     end if;
   end process;
-  
-  
+
+
 -- Drive the data output bus
   wb_dat_o <= rddata_reg;
 -- extra code for reg/fifo/mem: Readout FIFO
@@ -280,7 +280,7 @@ begin
       wr_data_i            => dr_fifo_in_int,
       rd_data_o            => dr_fifo_out_int
     );
-  
+
 -- Channel enable
   regs_o.chan_enable_o <= dr_chan_enable_int;
 -- Dead time (8ns ticks)
@@ -289,14 +289,14 @@ begin
 -- extra code for reg/fifo/mem: FIFO 'Readout FIFO' data output register 0
   process (clk_sys_i, rst_n_i)
   begin
-    if (rst_n_i = '0') then 
+    if (rst_n_i = '0') then
       dr_fifo_rdreq_int_d0 <= '0';
     elsif rising_edge(clk_sys_i) then
       dr_fifo_rdreq_int_d0 <= dr_fifo_rdreq_int;
     end if;
   end process;
-  
-  
+
+
 -- extra code for reg/fifo/mem: FIFO 'Readout FIFO' data output register 1
 -- extra code for reg/fifo/mem: FIFO 'Readout FIFO' data output register 2
   rwaddr_reg <= wb_adr_i;

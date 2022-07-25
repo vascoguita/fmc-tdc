@@ -50,11 +50,11 @@ signal allzeros                                 : std_logic_vector(31 downto 0);
 begin
 -- Some internal signals assignments
 wrdata_reg <= slave_i.dat;
--- 
+--
 -- Main register bank access process.
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     ack_sreg <= "0000000000";
     ack_in_progress <= '0';
     rddata_reg <= "00000000000000000000000000000000";
@@ -73,7 +73,7 @@ begin
     else
       if ((slave_i.cyc = '1') and (slave_i.stb = '1')) then
         case rwaddr_reg(1 downto 0) is
-        when "00" => 
+        when "00" =>
           if (slave_i.we = '1') then
             regs_o.tdc_ow_csr_valid_load_o <= '1';
           end if;
@@ -111,7 +111,7 @@ begin
           rddata_reg(31) <= 'X';
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "01" => 
+        when "01" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(15 downto 0) <= regs_i.tdc_ow_temp_i;
@@ -133,13 +133,13 @@ begin
           rddata_reg(31) <= 'X';
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "10" => 
+        when "10" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= regs_i.tdc_ow_id_h_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "11" => 
+        when "11" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= regs_i.tdc_ow_id_l_i;

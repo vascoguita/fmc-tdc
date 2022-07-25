@@ -61,8 +61,8 @@ entity local_pps_gen is
   -- INPUTS
      -- Signals from the clk_rst_manager unit
     (clk_i                  : in std_logic;
-     rst_i                  : in std_logic;  
-     acam_refclk_r_edge_p_i : in std_logic;   
+     rst_i                  : in std_logic;
+     acam_refclk_r_edge_p_i : in std_logic;
      clk_period_i           : in std_logic_vector(g_width-1 downto 0); -- nb of clock periods for 1s
 
      -- Signals from the reg_ctrl unit
@@ -76,7 +76,7 @@ entity local_pps_gen is
      local_utc_o            : out std_logic_vector(g_width-1 downto 0); -- tstamp current second
 
      -- Signal to start_retrig_ctrl unit
-     local_utc_p_o          : out std_logic);                           -- pulse upon new second 
+     local_utc_p_o          : out std_logic);                           -- pulse upon new second
 
 end local_pps_gen;
 
@@ -120,7 +120,7 @@ begin
        counter_o         => open);
       -------------------------------------------
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --   
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   clk_periods_counter_en_trigger: process (clk_i)
   begin
     if rising_edge (clk_i) then
@@ -142,7 +142,7 @@ begin
 -- utc_counter: generation of a 1 clk-long pulse every second
 
   utc_counter: process (clk_i)
-  begin   
+  begin
     if rising_edge (clk_i) then
       if rst_i ='1' then
         local_utc <= (others => '0');
@@ -164,7 +164,7 @@ begin
 --                                            Delays                                             --
 ---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  pulse_delayer_counter: decr_counter -- delays the one_hz_p_pre pulse for total_delay clk_i ticks 
+  pulse_delayer_counter: decr_counter -- delays the one_hz_p_pre pulse for total_delay clk_i ticks
     generic map
       (width             => g_width)
     port map

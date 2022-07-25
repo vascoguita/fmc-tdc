@@ -69,11 +69,11 @@ signal allzeros                                 : std_logic_vector(31 downto 0);
 begin
 -- Some internal signals assignments
 wrdata_reg <= slave_i.dat;
--- 
+--
 -- Main register bank access process.
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     ack_sreg <= "0000000000";
     ack_in_progress <= '0';
     rddata_reg <= "00000000000000000000000000000000";
@@ -101,46 +101,46 @@ begin
     else
       if ((slave_i.cyc = '1') and (slave_i.stb = '1')) then
         case rwaddr_reg(3 downto 0) is
-        when "0000" => 
+        when "0000" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= regs_i.delta1_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "0001" => 
+        when "0001" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= regs_i.delta2_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "0010" => 
+        when "0010" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= regs_i.delta3_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "0011" => 
+        when "0011" =>
           if (slave_i.we = '1') then
             tsf_offset1_int <= wrdata_reg(31 downto 0);
           end if;
           rddata_reg(31 downto 0) <= tsf_offset1_int;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "0100" => 
+        when "0100" =>
           if (slave_i.we = '1') then
             tsf_offset2_int <= wrdata_reg(31 downto 0);
           end if;
           rddata_reg(31 downto 0) <= tsf_offset2_int;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "0101" => 
+        when "0101" =>
           if (slave_i.we = '1') then
             tsf_offset3_int <= wrdata_reg(31 downto 0);
           end if;
           rddata_reg(31 downto 0) <= tsf_offset3_int;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "0110" => 
+        when "0110" =>
           if (slave_i.we = '1') then
             tsf_csr_delta_read_int <= wrdata_reg(1);
             tsf_csr_rst_seq_int <= wrdata_reg(2);
@@ -179,7 +179,7 @@ begin
           rddata_reg(31) <= 'X';
           ack_sreg(2) <= '1';
           ack_in_progress <= '1';
-        when "0111" => 
+        when "0111" =>
           if (slave_i.we = '1') then
           end if;
           if (tsf_fifo_rdreq_int_d0 = '0') then
@@ -189,25 +189,25 @@ begin
             ack_in_progress <= '1';
             ack_sreg(0) <= '1';
           end if;
-        when "1000" => 
+        when "1000" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= tsf_fifo_out_int(63 downto 32);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "1001" => 
+        when "1001" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= tsf_fifo_out_int(95 downto 64);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "1010" => 
+        when "1010" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= tsf_fifo_out_int(127 downto 96);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "1011" => 
+        when "1011" =>
           if (slave_i.we = '1') then
             if (wrdata_reg(18) = '1') then
               tsf_fifo_clear_bus_int <= '1';
@@ -295,7 +295,7 @@ regs_o.offset3_o <= tsf_offset3_int;
 -- Read Delta Timestamp
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     tsf_csr_delta_read_dly0 <= '0';
     regs_o.csr_delta_read_o <= '0';
   elsif rising_edge(clk_sys_i) then
@@ -308,7 +308,7 @@ end process;
 -- Reset Sequence Counter
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     tsf_csr_rst_seq_dly0 <= '0';
     regs_o.csr_rst_seq_o <= '0';
   elsif rising_edge(clk_sys_i) then
@@ -325,7 +325,7 @@ regs_o.csr_raw_mode_o <= tsf_csr_raw_mode_int;
 -- extra code for reg/fifo/mem: FIFO 'Timestamp FIFO' data output register 0
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     tsf_fifo_rdreq_int_d0 <= '0';
   elsif rising_edge(clk_sys_i) then
     tsf_fifo_rdreq_int_d0 <= tsf_fifo_rdreq_int;

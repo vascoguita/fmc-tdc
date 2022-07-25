@@ -21,10 +21,10 @@ use work.wbgen2_pkg.all;
 use work.wishbone_pkg.all;
 
 package tsf_wbgen2_pkg is
-  
-  
+
+
   -- Input registers (user design -> WB slave)
-  
+
   type t_tsf_in_registers is record
     fifo_wr_req_i                            : std_logic;
     fifo_ts0_i                               : std_logic_vector(31 downto 0);
@@ -36,7 +36,7 @@ package tsf_wbgen2_pkg is
     delta3_i                                 : std_logic_vector(31 downto 0);
     csr_delta_ready_i                        : std_logic;
   end record;
-  
+
   constant c_tsf_in_registers_init_value: t_tsf_in_registers := (
     fifo_wr_req_i => '0',
     fifo_ts0_i => (others => '0'),
@@ -48,9 +48,9 @@ package tsf_wbgen2_pkg is
     delta3_i => (others => '0'),
     csr_delta_ready_i => '0'
   );
-  
+
   -- Output registers (WB slave -> user design)
-  
+
   type t_tsf_out_registers is record
     fifo_wr_full_o                           : std_logic;
     fifo_wr_empty_o                          : std_logic;
@@ -63,7 +63,7 @@ package tsf_wbgen2_pkg is
     csr_delta_ref_o                          : std_logic_vector(2 downto 0);
     csr_raw_mode_o                           : std_logic;
   end record;
-  
+
   constant c_tsf_out_registers_init_value: t_tsf_out_registers := (
     fifo_wr_full_o => '0',
     fifo_wr_empty_o => '0',
@@ -113,8 +113,8 @@ begin
       tmp(i):= '0';
     else
       tmp(i):=x(i);
-    end if; 
-  end loop; 
+    end if;
+  end loop;
   return tmp;
 end function;
 

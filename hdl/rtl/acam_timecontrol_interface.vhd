@@ -61,7 +61,7 @@ entity acam_timecontrol_interface is
     (clk_i                  : in std_logic;  -- 125 MHz clock
      rst_i                  : in std_logic;  -- reset
 
-     -- upc_p from the WRabbit or the local generator 
+     -- upc_p from the WRabbit or the local generator
      utc_p_i : in std_logic;
 
      -- Signals from the data_engine unit
@@ -80,7 +80,7 @@ entity acam_timecontrol_interface is
      stop_dis_o              : out std_logic);
 
 end entity;
-  
+
 --=================================================================================================
 architecture rtl of acam_timecontrol_interface is
 
@@ -94,7 +94,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                            IntFlag and ERRflag Input Synchronizers                            --
----------------------------------------------------------------------------------------------------   
+---------------------------------------------------------------------------------------------------
 
   rst_n <= not(rst_i);
 

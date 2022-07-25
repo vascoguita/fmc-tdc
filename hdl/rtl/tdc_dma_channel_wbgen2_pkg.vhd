@@ -20,10 +20,10 @@ use ieee.numeric_std.all;
 use work.wishbone_pkg.all;
 
 package TDMA_wbgen2_pkg is
-  
-  
+
+
   -- Input registers (user design -> WB slave)
-  
+
   type t_TDMA_in_registers is record
     tdma_csr_done_i                          : std_logic;
     tdma_csr_overflow_i                      : std_logic;
@@ -35,7 +35,7 @@ package TDMA_wbgen2_pkg is
     tdma_next_size_size_i                    : std_logic_vector(29 downto 0);
     tdma_next_size_valid_i                   : std_logic;
   end record;
-  
+
   constant c_TDMA_in_registers_init_value: t_TDMA_in_registers := (
     tdma_csr_done_i => '0',
     tdma_csr_overflow_i => '0',
@@ -47,9 +47,9 @@ package TDMA_wbgen2_pkg is
     tdma_next_size_size_i => (others => '0'),
     tdma_next_size_valid_i => '0'
   );
-  
+
   -- Output registers (WB slave -> user design)
-  
+
   type t_TDMA_out_registers is record
     tdma_csr_enable_o                        : std_logic;
     tdma_csr_irq_timeout_o                   : std_logic_vector(9 downto 0);
@@ -72,7 +72,7 @@ package TDMA_wbgen2_pkg is
     tdma_next_size_valid_o                   : std_logic;
     tdma_next_size_valid_load_o              : std_logic;
   end record;
-  
+
   constant c_TDMA_out_registers_init_value: t_TDMA_out_registers := (
     tdma_csr_enable_o => '0',
     tdma_csr_irq_timeout_o => (others => '0'),
@@ -132,8 +132,8 @@ begin
       tmp(i):= '0';
     else
       tmp(i):=x(i);
-    end if; 
-  end loop; 
+    end if;
+  end loop;
   return tmp;
 end function;
 

@@ -336,7 +336,7 @@ begin
         end if;
       end if;
     end process;
-  
+
   ts_valid_p_o <= ts_valid_postseq;
 
   end generate gen_channels;

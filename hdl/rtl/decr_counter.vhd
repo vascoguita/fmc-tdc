@@ -90,7 +90,7 @@ architecture rtl of decr_counter is
 --                                       architecture begin
 --=================================================================================================
 begin
-	
+
   decr_counting: process (clk_i)
   begin
     if rising_edge (clk_i) then

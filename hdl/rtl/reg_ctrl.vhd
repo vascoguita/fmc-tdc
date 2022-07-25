@@ -101,7 +101,7 @@ entity reg_ctrl is
       core_status_i : in std_logic_vector(g_width-1 downto 0);  -- TDC core status word
 
       -- White Rabbit status
-      wrabbit_status_reg_i : in std_logic_vector(g_width-1 downto 0);  -- 
+      wrabbit_status_reg_i : in std_logic_vector(g_width-1 downto 0);  --
 
       -- OUTPUTS
 
@@ -111,10 +111,10 @@ entity reg_ctrl is
       -- Signals to the data_engine unit: TDC core functionality
       activate_acq_p_o      : out std_logic;  -- activates tstamps acquisition from ACAM
       deactivate_acq_p_o    : out std_logic;  -- activates ACAM configuration readings/ writings
-      acam_wr_config_p_o    : out std_logic;  -- enables writing to ACAM regs 0-7, 11, 12, 14 
-      acam_rdbk_config_p_o  : out std_logic;  -- enables reading of ACAM regs 0-7, 11, 12, 14 
+      acam_wr_config_p_o    : out std_logic;  -- enables writing to ACAM regs 0-7, 11, 12, 14
+      acam_rdbk_config_p_o  : out std_logic;  -- enables reading of ACAM regs 0-7, 11, 12, 14
       acam_rst_p_o          : out std_logic;  -- enables writing the c_RESET_WORD to ACAM reg 4
-      acam_rdbk_status_p_o  : out std_logic;  -- enables reading of ACAM reg 12 
+      acam_rdbk_status_p_o  : out std_logic;  -- enables reading of ACAM reg 12
       acam_rdbk_ififo1_p_o  : out std_logic;  -- enables reading of ACAM reg 8
       acam_rdbk_ififo2_p_o  : out std_logic;  -- enables reading of ACAM reg 9
       acam_rdbk_start01_p_o : out std_logic;  -- enables reading of ACAM reg 10
@@ -123,7 +123,7 @@ entity reg_ctrl is
       gen_fake_ts_period_o  : out std_logic_vector(27 downto 0);
       gen_fake_ts_channel_o : out std_logic_vector(2 downto 0);
 
-      
+
       -- Signals to the clks_resets_manager unit
       send_dac_word_p_o     : out std_logic;  -- initiates the reconfiguration of the DAC
       dac_word_o            : out std_logic_vector(23 downto 0);
@@ -140,7 +140,7 @@ entity reg_ctrl is
       acam_inputs_en_o : out std_logic_vector(g_width-1 downto 0);  -- enables all five input channels
 
       -- White Rabbit control
-      wrabbit_ctrl_reg_o : out std_logic_vector(g_width-1 downto 0);  -- 
+      wrabbit_ctrl_reg_o : out std_logic_vector(g_width-1 downto 0);  --
 
       int_flag_delay_o : out std_logic_vector(15 downto 0)
       );
@@ -196,7 +196,7 @@ begin
 
   cmp_clks_crossing : xwb_clock_crossing
     port map
-    (slave_clk_i    => clk_sys_i,  -- Slave control port: VME interface at 62.5 MHz 
+    (slave_clk_i    => clk_sys_i,  -- Slave control port: VME interface at 62.5 MHz
      slave_rst_n_i  => cc_rst_n_or_sys,  -- reset the slave port also when resetting the TDC
      slave_i        => slave_i,
      slave_o        => slave_o,
@@ -309,7 +309,7 @@ begin
       end if;
     end if;
   end process;
-  --  --  --  --  --  --  --  --  --  --  --  --  
+  --  --  --  --  --  --  --  --  --  --  --  --
   acam_config_o <= acam_config;
 
 
@@ -339,10 +339,10 @@ begin
 
         gen_fake_ts_enable_o <= '0';
         int_flag_delay_o <= (others => '0');
-        
+
       elsif wb_in.cyc = '1' and wb_in.stb = '1' and wb_in.we = '1' then
-        
-        
+
+
         if reg_adr = c_STARTING_UTC_ADR then
           starting_utc <= wb_in.dat;
         end if;
@@ -372,7 +372,7 @@ begin
           gen_fake_ts_channel_o <= wb_in.dat(30 downto 28);
           gen_fake_ts_period_o <= wb_in.dat(27 downto 0);
         end if;
-        
+
         if reg_adr = c_TEST1_ADR then
           int_flag_delay_o <= wb_in.dat(15 downto 0);
         end if;
@@ -390,12 +390,12 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                             Reception of TDC core Control Register                            --
----------------------------------------------------------------------------------------------------    
+---------------------------------------------------------------------------------------------------
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- TDCcore_ctrl_reg_reception: reception from the GN4124/VME interface of the control register that
 -- defines the action to be taken by the TDC core.
 -- Note that only one bit of the register should be written at a time. The process receives
--- the register, defines the action to be taken and after 1 clk cycle clears the register. 
+-- the register, defines the action to be taken and after 1 clk cycle clears the register.
 
   TDCcore_ctrl_reg_reception : process (clk_tdc_i)
   begin
@@ -417,7 +417,7 @@ begin
       end if;
     end if;
   end process;
-  --  --  --  --  --  --  --  --  --  --  --  --   
+  --  --  --  --  --  --  --  --  --  --  --  --
   activate_acq_p_o      <= ctrl_reg(0);
   deactivate_acq_p_o    <= ctrl_reg(1);
   acam_wr_config_p_o    <= ctrl_reg(2);
@@ -431,7 +431,7 @@ begin
   send_dac_word_p       <= ctrl_reg(11); -- not used
 -- ctrl_reg bits 12 to 31 not used for the moment!
 
-  --  --  --  --  --  --  --  --  --  --  --  --   
+  --  --  --  --  --  --  --  --  --  --  --  --
 -- Pulse_stretcher: Increases the width of the send_dac_word_p pulse so that it can be sampled
 -- by the 20 MHz clock of the clks_rsts_manager that is communicating with the DAC.
 
@@ -445,17 +445,17 @@ begin
      counter_incr_en_i => pulse_extender_en,
      counter_is_full_o => open,
      counter_o         => pulse_extender_c);
-  --  --  --  --  --  --  --  --  --  --  --  --   
+  --  --  --  --  --  --  --  --  --  --  --  --
   pulse_extender_en <= '1' when pulse_extender_c < "111" else '0';
   send_dac_word_p_o <= pulse_extender_en;
 
 
 ---------------------------------------------------------------------------------------------------
 --                          HOST Reading of ACAM and TDC core registers                          --
----------------------------------------------------------------------------------------------------   
+---------------------------------------------------------------------------------------------------
 -- TDCcore_ctrl_reg_reception: Delivery to the GN4124/VME interface of all the readable registers,
 -- including those of the ACAM and the TDC core.
--- Note: pipelining of the address for timing/slack reasons 
+-- Note: pipelining of the address for timing/slack reasons
 
   WISHBONEreads : process (clk_tdc_i)
   begin

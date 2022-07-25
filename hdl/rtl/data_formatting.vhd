@@ -155,7 +155,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 -- Final Timestamp Formatting                                  --
----------------------------------------------------------------------------------------------------   
+---------------------------------------------------------------------------------------------------
 -- tstamp_formatting: slicing of the 32-bits word acam_tstamp1_i and acam_tstamp2_i as received
 -- from the data_engine unit, to construct the final timestamps to be stored in the circular_buffer
 
@@ -176,7 +176,7 @@ begin
 --                                          each bit represents 81.03 ps
 
 --   [63:32]  Coarse time within the current second, caclulated from the: Start number,
---            clk_i_cycles_offset_i, retrig_nb_offset_i, roll_over_nb_i 
+--            clk_i_cycles_offset_i, retrig_nb_offset_i, roll_over_nb_i
 --                                          each bit represents 8 ns
 
 --   [95:64]  Local UTC time coming from the one_hz_generator;
@@ -328,9 +328,9 @@ begin
   -- one_hz_pulse arrives.
   un_nb_of_cycles <= shift_left(un_nb_of_retrig, c_ACAM_RETRIG_PERIOD_SHIFT) + un_clk_i_cycles_offset;
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- coarse time: expressed as the number of 125 MHz clock cycles since the last one_hz_pulse.
-  -- Since the clk_i and the pulse are derived from the same PLL, any offset between them is constant 
+  -- Since the clk_i and the pulse are derived from the same PLL, any offset between them is constant
   -- and will cancel when subtracting timestamps.
   coarse_time <= std_logic_vector(un_nb_of_cycles);  -- when coarse_zero = '0' else std_logic_vector(64-unsigned(clk_i_cycles_offset_i));
 
@@ -338,7 +338,7 @@ begin
   -- fine time: directly provided by ACAM as a number of BINs since the last internal retrigger
   fine_time <= x"000" & "000" & acam_fine_timestamp;
 
-  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  
+  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- metadata: information about the timestamp
   -- for debug
   metadata(31 downto 24) <= std_logic_vector(acam_start_nb(7 downto 0));

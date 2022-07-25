@@ -24,20 +24,20 @@
 -------------------------------------------------------------------------------
 --
 -- Copyright (c) 2011 CERN / BE-CO-HT
--- This source file is free software; you can redistribute it   
--- and/or modify it under the terms of the GNU Lesser General   
--- Public License as published by the Free Software Foundation; 
--- either version 2.1 of the License, or (at your option) any   
--- later version.                                               
+-- This source file is free software; you can redistribute it
+-- and/or modify it under the terms of the GNU Lesser General
+-- Public License as published by the Free Software Foundation;
+-- either version 2.1 of the License, or (at your option) any
+-- later version.
 --
--- This source is distributed in the hope that it will be       
--- useful, but WITHOUT ANY WARRANTY; without even the implied   
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      
--- PURPOSE.  See the GNU Lesser General Public License for more 
--- details.                                                     
+-- This source is distributed in the hope that it will be
+-- useful, but WITHOUT ANY WARRANTY; without even the implied
+-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+-- PURPOSE.  See the GNU Lesser General Public License for more
+-- details.
 --
--- You should have received a copy of the GNU Lesser General    
--- Public License along with this source; if not, download it   
+-- You should have received a copy of the GNU Lesser General
+-- Public License along with this source; if not, download it
 -- from http://www.gnu.org/licenses/lgpl-2.1.html
 --
 
@@ -60,7 +60,7 @@ entity tdc_ts_sub is
 
     a_i : in t_tdc_timestamp;
     b_i : in t_tdc_timestamp;
-    
+
     valid_o    : out std_logic;
     q_o    : out t_tdc_timestamp
     );
@@ -86,7 +86,7 @@ architecture rtl of tdc_ts_sub is
   signal ovf_frac   : std_logic;
   signal ovf_coarse : std_logic;
   signal unf_coarse : std_logic_vector(1 downto 0);
-  
+
 begin  -- rtl
 
   -- Pipeline stage 0: just subtract the two timestamps field by field
@@ -115,7 +115,7 @@ begin  -- rtl
   p_stage1 : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      
+
       if rst_n_i = '0' then
         pipe(1) <= '0';
       else

@@ -21,20 +21,20 @@
 --
 -- Copyright (c) 2011 CERN / BE-CO-HT
 --
--- This source file is free software; you can redistribute it   
--- and/or modify it under the terms of the GNU Lesser General   
--- Public License as published by the Free Software Foundation; 
--- either version 2.1 of the License, or (at your option) any   
--- later version.                                               
+-- This source file is free software; you can redistribute it
+-- and/or modify it under the terms of the GNU Lesser General
+-- Public License as published by the Free Software Foundation;
+-- either version 2.1 of the License, or (at your option) any
+-- later version.
 --
--- This source is distributed in the hope that it will be       
--- useful, but WITHOUT ANY WARRANTY; without even the implied   
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      
--- PURPOSE.  See the GNU Lesser General Public License for more 
--- details.                                                     
+-- This source is distributed in the hope that it will be
+-- useful, but WITHOUT ANY WARRANTY; without even the implied
+-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+-- PURPOSE.  See the GNU Lesser General Public License for more
+-- details.
 --
--- You should have received a copy of the GNU Lesser General    
--- Public License along with this source; if not, download it   
+-- You should have received a copy of the GNU Lesser General
+-- Public License along with this source; if not, download it
 -- from http://www.gnu.org/licenses/lgpl-2.1.html
 --
 -------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ entity wrabbit_sync is
     -------------------------------------------------------------------------------
     wrabbit_dac_value_i       : in    std_logic_vector(23 downto 0);
     wrabbit_dac_wr_p_i        : in    std_logic;
-    
+
     wrabbit_link_up_i         : in  std_logic;
 
     -- when HI, wrabbit_utc_i and wrabbit_coarse_i contain a valid time value and
@@ -83,7 +83,7 @@ entity wrabbit_sync is
     -- reference clock. 0: keep the oscillator free running.
     wrabbit_clk_aux_lock_en_o : out std_logic;
 
-    -- 1: FMC's Local oscillator locked to WR reference 
+    -- 1: FMC's Local oscillator locked to WR reference
     wrabbit_clk_aux_locked_i  : in  std_logic;
 
     -- 1: Carrier's DMTD clock is locked (to WR reference or local FMC oscillator)
@@ -129,11 +129,11 @@ architecture rtl of wrabbit_sync is
   signal with_wrabbit_core                 : std_logic;
   signal dac_p_c                           : unsigned(23 downto 0); -- for debug
 
-  
+
 begin
 
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
-  -- Synchronization of the wrabbit_reg_i(0) of the reg_ctrl unit to the 62.5 MHz domain 
+  -- Synchronization of the wrabbit_reg_i(0) of the reg_ctrl unit to the 62.5 MHz domain
 
   input_synchronizer : gc_sync_ffs
     port map (
@@ -180,7 +180,7 @@ begin
             else
               wrabbit_state_changed <= '0';
             end if;
-            
+
           when wrabbit_WAIT_READY =>
             wrabbit_clk_aux_lock_en <= '0';
 
@@ -284,7 +284,7 @@ begin
       if rst_n_sys_i = '0' then
         dac_p_c   <= (others => '0');
       else
-        if dac_p_c = "111111111111111111111111" then 
+        if dac_p_c = "111111111111111111111111" then
           dac_p_c <= (others => '0');
         elsif wrabbit_dac_wr_p_i = '1' then
           dac_p_c <= dac_p_c + 1;

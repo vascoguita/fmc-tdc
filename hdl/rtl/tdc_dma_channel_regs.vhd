@@ -55,11 +55,11 @@ signal allzeros                                 : std_logic_vector(31 downto 0);
 begin
 -- Some internal signals assignments
 wrdata_reg <= slave_i.dat;
--- 
+--
 -- Main register bank access process.
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     ack_sreg <= "0000000000";
     ack_in_progress <= '0';
     rddata_reg <= "00000000000000000000000000000000";
@@ -104,7 +104,7 @@ begin
     else
       if ((slave_i.cyc = '1') and (slave_i.stb = '1')) then
         case rwaddr_reg(2 downto 0) is
-        when "000" => 
+        when "000" =>
           if (slave_i.we = '1') then
             tdma_csr_enable_int <= wrdata_reg(0);
             tdma_csr_irq_timeout_int <= wrdata_reg(10 downto 1);
@@ -129,20 +129,20 @@ begin
           rddata_reg(31) <= 'X';
           ack_sreg(2) <= '1';
           ack_in_progress <= '1';
-        when "001" => 
+        when "001" =>
           if (slave_i.we = '1') then
             regs_o.tdma_cur_base_load_o <= '1';
           end if;
           rddata_reg(31 downto 0) <= regs_i.tdma_cur_base_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "010" => 
+        when "010" =>
           if (slave_i.we = '1') then
           end if;
           rddata_reg(31 downto 0) <= regs_i.tdma_cur_count_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "011" => 
+        when "011" =>
           if (slave_i.we = '1') then
             regs_o.tdma_cur_size_size_load_o <= '1';
             regs_o.tdma_cur_size_valid_load_o <= '1';
@@ -152,14 +152,14 @@ begin
           rddata_reg(31) <= 'X';
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "100" => 
+        when "100" =>
           if (slave_i.we = '1') then
             regs_o.tdma_next_base_load_o <= '1';
           end if;
           rddata_reg(31 downto 0) <= regs_i.tdma_next_base_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
-        when "101" => 
+        when "101" =>
           if (slave_i.we = '1') then
             regs_o.tdma_next_size_size_load_o <= '1';
             regs_o.tdma_next_size_valid_load_o <= '1';
@@ -191,7 +191,7 @@ regs_o.tdma_csr_burst_size_o <= tdma_csr_burst_size_int;
 -- Switch buffers
 process (clk_sys_i, rst_n_i)
 begin
-  if (rst_n_i = '0') then 
+  if (rst_n_i = '0') then
     tdma_csr_switch_buffers_dly0 <= '0';
     regs_o.tdma_csr_switch_buffers_o <= '0';
   elsif rising_edge(clk_sys_i) then

@@ -141,7 +141,7 @@ entity fmc_tdc_mezzanine is
       wr_n_o                    : out   std_logic;
       ef1_i                     : in    std_logic;
       ef2_i                     : in    std_logic;
-      -- Channels termination 
+      -- Channels termination
       enable_inputs_o           : out   std_logic;
       term_en_1_o               : out   std_logic;
       term_en_2_o               : out   std_logic;
@@ -163,7 +163,7 @@ entity fmc_tdc_mezzanine is
       wrabbit_dac_wr_p_i        : in    std_logic;
 
       -- WISHBONE interface with the GN4124/VME_core (clk_sys)
-      -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C 
+      -- for the core configuration | timestamps retrieval | core interrupts | 1Wire | I2C
 
       slave_i : in  t_wishbone_slave_in;
       slave_o : out t_wishbone_slave_out;

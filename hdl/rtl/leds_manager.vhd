@@ -84,10 +84,10 @@ entity leds_manager is
      -- OUTPUTS
      -- Signals to the LEDs on the TDC front panel
      tdc_led_stat_o   : out std_logic;                   -- LED STA: division of 125 MHz
-     tdc_led_trig_o   : out std_logic_vector(4 downto 0));-- LED 2..5: Blinking indicates generation 
-                                                         --           of a valid tstamp;  
+     tdc_led_trig_o   : out std_logic_vector(4 downto 0));-- LED 2..5: Blinking indicates generation
+                                                         --           of a valid tstamp;
                                                          --           permanently ON without pulses
-                                                         -- in the input indicates 50Ohm termination 
+                                                         -- in the input indicates 50Ohm termination
 
 end leds_manager;
 
@@ -105,7 +105,7 @@ architecture rtl of leds_manager is
 begin
 ---------------------------------------------------------------------------------------------------
 --                                   TDC FRONT PANEL LED STA                                     --
----------------------------------------------------------------------------------------------------  
+---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
   tdc_status_led_blink_counter : decr_counter
@@ -136,7 +136,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                                   TDC FRONT PANEL LEDs CH 1-5                                 --
---------------------------------------------------------------------------------------------------- 
+---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
   rst_n <= not(rst_i);
 

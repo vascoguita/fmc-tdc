@@ -86,7 +86,7 @@ architecture rtl of incr_counter is
 --                                       architecture begin
 --=================================================================================================
 begin
-	
+
   incr_counting: process (clk_i)
   begin
     if rising_edge (clk_i) then
