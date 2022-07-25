@@ -6,6 +6,18 @@
 Changelog
 =========
 
+8.0.0 - 2022-07-06
+==================
+Added
+-----
+- hdl,hw: documentation
+- performance tests
+
+Changed
+-------
+- doc: software updates
+- sw: minor fixes
+
 8.0.0.rc2 - 2021-07-29
 ======================
 Changed
