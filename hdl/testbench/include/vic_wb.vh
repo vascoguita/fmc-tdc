@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `define ADDR_VIC_CTL                   8'h0
 `define VIC_CTL_ENABLE_OFFSET 0
 `define VIC_CTL_ENABLE 32'h00000001

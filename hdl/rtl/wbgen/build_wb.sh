@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
 
 wbgen2 -V timestamp_fifo_wb.vhd -H record_full -p timestamp_fifo_wbgen2_pkg.vhd -K timestamp_fifo_regs.vh -s defines -C timestamp_fifo_regs.h -D wbgen/timestamp_fifo_wb.html wbgen/timestamp_fifo_wb.wb 
 wbgen2 -V tdc_onewire_wb.vhd -H record_full -p tdc_onewire_wbgen2_pkg.vhd -K timestamp_onewire_regs.vh -s defines -C tdc_onewire_regs.h wbgen/tdc_onewire_wb.wb 

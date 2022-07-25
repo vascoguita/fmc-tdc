@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `timescale 1ps/1ps
 
 // ACAM TDC GPX model. Almost as crappy as the real thing, but at least doesn't produce the infamous 4ns errors :-) Thanks ACAM for making reliable chips!

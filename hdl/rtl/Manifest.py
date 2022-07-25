@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 files = [
     "tdc_core_pkg.vhd",
     "reg_ctrl_pkg.vhd",

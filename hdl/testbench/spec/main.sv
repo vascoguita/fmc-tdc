@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `timescale 1ns/1ps
 
 `include "timestamp_fifo_regs.vh"

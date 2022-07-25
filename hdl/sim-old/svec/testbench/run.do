@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 vlog -sv main.sv +incdir+. +incdir+../../sim/wb +incdir+../../sim/vme64x_bfm +incdir+../../sim
 vsim work.main -voptargs=+acc
 

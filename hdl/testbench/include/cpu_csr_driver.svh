@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `include "wrn_cpu_csr_regs.vh"
 
 typedef class NodeCPUDbgQueue;

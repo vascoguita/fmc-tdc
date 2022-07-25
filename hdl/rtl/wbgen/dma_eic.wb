@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 peripheral {
 	name = "GN4124 DMA enhanced interrupt controller";
 	description = "Enhanced interrrupt controller for GN4124 DMA.";

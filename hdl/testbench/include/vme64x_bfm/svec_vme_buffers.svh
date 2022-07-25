@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `include "components/sn74vmeh22501.v"
 
 `include "vme64x_bfm.svh"
