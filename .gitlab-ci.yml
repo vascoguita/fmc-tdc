@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2020 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
+stages:
+  - static-analysis
+  - build
+
+reuse:
+  stage: static-analysis
+  image:
+    name: fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
+  allow_failure: true
+
+cppcheck:
+  stage: static-analysis
+  image:
+    name: gitlab-registry.cern.ch/coht/common-containers/static-analysis:latest
+  script:
+    - make -C software cppcheck
+
+flawfinder:
+  stage: static-analysis
+  image:
+    name: gitlab-registry.cern.ch/coht/common-containers/static-analysis:latest
+  script:
+    - make -C software/tools flawfinder
+
+documentation:
+  stage: build
+  image:
+    name: gitlab-registry.cern.ch/coht/common-containers/documentation:latest
+  script:
+    - make -C doc html
+
+.script_fetch_kernel_dep: &script_fetch_kernel_dep
+  - git clone --depth 1 https://gitlab.cern.ch/cohtdrivers/coht.git ~/git/coht
+  - export VMEBUS=~/git/coht/vmebridge-ng
+  - git clone -b v1.1.4 --depth 1 https://ohwr.org/project/fmc-sw.git ~/git/fmc
+  - export FMC=~/git/fmc
+  - git clone -b v1.4.0 --depth 1 https://ohwr.org/project/zio.git ~/git/zio
+  - export ZIO=~/git/zio
+
+.script_build_kernel_dep: &script_build_kernel_dep
+  - make -C $FMC/drivers/fmc all
+  - make -C $ZIO/drivers/zio all
+
+build-centos-7:
+  stage: build
+  variables:
+    LINUX: /usr/src/kernels/*/
+  image:
+    name: gitlab-registry.cern.ch/coht/common-containers/build-centos-7:latest
+  before_script:
+    - *script_fetch_kernel_dep
+    - *script_build_kernel_dep
+  script:
+    - make -C software
+
+.script_build_kernel_ver: &script_build_kernel_ver
+  - source /linux-versions.sh
+  - fetch $VERSION && prepare $VERSION && export LINUX=$(linux $VERSION)
+  - *script_build_kernel_dep
+  - make -C software/kernel all
+
+build-kernel-5.4.207:
+  stage: build
+  allow_failure: true
+  variables:
+    VERSION: 5.4.207
+  image:
+    name: gitlab-registry.cern.ch/coht/common-containers/build-kernel:latest
+  before_script:
+    - *script_fetch_kernel_dep
+  script:
+    - *script_build_kernel_ver
+
+.script_build_kernel_ver: &script_build_kernel_ver
+  - source /linux-versions.sh
+  - fetch $VERSION && prepare $VERSION && export LINUX=$(linux $VERSION)
+  - *script_build_kernel_dep
+  - make -C software/kernel all
+
+build-kernel-5.10.132:
+  stage: build
+  allow_failure: true
+  variables:
+    VERSION: 5.10.132
+  image:
+    name: gitlab-registry.cern.ch/coht/common-containers/build-kernel:latest
+  before_script:
+    - *script_fetch_kernel_dep
+  script:
+    - *script_build_kernel_ver
