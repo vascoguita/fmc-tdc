@@ -6,3 +6,5 @@ wbgen2 -V tdc_onewire_wb.vhd -H record_full -p tdc_onewire_wbgen2_pkg.vhd -K tim
 
 #don't do this, latest wbgen is buggy
 #wbgen2 -V tdc_eic.vhd -s defines -C tdc_eic.h -D wbgen/tdc_eic.html wbgen/tdc_eic.wb
+
+# wbgen2 --hstyle=record -V ../fmc_tdc_direct_readout_slave.vhd -p ../fmc_tdc_direct_readout_slave_pkg.vhd -s defines -C fmctdc-direct.h fmc_tdc_direct_readout_slave.wb

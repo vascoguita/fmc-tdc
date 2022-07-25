@@ -184,9 +184,7 @@ entity fmc_tdc_mezzanine is
 
       sim_timestamp_i       : in  t_tdc_timestamp := c_dummy_timestamp;
       sim_timestamp_valid_i : in  std_logic       := '0';
-      sim_timestamp_ready_o : out std_logic
-
-      );
+      sim_timestamp_ready_o : out std_logic);
 end fmc_tdc_mezzanine;
 
 
@@ -567,30 +565,30 @@ begin
 
   gen_enable_eic : if g_USE_FIFO_READOUT or g_USE_DMA_READOUT generate
     cmp_tdc_eic : entity work.tdc_eic
-      port map
-      (clk_sys_i       => clk_sys_i,
-       rst_n_i         => rst_sys_n_i,
-       wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(5 downto 2),
-       wb_dat_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
-       wb_dat_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
-       wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
-       wb_sel_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
-       wb_stb_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
-       wb_we_i         => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
-       wb_ack_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
-       wb_stall_o      => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
-       wb_int_o        => wb_irq_o,
-       irq_tdc_fifo1_i => irq_fifo(0),
-       irq_tdc_fifo2_i => irq_fifo(1),
-       irq_tdc_fifo3_i => irq_fifo(2),
-       irq_tdc_fifo4_i => irq_fifo(3),
-       irq_tdc_fifo5_i => irq_fifo(4),
-       irq_tdc_dma1_i  => irq_dma(0),
-       irq_tdc_dma2_i  => irq_dma(1),
-       irq_tdc_dma3_i  => irq_dma(2),
-       irq_tdc_dma4_i  => irq_dma(3),
-       irq_tdc_dma5_i  => irq_dma(4)
-       );
+      port map (
+        clk_sys_i       => clk_sys_i,
+        rst_n_i         => rst_sys_n_i,
+        wb_adr_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).adr(5 downto 2),
+        wb_dat_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).dat,
+        wb_dat_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).dat,
+        wb_cyc_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).cyc,
+        wb_sel_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).sel,
+        wb_stb_i        => cnx_master_out(c_WB_SLAVE_TDC_EIC).stb,
+        wb_we_i         => cnx_master_out(c_WB_SLAVE_TDC_EIC).we,
+        wb_ack_o        => cnx_master_in(c_WB_SLAVE_TDC_EIC).ack,
+        wb_stall_o      => cnx_master_in(c_WB_SLAVE_TDC_EIC).stall,
+        wb_int_o        => wb_irq_o,
+        irq_tdc_fifo1_i => irq_fifo(0),
+        irq_tdc_fifo2_i => irq_fifo(1),
+        irq_tdc_fifo3_i => irq_fifo(2),
+        irq_tdc_fifo4_i => irq_fifo(3),
+        irq_tdc_fifo5_i => irq_fifo(4),
+        irq_tdc_dma1_i  => irq_dma(0),
+        irq_tdc_dma2_i  => irq_dma(1),
+        irq_tdc_dma3_i  => irq_dma(2),
+        irq_tdc_dma4_i  => irq_dma(3),
+        irq_tdc_dma5_i  => irq_dma(4)
+        );
   end generate gen_enable_eic;
 
   gen_disable_eic : if not g_USE_FIFO_READOUT and not g_USE_DMA_READOUT generate
@@ -659,8 +657,6 @@ begin
 
   timestamp_o       <= timestamp;
   timestamp_valid_o <= timestamp_valid;
-
-
 end rtl;
 ----------------------------------------------------------------------------------------------------
 --  architecture ends
