@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -group Mezz /main/DUT/cmp_fmc_tdc_mezzanine/cmp_tdc_mezz/clk_sys_i

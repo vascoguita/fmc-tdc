@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 ---------------------------------------------------------------------------------------
 -- Title          : Wishbone slave core for Channel registers
 ---------------------------------------------------------------------------------------
@@ -55,11 +59,11 @@ signal allzeros                                 : std_logic_vector(31 downto 0);
 begin
 -- Some internal signals assignments
   wrdata_reg <= slave_i.dat;
--- 
+--
 -- Main register bank access process.
   process (clk_sys_i, rst_n_i)
   begin
-    if (rst_n_i = '0') then 
+    if (rst_n_i = '0') then
       ack_sreg <= "0000000000";
       ack_in_progress <= '0';
       rddata_reg <= "00000000000000000000000000000000";
@@ -84,46 +88,46 @@ begin
       else
         if ((slave_i.cyc = '1') and (slave_i.stb = '1')) then
           case rwaddr_reg(2 downto 0) is
-          when "000" => 
+          when "000" =>
             if (slave_i.we = '1') then
             end if;
             rddata_reg(31 downto 0) <= regs_i.delta1_i;
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "001" => 
+          when "001" =>
             if (slave_i.we = '1') then
             end if;
             rddata_reg(31 downto 0) <= regs_i.delta2_i;
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "010" => 
+          when "010" =>
             if (slave_i.we = '1') then
             end if;
             rddata_reg(31 downto 0) <= regs_i.delta3_i;
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "011" => 
+          when "011" =>
             if (slave_i.we = '1') then
               ch_reg_offset1_int <= wrdata_reg(31 downto 0);
             end if;
             rddata_reg(31 downto 0) <= ch_reg_offset1_int;
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "100" => 
+          when "100" =>
             if (slave_i.we = '1') then
               ch_reg_offset2_int <= wrdata_reg(31 downto 0);
             end if;
             rddata_reg(31 downto 0) <= ch_reg_offset2_int;
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "101" => 
+          when "101" =>
             if (slave_i.we = '1') then
               ch_reg_offset3_int <= wrdata_reg(31 downto 0);
             end if;
             rddata_reg(31 downto 0) <= ch_reg_offset3_int;
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "110" => 
+          when "110" =>
             if (slave_i.we = '1') then
               ch_reg_csr_delta_read_int <= wrdata_reg(1);
               ch_reg_csr_rst_seq_int <= wrdata_reg(2);
@@ -171,8 +175,8 @@ begin
       end if;
     end if;
   end process;
-  
-  
+
+
 -- Drive the data output bus
   slave_o.dat <= rddata_reg;
 -- Delta Timestamp Word 1 (TAI cycles, signed)
@@ -188,7 +192,7 @@ begin
 -- Read Delta Timestamp
   process (clk_sys_i, rst_n_i)
   begin
-    if (rst_n_i = '0') then 
+    if (rst_n_i = '0') then
       ch_reg_csr_delta_read_dly0 <= '0';
       regs_o.csr_delta_read_o <= '0';
     elsif rising_edge(clk_sys_i) then
@@ -196,12 +200,12 @@ begin
       regs_o.csr_delta_read_o <= ch_reg_csr_delta_read_int and (not ch_reg_csr_delta_read_dly0);
     end if;
   end process;
-  
-  
+
+
 -- Reset Sequence Counter
   process (clk_sys_i, rst_n_i)
   begin
-    if (rst_n_i = '0') then 
+    if (rst_n_i = '0') then
       ch_reg_csr_rst_seq_dly0 <= '0';
       regs_o.csr_rst_seq_o <= '0';
     elsif rising_edge(clk_sys_i) then
@@ -209,8 +213,8 @@ begin
       regs_o.csr_rst_seq_o <= ch_reg_csr_rst_seq_int and (not ch_reg_csr_rst_seq_dly0);
     end if;
   end process;
-  
-  
+
+
 -- Delta Timestamp Reference Channel
   regs_o.csr_delta_ref_o <= ch_reg_csr_delta_ref_int;
 -- Raw readout mode

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CC0-1.0
+
 -- Created by : G. Penacoba
 -- Creation Date: May 2011
 -- Description: reproduced roughly the functionality of the acam:

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 ---------------------------------------------------------------------------------------
 -- Title          : Wishbone slave core for GN4124 DMA enhanced interrupt controller
 ---------------------------------------------------------------------------------------
@@ -65,11 +69,11 @@ begin
   wr_int <= wb_cyc_i and (wb_stb_i and wb_we_i);
   allones <= (others => '1');
   allzeros <= (others => '0');
--- 
+--
 -- Main register bank access process.
   process (clk_sys_i, rst_n_i)
   begin
-    if (rst_n_i = '0') then 
+    if (rst_n_i = '0') then
       ack_sreg <= "0000000000";
       ack_in_progress <= '0';
       rddata_reg <= "00000000000000000000000000000000";
@@ -91,7 +95,7 @@ begin
       else
         if ((wb_cyc_i = '1') and (wb_stb_i = '1')) then
           case rwaddr_reg(1 downto 0) is
-          when "00" => 
+          when "00" =>
             if (wb_we_i = '1') then
               eic_idr_write_int <= '1';
             end if;
@@ -129,7 +133,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "01" => 
+          when "01" =>
             if (wb_we_i = '1') then
               eic_ier_write_int <= '1';
             end if;
@@ -167,7 +171,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "10" => 
+          when "10" =>
             if (wb_we_i = '1') then
             end if;
             rddata_reg(1 downto 0) <= eic_imr_int(1 downto 0);
@@ -203,7 +207,7 @@ begin
             rddata_reg(31) <= 'X';
             ack_sreg(0) <= '1';
             ack_in_progress <= '1';
-          when "11" => 
+          when "11" =>
             if (wb_we_i = '1') then
               eic_isr_write_int <= '1';
             end if;
@@ -249,8 +253,8 @@ begin
       end if;
     end if;
   end process;
-  
-  
+
+
 -- Drive the data output bus
   wb_dat_o <= rddata_reg;
 -- extra code for reg/fifo/mem: Interrupt disable register
@@ -311,7 +315,7 @@ begin
       reg_isr_wr_stb_i     => eic_isr_write_int,
       wb_irq_o             => wb_int_o
     );
-  
+
   irq_inputs_vector_int(0) <= irq_dma_done_i;
   irq_inputs_vector_int(1) <= irq_dma_error_i;
   rwaddr_reg <= wb_adr_i;

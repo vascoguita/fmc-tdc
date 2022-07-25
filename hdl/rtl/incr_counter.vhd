@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 --_________________________________________________________________________________________________
 --                                                                                                |
 --                                           |TDC core|                                           |
@@ -82,7 +86,7 @@ architecture rtl of incr_counter is
 --                                       architecture begin
 --=================================================================================================
 begin
-	
+
   incr_counting: process (clk_i)
   begin
     if rising_edge (clk_i) then

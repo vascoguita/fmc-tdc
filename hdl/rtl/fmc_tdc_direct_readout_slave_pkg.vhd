@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 ---------------------------------------------------------------------------------------
 -- Title          : Wishbone slave core for TDC Direct Readout WB Slave
 ---------------------------------------------------------------------------------------
@@ -16,10 +20,10 @@ use ieee.numeric_std.all;
 use work.wbgen2_pkg.all;
 
 package dr_wbgen2_pkg is
-  
-  
+
+
   -- Input registers (user design -> WB slave)
-  
+
   type t_dr_in_registers is record
     fifo_wr_req_i                            : std_logic;
     fifo_seconds_i                           : std_logic_vector(31 downto 0);
@@ -29,7 +33,7 @@ package dr_wbgen2_pkg is
     fifo_channel_i                           : std_logic_vector(3 downto 0);
     status_i                                 : std_logic;
     end record;
-  
+
   constant c_dr_in_registers_init_value: t_dr_in_registers := (
     fifo_wr_req_i => '0',
     fifo_seconds_i => (others => '0'),
@@ -39,9 +43,9 @@ package dr_wbgen2_pkg is
     fifo_channel_i => (others => '0'),
     status_i => '0'
     );
-    
+
     -- Output registers (WB slave -> user design)
-    
+
     type t_dr_out_registers is record
       fifo_wr_full_o                           : std_logic;
       fifo_wr_empty_o                          : std_logic;
@@ -49,7 +53,7 @@ package dr_wbgen2_pkg is
       chan_enable_o                            : std_logic_vector(4 downto 0);
       dead_time_o                              : std_logic_vector(23 downto 0);
       end record;
-    
+
     constant c_dr_out_registers_init_value: t_dr_out_registers := (
       fifo_wr_full_o => '0',
       fifo_wr_empty_o => '0',
@@ -79,8 +83,8 @@ if(x(i) = '1') then
 tmp(i):= '1';
 else
 tmp(i):= '0';
-end if; 
-end loop; 
+end if;
+end loop;
 return tmp;
 end function;
 function "or" (left, right: t_dr_in_registers) return t_dr_in_registers is

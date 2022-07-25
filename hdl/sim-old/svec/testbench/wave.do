@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /main/DUT/cmp_tdc_board0/tdc_core/reg_control_block/clk_i

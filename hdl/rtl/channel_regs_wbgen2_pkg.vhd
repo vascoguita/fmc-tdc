@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 ---------------------------------------------------------------------------------------
 -- Title          : Wishbone slave core for Channel registers
 ---------------------------------------------------------------------------------------
@@ -16,26 +20,26 @@ use ieee.numeric_std.all;
 use work.wishbone_pkg.all;
 
 package ch_reg_wbgen2_pkg is
-  
-  
+
+
   -- Input registers (user design -> WB slave)
-  
+
   type t_ch_reg_in_registers is record
     delta1_i                                 : std_logic_vector(31 downto 0);
     delta2_i                                 : std_logic_vector(31 downto 0);
     delta3_i                                 : std_logic_vector(31 downto 0);
     csr_delta_ready_i                        : std_logic;
   end record;
-  
+
   constant c_ch_reg_in_registers_init_value: t_ch_reg_in_registers := (
     delta1_i => (others => '0'),
     delta2_i => (others => '0'),
     delta3_i => (others => '0'),
     csr_delta_ready_i => '0'
   );
-  
+
   -- Output registers (WB slave -> user design)
-  
+
   type t_ch_reg_out_registers is record
     offset1_o                                : std_logic_vector(31 downto 0);
     offset2_o                                : std_logic_vector(31 downto 0);
@@ -45,7 +49,7 @@ package ch_reg_wbgen2_pkg is
     csr_delta_ref_o                          : std_logic_vector(2 downto 0);
     csr_raw_mode_o                           : std_logic;
   end record;
-  
+
   constant c_ch_reg_out_registers_init_value: t_ch_reg_out_registers := (
     offset1_o => (others => '0'),
     offset2_o => (others => '0'),
@@ -55,11 +59,11 @@ package ch_reg_wbgen2_pkg is
     csr_delta_ref_o => (others => '0'),
     csr_raw_mode_o => '0'
   );
-  
+
   function "or" (left, right: t_ch_reg_in_registers) return t_ch_reg_in_registers;
   function f_x_to_zero (x:std_logic) return std_logic;
   function f_x_to_zero (x:std_logic_vector) return std_logic_vector;
-  
+
   component channel_regs is
     port (
       rst_n_i                                  : in     std_logic;
@@ -71,7 +75,7 @@ package ch_reg_wbgen2_pkg is
       regs_o                                   : out    t_ch_reg_out_registers
     );
   end component;
-  
+
 end package;
 
 package body ch_reg_wbgen2_pkg is
@@ -83,7 +87,7 @@ package body ch_reg_wbgen2_pkg is
       return '0';
     end if;
   end function;
-  
+
   function f_x_to_zero (x:std_logic_vector) return std_logic_vector is
     variable tmp: std_logic_vector(x'length-1 downto 0);
   begin
@@ -92,11 +96,11 @@ package body ch_reg_wbgen2_pkg is
         tmp(i):= '1';
       else
         tmp(i):= '0';
-      end if; 
-    end loop; 
+      end if;
+    end loop;
     return tmp;
   end function;
-  
+
   function "or" (left, right: t_ch_reg_in_registers) return t_ch_reg_in_registers is
     variable tmp: t_ch_reg_in_registers;
   begin

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 files = ["wr_svec_tdc.vhd"];
 
 fetchto = "../../ip_cores"

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `define SPEC_BASE_REGS_SIZE 8192
 `define ADDR_SPEC_BASE_REGS_METADATA 'h0
 `define SPEC_BASE_REGS_METADATA_SIZE 64

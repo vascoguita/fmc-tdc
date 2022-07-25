@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 --_________________________________________________________________________________________________
 --                                                                                                |
 --                                           |TDC core|                                           |
@@ -140,7 +144,7 @@ entity fmc_tdc_core is
       clk_sys_i   : in std_logic;
       rst_sys_n_i : in std_logic;
 
-      clk_tdc_i   : in std_logic;       -- 125 MHz reference from the PLL 
+      clk_tdc_i   : in std_logic;       -- 125 MHz reference from the PLL
       rst_tdc_n_i : in std_logic;       -- global reset, synched to clk_tdc_i
 
       acam_refclk_r_edge_p_i : in    std_logic;  -- rising edge on 31.25MHz ACAM reference clock
@@ -256,7 +260,7 @@ architecture rtl of fmc_tdc_core is
   signal gen_fake_ts_channel : std_logic_vector(2 downto 0);
   signal gen_fake_ts_period  : std_logic_vector(27 downto 0);
   signal int_flag_delay : std_logic_vector(15 downto 0);
-  
+
 --=================================================================================================
 --                                       architecture begin
 --=================================================================================================
@@ -538,7 +542,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                                              TDC LEDs                                         --
----------------------------------------------------------------------------------------------------  
+---------------------------------------------------------------------------------------------------
   TDCboard_leds : entity work.leds_manager
     generic map (
       g_WIDTH      => 32,
@@ -554,7 +558,7 @@ begin
 
 ---------------------------------------------------------------------------------------------------
 --                                    ACAM start_dis, not used                                   --
---------------------------------------------------------------------------------------------------- 
+---------------------------------------------------------------------------------------------------
   start_dis_o <= '0';
 
   U_Sync_ChannelEnable : entity work.gc_sync_register

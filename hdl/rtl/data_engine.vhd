@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 --_________________________________________________________________________________________________
 --                                                                                                |
 --                                           |TDC core|                                           |
@@ -78,11 +82,11 @@ entity data_engine is
      rst_i                : in std_logic;                     -- global reset
 
      -- Signals from the reg_ctrl unit: communication with GN4124/VME for registers configuration
-     activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition 
+     activate_acq_p_i     : in std_logic;                     -- activates tstamps aquisition
      deactivate_acq_p_i   : in std_logic;                     -- for configuration readings/ writings
-     acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14 
+     acam_wr_config_p_i   : in std_logic;                     -- enables writing acam_config_i values to ACAM regs 0-7, 11, 12, 14
      acam_rst_p_i         : in std_logic;                     -- enables writing reset_word           to ACAM reg 4
-     acam_rdbk_config_p_i : in std_logic;                     -- enables reading of ACAM regs 0-7, 11, 12, 14 
+     acam_rdbk_config_p_i : in std_logic;                     -- enables reading of ACAM regs 0-7, 11, 12, 14
      acam_rdbk_status_p_i : in std_logic;                     -- enables reading of ACAM reg  12
      acam_rdbk_ififo1_p_i : in std_logic;                     -- enables reading of ACAM reg  8
      acam_rdbk_ififo2_p_i : in std_logic;                     -- enables reading of ACAM reg  9
@@ -101,10 +105,10 @@ entity data_engine is
                                                               -- includes ef1 & ef2 & 0 & 0 & 28 bits ACAM data_bus_io
 
      start_from_fpga_i    : in  std_logic;
-															  
+
   -- OUTPUTS
      state_active_p_o     : out std_logic;
-  
+
      -- Signals to the acam_databus_interface unit: communication with ACAM for configuration or tstamps retreival
      acam_adr_o           : out std_logic_vector(7 downto 0); -- address of reg/ FIFO to write/ read
      acam_cyc_o           : out std_logic;                    -- WISHBONE cycle
@@ -178,7 +182,7 @@ begin
       end if;
     end if;
   end process;
-    
+
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 -- Combinatorial process
   data_engine_fsm_comb: process (engine_st, activate_acq_p_i, deactivate_acq_p_i, acam_ef1_i, acam_adr,
@@ -193,7 +197,7 @@ begin
       -- from the INACTIVE state modifications/readings of the ACAM configuration can be initiated;
       -- all interactions here refer to transfers between the ACAM and locally this core.
       -- All the interactions between the GN4124/VME interface and this core take place at the
-      -- the reg_ctrl unit.  
+      -- the reg_ctrl unit.
       when INACTIVE =>
                   -----------------------------------------------
                         acam_cyc        <= '0';
@@ -202,7 +206,7 @@ begin
                         time_c_en       <= '0';
                         time_c_rst      <= '1';
                   -----------------------------------------------
-            
+
                         if activate_acq_p_i = '1' then   -- activation of timestamps acquisition
                           nxt_engine_st   <= WAIT_START_FROM_FPGA;
 
@@ -246,7 +250,7 @@ begin
       --           |_____ef____|______|    |____ef_meta____|    |_____ef_synched
       --      ACAM |           |      |DFF1|               |DFF2|
       --           |           |      |\   |               |\   |
-      --           |           |      |/___|               |/___|  
+      --           |           |      |/___|               |/___|
       --    _______|           |___________________________________________________
       --
       -- In the beginning the output of the second synchronizer flip-flop (ef_synch2) is used,
@@ -256,7 +260,7 @@ begin
       -- random any more and depend on the rdn signal generated locally by the
       -- acam_databus_interface unit. Following ACAM documentation (pg 7, Figure 2) 2 clk cycles
       -- = 16 ns after an rdn falling edge the ef_synch1 should be stable.
-      -- 
+      --
       -- Using the ef_synch1 signal instead of the ef_synch2 makes it possible to realise
       -- timestamps' acquisitions from ACAM in just 4 clk cycles.
       -- clk           --|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__|--|__
@@ -266,7 +270,7 @@ begin
       -- stb           _______________________|-----------------------------------------------|_____
       -- adr           _______________________| iFIFO adr set
       -- rdn           -----------------------------|_________________|-----|_______________________
-      -- data valid                                             ^                       ^                    
+      -- data valid                                             ^                       ^
       -- ack           _________________________________________|-----|_________________|-----|_____
       -- data retrieval                                               ^                       ^
       -- ef check                                                                             ^
@@ -325,8 +329,8 @@ begin
                         else
                           nxt_engine_st <= RD_START01;
                         end if;
-						
-						
+
+
       when WAIT_UTC => -- wait until the next UTC comes; now the offsets of the start_retrig_ctrl unit are defined
 	                   -- the ACAM is disabled during this period
                   -----------------------------------------------
@@ -341,7 +345,7 @@ begin
                           nxt_engine_st <= ACTIVE;
                         else
                           nxt_engine_st <= WAIT_UTC;
-                        end if;						
+                        end if;
 
 
       when ACTIVE =>
@@ -458,7 +462,7 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en <= '0';
-                        time_c_rst <= '0';                 
+                        time_c_rst <= '0';
 						-----------------------------------------------
 
                         if acam_ack_i ='1' then
@@ -468,7 +472,7 @@ begin
                         end if;
 
 
-      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --      
+      --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
       when RD_IFIFO1 =>
                   -----------------------------------------------
                         acam_cyc        <= '1';
@@ -596,7 +600,7 @@ begin
     if rising_edge (clk_i) then
       if rst_i = '1' or acam_wr_config_p_i = '1' or acam_rdbk_config_p_i = '1' then
         config_adr_c   <= unsigned (c_ACAM_REG0_ADR);
-        
+
       elsif acam_ack_i ='1' then
         if config_adr_c = unsigned (c_ACAM_REG14_ADR) then
           config_adr_c <= unsigned (c_ACAM_REG14_ADR);
@@ -675,7 +679,7 @@ begin
   --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   acam_config_reg4   <= acam_config_i(4);
   reset_word         <= acam_config_reg4(31 downto 24) & "01" & acam_config_reg4(21 downto 0);
-                     -- reg 4 bit 22: MasterReset :'1' = general reset excluding config regs 
+                     -- reg 4 bit 22: MasterReset :'1' = general reset excluding config regs
                      -- reg 4 bit 23: PartialReset: would initiate a general reset excluding
                      --                             config regs&FIFOs, but this option is not used
 

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 ---------------------------------------------------------------------------------------
 -- Title          : Wishbone slave core for TDC Onewire Master
 ---------------------------------------------------------------------------------------
@@ -16,31 +20,31 @@ use ieee.numeric_std.all;
 use work.wishbone_pkg.all;
 
 package TDC_OW_wbgen2_pkg is
-  
-  
+
+
   -- Input registers (user design -> WB slave)
-  
+
   type t_TDC_OW_in_registers is record
     tdc_ow_csr_valid_i                       : std_logic;
     tdc_ow_temp_i                            : std_logic_vector(15 downto 0);
     tdc_ow_id_h_i                            : std_logic_vector(31 downto 0);
     tdc_ow_id_l_i                            : std_logic_vector(31 downto 0);
   end record;
-  
+
   constant c_TDC_OW_in_registers_init_value: t_TDC_OW_in_registers := (
     tdc_ow_csr_valid_i => '0',
     tdc_ow_temp_i => (others => '0'),
     tdc_ow_id_h_i => (others => '0'),
     tdc_ow_id_l_i => (others => '0')
   );
-  
+
   -- Output registers (WB slave -> user design)
-  
+
   type t_TDC_OW_out_registers is record
     tdc_ow_csr_valid_o                       : std_logic;
     tdc_ow_csr_valid_load_o                  : std_logic;
   end record;
-  
+
   constant c_TDC_OW_out_registers_init_value: t_TDC_OW_out_registers := (
     tdc_ow_csr_valid_o => '0',
     tdc_ow_csr_valid_load_o => '0'
@@ -82,8 +86,8 @@ begin
       tmp(i):= '0';
     else
       tmp(i):=x(i);
-    end if; 
-  end loop; 
+    end if;
+  end loop;
   return tmp;
 end function;
 

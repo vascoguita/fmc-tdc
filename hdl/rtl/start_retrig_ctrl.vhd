@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 --_________________________________________________________________________________________________
 --                                                                                                |
 --                                           |TDC core|                                           |
@@ -169,7 +173,7 @@ architecture rtl of start_retrig_ctrl is
 --                                       architecture begin
 --=================================================================================================
 begin
-  
+
 -- retrigger #      :   0    1          127  128        255  256  257        383  384  385         511  512  513
 -- retriggers       :  _|____|____...____|____|____...____|____|____|____...___|____|____|____...____|____|____|___
 -- IrFlag           :  __________________|---------------------|____________________|---------------------|________
@@ -179,7 +183,7 @@ begin
 -- utc_p_i       : _____________________|-|_______________________________________________________________
 -- roll_over_c      :                       0                 1                                          2
 -- retrig_nb_offset :                      127
--- clk_i_cycles_offs:                      |..| (counts clk_i cycles from the pulse to the end of this retrigger) 
+-- clk_i_cycles_offs:                      |..| (counts clk_i cycles from the pulse to the end of this retrigger)
 --
 -- At the moment that a new second arrives through the utc_p_i, we:
 --  o keep note of the current_retrig_nb, 127 in this case (stored in retrig_nb_offset)
@@ -204,13 +208,13 @@ begin
 -- utc_p_i and the Stop pulse respectively, we would have to subtract 1, but since counting
 -- starts from zero, we don't.
 -- Finally, note that the the current_cycles counter is a decreasing counter giving the amount of
--- clk_i cycles between the resing edge of the one_hz_pulse_i and the next retrigger. 
--- Note that in this project we are only interested in time differences between 
+-- clk_i cycles between the resing edge of the one_hz_pulse_i and the next retrigger.
+-- Note that in this project we are only interested in time differences between
 --                    _______________________________________  _________________________________________       ____________________
 -- utc_p_i           |                           _|-|_       ||                                         |     |
 -- ACAM Stop pulse   |                                       ||                                         |     |       _|-|_
---                   |                                       ||                                         | ... |                    
--- roll_over_c       |                             0         ||1                                        |     |n-1                    
+--                   |                                       ||                                         | ... |
+-- roll_over_c       |                             0         ||1                                        |     |n-1
 --                   |_______________________________________||_________________________________________|     |____________________
 --                                (1)
 --                   |----------------------------|
@@ -284,7 +288,7 @@ begin
         roll_over_c <= x"00000000";
 
                                         -- the following case covers the rare possibility when utc_p_i and acam_intflag_f_edge_p_i
-                                        -- arrive on the exact same moment 
+                                        -- arrive on the exact same moment
       elsif utc_p_i = '1' and retrig_cnt = (c_full_retrig_period - 1) then
         roll_over_c <= x"00000001";
       elsif retrig_cnt = (c_full_retrig_period - 1) then
@@ -311,7 +315,7 @@ begin
     end if;
   end process;
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --    
+--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
   -- outputs
   roll_over_incr_recent_o <= '1' when unsigned(current_retrig_nb) < 64 else '0';
   clk_i_cycles_offset_o   <= clk_i_cycles_offset;

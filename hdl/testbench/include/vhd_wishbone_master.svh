@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+//
+// SPDX-License-Identifier: CC0-1.0
+
 `include "simdrv_defs.svh"
 `include "if_wb_master.svh"
 `include "if_wb_slave.svh"

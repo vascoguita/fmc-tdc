@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 hw/tdc_dma_eic.h
 hw/tdc_onewire_regs.h
 hw/tdc_buffer_control_regs.h

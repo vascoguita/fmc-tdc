@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -expand -group VME /main/VME/sys_rst_n_i

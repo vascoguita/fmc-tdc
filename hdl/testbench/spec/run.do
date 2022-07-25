@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 vsim -t 1ps -L unisim work.main -voptargs=+acc
 
 set StdArithNoWarnings 1

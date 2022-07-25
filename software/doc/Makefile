@@ -1,9 +1,7 @@
-#
-# Makefile for the documentation directory
-#
 # Copyright 1994,2000,2010,2011   Alessandro Rubini <rubini@linux.it>
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
 #
-#################
+# SPDX-License-Identifier: CC0-1.0
 
 # There is not basenames here, all *.in are considered input
 INPUT = $(wildcard *.in)

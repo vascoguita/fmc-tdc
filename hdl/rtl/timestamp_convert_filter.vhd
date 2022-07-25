@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 library ieee;
 
 use ieee.STD_LOGIC_1164.all;
@@ -332,7 +336,7 @@ begin
         end if;
       end if;
     end process;
-  
+
   ts_valid_p_o <= ts_valid_postseq;
 
   end generate gen_channels;

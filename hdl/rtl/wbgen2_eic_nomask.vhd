@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022 CERN (home.cern)
+--
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -6,7 +10,7 @@ use ieee.numeric_std.all;
 use work.wbgen2_pkg.all;
 
 entity wbgen2_eic_nomask is
-  
+
   generic (
     g_num_interrupts : natural := 1;
 
@@ -48,11 +52,11 @@ entity wbgen2_eic_nomask is
     clk_i   : in std_logic;
 
     -- raw interrupt inputs
-    irq_i : in std_logic_vector(g_num_interrupts-1 downto 0);  
+    irq_i : in std_logic_vector(g_num_interrupts-1 downto 0);
 
     -- interrupt acknowledge signal, used for level-active interrupts to
     -- indicate that the interrupt has been handled
-    irq_ack_o: out std_logic_vector(g_num_interrupts-1 downto 0);  
+    irq_ack_o: out std_logic_vector(g_num_interrupts-1 downto 0);
 
 -- interrupt mask regsiter (slv/bus read-only)
     reg_imr_o : out std_logic_vector(g_num_interrupts-1 downto 0);
@@ -95,7 +99,7 @@ architecture syn of wbgen2_eic_nomask is
   signal irq_i_d0 : std_logic_vector(g_num_interrupts-1 downto 0);
   signal irq_i_d1 : std_logic_vector(g_num_interrupts-1 downto 0);
   signal irq_i_d2 : std_logic_vector(g_num_interrupts-1 downto 0);
-  
+
 begin  -- syn
 
   irq_mode(0)  <= g_irq00_mode;
@@ -140,11 +144,11 @@ begin  -- syn
       irq_i_d1    <= (others => '0');
       irq_pending <= (others => '0');
       irq_mask    <= (others => '0');
-      
+
     elsif rising_edge(clk_i) then
 
       for i in 0 to g_num_interrupts-1 loop
-        
+
         irq_i_d0(i) <= irq_i(i);
         irq_i_d1(i) <= irq_i_d0(i);
         irq_i_d2(i) <= irq_i_d1(i);
@@ -155,9 +159,9 @@ begin  -- syn
           irq_i_d0(i) <= '0';
           irq_i_d1(i) <= '0';
           irq_i_d2(i) <= '0';
-        
+
         else
-          
+
           case irq_mode(i) is
             when c_IRQ_MODE_LEVEL_0      => irq_pending(i) <= not irq_i_d2(i);
             when c_IRQ_MODE_LEVEL_1      => irq_pending(i) <= irq_i_d2(i);
@@ -198,7 +202,7 @@ begin  -- syn
       else
         wb_irq_o <= '1';
       end if;
-      
+
     end if;
   end process;
 
