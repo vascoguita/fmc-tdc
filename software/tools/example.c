@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-Copyright: 2022 CERN
+// SPDX-FileCopyrightText: 2022 CERN (home.cern)
+
 /* 
  * Author: Federico Vaga <federico.vaga@cern.ch>
  *

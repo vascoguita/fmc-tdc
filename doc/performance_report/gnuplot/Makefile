@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # Data dependencies are not perfect, they don't trigger regeneration of files.
 # But better this than nothing
 IMG_DIR=../img

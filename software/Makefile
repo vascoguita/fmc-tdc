@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # include parent_common.mk for buildsystem's defines
 # use absolute path for REPO_PARENT
 REPO_PARENT ?= $(shell /bin/pwd)/../../

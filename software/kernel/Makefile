@@ -1,6 +1,6 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: 2022 CERN (home.cern)
 #
-# Copyright (C) 2019 CERN
+# SPDX-License-Identifier: CC0-1.0
 
 -include Makefile.specific
 # include parent_common.mk for buildsystem's defines
