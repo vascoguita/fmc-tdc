@@ -58,6 +58,7 @@ Trigger input:
 Power supply:
 
 * Used power supplies: P12V0, P3V3, P3V3 AUX, VADJ (voltage monitor only).
+
 .. * Typical current consumption: FIXME (P12V0) + FIXME (P3V3).
 .. * Power dissipation: [fixme: Eva] W
 
