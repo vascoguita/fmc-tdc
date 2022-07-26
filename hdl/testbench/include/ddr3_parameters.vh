@@ -24,6 +24,7 @@
 *                Copyright 2003 Micron Technology, Inc. All rights reserved.
 *
 ****************************************************************************************/
+// SPDX-FileCopyrightText: 2003 Micron Technology Inc.
 
     // Parameters based on DDR3e PreJEDEC Micron specs 09022009.fm RevC 9/2/09 EN
     //      DDR3-2133 093/E/F
