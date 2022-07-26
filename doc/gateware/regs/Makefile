@@ -41,10 +41,13 @@ rest: $(REST)
 
 .PHONY: clean
 
-CHEBY_BUILD=(cd $(dir $<); ~/.local/bin/cheby -i $(notdir $<) --gen-doc --doc html) > $@
-CHEBY_BUILD_REST=(cd $(dir $<); ~/.local/bin/cheby -i $(notdir $<) --gen-doc --doc rest) > $@
-WBGEN2_BUILD=(~/wr/tdc/wishbone-gen/wbgen2 -D $@ $<)
-WBGEN2_BUILD_TEX=(~/wr/tdc/wishbone-gen/wbgen2 -f latex -D $@ $<)
+CHEBY ?= cheby
+WBGEN2 ?= wbgen2
+
+CHEBY_BUILD=(cd $(dir $<); $(CHEBY) -i $(notdir $<) --gen-doc --doc html) > $@
+CHEBY_BUILD_REST=(cd $(dir $<); $(CHEBY) -i $(notdir $<) --gen-doc --doc rest) > $@
+WBGEN2_BUILD=($(WBGEN2) -D $@ $<)
+WBGEN2_BUILD_TEX=($(WBGEN2) -f latex -D $@ $<)
 
 fmc_tdc_mezzanine_mmap.htm: $(TOP_DIR)/hdl/cheby/fmc_tdc_mezzanine_mmap.cheby
 	$(CHEBY_BUILD)
