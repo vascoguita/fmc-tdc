@@ -37,6 +37,7 @@ CFLAGS += -DZIO_GIT_VERSION="\"$(ZIO_GIT_VERSION)\""
 CFLAGS +=  $(EXTRACFLAGS)
 DESTDIR ?= /usr/local
 CPPCHECK ?= cppcheck
+FLAWFINDER ?= flawfinder
 
 modules all: lib
 
@@ -71,6 +72,9 @@ modules_install:
 
 cppcheck:
 	$(CPPCHECK) -q -I. -I../kernel -I $(ZIO_ABS)/include --suppress=missingIncludeSystem --enable=warning,style,information,missingInclude *.c *.h
+
+flawfinder:
+	$(FLAWFINDER) -SQDC --error-level=5 .
 
 -include .depend
 
