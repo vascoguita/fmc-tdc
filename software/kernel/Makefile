@@ -15,7 +15,7 @@ CPPCHECK ?= cppcheck
 DKMS ?= 0
 CURDIR := $(shell /bin/pwd)
 KVERSION ?= $(shell uname -r)
-LINUX ?= /lib/modules/$(KVERSION)/build
+KERNELSRC ?= /lib/modules/$(KVERSION)/build
 WBGEN2 ?= wbgen2
 
 ifdef REPO_PARENT
@@ -70,7 +70,7 @@ timestamp_fifo_regs.h: $(TDC_HDL)/rtl/wbgen/timestamp_fifo_wb.wb
 	$(WBGEN2) -s defines -C hw/$@ $<
 
 modules: hw_headers
-	$(MAKE) -C $(LINUX) M=$(CURDIR) ZIO_ABS=$(ZIO_ABS) FMC_ABS=$(FMC_ABS) \
+	$(MAKE) -C $(KERNELSRC) M=$(CURDIR) ZIO_ABS=$(ZIO_ABS) FMC_ABS=$(FMC_ABS) \
 		ZIO_EXTRA_SYMBOLS-y=$(ZIO_EXTRA_SYMBOLS-y) \
 		FMC_EXTRA_SYMBOLS-y=$(FMC_EXTRA_SYMBOLS-y) \
 		ZIO_VERSION=$(ZIO_VERSION) \
@@ -78,9 +78,9 @@ modules: hw_headers
 		VMEBUS_ABS=$(VMEBUS_ABS) modules
 
 install modules_install: modules
-	$(MAKE) -C $(LINUX) M=$(CURDIR) modules_install
+	$(MAKE) -C $(KERNELSRC) M=$(CURDIR) modules_install
 
-# be able to run the "clean" rule even if $(LINUX) is not valid
+# be able to run the "clean" rule even if $(KERNELSRC) is not valid
 clean:
 	rm -rf *.o *~  .*.cmd *.ko *.mod.c .tmp_versions Module.symvers \
 		Module.markers modules.order
