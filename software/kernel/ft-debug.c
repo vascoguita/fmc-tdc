@@ -58,9 +58,8 @@ int ft_debug_init(struct fmctdc_dev *ft)
 		ft->dbg_reg32.regs = ft_debugfs_reg32;
 		ft->dbg_reg32.nregs = ARRAY_SIZE(ft_debugfs_reg32);
 		ft->dbg_reg32.base = ft->ft_base;
-		ft->dbg_reg = debugfs_create_regset32("regs", 0444,
-						      ft->dbg_dir,
-						      &ft->dbg_reg32);
+		debugfs_create_regset32("regs", 0444, ft->dbg_dir,
+					&ft->dbg_reg32);
 		if (IS_ERR_OR_NULL(ft->dbg_reg)) {
 			err = PTR_ERR(ft->dbg_reg);
 			dev_warn(&ft->pdev->dev,
