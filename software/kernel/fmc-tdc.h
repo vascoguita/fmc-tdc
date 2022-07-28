@@ -120,7 +120,11 @@ struct ft_calibration_raw {
 #include <linux/debugfs.h>
 
 struct ft_memory_ops {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,8,0)
 	u32 (*read)(void *addr);
+#else
+	u32 (*read)(const void *addr);
+#endif
 	void (*write)(u32 value, void *addr);
 };
 
