@@ -8,6 +8,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/platform_device.h>
 #include <linux/mfd/core.h>
+#include <linux/mod_devicetable.h>
 
 #include "platform_data/fmc-tdc.h"
 
