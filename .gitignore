@@ -28,3 +28,9 @@ Module.symvers
 *TAGS
 GPATH
 Makefile.specific
+*.o.*
+*.a
+*.so.*
+*.s
+*.bin
+*.elf
