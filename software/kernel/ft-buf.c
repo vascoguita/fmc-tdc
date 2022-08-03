@@ -294,7 +294,11 @@ static int sg_alloc_table_from_block(struct device *dev,
        size_t max_segment_size;
        void *data;
        int i;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,9,0)
        int err;
+#else
+       struct scatterlist *sg;
+#endif
 
        if (!block)
 	       return -EINVAL;
@@ -316,14 +320,29 @@ static int sg_alloc_table_from_block(struct device *dev,
 
        max_segment_size = dma_get_max_seg_size(dev);
        max_segment_size &= PAGE_MASK; /* to make alloc_table happy */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,9,0)
        err = __sg_alloc_table_from_pages(sgt, pages, nr_pages,
 					 offset_in_page(data),
 					 block->datalen,
-					 max_segment_size, GFP_KERNEL);
+					 max_segment_size,
+					 GFP_KERNEL);
        if (err)
 	       sg_free_table(sgt);
        kfree(pages);
        return err;
+#else
+       sg = __sg_alloc_table_from_pages(sgt, pages, nr_pages,
+					 offset_in_page(data),
+					 block->datalen,
+					 max_segment_size,
+					 NULL,
+					 0,
+					 GFP_KERNEL);
+       if (IS_ERR(sg))
+	       sg_free_table(sgt);
+       kfree(pages);
+       return PTR_ERR(sg);
+#endif
 }
 
 static int ft_zio_block_dma_map_sg(struct fmctdc_dev *ft, unsigned int ch,
