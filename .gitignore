@@ -20,6 +20,7 @@ NullFile
 *.o
 *.ko
 *~
+*.mod
 *.mod.c
 /.tmp_versions
 .*cmd
