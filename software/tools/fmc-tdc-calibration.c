@@ -19,6 +19,8 @@
 
 char git_version[] = "git version: " GIT_VERSION;
 
+static const char program_name[] __attribute__ ((unused)) = "fmc-tdc-calibration";
+
 static char options[] = "hf:o:D:b";
 static const char help_msg[] =
 	"Usage: fmc-tdc-calibration [options]\n"
