@@ -35,6 +35,7 @@ LDFLAGS = -L$(LIBTDC)
 LDLIBS = -lfmctdc -lrt
 
 CPPCHECK ?= cppcheck
+FLAWFINDER ?= flawfinder
 
 all: $(TESTS) $(OTHERS) $(LIST_TOOL)
 
@@ -58,3 +59,6 @@ install:
 
 cppcheck:
 	$(CPPCHECK) -q -I. -I../kernel -I$(LIBTDC) --suppress=missingIncludeSystem --enable=all *.c *.h
+
+flawfinder:
+	$(FLAWFINDER) -SQDC --error-level=5 .

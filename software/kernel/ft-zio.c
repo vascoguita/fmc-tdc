@@ -23,7 +23,6 @@
 
 #include "fmc-tdc.h"
 #include "platform_data/fmc-tdc.h"
-#include "hw/channel_regs.h"
 #include "hw/timestamp_fifo_regs.h"
 #include "hw/tdc_onewire_regs.h"
 
@@ -83,9 +82,9 @@ static void ft_update_offsets(struct fmctdc_dev *ft, int channel)
 	if (st->user_offset)
 		ft_ts_apply_offset(&hw_offset, st->user_offset);
 
-	ft_iowrite(ft, hw_offset.seconds, fifo_addr + CH_REG_REG_OFFSET1);
-	ft_iowrite(ft, hw_offset.coarse, fifo_addr + CH_REG_REG_OFFSET2);
-	ft_iowrite(ft, hw_offset.frac, fifo_addr + CH_REG_REG_OFFSET3);
+	ft_iowrite(ft, hw_offset.seconds, fifo_addr + TSF_REG_OFFSET1);
+	ft_iowrite(ft, hw_offset.coarse, fifo_addr + TSF_REG_OFFSET2);
+	ft_iowrite(ft, hw_offset.frac, fifo_addr + TSF_REG_OFFSET3);
 }
 
 static enum ft_devtype __ft_get_type(struct device *dev)
@@ -103,14 +102,14 @@ static void ft_raw_mode_set(struct fmctdc_dev *ft,
 			       unsigned int raw_enable)
 {
 	void *fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
-	uint32_t csr = ft_ioread(ft, fifo_addr + CH_REG_REG_CSR);
+	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
 
 	if (raw_enable)
-		csr |= CH_REG_CSR_RAW_MODE;
+		csr |= TSF_CSR_RAW_MODE;
 	else
-		csr &= ~CH_REG_CSR_RAW_MODE;
+		csr &= ~TSF_CSR_RAW_MODE;
 
-	ft_iowrite(ft, csr, fifo_addr + CH_REG_REG_CSR);
+	ft_iowrite(ft, csr, fifo_addr + TSF_REG_CSR);
 }
 
 
@@ -118,9 +117,9 @@ static int ft_raw_mode_get(struct fmctdc_dev *ft,
 			      unsigned int chan)
 {
 	void *fifo_addr = ft->ft_fifo_base + TDC_FIFO_OFFSET * chan;
-	uint32_t csr = ft_ioread(ft, fifo_addr + CH_REG_REG_CSR);
+	uint32_t csr = ft_ioread(ft, fifo_addr + TSF_REG_CSR);
 
-	return (csr & CH_REG_CSR_RAW_MODE) ? 1 : 0;
+	return (csr & TSF_CSR_RAW_MODE) ? 1 : 0;
 }
 
 
