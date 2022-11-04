@@ -156,7 +156,8 @@ architecture rtl of reg_ctrl is
   signal acam_config                     : config_vector;
   signal reg_adr, reg_adr_pipe0          : std_logic_vector(7 downto 0);
   signal starting_utc, acam_inputs_en    : std_logic_vector(g_width-1 downto 0);
-  signal ctrl_reg, irq_tstamp_threshold  : std_logic_vector(g_width-1 downto 0);
+  signal ctrl_reg, ctrl_reg_d            : std_logic_vector(g_width-1 downto 0);
+  signal irq_tstamp_threshold            : std_logic_vector(g_width-1 downto 0);
   signal irq_time_threshold              : std_logic_vector(g_width-1 downto 0);
   signal clear_ctrl_reg, send_dac_word_p : std_logic;
   signal dac_word                        : std_logic_vector(23 downto 0);
@@ -417,18 +418,31 @@ begin
       end if;
     end if;
   end process;
-  --  --  --  --  --  --  --  --  --  --  --  --
-  activate_acq_p_o      <= ctrl_reg(0);
-  deactivate_acq_p_o    <= ctrl_reg(1);
-  acam_wr_config_p_o    <= ctrl_reg(2);
-  acam_rdbk_config_p_o  <= ctrl_reg(3);
-  acam_rdbk_status_p_o  <= ctrl_reg(4);
-  acam_rdbk_ififo1_p_o  <= ctrl_reg(5);
-  acam_rdbk_ififo2_p_o  <= ctrl_reg(6);
-  acam_rdbk_start01_p_o <= ctrl_reg(7);
-  acam_rst_p_o          <= ctrl_reg(8);
-  load_utc_p_o          <= ctrl_reg(9);
-  send_dac_word_p       <= ctrl_reg(11); -- not used
+
+  --  Delay by one cycle to reduce timing constraints.
+  process (clk_tdc_i)
+  begin
+    if rising_edge (clk_tdc_i) then
+      if rst_tdc_i = '1' then
+        ctrl_reg_d <= (others =>'0');
+      else
+        ctrl_reg_d <= ctrl_reg;
+      end if;
+    end if;
+  end process;
+
+--  --  --  --  --  --  --  --  --  --  --  --
+  activate_acq_p_o       <= ctrl_reg_d(0);
+  deactivate_acq_p_o     <= ctrl_reg_d(1);
+  acam_wr_config_p_o     <= ctrl_reg_d(2);
+  acam_rdbk_config_p_o   <= ctrl_reg_d(3);
+  acam_rdbk_status_p_o   <= ctrl_reg_d(4);
+  acam_rdbk_ififo1_p_o   <= ctrl_reg_d(5);
+  acam_rdbk_ififo2_p_o   <= ctrl_reg_d(6);
+  acam_rdbk_start01_p_o  <= ctrl_reg_d(7);
+  acam_rst_p_o           <= ctrl_reg_d(8);
+  load_utc_p_o           <= ctrl_reg_d(9);
+  send_dac_word_p        <= ctrl_reg_d(11); -- not used
 -- ctrl_reg bits 12 to 31 not used for the moment!
 
   --  --  --  --  --  --  --  --  --  --  --  --
