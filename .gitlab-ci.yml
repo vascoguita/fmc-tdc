@@ -74,6 +74,6 @@ build-kernel:
     - *script_fetch_kernel_dep
   script:
     - source /linux-versions.sh
-    - fetch $VERSION && prepare $VERSION && export KERNELSRC=$(linux $VERSION) && export KERNELSRC=$(linux $VERSION)
+    - fetch $VERSION && prepare $VERSION && export KERNELSRC=$(linux $VERSION)
     - *script_build_kernel_dep
     - make -C software/kernel all
