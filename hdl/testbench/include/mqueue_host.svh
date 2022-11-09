@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2022 CERN (home.cern)
 //
-// SPDX-License-Identifier: CC0-1.0
+// SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 `define MQUEUE_BASE_IN(x) ('h4000 + (x) * 'h400)
 `define MQUEUE_BASE_OUT(x) ('h8000 + (x) * 'h400)

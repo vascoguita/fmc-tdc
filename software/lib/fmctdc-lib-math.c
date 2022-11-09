@@ -4,7 +4,7 @@
  * Copyright (C) 2012-2018 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch>
  *
- * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include <unistd.h>
 #include <errno.h>

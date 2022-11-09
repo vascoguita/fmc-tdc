@@ -2,7 +2,7 @@
  * Copyright (C) 2014-2018 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch>
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include <inttypes.h>
 #include "test-common.h"

@@ -1,5 +1,5 @@
 .. Copyright (c) 2022 CERN (home.cern)
-   SPDX-License-Identifier: CC-BY-SA-4.0
+   SPDX-License-Identifier: CC-BY-SA-4.0+
 
 .. FMC-TDC-1NS-5CH documentation master file, created by
    sphinx-quickstart on Thu Aug  6 14:57:13 2020.

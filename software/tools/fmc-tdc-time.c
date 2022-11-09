@@ -4,7 +4,7 @@
  * Copyright (c) 2014-2018 CERN
 * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
 #include "test-common.h"

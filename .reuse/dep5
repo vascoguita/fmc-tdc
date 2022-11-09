@@ -3,10 +3,10 @@ Upstream-Name: fmc-adc-100m14b4ch
 Upstream-Contact: Federico Vaga <federico.vaga@cern.ch>
 Source: https://ohwr.org/project/fmc-adc-100m14b4cha
 
-Files: doc/img/* doc/fig/*
-Copyright: 2020 CERN (home.cern)
-License: CC-BY-SA-4.0
+Files: doc/*
+Copyright: 2022 CERN (home.cern)
+License: CC-BY-SA-4.0+
 
-Files: doc/requirements.txt doc/performance_report/*
-Copyright: 2020 CERN (home.cern)
-License: CC0-1.0
+Files: hdl/*
+Copyright: 2022 CERN (home.cern)
+License: CERN-OHL-W-2.0+
