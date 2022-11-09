@@ -62,12 +62,6 @@ build-centos-7:
     - export KERNELSRC=/usr/src/kernels/*/
     - make -C software
 
-.script_build_kernel_ver: &script_build_kernel_ver
-  - source /linux-versions.sh
-  - fetch $VERSION && prepare $VERSION && export KERNELSRC=$(linux $VERSION)
-  - *script_build_kernel_dep
-  - make -C software/kernel all
-
 build-kernel:
   stage: build
   allow_failure: true
