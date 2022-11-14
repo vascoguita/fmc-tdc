@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2022 CERN (home.cern)
 //
-// SPDX-License-Identifier: CC0-1.0
+// SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 `define ADDR_TSF_DELTA1                6'h0
 `define ADDR_TSF_DELTA2                6'h4

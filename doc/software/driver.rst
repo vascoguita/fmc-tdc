@@ -1,5 +1,5 @@
 ..
-  SPDX-License-Identifier: CC-BY-SA-4.0
+  SPDX-License-Identifier: CC-BY-SA-4.0+
   SPDX-FileCopyrightText: 2020 CERN
 
 ======
@@ -38,7 +38,7 @@ available via ``PATH`` variable.
 ::
 
       $ cd /path/to/fmc-tdc/software/kernel
-      $ export LINUX=/path/to/linux/sources
+      $ export KERNELSRC=/path/to/linux/sources
       $ export ZIO=/path/to/zio
       $ export FMC=/path/to/fmc-sw
       $ export VMEBUS=/path/to/vmebridge
@@ -132,7 +132,7 @@ Build and install kernel module (*fpga-mgr.ko*):
 ::
 
     $ cd fpga-manager
-    $ export LINUX=/path/to/linux/sources
+    $ export KERNELSRC=/path/to/linux/sources
     $ make
     $ make install
 
@@ -150,7 +150,7 @@ Build and install kernel modules (*zio-buf-vmalloc.ko* and *zio.ko*):
 ::
 
     $ cd zio
-    $ export LINUX=/path/to/linux/sources
+    $ export KERNELSRC=/path/to/linux/sources
     $ make
     $ make install
 
@@ -168,7 +168,7 @@ and *htvic.ko*):
 ::
 
     $ cd general-cores/software
-    $ export LINUX=/path/to/linux/sources
+    $ export KERNELSRC=/path/to/linux/sources
     $ make
     $ make install
 
@@ -184,7 +184,7 @@ Clone *fmc* repository:
 Build and install kernel module (*fmc.ko*):
 
     $ cd fmc-sw/
-    $ export LINUX=/path/to/linux/sources
+    $ export KERNELSRC=/path/to/linux/sources
     $ make
     $ make install
 
@@ -207,7 +207,7 @@ Build and install kernel modules (*gn412x-fcl.ko*, *gn412x-gpio.ko*,
     $ export SPI=/path/to/general-cores/software/spi-ocores
     $ export FPGA_MGR=/path/to/fpga-manager
     $ export FMC=/path/to/fmc-sw
-    $ export LINUX=/path/to/linux/sources
+    $ export KERNELSRC=/path/to/linux/sources
     $ make
     $ make install
 
@@ -619,8 +619,8 @@ directory or fail with an error like::
 
         make: *** /lib/modules/<kernel-version>/build: No such file or directory.
 
-This happens when you compiled by setting ``LINUX=`` and your sudo is not
+This happens when you compiled by setting ``KERNELSRC=`` and your sudo is not
 propagating the environment to its child processes. In this case, you
 should run this command instead::
 
-        sudo make modules_install  LINUX=$LINUX
+        sudo make modules_install  KERNELSRC=$KERNELSRC

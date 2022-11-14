@@ -1,6 +1,6 @@
 -- SPDX-FileCopyrightText: 2022 CERN (home.cern)
 --
--- SPDX-License-Identifier: CC0-1.0
+-- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 -- Created by : G. Penacoba
 -- Creation Date: June 2011

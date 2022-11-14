@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-2.1-or-later
 /*
  * Copyright (C) 2019 CERN (www.cern.ch)
  * Author: Federico Vaga <federico.vaga@cern.ch>
@@ -18,6 +18,8 @@
 #include <fmc-tdc.h>
 
 char git_version[] = "git version: " GIT_VERSION;
+
+static const char program_name[] __attribute__ ((unused)) = "fmc-tdc-calibration";
 
 static char options[] = "hf:o:D:b";
 static const char help_msg[] =

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-SPDX-License-Identifier: CC0-1.0
+SPDX-License-Identifier: LGPL-2.1-or-later
 SPDX-FileCopyrightText: 2020 CERN
 """
 
@@ -16,5 +16,5 @@ setup(name='PyFmcTdc',
       maintainer_email="federico.vaga@cern.ch",
       url='http://www.ohwr.org/projects/fmc-tdc',
       packages=['PyFmcTdc'],
-      license='LGPL-3.0-or-later',
+      license='LGPL-2.1-or-later',
      )

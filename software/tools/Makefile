@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2022 CERN (home.cern)
 #
-# SPDX-License-Identifier: CC0-1.0
+# SPDX-License-Identifier: LGPL-2.1-or-later
 
 # If it exists includes Makefile.specific. In this Makefile, you should put
 # specific Makefile code that you want to run before this. For example,
@@ -9,7 +9,7 @@
 
 # include parent_common.mk for buildsystem's defines
 IGNORE_CPU_SUFFIX := y
-REPO_PARENT ?= $(shell pwd)/../../../
+REPO_PARENT ?= $(shell pwd)/../../..
 -include $(REPO_PARENT)/parent_common.mk
 
 DESTDIR ?= /usr/local/

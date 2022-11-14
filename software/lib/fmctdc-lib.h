@@ -5,7 +5,7 @@
  * Author: Tomasz Włostowski <tomasz.wlostowski@cern.ch>
  * Author: Alessandro Rubini <rubini@gnudd.com>
  *
- * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #ifndef __FMCTDC_LIB_H__
 #define __FMCTDC_LIB_H__

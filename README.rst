@@ -1,6 +1,6 @@
 .. SPDX-FileCopyrightText: 2022 CERN (home.cern)
 ..
-.. SPDX-License-Identifier: CC0-1.0
+.. SPDX-License-Identifier: CC-BY-SA-4.0+
 
 FMC TDC 1 ns 5 Channels
 =======================

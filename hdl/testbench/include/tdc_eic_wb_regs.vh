@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2022 CERN (home.cern)
 //
-// SPDX-License-Identifier: CC0-1.0
+// SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 `define ADDR_TDC_EIC_EIC_IDR           6'h00
 `define TDC_EIC_EIC_IDR_TDC_FIFO1_OFFSET 0
