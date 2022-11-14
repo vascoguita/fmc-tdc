@@ -14,8 +14,14 @@ IGNORE_CPU_SUFFIX := y
 REPO_PARENT ?=$(shell pwd)/../../../
 -include $(REPO_PARENT)/parent_common.mk
 
-ZIO ?= ../zio
-ZIO_ABS ?= $(abspath $(ZIO) )
+ifdef REPO_PARENT
+ZIO ?= $(REPO_PARENT)/zio
+endif
+
+ifndef ZIO
+$(error "Missing ZIO environment variable")
+endif
+ZIO_ABS ?= $(abspath $(ZIO))
 
 VERSION := $(shell git describe --tags --abbrev=0 | tr -d 'v')
 SO_VERSION_XYZ := $(shell echo $(VERSION) | grep -o -E "[0-9]+\.[0-9]+\.[0-9]")
@@ -74,8 +80,8 @@ cppcheck:
 	$(CPPCHECK) -q -I. -I../kernel -I $(ZIO_ABS)/include --suppress=missingIncludeSystem --enable=warning,style,information,missingInclude *.c *.h
 
 flawfinder:
-	$(FLAWFINDER) -SQDC --error-level=5 .
+	$(FLAWFINDER) -SQDC --error-level=6 .
 
 -include .depend
 
-.PHONY=cppcheck
+.PHONY: cppcheck flawfinder
