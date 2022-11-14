@@ -21,7 +21,6 @@ WBGEN2 ?= wbgen2
 ifdef REPO_PARENT
 ZIO ?= $(REPO_PARENT)/fmc/zio
 FMC ?= $(REPO_PARENT)/fmc-sw
-VMEBUS ?= $(REPO_PARENT)/vmebridge-ng
 endif
 
 ifeq ($(DKMS), 1)
@@ -36,9 +35,6 @@ $(error "Missing ZIO environment variable")
 endif
 ifndef FMC
 $(error "Missing FMC environment variable")
-endif
-ifndef VMEBUS
-$(error "Missing VMEBUS environment variable")
 endif
 
 ZIO_ABS ?= $(abspath $(ZIO))
@@ -75,7 +71,7 @@ modules: hw_headers
 		FMC_EXTRA_SYMBOLS-y=$(FMC_EXTRA_SYMBOLS-y) \
 		ZIO_VERSION=$(ZIO_VERSION) \
 		GIT_VERSION=$(GIT_VERSION) \
-		VMEBUS_ABS=$(VMEBUS_ABS) modules
+		$@
 
 install modules_install: modules
 	$(MAKE) -C $(KERNELSRC) M=$(CURDIR) modules_install
