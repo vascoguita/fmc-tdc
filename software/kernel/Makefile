@@ -12,6 +12,7 @@ REPO_PARENT ?= $(TOPDIR)/..
 TDC_HDL := $(TOPDIR)/hdl
 
 CPPCHECK ?= cppcheck
+FLAWFINDER ?= flawfinder
 DKMS ?= 0
 CURDIR := $(shell /bin/pwd)
 KVERSION ?= $(shell uname -r)
@@ -86,3 +87,6 @@ clean:
 
 cppcheck:
 	$(CPPCHECK) -q -I. -I$(ZIO_ABS)/include -I$(FMC_BUS_ABS)/  --enable=all *.c *.h
+
+flawfinder:
+	$(FLAWFINDER) -SQDC --error-level=3 .

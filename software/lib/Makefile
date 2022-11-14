@@ -74,7 +74,7 @@ cppcheck:
 	$(CPPCHECK) -q -I. -I../kernel -I $(ZIO_ABS)/include --suppress=missingIncludeSystem --enable=warning,style,information,missingInclude *.c *.h
 
 flawfinder:
-	$(FLAWFINDER) -SQDC --error-level=5 .
+	$(FLAWFINDER) -SQDC --error-level=6 .
 
 -include .depend
 
