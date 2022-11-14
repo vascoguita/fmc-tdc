@@ -78,4 +78,4 @@ flawfinder:
 
 -include .depend
 
-.PHONY=cppcheck
+.PHONY: cppcheck flawfinder
