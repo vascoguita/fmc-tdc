@@ -13,22 +13,28 @@ from PyFmcTdc import FmcTdc, FmcTdcTime
 
 TDC_FD_CABLING = [1, 2, 3, 4, 4]
 
-min_period = 5 if pytest.transfer_mode == "fifo" else 4
-fmctdc_acq_100ms = [(200, 65000),
-                    (250, 65000),
-                    (500, 65000),
-                    (1000, 65000),
-                    (1700, 65000),
-                    # Let's keep the test within 100ms duration
-                    # vvvvvvvvvvv
-                    (1875, 60000),
-                    (2500, 40000),
-                    (5000, 20000),
-                    (10000, 10000),
-                    (100000, 1000),
-                    (1000000, 100),
-                    (10000000, 10)]
+fmctdc_acq_100ns_spec = [(200, 65000),
+                         (250, 65000),
+                         (500, 65000),
+                         (1000, 65000),
+                         (1700, 65000),
+                         # Let's keep the test within 100ms duration
+                         # vvvvvvvvvvv
+                         (1875, 60000),
+                         (2500, 40000),
+                         (5000, 20000),
+                         (10000, 10000),
+                         (12500, 8000),
+                         (100000, 1000),
+                         (1000000, 100),
+                         (10000000, 10)]
 
+fmctdc_acq_100ns_svec = [(12500, 8000),
+                         (100000, 1000),
+                         (1000000, 100),
+                         (10000000, 10)]
+
+fmctdc_acq_100ns = fmctdc_acq_100ns_svec if pytest.transfer_mode == "fifo" else fmctdc_acq_100ns_spec
 
 @pytest.fixture(scope="function", params=pytest.channels)
 def fmctdc_chan(request):
@@ -55,7 +61,7 @@ class TestFmctdcAcquisition(object):
         with pytest.raises(OSError):
             ts = fmctdc_chan.read(1, os.O_NONBLOCK)
 
-    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
+    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
     def test_acq_chan_stats(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton statistics increase
         correctly. Test 100 milli-second acquisition at different
@@ -67,7 +73,7 @@ class TestFmctdcAcquisition(object):
         stats_after = fmctdc_chan.stats
         assert stats_before[0] + count == stats_after[0]
 
-    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
+    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
     def test_acq_chan_read_count(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton the number of read
         timestamps is correct. Test 100 milli-second acquisition at different
@@ -78,7 +84,7 @@ class TestFmctdcAcquisition(object):
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
         assert len(ts) == count
 
-    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ms)
+    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
     def test_acq_timestamp_seq_num(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton the sequence
         number of each timestamps increase by 1. Test 100 milli-second
