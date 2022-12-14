@@ -635,6 +635,7 @@ begin
       rst_sys_n_i          => rst_sys_62m5_n,
       rst_n_a_i            => rst_sys_62m5_n, ------------ to be removed
       fmc_id_i             => '0', -- '0' for SPEC; '0' and '1' for each of the TDCs of SVEC
+      fmc_present_n_i      => fmc0_prsnt_m2c_n_i,
       pll_sclk_o           => fmc0_tdc_pll_sclk_o,
       pll_sdi_o            => fmc0_tdc_pll_sdi_o,
       pll_cs_o             => fmc0_tdc_pll_cs_n_o,
@@ -716,6 +717,7 @@ begin
       rst_sys_n_i          => rst_sys_62m5_n,
       rst_n_a_i            => rst_sys_62m5_n, ------------ to be removed
       fmc_id_i             => '1', -- '0' for SPEC; '0' and '1' for each of the TDCs of SVEC
+      fmc_present_n_i      => fmc1_prsnt_m2c_n_i,
       pll_sclk_o           => fmc1_tdc_pll_sclk_o,
       pll_sdi_o            => fmc1_tdc_pll_sdi_o,
       pll_cs_o             => fmc1_tdc_pll_cs_n_o,
