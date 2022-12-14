@@ -270,8 +270,8 @@ entity wr_spec_tdc is
     fmc0_prsnt_m2c_n_i : in  std_logic;
 
     -- Auxiliary pins
-    aux_leds_o : out std_logic_vector(3 downto 0)   
- 
+    aux_leds_o : out std_logic_vector(3 downto 0)
+
     -- Bypass GN4124 core, useful only in simulation
     -- Feed fake timestamps bypassing acam - used only in simulation
     -- synthesis translate_off
@@ -338,7 +338,7 @@ architecture rtl of wr_spec_tdc is
   -- WISHBONE to crossbar slave port
   signal cnx_slave_out             : t_wishbone_slave_out_array(c_NUM_WB_SLAVES-1 downto 0);
   signal cnx_slave_in              : t_wishbone_slave_in_array(c_NUM_WB_SLAVES-1 downto 0);
-  
+
   -- WRPC TM interface and status
   signal tm_link_up, tm_time_valid : std_logic;
   signal tm_dac_wr_p               : std_logic;
@@ -424,14 +424,14 @@ begin
       -- 125MHz GTP reference
       clk_125m_gtp_n_i    => clk_125m_gtp_n_i,
       clk_125m_gtp_p_i    => clk_125m_gtp_p_i,
-      -- 62.5MHz System Clk generated from Xilinx internal PLL 
+      -- 62.5MHz System Clk generated from Xilinx internal PLL
       clk_62m5_sys_o      => clk_sys_62m5,
       rst_62m5_sys_n_o    => rst_sys_62m5_n,
       -- 125Hz Ref Clk generated from Xilinx internal PLL
       clk_125m_ref_o      => clk_ref_125m,
       rst_125m_ref_n_o    => rst_ref_125m_n,
       ---------------------------------------------------------
-      -- GN4124 
+      -- GN4124
       ---------------------------------------------------------
       -- Reset from gn4124 (rstout18_n)
       gn_rst_n_i          => gn_rst_n_i,
@@ -468,7 +468,7 @@ begin
       led_act_o           => led_act_o,
       led_link_o          => led_link_o,
       button1_n_i         => button1_n_i,
-      -- PCB version 
+      -- PCB version
       pcbrev_i            => pcbrev_i,
       -- 1-wire
       onewire_b           => onewire_b,
@@ -477,7 +477,7 @@ begin
       spi_ncs_o           => spi_ncs_o,
       spi_mosi_o          => spi_mosi_o,
       spi_miso_i          => spi_miso_i,
-      -- UART 
+      -- UART
       uart_rxd_i          => uart_rxd_i,
       uart_txd_o          => uart_txd_o,
       ---------------------------------------------------------
@@ -566,9 +566,9 @@ begin
       -- FMC EEPROM I2C
       fmc0_scl_b          => fmc0_scl_b,
       fmc0_sda_b          => fmc0_sda_b,
-      -- FMC presence 
+      -- FMC presence
       fmc0_prsnt_m2c_n_i  => fmc0_prsnt_m2c_n_i,
-      -- FMC TDC application 
+      -- FMC TDC application
       app_wb_o            => cnx_master_out(c_WB_MASTER_GENNUM),
       app_wb_i            => cnx_master_in(c_WB_MASTER_GENNUM));
 

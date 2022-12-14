@@ -132,7 +132,7 @@ entity wr_svec_tdc is
      );
 
   port (
-      
+
     -- VCXO clock, PoR
     rst_n_i                : in std_logic;           -- Reset from system fpga
     clk_20m_vcxo_i         : in    std_logic;        -- 20 MHz VCXO
@@ -165,7 +165,7 @@ entity wr_svec_tdc is
     uart_rxd_i             : in    std_logic := '1';
     uart_txd_o             : out   std_logic;
     -- 1-wire
-    onewire_b              : inout std_logic;        
+    onewire_b              : inout std_logic;
     -- SPI Flash
     spi_sclk_o             : out   std_logic;
     spi_ncs_o              : out   std_logic;
@@ -411,7 +411,7 @@ architecture rtl of wr_svec_tdc is
 
 ---------------------------------------------------------------------------------------------------
 -- Mezzanines EEPROM
-  signal fmc0_scl_oen, fmc0_scl_in    : std_logic; 
+  signal fmc0_scl_oen, fmc0_scl_in    : std_logic;
   signal fmc0_sda_oen, fmc0_sda_in    : std_logic;
   signal fmc1_scl_oen, fmc1_scl_in    : std_logic;
   signal fmc1_sda_oen, fmc1_sda_in    : std_logic;
@@ -519,14 +519,14 @@ begin
       -- EEPROM
       carrier_scl_b        => carrier_scl_b,
       carrier_sda_b        => carrier_sda_b,
-      -- PCB version 
+      -- PCB version
       pcbrev_i             => pcbrev_i,
       -- SPI flash
       spi_sclk_o           => spi_sclk_o,
       spi_ncs_o            => spi_ncs_o,
       spi_mosi_o           => spi_mosi_o,
       spi_miso_i           => spi_miso_i,
-      -- UART 
+      -- UART
       uart_rxd_i           => uart_rxd_i,
       uart_txd_o           => uart_txd_o,
       -- LEDs
@@ -583,10 +583,10 @@ begin
       fmc0_sda_b           => fmc0_sda_b,
       fmc1_scl_b           => fmc1_scl_b,
       fmc1_sda_b           => fmc1_sda_b,
-      -- FMC presence 
+      -- FMC presence
       fmc0_prsnt_m2c_n_i   => fmc0_prsnt_m2c_n_i,
       fmc1_prsnt_m2c_n_i   => fmc1_prsnt_m2c_n_i,
-      -- FMC TDC application 
+      -- FMC TDC application
       app_wb_o             => cnx_master_out(c_WB_MASTER_VME),
       app_wb_i             => cnx_master_in(c_WB_MASTER_VME));
 
@@ -622,7 +622,7 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                                           TDC BOARD 0                                         --
 ---------------------------------------------------------------------------------------------------
-     
+
    cmp_tdc_mezzanine_1: entity work.fmc_tdc_wrapper
     generic map (
       g_SIMULATION                  => f_int2bool(g_SIMULATION),
@@ -677,7 +677,7 @@ begin
       mezz_scl_o           => fmc0_scl_oen,
       mezz_sda_o           => fmc0_sda_oen,
       mezz_one_wire_b      => fmc0_onewire_b,
-      
+
       tm_link_up_i         => tm_link_up,
       tm_time_valid_i      => tm_time_valid,
       tm_cycles_i          => tm_cycles,
@@ -759,7 +759,7 @@ begin
       mezz_scl_o           => fmc1_scl_oen,
       mezz_sda_o           => fmc1_sda_oen,
       mezz_one_wire_b      => fmc1_onewire_b,
-      
+
       tm_link_up_i         => tm_link_up,
       tm_time_valid_i      => tm_time_valid,
       tm_cycles_i          => tm_cycles,
@@ -870,7 +870,7 @@ begin
   -- Front panel IO configuration
   fp_gpio1_b      <= pps;
   fp_gpio2_b      <= clk_ref_div2;
-  
+
 
   fp_term_en_o    <= (others => '0');
   fp_gpio1_a2b_o  <= '1';
