@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
 		int err = fmctdc_check_wr_mode(brd);
 		printf("WR Status: ");
-		switch(err)
+		switch(errno)
 		{
 			case ENODEV:	printf("disabled.\n"); break;
 			case ENOLINK:	printf("link down.\n"); break;
