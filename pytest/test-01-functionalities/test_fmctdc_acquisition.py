@@ -73,6 +73,23 @@ class TestFmctdcAcquisition(object):
         stats_after = fmctdc_chan.stats
         assert stats_before[0] + count == stats_after[0]
 
+    @pytest.mark.skipif(pytest.carrier != "spec" or \
+                        pytest.transfer_mode != "dma",
+                        reason="Only SPEC with DMA can perform this test")
+    @pytest.mark.parametrize("period_ns", [200, 250, 500, 1000])
+    @pytest.mark.repeat(100)
+    def test_acq_chan_high_speed(self, fmctdc_chan, fmcfd, period_ns):
+        """Check that at hign speed we get all samples. Do it many times.
+        We could use the infinite feature, but it will be then hard to see
+        if we missed a timestamp or not. this is a fine-delay limitation"""
+        count = 0xFFFF
+        stats_before = fmctdc_chan.stats
+        fmctdc_chan.buffer_len =  count + 1
+        fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
+                             period_ns, count, True)
+        stats_after = fmctdc_chan.stats
+        assert stats_before[0] + count == stats_after[0]
+
     @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
     def test_acq_chan_read_count(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that unders a controlled acquisiton the number of read
