@@ -58,7 +58,7 @@ install:
 	install -D $(TESTS) $(DESTDIR)/bin
 
 cppcheck:
-	$(CPPCHECK) -q -I. -I../kernel -I$(LIBTDC) --suppress=missingIncludeSystem --enable=all *.c *.h
+	$(CPPCHECK) -q -I. -I../kernel -I$(LIBTDC) --suppress=missingIncludeSystem --enable=all fmc-tdc*.c *.h
 
 flawfinder:
-	$(FLAWFINDER) -SQDC --error-level=5 .
+	$(FLAWFINDER) -SQDC --error-level=5 fmc-tdc*.c *.h

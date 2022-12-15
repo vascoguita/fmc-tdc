@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 	free(ts);
 
 out:
-	ret = fmctdc_channel_disable(brd, channel);
+	fmctdc_channel_disable(brd, channel);
 	fmctdc_close(brd);
 	exit(EXIT_SUCCESS);
 }

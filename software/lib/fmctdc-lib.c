@@ -128,7 +128,7 @@ struct fmctdc_board *fmctdc_open(int dev_id)
 		goto err_stat_d;
 	if (!S_ISCHR(sb.st_mode))
 		goto err_stat_d;
-	b->devbase = strndup(path, strlen(path) - strlen("-0-0-ctrl"));
+	b->devbase = strndup(path, strnlen(path, sizeof(path)) - 9); // +9 -0-0-ctrl
 	if (!b->sysbase)
 		goto err_dup_dev;
 
@@ -213,11 +213,10 @@ struct fmctdc_board *fmctdc_open_by_lun(int lun)
 {
 	ssize_t ret;
 	char dev_id_str[4];
-	char path_pattern[] = "/dev/tdc-1n5c.%d";
-	char path[sizeof(path_pattern) + 1];
+	char path[32];
 	uint32_t dev_id;
 
-	ret = snprintf(path, sizeof(path), path_pattern, lun);
+	ret = snprintf(path, sizeof(path), "/dev/tdc-1n5c.%d", lun);
 	if (ret < 0 || ret >= sizeof(path)) {
 		errno = EINVAL;
 		return NULL;

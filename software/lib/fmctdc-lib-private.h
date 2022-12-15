@@ -62,7 +62,7 @@ static inline int __fmctdc_sysfs_set(char *path, uint32_t * value)
 	char s[16];
 	int fd, ret, len;
 
-	len = sprintf(s, "%u\n", *value);
+	len = snprintf(s, sizeof(s), "%u\n", *value);
 	fd = open(path, O_WRONLY);
 	if (fd < 0)
 		return -1;
@@ -82,7 +82,7 @@ static inline int fmctdc_sysfs_get(struct __fmctdc_board *b, char *name,
 {
 	char pathname[128];
 
-	sprintf(pathname, "%s/%s", b->sysbase, name);
+	snprintf(pathname, sizeof(pathname), "%s/%s", b->sysbase, name);
 	return __fmctdc_sysfs_get(pathname, resp);
 }
 
@@ -91,7 +91,7 @@ static inline int fmctdc_sysfs_set(struct __fmctdc_board *b, char *name,
 {
 	char pathname[128];
 
-	sprintf(pathname, "%s/%s", b->sysbase, name);
+	snprintf(pathname, sizeof(pathname), "%s/%s", b->sysbase, name);
 	return __fmctdc_sysfs_set(pathname, value);
 }
 

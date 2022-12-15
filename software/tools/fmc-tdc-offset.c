@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
 
 	if (argc >= 3) {
-		channel = atoi(argv[2]);
+		sscanf(argv[2], "%i", &channel);
 		if (channel < FMCTDC_CH_1 || channel > FMCTDC_CH_LAST) {
 			fprintf(stderr, "%s: invalid channel.\n", argv[0]);
 			return -1;

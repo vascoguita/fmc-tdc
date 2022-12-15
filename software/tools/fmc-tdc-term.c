@@ -13,6 +13,8 @@ char git_version[] = "git version: " GIT_VERSION;
 
 int main(int argc, char **argv)
 {
+	int channel;
+
 	init(argc, argv);
 
 	check_help(argc, argv, 2,
@@ -31,8 +33,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	int channel = atoi(argv[2]);
-
+	sscanf(argv[2], "%i", &channel);
 	if (channel < FMCTDC_CH_1 || channel > FMCTDC_CH_LAST) {
 		fprintf(stderr, "%s: invalid channel.\n", argv[0]);
 		return -1;
