@@ -125,7 +125,7 @@ static int fau_calibration_write(unsigned int devid,
 	int ret;
 	int i;
 
-	sprintf(path,
+	snprintf(path, sizeof(path),
 		"/sys/bus/zio/devices/tdc-1n5c-%04x/calibration_data",
 		devid);
 
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 		switch (c) {
 		default:
 		case 'h':
-			fprintf(stderr, help_msg);
+			fputs(help_msg, stderr);
 			exit(EXIT_SUCCESS);
 		case 'D':
 			ret = sscanf(optarg, "0x%x", &devid);

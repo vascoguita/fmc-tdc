@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 	char *cmd;
 
 	init(argc, argv);
+	memset(&ts, 0, sizeof(ts));
 
 	check_help(argc, argv, 3,
 			"[-h] [-V] <device> <command> [timeval]",
@@ -63,7 +64,7 @@ int main(int argc, char **argv)
 		}
 
 		ts.coarse = 0;
-		ts.seconds = atoi(argv[3]);
+		sscanf(argv[3], "%"SCNu64, &ts.seconds);
 
 		if (fmctdc_set_time(brd, &ts) < 0) {
 			perror_hint("fmctdc_set_time()");
