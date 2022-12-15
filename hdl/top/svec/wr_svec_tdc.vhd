@@ -440,7 +440,7 @@ begin
     generic map (
       g_VENDOR_ID    => x"0000_10DC",
       g_DEVICE_ID    => x"574E_0002", -- SVEC + 2xTDC
-      g_VERSION      => x"0800_0000",
+      g_VERSION      => sourceid_wr_svec_tdc_pkg.version,
       g_CAPABILITIES => x"0000_0000",
       g_COMMIT_ID    => sourceid_wr_svec_tdc_pkg.sourceid)
     port map (
