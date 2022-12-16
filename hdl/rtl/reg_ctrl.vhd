@@ -398,7 +398,7 @@ begin
   process (clk_tdc_i)
   begin
     if rising_edge (clk_tdc_i) then
-      if rst_tdc_n_i = '1' then
+      if rst_tdc_n_i = '0' then
         ctrl_reg_d <= (others =>'0');
       else
         ctrl_reg_d <= ctrl_reg;
