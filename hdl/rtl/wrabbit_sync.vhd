@@ -3,45 +3,12 @@
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 -------------------------------------------------------------------------------
--- Title      : Counter Sync signal generator
--- Project    : Fine Delay FMC (fmc-delay-1ns-4cha)
+-- Title      : WR synch
 -------------------------------------------------------------------------------
--- File       : wrabbit_sync.vhd
--- Author     : Tomasz Wlostowski
--- Company    : CERN
--- Created    : 2011-08-24
--- Last update: 2018-08-09
--- Platform   : FPGA-generic
--- Standard   : VHDL'93
 -------------------------------------------------------------------------------
 -- Description: Generates the internal time base used to synchronize the TDC
 -- and programmable pulse generators to an internal or WR-provided timescale.
--- Also interfaces the FD core with an optional White Rabbit PTP core.
--------------------------------------------------------------------------------
---
--- Copyright (c) 2011 CERN / BE-CO-HT
---
--- This source file is free software; you can redistribute it
--- and/or modify it under the terms of the GNU Lesser General
--- Public License as published by the Free Software Foundation;
--- either version 2.1 of the License, or (at your option) any
--- later version.
---
--- This source is distributed in the hope that it will be
--- useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
--- PURPOSE.  See the GNU Lesser General Public License for more
--- details.
---
--- You should have received a copy of the GNU Lesser General
--- Public License along with this source; if not, download it
--- from http://www.gnu.org/licenses/lgpl-2.1.html
---
--------------------------------------------------------------------------------
--- Revisions  :
--- Date        Version  Author          Description
--- 2011-08-24  1.0      twlostow        Created
--- 2012-02-16  1.1      twlostow        built-in WR sync FSM (untested)
+-- Also interfaces the TDC core with an optional White Rabbit PTP core.
 -------------------------------------------------------------------------------
 
 library ieee;

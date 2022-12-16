@@ -2,111 +2,38 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
 
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                         fmc_tdc_core                                           |
---                                                                                                |
+-- Title      : FMC TDC Core 
 ---------------------------------------------------------------------------------------------------
--- File         fmc_tdc_core.vhd                                                                  |
---                                                                                                |
--- Description  The TDC core top level instantiates all the modules needed to provide to the      |
---              GN4124/VME interface the timestamps generated in the ACAM chip.                   |
---                                                                                                |
---              Figure 1 shows the architecture of this core.                                     |
---                                                                                                |
---              As the structure indicates, each timestamp is referred to a UTC second; the coarse|
---              and fine time indicate with 81.03 ps resolution the amount of time passed after   |
---              the last UTC second.                                                              |
---              If the White Rabbit synchronization has been established, the UTC time comes from |
---              the White Rabbit core. Otherwise, the one_hz_gen unit is responsible for keeping  |
---              the local UTC time relaying on the local TDC oscillator.                          |
---              Timestamps are formatted to the structure above within the data_formatting unit & |
---              are stored in the circular_buffer, where the GN4124/VME core have direct access   |
---                                                                                                |
---              In this application, the ACAM is used in I-Mode which provides unlimited measuring|
---              range with internal start retriggers. ACAM's counter of retriggers however is not |
---              large enough and there is the need to follow the retriggers inside the core; the  |
---              start_retrig_ctrl unit is responsible for that.                                   |
---                                                                                                |
---              The acam_databus_interface implements the communication with the ACAM for its     |
---              configuration as well as for the timestamps retrieval.                            |
---              The acam_timecontrol_interface is mainly responsible for delivering to the ACAM   |
---              the start pulse, to which all timestamps are related.                             |
---                                                                                                |
---              The regs_ctrl implements the communication with the GN4124/VME interface for the  |
---              configuration of this core and of the ACAM.                                       |
---              The data_engine is managing the transferring of the configuration registers from  |
---              the regs_ctrl to the ACAM chip; it is also managing the timestamps'               |
---              acquisition from the ACAM chip, making it available to the data_formatting unit.  |
---                                                                                                |
---              The core is providing an interrupt in any of the following 3 cases:               |
---               o accumulation of timestamps larger than the settable threshold                  |
---               o more time passed than the settable time threshold and >=1 timestamps arrived   |
---               o error occurred in the ACAM chip                                                |
---                                                                                                |
---              The clks_rsts_manager unit is providing 125 MHz clock and resets to the core.     |
---             _________________________________________________________                          |
---            |                                                         |                         |
---            |    ________________     ____________                    |                         |
---            |   |  ____________  |   |            |    ___________    |                         |
---            |   | |            | |   |            |   |           |   |                         |
---            |   | |  ACAM time | |   |            |   |  irq gen  |   |                         |
---            |   | |    ctrl    | |   |            |   |___________|   |                         |
---            |   | |____________| |   |            |    ___________    |        ______           |
---            |   |  ____________  |   |            |   |           |   |       |      |          |
---            |   | |            | |   |    data    |   |           |   |       |      |          |
---            |   | | ACAM data  | |   |   engine   |   |           |   |       |      |          |
---            |   | |    ctrl    | |   |            |   |           |   |       |      |          |
---            |   | |____________| |   |            |   |   regs    |   |  -->  |      |          |
---            |   |________________|   |            |   |   ctrl    |   |  <--  |      |          |
---  ACAM <--  |       fine time        |            |   |           |   |       |      |          |
---  chip -->  |    ____________        |            |   |           |   |       | VME/ |          |
---            |   |            |       |            |   |           |   |       |GN4124|          |
---            |   |   start    |       |            |   |           |   |       | core |          |
---            |   |   retrig   |       |            |   |           |   |       |      |          |
---            |   |____________|       |            |   |           |   |       |      |          |
---            |    coarse time         |            |   |           |   |       |      |          |
---            |                        |            |   |           |   |       |      |          |
---  WRabbit --|------------------->|\  |            |   |           |   |       |      |          |
--- UTC time   |    ____________    |O| |____________|   |___________|   |       |      |          |
---            |   |            |   |R|                   ___________    |       |      |          |
---            |   |  1 Hz gen  |-->|/   ____________    |           |   |       |      |          |
---            |   |____________|       |            |   | circular  |   |  -->  |      |          |
---            |   local UTC time       |   data     |   |  buffer   |   |  <--  |      |          |
---            |                        | formating  |   |           |   |       |      |          |
---            |    _________________   |____________|   |___________|   |       |      |          |
---            |   |____TDC LEDs_____|                                   |       |______|          |
---            |                                                         |                         |
---            |_________________________________________________________|                         |
---                                                              TDC core                          |
---             _________________________________________________________                          |
---            |                                                         |                         |
---            |                     clks_rsts_manager                   |                         |
---            |_________________________________________________________|                         |
---                                                                                                |
---                           Figure 1: TDC core architecture                                      |
---                                                                                                |
---                                                                                                |
----------------------------------------------------------------------------------------------------
+-- Description  The TDC core top level instantiates all the modules needed to provide to the
+--              GN4124/VME interface the timestamps generated in the ACAM chip.
 
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+--              A timestamp is referred to a UTC second;
+--              the coarse and fine time indicate with 81.03 ps resolution the amount of time
+--              passed after the last UTC second.
+--              If the White Rabbit synchronization has been established, the UTC time comes from
+--              the White Rabbit core. Otherwise, the one_hz_gen unit is responsible for keeping
+--              the local UTC time relaying on the local TDC oscillator.
+--              Timestamps are formatted to the structure above within the data_formatting unit
+--
+--              In this application, the ACAM is used in I-Mode which provides unlimited measuring
+--              range with internal start retriggers. ACAM's counter of retriggers however is not
+--              large enough and there is the need to follow the retriggers inside the core; the
+--              start_retrig_ctrl unit is responsible for that.
+--
+--              The acam_databus_interface implements the communication with the ACAM for its
+--              configuration as well as for the timestamps retrieval.
+--              The acam_timecontrol_interface is mainly responsible for delivering to the ACAM
+--              the start pulse, to which all timestamps are related.
+--
+--              The regs_ctrl implements the communication with the GN4124/VME interface for the
+--              configuration of this core and of the ACAM.
+--              The data_engine is managing the transferring of the configuration registers from
+--              the regs_ctrl to the ACAM chip; it is also managing the timestamps'
+--              acquisition from the ACAM chip, making it available to the data_formatting unit.
+--
+--              The clks_rsts_manager unit is providing 125 MHz clock and resets to the core.
 ---------------------------------------------------------------------------------------------------
 
 --=================================================================================================

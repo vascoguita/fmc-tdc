@@ -2,92 +2,29 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |SPEC TDC|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                         wr_spec_tdc                                            |
---                                                                                                |
+-- Title      : TDC on SPEC with WR support       
 ---------------------------------------------------------------------------------------------------
--- File         wr_spec_tdc.vhd                                                                   |
---                                                                                                |
--- Description  TDC top level with White Rabbit support for a SPEC carrier.                       |
---              Figure 1 shows the architecture of the unit.                                      |
---                                                                                                |
---              For the communication with the PCIe, the ohwr.org GN4124 core is instantiated.    |
---                                                                                                |
---              The TDC mezzanine core is instantiated for the communication with the TDC board.  |
---              The White Rabbit core is controlling the DAC on each TDC mezzanine; the DAC is in |
---              turn controlling the PLL frequency. Once the PLL is synchronized to White Rabbit, |
---              the TDC core starts using the White Rabbit UTC for the timestamps calculations.   |
---              The VIC core is forwarding the interrupts coming from the TDC mezzanine core to   |
---                the GN4124 core.                                                                |
---              The carrier_info module provides general information on the SPEC PCB version, PLLs|
---                locking state etc.                                                              |
---              All the cores communicate with the GN4124 core through the SDB crossbar. The SDB  |
---              crossbar is responsible for managing the acess to the GN4124 core.                |
---                                                                                                |
---              The TDC mezzanine core is running at 125 MHz. Like this the TDC core can keep up  |
---              to speed with the maximum speed that the ACAM can be receiving timestamps.        |
---              All the other cores (White Rabbit, VIC, carrier csr, 1-Wire as well as the GN4124 |
---              WISHBONE) are running at 62.5 MHz                                                 |
---                                                                                                |
---              The 62.5MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of |
---              the SPEC board.                                                                   |
---              The 125MHz clock for each TDC mezzanine comes from the PLL located on it.         |
---              A clks_rsts_manager unit is responsible for automatically configuring the PLL upon|
---              the FPGA startup, using the 62.5MHz clock. The clks_rsts_manager is keeping the   |
---              the TDC mezzanine core under reset until the respective PLL gets locked.          |
---                                                                                                |
---                ___________________________________________________________________________     |
---               |                                                                           |    |
---               |       ____________________________                 ___        _____       |    |
---               |      |                            |               |   |      |     |      |    |
---        |------|------|  WRabbit core, PHY, DAC    |  <----------> |   |      |     |      |    |
---       \/      |      |____________________________|               |   |      |     |      |    |
---   ________    |                            62.5MHz                |   |      |     |      |    |
---  |        |   |                                                   |   |      |     |      |    |
---  |  DAC   |<->|                                                   |   |      |  G  |      |    |
---  |  PLL   |                                                       |   |      |     |      |    |
---  |        |   |       ____________________________                | S |      |  N  |      |    |
---  |        |   |      |                            |               |   |      |     |      |    |
---  |  ACAM  |<->|------|       TDC wrapper          |<------------> |   |      |  4  |      |    |
---  |________|   |   |--|____________________________|               | D |      |     |      |    |
---   TDC mezz    |   |                        62.5MHz                |   |      |  1  |      |    |
---               |   |   ____________________________                |   |      |     |      |    |
---               |   |->|                            |               | B |      |  2  |      |    |
---               |      | Vector Interrupt Controller| <---------->  |   | <--> |     |      |    |
---               |      |____________________________|               |   |      |  4  |      |    |
---               |                            62.5MHz                |   |      |     |      |    |
---               |       ____________________________                |   |      |     |      |    |
---               |      |                            |               |   |      |     |      |    |
---               |      |        carrier_info        | <---------->  |   |      |     |      |    |
---               |      |____________________________|               |   |      |     |      |    |
---               |                            62.5MHz                |___|      |_____|      |    |
---               |                                                                           |    |
---               |      ______________________________________________                       |    |
--- SPEC LEDs  <->|     |___________________LEDs_______________________|                      |    |
---               |                                                                           |    |
---               |___________________________________________________________________________|    |
---                                                                                                |
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+-- Description: TDC top level with White Rabbit support for a SPEC carrier.
+--
+--              The TDC mezzanine core is instantiated for the communication with the TDC board.
+--              The spec_base_wr provides White Rabbit and host communication.
+--              Readout interface: DMA or per-channel FIFOs
+--
+--              Rising-edges belonging to pulses <96 ns are timestamped;
+--              pulses < 96ns and falling edge timestamps are ignored
+--
+--              The TDC mezzanine core is running at 125 MHz. Like this the TDC core can keep up
+--              to speed with the maximum speed that the ACAM can be receiving timestamps.
+--              All the other cores (White Rabbit, VIC, carrier csr, 1-Wire as well as the GN4124
+--              WISHBONE) are running at 62.5 MHz
+--
+--              The 62.5MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of
+--              the SPEC board.
+--              The 125MHz clock for each TDC mezzanine comes from the PLL located on it.
+--              A clks_rsts_manager unit is responsible for automatically configuring the PLL upon
+--              the FPGA startup, using the 62.5MHz clock. The clks_rsts_manager is keeping the
+--              the TDC mezzanine core under reset until the respective PLL gets locked.
 ---------------------------------------------------------------------------------------------------
 
 library IEEE;

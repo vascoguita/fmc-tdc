@@ -2,38 +2,27 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                    acam_databus_interface                                      |
---                                                                                                |
+-- Title      : Acam databus interface
 ---------------------------------------------------------------------------------------------------
--- File         acam_databus_interface.vhd                                                        |
---                                                                                                |
--- Description  The unit interfaces with the ACAM chip pins for the configuration of the registers|
---              and the acquisition of the timestamps.                                            |
---              The ACAM proprietary interface is converted to a WISHBONE classic interface, with |
---              which the unit communicates with the data_engine unit.                            |
---              The WISHBONE master is implemented in the data_engine and the slave in this unit. |
---                                                                                                |
---              ___________               ____________              ___________                   |
---             |           |___WRn_______|            |            |           |                  |
---             |           |___RDn_______|            |___stb______|           |                  |
---             |           |___CSn_______|            |___cyc______|           |                  |
---             |   ACAM    |___OEn_______|  acam_     |___we_______|  data_    |                  |
---             |           |___EF________|  databus_  |___ack______|  engine   |                  |
---             |           |             |  interface |___adr______|           |                  |
---             |           |___ADR_______|            |___datI_____|           |                  |
---             |           |___DatabusIO_|            |___datO_____|           |                  |
---             |___________|             |____________|            |___________|                  |
---                                                                                                |
---                                                                                                |
+-- Description  The unit interfaces with the ACAM chip pins for the configuration of the registers
+--              and the acquisition of the timestamps.
+--              The ACAM proprietary interface is converted to a WISHBONE classic interface, with
+--              which the unit communicates with the data_engine unit. 
+--              The WISHBONE master is implemented in the data_engine and the slave in this unit.
+--
+--              ___________               ____________              ___________ 
+--             |           |___WRn_______|            |            |           |
+--             |           |___RDn_______|            |___stb______|           |
+--             |           |___CSn_______|            |___cyc______|           |
+--             |   ACAM    |___OEn_______|  acam_     |___we_______|  data_    |
+--             |           |___EF________|  databus_  |___ack______|  engine   |
+--             |           |             |  interface |___adr______|           |
+--             |           |___ADR_______|            |___datI_____|           |
+--             |           |___DatabusIO_|            |___datO_____|           |
+--             |___________|             |____________|            |___________|
+--
+--
 ----------------------------------------------/!\-------------------------------------------------|
 -- In order for the core to be able  to keep retreiving timestamps from the ACAM at the ACAM's    |
 -- maximun speed (31.25 M timestamps/ sec), it needs to complete one retreival per                |
@@ -44,20 +33,6 @@
 -- into IOBs" should be enabled.                                                                  |
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
----------------------------------------------------------------------------------------------------
-
 
 
 --=================================================================================================

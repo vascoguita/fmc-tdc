@@ -2,55 +2,29 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                          data_engine                                           |
---                                                                                                |
+-- Title      : Data Engine
 ---------------------------------------------------------------------------------------------------
--- File         data_engine.vhd                                                                   |
---                                                                                                |
--- Description  The unit is managing:                                                             |
---               o the timestamps' acquisition from the ACAM,                                     |
---               o the writing of the ACAM configuration,                                         |
---               o the reading back of the ACAM configuration.                                    |
---                                                                                                |
---              The signals: activate_acq, deactivate_acq,                                        |
---                           acam_wr_config, acam_rst                                             |
---                           acam_rdbk_config, acam_rdbk_status, acam_rdbk_ififo1,                |
---                           acam_rdbk_ififo2, acam_rdbk_start01                                  |
---              coming from the reg_ctrl unit determine the actions of this unit.                 |
---                                                                                                |
---               o In acquisition mode (activate_acq = 1) the unit monitors permanently the empty |
---                 flags (ef1, ef2) of the ACAM iFIFOs, reads timestamps accordingly and then     |
---                 sends them to the data_formatting unit for them to endup in the circular_buffer|
---               o To configure the ACAM or read back its configuration registers, the unit should|
---                 be in inactive mode (deactivate_acq = 1).                                      |
---                                                                                                |
---              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE     |
---              master fetching/sending data from/to the ACAM interface.                          |
---                                                                                                |
+-- Description  The unit is managing:
+--               o the timestamps' acquisition from the ACAM,
+--               o the writing of the ACAM configuration,
+--               o the reading back of the ACAM configuration.
+--
+--              The signals: activate_acq, deactivate_acq,
+--                           acam_wr_config, acam_rst 
+--                           acam_rdbk_config, acam_rdbk_status, acam_rdbk_ififo1,
+--                           acam_rdbk_ififo2, acam_rdbk_start01
+--              coming from the reg_ctrl unit determine the actions of this unit.
+--
+--               o In acquisition mode (activate_acq = 1) the unit monitors permanently the empty
+--                 flags (ef1, ef2) of the ACAM iFIFOs, reads timestamps accordingly and then
+--                 sends them to the data_formatting unit for them to endup in the fifos
+--               o To configure the ACAM or read back its configuration registers, the unit should
+--                 be in inactive mode (deactivate_acq = 1).
+--
+--              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE
+--              master fetching/sending data from/to the ACAM interface.
 ---------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
----------------------------------------------------------------------------------------------------
-
 
 
 --=================================================================================================

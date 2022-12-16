@@ -2,40 +2,15 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
 
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                         incr_counter                                           |
---                                                                                                |
+-- Title      :  incriment counter
+---------------------------------------------------------------------------------------------------                                               
+-- Description: Stop counter. Configurable "counter_top_i" and "width".
+--				"Current count value" and "counting done" signals available.
+--				"Counting done" signal asserted simultaneous to"current count value=counter_top_i"
+--				Needs a rst_i to restart.
 ---------------------------------------------------------------------------------------------------
--- File         incr_counter.vhd                                                                  |
---                                                                                                |
--- Description  Stop counter. Configurable "counter_top_i" and "width".                           |
---				"Current count value" and "counting done" signals available.                      |
---				"Counting done" signal asserted simultaneous to"current count value=counter_top_i"|
---				Needs a rst_i to restart.                                                         |
---                                                                                                |
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
----------------------------------------------------------------------------------------------------
-
 
 
 --=================================================================================================
