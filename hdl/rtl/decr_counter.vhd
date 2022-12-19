@@ -6,8 +6,8 @@
 -- Title      :  Free-running counter
 ---------------------------------------------------------------------------------------------------
 -- Description  Stop counter. Configurable "counter_top_i" and "width".
---       		"Current count value" and "counting done" signals available.
---				"Counter done" signal asserted simultaneous to "current count value = 0".
+--              "Current count value" and "counting done" signals available.
+--              "Counter done" signal asserted simultaneous to "current count value = 0".
 --              Countdown is launched each time "counter_load_i" is asserted for one clock tick.
 ---------------------------------------------------------------------------------------------------
 

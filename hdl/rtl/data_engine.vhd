@@ -11,7 +11,7 @@
 --               o the reading back of the ACAM configuration.
 --
 --              The signals: activate_acq, deactivate_acq,
---                           acam_wr_config, acam_rst 
+--                           acam_wr_config, acam_rst
 --                           acam_rdbk_config, acam_rdbk_status, acam_rdbk_ififo1,
 --                           acam_rdbk_ififo2, acam_rdbk_start01
 --              coming from the reg_ctrl unit determine the actions of this unit.
@@ -163,7 +163,7 @@ begin
                                  acam_ef2_i, acam_wr_config_p_i,
                                  acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
                                  acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i,
-											start_from_fpga_i, time_c, time_c_full_p)
+                                 start_from_fpga_i, time_c, time_c_full_p)
   begin
     case engine_st is
 
@@ -261,7 +261,7 @@ begin
                         acam_we         <= '0';
                         time_c_en       <= '0';
                         time_c_rst      <= '1';
-						-----------------------------------------------
+                  -----------------------------------------------
 
                         if start_from_fpga_i = '1' then
                           nxt_engine_st <= WAIT_FOR_START01;
@@ -279,7 +279,7 @@ begin
                         acam_we         <= '0';
                         time_c_en       <= '1';
                         time_c_rst      <= '0';
-						-----------------------------------------------
+                  -----------------------------------------------
 
                         if time_c = x"00004000" then
                           nxt_engine_st <= RD_START01;
@@ -295,7 +295,7 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en       <= '1';
-						time_c_rst      <= '0';
+                        time_c_rst      <= '0';
                   -----------------------------------------------
 
                         if acam_ack_i ='1' then
@@ -306,14 +306,14 @@ begin
 
 
       when WAIT_UTC => -- wait until the next UTC comes; now the offsets of the start_retrig_ctrl unit are defined
-	                   -- the ACAM is disabled during this period
+                       -- the ACAM is disabled during this period
                   -----------------------------------------------
                         acam_cyc        <= '0';
                         acam_stb        <= '0';
                         acam_we         <= '0';
                         time_c_en       <= '1';
-						time_c_rst      <= '0';
-						-----------------------------------------------
+                        time_c_rst      <= '0';
+                  -----------------------------------------------
 
                         if time_c_full_p ='1' then
                           nxt_engine_st <= ACTIVE;
@@ -328,7 +328,7 @@ begin
                         acam_stb        <= '0';
                         acam_we         <= '0';
                         time_c_en       <= '0';
-         				time_c_rst      <= '1';
+                        time_c_rst      <= '1';
                   -----------------------------------------------
 
                         if deactivate_acq_p_i = '1' then
@@ -378,7 +378,8 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en <= '0';
-                        time_c_rst <= '0';                  -----------------------------------------------
+                        time_c_rst <= '0';
+                  -----------------------------------------------
 
                         if deactivate_acq_p_i = '1' then
                           nxt_engine_st   <= INACTIVE;
@@ -404,7 +405,7 @@ begin
                         acam_we         <= '1';
                         time_c_en <= '0';
                         time_c_rst <= '0';
-                -----------------------------------------------
+                  -----------------------------------------------
 
                         if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
@@ -420,7 +421,8 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en <= '0';
-                        time_c_rst <= '0';                 -----------------------------------------------
+                        time_c_rst <= '0';
+                  -----------------------------------------------
 
                         if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
@@ -437,7 +439,7 @@ begin
                         acam_we         <= '0';
                         time_c_en <= '0';
                         time_c_rst <= '0';
-						-----------------------------------------------
+                  -----------------------------------------------
 
                         if acam_ack_i ='1' then
                           nxt_engine_st   <= INACTIVE;

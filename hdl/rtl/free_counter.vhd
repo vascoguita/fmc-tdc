@@ -6,8 +6,8 @@
 -- Title      :  Free-running counter
 ---------------------------------------------------------------------------------------------------
 -- Description  Free running counter. Configurable "counter_top_i" and "width".
---				"Current count value" and "counting done" signal available.
---				"Counting done" signal asserted simultaneous to "current count value = 0".
+--              "Current count value" and "counting done" signal available.
+--              "Counting done" signal asserted simultaneous to "current count value = 0".
 ---------------------------------------------------------------------------------------------------
 
 

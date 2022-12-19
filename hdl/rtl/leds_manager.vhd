@@ -7,7 +7,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Description: Generation of the signals that drive the LEDs on the TDC mezzanine.
 --              There are 6 LEDs on the front panel of the TDC mezzanine board:
---                                        ______  
+--                                        ______
 --                                       |      |
 --                                       | O  O |   1, 2
 --                                       | O  O |   3, 4

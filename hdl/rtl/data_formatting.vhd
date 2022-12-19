@@ -5,7 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Title      :   Timestamp data formatting
 ---------------------------------------------------------------------------------------------------
--- Description:  Formats in a 128-bit word the 
+-- Description:  Formats in a 128-bit word the
 --                o fine timestamps coming directly from the ACAM
 --                o plus the coarse timing internally measured in the core
 --                o plus the UTC time, coming from the WRabbit core if synchronization is

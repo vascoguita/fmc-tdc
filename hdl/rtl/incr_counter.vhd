@@ -5,11 +5,11 @@
 
 ---------------------------------------------------------------------------------------------------
 -- Title      :  incriment counter
----------------------------------------------------------------------------------------------------                                               
+---------------------------------------------------------------------------------------------------
 -- Description: Stop counter. Configurable "counter_top_i" and "width".
---				"Current count value" and "counting done" signals available.
---				"Counting done" signal asserted simultaneous to"current count value=counter_top_i"
---				Needs a rst_i to restart.
+--              "Current count value" and "counting done" signals available.
+--              "Counting done" signal asserted simultaneous to"current count value=counter_top_i"
+--              Needs a rst_i to restart.
 ---------------------------------------------------------------------------------------------------
 
 

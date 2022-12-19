@@ -4,7 +4,7 @@
 
 
 ---------------------------------------------------------------------------------------------------
--- Title      : FMC TDC Core 
+-- Title      : FMC TDC Core
 ---------------------------------------------------------------------------------------------------
 -- Description  The TDC core top level instantiates all the modules needed to provide to the
 --              GN4124/VME interface the timestamps generated in the ACAM chip.

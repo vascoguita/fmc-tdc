@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 ---------------------------------------------------------------------------------------------------
--- Title      : TDC on SVEC with WR support       
+-- Title      : TDC on SVEC with WR support
 ---------------------------------------------------------------------------------------------------
 -- Description: Two TDC mezzanine cores are instantiated, for the boards on FMC1 and FMC2
 --              The svec_base_wr provides White Rabbit and host communication.

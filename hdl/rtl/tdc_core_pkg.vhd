@@ -584,11 +584,11 @@ package tdc_core_pkg is
        clk_i                   : in std_logic;
        activate_acq_p_i        : in std_logic;
        rst_i                   : in std_logic;
-	   state_active_p_i        : in std_logic;
-	   deactivate_acq_p_i      : in std_logic;
+       state_active_p_i        : in std_logic;
+       deactivate_acq_p_i      : in std_logic;
       ----------------------------------------------------------------------
        start_from_fpga_o       : out std_logic;
-       stop_dis_o              : out   std_logic;
+       stop_dis_o              : out std_logic;
        acam_errflag_r_edge_p_o : out std_logic;
        acam_errflag_f_edge_p_o : out std_logic;
        acam_intflag_f_edge_p_o : out std_logic);
@@ -820,4 +820,3 @@ end tdc_core_pkg;
 ---------------------------------------------------------------------------------------------------
 --                                      E N D   O F   F I L E
 ---------------------------------------------------------------------------------------------------
-

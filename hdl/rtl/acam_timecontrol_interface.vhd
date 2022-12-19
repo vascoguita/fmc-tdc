@@ -4,7 +4,7 @@
 
 ---------------------------------------------------------------------------------------------------
 -- Title      : Acam timebase control
----------------------------------------------------------------------------------------------------                                               
+---------------------------------------------------------------------------------------------------
 -- Description: Interface with the ACAM chip pins for control and timing.
 --              the start pulse is sent only once upon the activation of the acquisition,
 --              synchronously to the utc_p_i
@@ -114,8 +114,8 @@ begin
         stop_dis_o <= '1';
       else
         stop_dis_o <= stop_dis_d1;
-		end if;
-	end if;
+      end if;
+    end if;
   end process;
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

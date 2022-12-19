@@ -8,10 +8,10 @@
 -- Description  The unit interfaces with the ACAM chip pins for the configuration of the registers
 --              and the acquisition of the timestamps.
 --              The ACAM proprietary interface is converted to a WISHBONE classic interface, with
---              which the unit communicates with the data_engine unit. 
+--              which the unit communicates with the data_engine unit.
 --              The WISHBONE master is implemented in the data_engine and the slave in this unit.
 --
---              ___________               ____________              ___________ 
+--              ___________               ____________              ___________
 --             |           |___WRn_______|            |            |           |
 --             |           |___RDn_______|            |___stb______|           |
 --             |           |___CSn_______|            |___cyc______|           |

@@ -4,11 +4,11 @@
 
 ---------------------------------------------------------------------------------------------------
 -- Title      :         clks_rsts_manager.vhd
----------------------------------------------------------------------------------------------------                                               
+---------------------------------------------------------------------------------------------------
 -- Description: Independent block that uses the clk_sys_i to parametrize the PLL and DAC on the
 --              TDC mezzanine
 --
---              The PLL is programmed to generate a 125 MHz clock that arrives to the FPGA and 
+--              The PLL is programmed to generate a 125 MHz clock that arrives to the FPGA and
 --              is used by all the other units of the TDC core.
 --              It is also programmed to generate a 31.25 MHz clock which is the reference clock
 --              for the ACAM chip.

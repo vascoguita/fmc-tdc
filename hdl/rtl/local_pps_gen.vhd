@@ -4,7 +4,7 @@
 
 ---------------------------------------------------------------------------------------------------
 -- Title       : Local PPS generator
----------------------------------------------------------------------------------------------------                                               
+---------------------------------------------------------------------------------------------------
 -- Description: Generates one pulse every second synchronously with the ACAM reference clock
 --              It also keeps track of the UTC time based on the local clock.
 --              If there is no White Rabbit synchronization, this unit is the source of UTC timing

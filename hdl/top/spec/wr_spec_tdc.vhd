@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
 ---------------------------------------------------------------------------------------------------
--- Title      : TDC on SPEC with WR support       
+-- Title      : TDC on SPEC with WR support
 ---------------------------------------------------------------------------------------------------
 -- Description: TDC top level with White Rabbit support for a SPEC carrier.
 --
