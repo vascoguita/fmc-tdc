@@ -2,21 +2,10 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                        fmc_tdc_mezzanine                                       |
---                                                                                                |
+-- Title      :  TDC mezzanine
 ---------------------------------------------------------------------------------------------------
--- File         fmc_tdc_mezzanine.vhd                                                             |
---                                                                                                |
--- Description  The unit instantiates                                                             |
+-- Description:  The unit instantiates                                                            |
 --                o the TDC core                                                                  |
 --                o the wrabbit_sync unit that is managing the White Rabbit synchronization  and  |
 --                  control signals                                                               |
@@ -67,18 +56,6 @@
 --                                                                                                |
 ---------------------------------------------------------------------------------------------------
 
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
----------------------------------------------------------------------------------------------------
 
 --=================================================================================================
 --                                       Libraries & Packages
@@ -562,11 +539,6 @@ begin
 ---------------------------------------------------------------------------------------------------
 --                             WBGEN2 EMBEDDED INTERRUPTS CONTROLLER                             --
 ---------------------------------------------------------------------------------------------------
--- IRQ sources
--- 0 -> number of accumulated timestamps reached threshold
--- 1 -> number of seconds passed reached threshold and number of accumulated tstamps > 0
--- 2 -> ACAM error
-
   gen_enable_eic : if g_USE_FIFO_READOUT or g_USE_DMA_READOUT generate
     cmp_tdc_eic : entity work.tdc_eic
       port map (

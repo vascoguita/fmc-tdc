@@ -2,40 +2,14 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                        data_formatting                                         |
---                                                                                                |
+-- Title      :   Timestamp data formatting
 ---------------------------------------------------------------------------------------------------
--- File         data_formatting.vhd                                                               |
---                                                                                                |
--- Description  Timestamp data formatting.                                                        |
---              Formats in a 128-bit word the                                                     |
---                o fine timestamps coming directly from the ACAM                                 |
---                o plus the coarse timing internally measured in the core                        |
---                o plus the UTC time, coming from the WRabbit core if synchronization is         |
---                  established or from the internal local counter                                |
---                                                                                                |
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+-- Description:  Formats in a 128-bit word the
+--                o fine timestamps coming directly from the ACAM
+--                o plus the coarse timing internally measured in the core
+--                o plus the UTC time, coming from the WRabbit core if synchronization is
+--                  established or from the internal local counter
 ---------------------------------------------------------------------------------------------------
 
 
@@ -154,10 +128,10 @@ begin
   end process;
 
 ---------------------------------------------------------------------------------------------------
--- Final Timestamp Formatting                                  --
+-- Final Timestamp Formatting
 ---------------------------------------------------------------------------------------------------
 -- tstamp_formatting: slicing of the 32-bits word acam_tstamp1_i and acam_tstamp2_i as received
--- from the data_engine unit, to construct the final timestamps to be stored in the circular_buffer
+-- from the data_engine unit, to construct the final timestamps
 
 -- acam_tstamp1_i, acam_tstamp2_i have the following structure:
 --   [16:0]   Stop-Start     \
@@ -170,7 +144,7 @@ begin
 --   [30]     ef2            /
 --   [31]     ef1           /
 
--- The final timestamp written in the circular_buffer is a 128-bits word divided in four
+-- The final timestamp is a 128-bits word divided in four
 -- 32-bits words with the following structure:
 --   [31:0]   Fine time to be added to the Coarse time: "00..00" & 16 bit Stop-Start;
 --                                          each bit represents 81.03 ps

@@ -2,48 +2,23 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                         leds_manager                                           |
---                                                                                                |
+-- Title      : LEDs manager
 ---------------------------------------------------------------------------------------------------
--- File         leds_manager.vhd                                                                  |
---                                                                                                |
--- Description  Generation of the signals that drive the LEDs on the TDC mezzanine.               |
---              There are 6 LEDs on the front panel of the TDC mezzanine board:                   |
---                                        ______                                                  |
---                                       |      |                                                 |
---                                       | O  O |   1, 2                                          |
---                                       | O  O |   3, 4                                          |
---                                       | O  O |   5, STA                                        |
---                                       |______|                                                 |
---                                                                                                |
---              TDC LEDs: blink upon the generation of a valid timestamp                          |
---              Inverted blinking (LED permanently ON without pulses in the input) indicates the  |
---              50 Ohm termination is active on the channel.                                      |
---                                                                                                |
---              TDC LED STA orange:division of the 125 MHz clock; one hz pulses                   |
---                                                                                                |
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+-- Description: Generation of the signals that drive the LEDs on the TDC mezzanine.
+--              There are 6 LEDs on the front panel of the TDC mezzanine board:
+--                                        ______
+--                                       |      |
+--                                       | O  O |   1, 2
+--                                       | O  O |   3, 4
+--                                       | O  O |   5, STA
+--                                       |______|
+--
+--              TDC LEDs: blink upon the generation of a valid timestamp
+--              Inverted blinking (LED permanently ON without pulses in the input) indicates the
+--              50 Ohm termination is active on the channel
+--
+--              TDC LED STA orange:division of the 125 MHz clock; one hz pulses
 ---------------------------------------------------------------------------------------------------
 
 

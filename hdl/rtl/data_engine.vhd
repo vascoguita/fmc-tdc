@@ -2,55 +2,29 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                          data_engine                                           |
---                                                                                                |
+-- Title      : Data Engine
 ---------------------------------------------------------------------------------------------------
--- File         data_engine.vhd                                                                   |
---                                                                                                |
--- Description  The unit is managing:                                                             |
---               o the timestamps' acquisition from the ACAM,                                     |
---               o the writing of the ACAM configuration,                                         |
---               o the reading back of the ACAM configuration.                                    |
---                                                                                                |
---              The signals: activate_acq, deactivate_acq,                                        |
---                           acam_wr_config, acam_rst                                             |
---                           acam_rdbk_config, acam_rdbk_status, acam_rdbk_ififo1,                |
---                           acam_rdbk_ififo2, acam_rdbk_start01                                  |
---              coming from the reg_ctrl unit determine the actions of this unit.                 |
---                                                                                                |
---               o In acquisition mode (activate_acq = 1) the unit monitors permanently the empty |
---                 flags (ef1, ef2) of the ACAM iFIFOs, reads timestamps accordingly and then     |
---                 sends them to the data_formatting unit for them to endup in the circular_buffer|
---               o To configure the ACAM or read back its configuration registers, the unit should|
---                 be in inactive mode (deactivate_acq = 1).                                      |
---                                                                                                |
---              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE     |
---              master fetching/sending data from/to the ACAM interface.                          |
---                                                                                                |
+-- Description  The unit is managing:
+--               o the timestamps' acquisition from the ACAM,
+--               o the writing of the ACAM configuration,
+--               o the reading back of the ACAM configuration.
+--
+--              The signals: activate_acq, deactivate_acq,
+--                           acam_wr_config, acam_rst
+--                           acam_rdbk_config, acam_rdbk_status, acam_rdbk_ififo1,
+--                           acam_rdbk_ififo2, acam_rdbk_start01
+--              coming from the reg_ctrl unit determine the actions of this unit.
+--
+--               o In acquisition mode (activate_acq = 1) the unit monitors permanently the empty
+--                 flags (ef1, ef2) of the ACAM iFIFOs, reads timestamps accordingly and then
+--                 sends them to the data_formatting unit for them to endup in the fifos
+--               o To configure the ACAM or read back its configuration registers, the unit should
+--                 be in inactive mode (deactivate_acq = 1).
+--
+--              For all types of interactions with the ACAM chip, the unit acts as a WISHBONE
+--              master fetching/sending data from/to the ACAM interface.
 ---------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
----------------------------------------------------------------------------------------------------
-
 
 
 --=================================================================================================
@@ -189,7 +163,7 @@ begin
                                  acam_ef2_i, acam_wr_config_p_i,
                                  acam_rdbk_config_p_i, acam_rdbk_status_p_i, acam_ack_i, acam_rst_p_i,
                                  acam_rdbk_ififo1_p_i, acam_rdbk_ififo2_p_i, acam_rdbk_start01_p_i,
-											start_from_fpga_i, time_c, time_c_full_p)
+                                 start_from_fpga_i, time_c, time_c_full_p)
   begin
     case engine_st is
 
@@ -287,7 +261,7 @@ begin
                         acam_we         <= '0';
                         time_c_en       <= '0';
                         time_c_rst      <= '1';
-						-----------------------------------------------
+                  -----------------------------------------------
 
                         if start_from_fpga_i = '1' then
                           nxt_engine_st <= WAIT_FOR_START01;
@@ -305,7 +279,7 @@ begin
                         acam_we         <= '0';
                         time_c_en       <= '1';
                         time_c_rst      <= '0';
-						-----------------------------------------------
+                  -----------------------------------------------
 
                         if time_c = x"00004000" then
                           nxt_engine_st <= RD_START01;
@@ -321,7 +295,7 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en       <= '1';
-						time_c_rst      <= '0';
+                        time_c_rst      <= '0';
                   -----------------------------------------------
 
                         if acam_ack_i ='1' then
@@ -332,14 +306,14 @@ begin
 
 
       when WAIT_UTC => -- wait until the next UTC comes; now the offsets of the start_retrig_ctrl unit are defined
-	                   -- the ACAM is disabled during this period
+                       -- the ACAM is disabled during this period
                   -----------------------------------------------
                         acam_cyc        <= '0';
                         acam_stb        <= '0';
                         acam_we         <= '0';
                         time_c_en       <= '1';
-						time_c_rst      <= '0';
-						-----------------------------------------------
+                        time_c_rst      <= '0';
+                  -----------------------------------------------
 
                         if time_c_full_p ='1' then
                           nxt_engine_st <= ACTIVE;
@@ -354,7 +328,7 @@ begin
                         acam_stb        <= '0';
                         acam_we         <= '0';
                         time_c_en       <= '0';
-         				time_c_rst      <= '1';
+                        time_c_rst      <= '1';
                   -----------------------------------------------
 
                         if deactivate_acq_p_i = '1' then
@@ -404,7 +378,8 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en <= '0';
-                        time_c_rst <= '0';                  -----------------------------------------------
+                        time_c_rst <= '0';
+                  -----------------------------------------------
 
                         if deactivate_acq_p_i = '1' then
                           nxt_engine_st   <= INACTIVE;
@@ -430,7 +405,7 @@ begin
                         acam_we         <= '1';
                         time_c_en <= '0';
                         time_c_rst <= '0';
-                -----------------------------------------------
+                  -----------------------------------------------
 
                         if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
@@ -446,7 +421,8 @@ begin
                         acam_stb        <= '1';
                         acam_we         <= '0';
                         time_c_en <= '0';
-                        time_c_rst <= '0';                 -----------------------------------------------
+                        time_c_rst <= '0';
+                  -----------------------------------------------
 
                         if acam_ack_i = '1' and acam_adr = x"0E" then  -- last address
                           nxt_engine_st   <= INACTIVE;
@@ -463,7 +439,7 @@ begin
                         acam_we         <= '0';
                         time_c_en <= '0';
                         time_c_rst <= '0';
-						-----------------------------------------------
+                  -----------------------------------------------
 
                         if acam_ack_i ='1' then
                           nxt_engine_st   <= INACTIVE;

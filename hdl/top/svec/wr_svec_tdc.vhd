@@ -2,104 +2,31 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |SVEC TDC|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                          wr_svec_tdc                                           |
---                                                                                                |
+-- Title      : TDC on SVEC with WR support
 ---------------------------------------------------------------------------------------------------
--- File         wr_svec_tdc.vhd                                                                   |
---                                                                                                |
--- Description  TDC top level for SVEC with White Rabbit.                                         |
---              Figure 1 shows the architecture of this unit.                                     |
---                o Two TDC mezzanine cores are instantiated, for the boards on FMC1 and FMC2     |
---                o The White Rabbit core is controlling the DAC on each TDC mezzanine; the DAC   |
---                  is in turn controlling the PLL frequency. Once the PLL is synchronized to     |
---                  White Rabbit, the TDC core starts using the White Rabbit UTC for the          |
---                  timestamps calculations.                                                      |
---                o The VIC is managing the interrupts coming from both TDC EIC cores             |
---                o The carrier_info module provides general information on the SVEC PCB version, |
---                  PLLs locking state etc                                                        |
---              All these cores communicate with the VME core through the WISHBONE.               |
---              The SDB crossbar is mapping the different slaves into the WISHBONE address space. |
---                                                                                                |
+-- Description: Two TDC mezzanine cores are instantiated, for the boards on FMC1 and FMC2
+--              The svec_base_wr provides White Rabbit and host communication.
+--              Readout interface: per-channel FIFOs
+--
+--              Rising-edges belonging to pulses <96 ns are timestamped;
+--              pulses < 96ns and falling edge timestamps are ignored
+--
 --              The speed for the VME core is 62.5 MHz. The TDC mezzanine cores
 --              internally operate at 125 MHz, but the wishbone bus works still
 --              at system-wide 62.5 MHz clock.
---                                                                                                |
---              The 62.5 MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of|
---              the SVEC board.                                                                   |
---                                                                                                |
---              The 125 MHz clock for each TDC mezzanine comes from the PLL located on it.        |
---                                                                                                |
---              Upon powering up of the FPGA as well as after a VME reset, the whole logic gets   |
---              reset (FMC1 125 MHz, FMC2 125 MHz and 62.5 MHz). This also triggers a             |
---              reprogramming of the mezzanines' PLL through the clks_rsts_manager units.         |
---              An extra software reset is implemented for the TDC mezzanine cores, using the     |
---              reset bits of the carrier_info core. Such a reset also triggers the reprogramming |
---              of the mezzanines' PLL.                                                           |
---                                                                                                |
---                __________________________________________________________________              |
---               |                                                                  |             |
---               |       ____________________________                               |             |
---               |      |                            |       ___                    |             |
---               |  |---|  WRabbit core, PHY, DAC    |\     |   |                   |             |
---               |  |   |____________________________| \    |   |                   |             |
---               |                             62.5MHz   \  |   |                   |             |
---               |  |    ____________________________      \|   |       _____       |             |
---               |  |   |                            |      |   |      |     |      |             |
---               |  |---|                            |      |   |      |     |      |             |
---               |  |   |                            |      |   |      |     |      |             |
---         FMC1  |  |   |      TDC mezzanine 1       |\     |   |      |     |      |             |
---               |  |   |          wrapper           | \    |   |      |     |      |             |
---               |  |   |                            |   \  |   |      |     |      |             |
---               |  |---|                            |    \ |   |      |     |      |             |
---               |  |   |____________________________|     \|   |      |     |      |             |
---               |  |                                       |   |      |     |      |             |
---               |  |    ____________________________       |   |      |     |      |             |
---               |  |   |                            |      |   |      |     |      |             |
---               |  |   |                            |      |   |      |     |      |             |
---               |  |---|                            |      | S |      |  V  |      |             |
---         FMC2  |  |   |     TDC mezzanine 2        | ---- |   |      |     |      |             |
---               |  |   |         wrapper            |      |   |      |     |      |             |
---               |  |   |                            |      |   |      |     |      |             |
---               |  |---|                            |      |   |      |     |      |             |
---               |      |____________________________|      | D | <--> |  M  |      |             |
---               |                                          |   |      |     |      |             |
---               |       ____________________________       |   |      |     |      |             |
---               |      |                            |      |   |      |     |      |             |
---               |      |             VIC            | ---- | B |      |  E  |      |             |
---               |      |____________________________|      |   |      |     |      |             |
---               |                             62.5MHz      |   |      |     |      |             |
---               |       ____________________________    /  |   |      |     |      |             |
---               |      |                            |  /   |   |      |     |      |             |
---               |      |        carrier_info        | /    |   |      |     |      |             |
---               |      |____________________________|      |   |      |     |      |             |
---               |                            62.5MHz       |___|      |_____|      |             |
---               |                                         62.5MHZ     62.5MHz      |             |
---               |      ______________________________________________              |             |
---               |     |___________________LEDs_______________________|             |             |
---               |                                                                  |             |
---               |__________________________________________________________________|             |
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+--
+--              The 62.5 MHz clock comes from an internal Xilinx FPGA PLL, using the 20MHz VCXO of
+--              the SVEC board.
+--
+--              The 125 MHz clock for each TDC mezzanine comes from the PLL located on it.
+--
+--              Upon powering up of the FPGA as well as after a VME reset, the whole logic gets
+--              reset (FMC1 125 MHz, FMC2 125 MHz and 62.5 MHz). This also triggers a
+--              reprogramming of the mezzanines' PLL through the clks_rsts_manager units.
+--              An extra software reset is implemented for the TDC mezzanine cores, using the
+--              reset bits of the carrier_info core. Such a reset also triggers the reprogramming
+--              of the mezzanines' PLL.
 ---------------------------------------------------------------------------------------------------
 
 --=================================================================================================

@@ -2,18 +2,10 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
--------------------------------------------------------------------------------
--- Title      : Pipelined timestamp subtractor
--- Project    : FMC TDC Core
--------------------------------------------------------------------------------
--- File       : tdc_ts_sub.vhd
--- Author     : Tomasz Wlostowski
--- Company    : CERN
--- Created    : 2011-08-29
--- Last update: 2019-09-29
--- Platform   : FPGA-generic
--- Standard   : VHDL'93
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- Title      : Pipelined timestamp adder (adds q = a + b, b can be NEGATIVE)
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- Description: Pipelined timestamp adder with re-normalization of the result.
 -- Adds a to b, producing normalized timestamp q. A timestmap is normalized when
 -- the 0 <= frac < g_frac_range, 0 <= coarse <= g_coarse_range-1 and utc >= 0.
@@ -23,25 +15,7 @@
 -- 2. 0 <= a_frac < g_frac_range
 -- 3. -g_frac_range / 2 <= b_frac < g_frac_range / 2
 -- 4. -g_coarse_range+1 <= (a_coarse + b_coarse) <= 3*g_coarse_range-1
--------------------------------------------------------------------------------
---
--- Copyright (c) 2011 CERN / BE-CO-HT
--- This source file is free software; you can redistribute it
--- and/or modify it under the terms of the GNU Lesser General
--- Public License as published by the Free Software Foundation;
--- either version 2.1 of the License, or (at your option) any
--- later version.
---
--- This source is distributed in the hope that it will be
--- useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
--- PURPOSE.  See the GNU Lesser General Public License for more
--- details.
---
--- You should have received a copy of the GNU Lesser General
--- Public License along with this source; if not, download it
--- from http://www.gnu.org/licenses/lgpl-2.1.html
---
+---------------------------------------------------------------------------------------------------
 
 
 library ieee;

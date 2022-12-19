@@ -2,54 +2,29 @@
 --
 -- SPDX-License-Identifier: CERN-OHL-W-2.0+
 
---_________________________________________________________________________________________________
---                                                                                                |
---                                           |TDC core|                                           |
---                                                                                                |
---                                         CERN,BE/CO-HT                                          |
---________________________________________________________________________________________________|
-
 ---------------------------------------------------------------------------------------------------
---                                                                                                |
---                                       clks_rsts_manager                                        |
---                                                                                                |
+-- Title      :         clks_rsts_manager.vhd
 ---------------------------------------------------------------------------------------------------
--- File         clks_rsts_manager.vhd                                                             |
---                                                                                                |
--- Description  Independent block that uses the clk_sys_i to parametrize the PLL and DAC on the   |
---              TDC mezzanine.                                                                    |
---                                                                                                |
---              The PLL is programmed to generate a 125 MHz clock that arrives to the FPGA and    |
---              is used by all the other units of the TDC core.                                   |
---              It is also programmed to generate a 31.25 MHz clock which is the reference clock  |
---              for the ACAM chip.                                                                |
---              The registers for programming the PLL are hard-coded in this unit.                |
---                                                                                                |
---              Regarding the DAC, it needs one 23-bit-long word for its configuration. This      |
---              word along with the command for the configuration can be sent through the         |
---              PCIe/VME interface, or automatically through the White Rabbit core.               |
---                                                                                                |
---              Note that the PLL needs to be configured on the falling edges of the sclk clock,  |
---              whereas the DAC on the rising edges.                                              |
---                                                                                                |
---              The unit also generates of a global internal reset signal for the TDC core.       |
---              This internal reset is triggered by a GN4124/VME interface reset or by a          |
---              Power On Reset at startup and it remains asserted until the 125 MHz clock signal  |
---              received from the PLL is stable (PLL lock).                                       |
---                                                                                                |
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
---                               GNU LESSER GENERAL PUBLIC LICENSE                                |
---                              ------------------------------------                              |
--- This source file is free software; you can redistribute it and/or modify it under the terms of |
--- the GNU Lesser General Public License as published by the Free Software Foundation; either     |
--- version 2.1 of the License, or (at your option) any later version.                             |
--- This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;       |
--- without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.      |
--- See the GNU Lesser General Public License for more details.                                    |
--- You should have received a copy of the GNU Lesser General Public License along with this       |
--- source; if not, download it from http://www.gnu.org/licenses/lgpl-2.1.html                     |
+-- Description: Independent block that uses the clk_sys_i to parametrize the PLL and DAC on the
+--              TDC mezzanine
+--
+--              The PLL is programmed to generate a 125 MHz clock that arrives to the FPGA and
+--              is used by all the other units of the TDC core.
+--              It is also programmed to generate a 31.25 MHz clock which is the reference clock
+--              for the ACAM chip.
+--              The registers for programming the PLL are hard-coded in this unit.
+--
+--              Regarding the DAC, it needs one 23-bit-long word for its configuration. This
+--              word along with the command for the configuration can be sent through the
+--              PCIe/VME interface, or automatically through the White Rabbit core.
+--
+--              Note that the PLL needs to be configured on the falling edges of the sclk clock,
+--              whereas the DAC on the rising edges.
+--
+--              The unit also generates of a global internal reset signal for the TDC core.
+--              This internal reset is triggered by a GN4124/VME interface reset or by a
+--              Power On Reset at startup and it remains asserted until the 125 MHz clock signal
+--              received from the PLL is stable (PLL lock).
 ---------------------------------------------------------------------------------------------------
 
 
