@@ -104,10 +104,11 @@ class TestFmctdcAcquisition(object):
         assert len(ts) == count
 
     @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
-    def test_acq_timestamp_seq_num(self, fmctdc_chan, fmcfd, period_ns, count):
-        """Check that unders a controlled acquisiton the sequence
-        number of each timestamps increase by 1. Test 100 milli-second
-        acquisition at different frequencies"""
+    def test_acq_timestamp_valid(self, fmctdc_chan, fmcfd, period_ns, count):
+        """Check that under a controlled acquisiton the timestamps and their
+        metadata is valid. Coars and franc within range, and the sequence
+        number increases by 1 Test 100 milli-second acquisition at different
+        frequencies"""
         fmctdc_chan.buffer_len =  max(count + 1, 64)
         prev = None
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
@@ -115,6 +116,8 @@ class TestFmctdcAcquisition(object):
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
         assert len(ts) == count
         for i in  range(len(ts)):
+            assert 0 <= ts[i].coarse < 125000000
+            assert 0 <= ts[i].frac < 4096
             if prev == None:
                 prev = ts[i]
                 continue
