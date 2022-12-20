@@ -93,17 +93,6 @@ class TestFmctdcAcquisition(object):
         assert stats_before[0] + count == stats_after[0]
 
     @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
-    def test_acq_chan_read_count(self, fmctdc_chan, fmcfd, period_ns, count):
-        """Check that unders a controlled acquisiton the number of read
-        timestamps is correct. Test 100 milli-second acquisition at different
-        frequencies"""
-        fmctdc_chan.buffer_len =  max(count + 1, 64)
-        fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
-                             period_ns, count, True)
-        ts = fmctdc_chan.read(count, os.O_NONBLOCK)
-        assert len(ts) == count
-
-    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
     def test_acq_timestamp_valid(self, fmctdc_chan, fmcfd, period_ns, count):
         """Check that under a controlled acquisiton the timestamps and their
         metadata is valid. Coars and franc within range, and the sequence
