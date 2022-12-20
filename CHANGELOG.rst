@@ -6,6 +6,33 @@
 Changelog
 =========
 
+8.0.1 - 2022-12-20
+==================
+
+Added
+-----
+- hdl: bitstreams now published under https://be-cem-edl.web.cern.ch/
+- doc: now published under https://be-cem-edl.web.cern.ch/
+- sw: support for newer Linux kernels
+- tst: timestamp validation
+
+Removed
+-------
+- sw: ZIO dependency
+
+Changed
+-------
+- bld: many improvements to CI
+- bld: build system cleanup
+- hdl: update to latest releases of all dependencies
+- hdl: introduced FMC presence status to direct readout interface
+- tst: improved performance
+
+Fixed
+-----
+- hdl: fixed wrong reset logic
+- sw: fixes from cppcheck and flawfinder report
+
 8.0.0 - 2022-07-06
 ==================
 Added

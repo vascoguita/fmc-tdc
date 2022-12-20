@@ -26,6 +26,11 @@ project = 'FMC-TDC 1ns 5cha'
 copyright = u'2022, CERN, documentation released under CC-BY-SA-4.0'
 author = 'Federico Vaga <federico.vaga@cern.ch>'
 
+import re
+
+release = os.popen('git describe --tags').read().strip()
+version = re.sub('^v', '', release.split('-')[0])
+
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
@@ -109,3 +114,6 @@ breathe_projects_source = {
 }
 
 breathe_default_project = "fmctdc-lib"
+
+# Will be appended to every rst source file in order to provide a reference to the latest version
+rst_epilog = '.. |latest_release| replace:: %s' % version
