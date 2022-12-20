@@ -13,26 +13,28 @@ from PyFmcTdc import FmcTdc, FmcTdcTime
 
 TDC_FD_CABLING = [1, 2, 3, 4, 4]
 
-fmctdc_acq_100ns_spec = [(200, 65000),
-                         (250, 65000),
-                         (500, 65000),
-                         (1000, 65000),
-                         (1700, 65000),
+fmctdc_acq_100ns_spec = [(200, 65000),    #   5 MHz
+                         (250, 65000),    #   4 MHz
+                         (500, 65000),    #   2 MHz
+                         (1000, 65000),   #   1 Mhz
+                         (1700, 65000),   # 588 kHz
                          # Let's keep the test within 100ms duration
                          # vvvvvvvvvvv
-                         (1875, 60000),
-                         (2500, 40000),
-                         (5000, 20000),
-                         (10000, 10000),
-                         (12500, 8000),
-                         (100000, 1000),
-                         (1000000, 100),
-                         (10000000, 10)]
+                         (1875, 60000),   # 533 khz
+                         (2500, 40000),   # 400 kHz
+                         (5000, 20000),   # 200 khz
+                         (10000, 10000),  # 100 kHz
+                         (12500, 8000),   #  80 kHz
+                         (20000, 5000),   #  50 kHz
+                         (100000, 1000),  #  10 kHz
+                         (1000000, 100),  #   1 kHz
+                         (10000000, 10)]  # 100  Hz
 
-fmctdc_acq_100ns_svec = [(12500, 8000),
-                         (100000, 1000),
-                         (1000000, 100),
-                         (10000000, 10)]
+fmctdc_acq_100ns_svec = [(13333, 8000),   #  75 kHz
+                         (20000, 5000),   #  50 kHz
+                         (100000, 1000),  #  10 kHz
+                         (1000000, 100),  #   1 kHz
+                         (10000000, 10)]  # 100  Hz
 
 fmctdc_acq_100ns = fmctdc_acq_100ns_svec if pytest.transfer_mode == "fifo" else fmctdc_acq_100ns_spec
 
@@ -73,22 +75,29 @@ class TestFmctdcAcquisition(object):
         stats_after = fmctdc_chan.stats
         assert stats_before[0] + count == stats_after[0]
 
-    @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
-    def test_acq_chan_read_count(self, fmctdc_chan, fmcfd, period_ns, count):
-        """Check that unders a controlled acquisiton the number of read
-        timestamps is correct. Test 100 milli-second acquisition at different
-        frequencies"""
-        fmctdc_chan.buffer_len =  max(count + 1, 64)
+    @pytest.mark.skipif(pytest.carrier != "spec" or \
+                        pytest.transfer_mode != "dma",
+                        reason="Only SPEC with DMA can perform this test")
+    @pytest.mark.parametrize("period_ns", [200, 250, 500, 1000])
+    @pytest.mark.repeat(100)
+    def test_acq_chan_high_speed(self, fmctdc_chan, fmcfd, period_ns):
+        """Check that at hign speed we get all samples. Do it many times.
+        We could use the infinite feature, but it will be then hard to see
+        if we missed a timestamp or not. this is a fine-delay limitation"""
+        count = 0xFFFF
+        stats_before = fmctdc_chan.stats
+        fmctdc_chan.buffer_len =  count + 1
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
                              period_ns, count, True)
-        ts = fmctdc_chan.read(count, os.O_NONBLOCK)
-        assert len(ts) == count
+        stats_after = fmctdc_chan.stats
+        assert stats_before[0] + count == stats_after[0]
 
     @pytest.mark.parametrize("period_ns,count", fmctdc_acq_100ns)
-    def test_acq_timestamp_seq_num(self, fmctdc_chan, fmcfd, period_ns, count):
-        """Check that unders a controlled acquisiton the sequence
-        number of each timestamps increase by 1. Test 100 milli-second
-        acquisition at different frequencies"""
+    def test_acq_timestamp_valid(self, fmctdc_chan, fmcfd, period_ns, count):
+        """Check that under a controlled acquisiton the timestamps and their
+        metadata is valid. Coars and franc within range, and the sequence
+        number increases by 1 Test 100 milli-second acquisition at different
+        frequencies"""
         fmctdc_chan.buffer_len =  max(count + 1, 64)
         prev = None
         fmcfd.generate_pulse(TDC_FD_CABLING[fmctdc_chan.idx], 1000,
@@ -96,6 +105,8 @@ class TestFmctdcAcquisition(object):
         ts = fmctdc_chan.read(count, os.O_NONBLOCK)
         assert len(ts) == count
         for i in  range(len(ts)):
+            assert 0 <= ts[i].coarse < 125000000
+            assert 0 <= ts[i].frac < 4096
             if prev == None:
                 prev = ts[i]
                 continue
