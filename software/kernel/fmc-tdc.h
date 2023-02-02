@@ -383,6 +383,8 @@ static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
 }
 
+extern int ft_temperature_get(struct fmctdc_dev *ft, int *temp);
+
 #endif // __KERNEL__
 
 #endif // __FMC_TDC_H__

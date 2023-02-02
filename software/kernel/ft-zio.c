@@ -124,7 +124,7 @@ static int ft_raw_mode_get(struct fmctdc_dev *ft,
 
 
 
-static int ft_temperature_get(struct fmctdc_dev *ft, int *temp)
+int ft_temperature_get(struct fmctdc_dev *ft, int *temp)
 {
 	int stat = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_CSR);
 
