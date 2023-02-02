@@ -124,16 +124,16 @@ static int ft_raw_mode_get(struct fmctdc_dev *ft,
 
 
 
-int ft_temperature_get(struct fmctdc_dev *ft, int *temp)
+int ft_temperature_get(struct fmctdc_dev *ft)
 {
 	int stat = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_CSR);
 
 	if (!(stat & TDC_OW_CSR_VALID))
 		return -EIO;
 
-	*temp = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_TEMP);
+	ft->temp = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_TEMP);
 
-	return 0;
+	return ft->temp;
 }
 
 static int ft_unique_id_get(struct fmctdc_dev *ft, uint64_t *id)
@@ -212,10 +212,9 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 		*usr_val = ft->mode;
 		break;
 	case FT_ATTR_PARAM_TEMP:
-		ret = ft_temperature_get(ft, &ft->temp);
+		ret = ft_temperature_get(ft);
 		if (ret < 0)
 			return ret;
-		*usr_val = ft->temp;
 		break;
 	case FT_ATTR_DEV_COARSE:
 	case FT_ATTR_DEV_SECONDS:
