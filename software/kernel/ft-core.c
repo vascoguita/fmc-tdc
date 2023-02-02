@@ -491,6 +491,13 @@ int ft_probe(struct platform_device *pdev)
 	ft_writel(ft, TDC_CTRL_EN_ACQ, TDC_REG_CTRL);
 
 	platform_set_drvdata(pdev, ft);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
+	ret = ft_hwmon_init(ft);
+	if(ret != 0)
+		dev_err(dev, "Could not create HWMON device: %d", ret);
+#endif
+
 	return 0;
 
 err:

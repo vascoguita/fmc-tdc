@@ -254,6 +254,7 @@ struct fmctdc_dev {
 	/* next temperature measurement pending? */
 	unsigned long next_t;
 	/* temperature, degrees Celsius scaled by 16 and its ready flag */
+	struct device *hwmon_dev;
 	int temp;
 	int temp_ready;
 	/* output lots of debug stuff? */
@@ -384,6 +385,10 @@ static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
 }
 
 extern int ft_temperature_get(struct fmctdc_dev *ft);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
+extern int ft_hwmon_init(struct fmctdc_dev *fd);
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0) */
 
 #endif // __KERNEL__
 
