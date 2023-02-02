@@ -3,6 +3,8 @@
 
 /*
  * Author: Vaibhav Gupta <vaibhav.gupta@cern.ch>
+ *
+ * Hardware Monitoring for ft-dev
  */
 
 #include <linux/hwmon.h>
@@ -30,29 +32,13 @@ static int ft_hwmon_temp_read(struct device *dev, enum hwmon_sensor_types type,
 	return 0;
 }
 
-static char *ft_hwmon_temp_sensor_id;
-
 static int ft_hwmon_temp_sensor_id_read(struct device *dev,
 				   enum hwmon_sensor_types type,
 				   u32 attr, int channel, const char **str)
 {
-	int size;
-	char device_type[] = "Temperature - FMC TDC - ";
 	struct fmctdc_dev *ft = dev_get_drvdata(dev);
 
-	size = strlen(dev_name(&ft->slot->dev));
-	size += strlen(device_type);
-	size++;
-
-	ft_hwmon_temp_sensor_id = kzalloc(size, GFP_KERNEL);
-
-	if(!ft_hwmon_temp_sensor_id)
-		return -ENOMEM;
-
-	snprintf(ft_hwmon_temp_sensor_id, size, "%s%s",
-		 device_type, dev_name(&ft->slot->dev));
-
-	*str = ft_hwmon_temp_sensor_id;
+	*str = ft->hwmon_temp_sensor_id;
 
 	return 0;
 }
@@ -75,13 +61,34 @@ static const struct hwmon_chip_info ft_hwmon_temp_chip_info = {
 
 int ft_hwmon_init(struct fmctdc_dev *ft)
 {
+	int size;
+	char device_type[] = "Temperature - FMC TDC 1NS 5CHA - ";
 	struct device *dev = &ft->pdev->dev;
+
 	ft->hwmon_dev = devm_hwmon_device_register_with_info(dev,
 							     "ft_temperature",
 							     ft,
 							     &ft_hwmon_temp_chip_info,
 							     NULL);
-	return PTR_ERR_OR_ZERO(ft->hwmon_dev);
+	if(!IS_ERR(ft->hwmon_dev)) {
+		size = strlen(dev_name(&ft->slot->dev));
+		size += strlen(device_type);
+		size++;
+
+		ft->hwmon_temp_sensor_id = devm_kzalloc(ft->hwmon_dev,
+							size, GFP_KERNEL);
+		if(!ft->hwmon_temp_sensor_id) {
+			devm_hwmon_device_unregister(dev);
+			return -ENOMEM;
+		}
+
+		snprintf(ft->hwmon_temp_sensor_id, size, "%s%s",
+			 device_type, dev_name(&ft->slot->dev));
+
+		return 0;
+	}
+
+	return PTR_ERR(ft->hwmon_dev);
 }
 
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0) */

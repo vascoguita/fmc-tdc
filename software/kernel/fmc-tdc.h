@@ -254,9 +254,11 @@ struct fmctdc_dev {
 	/* next temperature measurement pending? */
 	unsigned long next_t;
 	/* temperature, degrees Celsius scaled by 16 and its ready flag */
-	struct device *hwmon_dev;
 	int temp;
 	int temp_ready;
+
+	char *hwmon_temp_sensor_id;
+	struct device *hwmon_dev;
 	/* output lots of debug stuff? */
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
