@@ -30,7 +30,7 @@ static int ft_hwmon_temp_read(struct device *dev, enum hwmon_sensor_types type,
 	if(ret < 0)
 		dev_err(dev, "Could not read temperature: %d", ret);
 	else
-		*val = (long)value;
+		*val = (long)value * 1000 / 16;
 
 	return 0;
 }
