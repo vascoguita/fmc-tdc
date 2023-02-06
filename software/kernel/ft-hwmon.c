@@ -22,12 +22,15 @@ static umode_t ft_hwmon_temp_is_visible(const void *_data,
 static int ft_hwmon_temp_read(struct device *dev, enum hwmon_sensor_types type,
 				u32 attr, int channel, long *val)
 {
+	int value, ret;
 	struct fmctdc_dev *ft = dev_get_drvdata(dev);
 
-	*val = ft_temperature_get(ft);
+	ret = ft_temperature_get(ft, &value);
 
-	if(*val < 0)
-		dev_err(dev, "Could not read temperature: %d", -EIO);
+	if(ret < 0)
+		dev_err(dev, "Could not read temperature: %d", ret);
+	else
+		*val = (long)value;
 
 	return 0;
 }
