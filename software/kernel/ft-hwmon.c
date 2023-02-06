@@ -61,7 +61,6 @@ static const struct hwmon_chip_info ft_hwmon_temp_chip_info = {
 
 int ft_hwmon_init(struct fmctdc_dev *ft)
 {
-	int size;
 	char device_type[] = "Temperature - FMC TDC 1NS 5CHA - ";
 	struct device *dev = &ft->pdev->dev;
 
@@ -71,19 +70,15 @@ int ft_hwmon_init(struct fmctdc_dev *ft)
 							     &ft_hwmon_temp_chip_info,
 							     NULL);
 	if(!IS_ERR(ft->hwmon_dev)) {
-		size = strlen(dev_name(&ft->slot->dev));
-		size += strlen(device_type);
-		size++;
-
-		ft->hwmon_temp_sensor_id = devm_kzalloc(ft->hwmon_dev,
-							size, GFP_KERNEL);
+		ft->hwmon_temp_sensor_id = devm_kasprintf(ft->hwmon_dev,
+							  GFP_KERNEL,
+							  "%s%s",
+							  device_type,
+							  dev_name(&ft->slot->dev));
 		if(!ft->hwmon_temp_sensor_id) {
 			devm_hwmon_device_unregister(dev);
 			return -ENOMEM;
 		}
-
-		snprintf(ft->hwmon_temp_sensor_id, size, "%s%s",
-			 device_type, dev_name(&ft->slot->dev));
 
 		return 0;
 	}
