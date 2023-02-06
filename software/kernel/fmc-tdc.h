@@ -253,10 +253,7 @@ struct fmctdc_dev {
 	uint8_t ds18_id[8];
 	/* next temperature measurement pending? */
 	unsigned long next_t;
-	/* temperature, degrees Celsius scaled by 16 and its ready flag */
-	int temp;
-	int temp_ready;
-
+	/* Hardware Monitoring */
 	char *hwmon_temp_sensor_id;
 	struct device *hwmon_dev;
 	/* output lots of debug stuff? */
