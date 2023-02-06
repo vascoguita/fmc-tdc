@@ -386,7 +386,7 @@ static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
 }
 
-extern int ft_temperature_get(struct fmctdc_dev *ft);
+extern int ft_temperature_get(struct fmctdc_dev *ft, int *temp);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
 extern int ft_hwmon_init(struct fmctdc_dev *fd);
