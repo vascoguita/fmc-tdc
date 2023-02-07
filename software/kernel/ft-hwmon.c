@@ -66,11 +66,11 @@ static const struct hwmon_chip_info ft_hwmon_temp_chip_info = {
 
 int ft_hwmon_init(struct fmctdc_dev *ft)
 {
-	char device_type[] = "Temperature - FMC TDC 1NS 5CHA - ";
+	char device_type[] = "Temperature - ";
 	struct device *dev = &ft->pdev->dev;
 
 	ft->hwmon_dev = devm_hwmon_device_register_with_info(dev,
-							     "ft_temperature",
+							     "FMC_TDC_1NS_5CHA",
 							     ft,
 							     &ft_hwmon_temp_chip_info,
 							     NULL);
