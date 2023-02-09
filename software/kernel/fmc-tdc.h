@@ -253,9 +253,9 @@ struct fmctdc_dev {
 	uint8_t ds18_id[8];
 	/* next temperature measurement pending? */
 	unsigned long next_t;
-	/* temperature, degrees Celsius scaled by 16 and its ready flag */
-	int temp;
-	int temp_ready;
+	/* Hardware Monitoring */
+	char *hwmon_temp_sensor_id;
+	struct device *hwmon_dev;
 	/* output lots of debug stuff? */
 	struct ft_channel_state channels[FT_NUM_CHANNELS];
 	int wr_mode;
@@ -382,6 +382,12 @@ static inline void ft_disable(struct fmctdc_dev *ft, unsigned int chan)
 	ien &= ~(TDC_INPUT_ENABLE_CH1 << chan);
 	ft_writel(ft, ien, TDC_REG_INPUT_ENABLE);
 }
+
+extern int ft_temperature_get(struct fmctdc_dev *ft, int *temp);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
+extern int ft_hwmon_init(struct fmctdc_dev *fd);
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0) */
 
 #endif // __KERNEL__
 

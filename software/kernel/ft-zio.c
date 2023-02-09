@@ -124,7 +124,7 @@ static int ft_raw_mode_get(struct fmctdc_dev *ft,
 
 
 
-static int ft_temperature_get(struct fmctdc_dev *ft, int *temp)
+int ft_temperature_get(struct fmctdc_dev *ft, int *temp)
 {
 	int stat = ft_ioread(ft, ft->ft_owregs_base + TDC_OW_REG_CSR);
 
@@ -198,7 +198,7 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 	struct zio_device *zdev;
 	struct fmctdc_dev *ft;
 	struct zio_attribute *attr;
-	int ret;
+	int ret, val;
 
 	if (__ft_get_type(dev) == FT_TYPE_INPUT)
 		return ft_zio_info_channel(dev, zattr, usr_val);
@@ -212,10 +212,10 @@ static int ft_zio_info_get(struct device *dev, struct zio_attribute *zattr,
 		*usr_val = ft->mode;
 		break;
 	case FT_ATTR_PARAM_TEMP:
-		ret = ft_temperature_get(ft, &ft->temp);
+		ret = ft_temperature_get(ft, &val);
 		if (ret < 0)
 			return ret;
-		*usr_val = ft->temp;
+		*usr_val = val;
 		break;
 	case FT_ATTR_DEV_COARSE:
 	case FT_ATTR_DEV_SECONDS:
