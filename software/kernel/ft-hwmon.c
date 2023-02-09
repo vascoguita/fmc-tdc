@@ -66,7 +66,6 @@ static const struct hwmon_chip_info ft_hwmon_temp_chip_info = {
 
 int ft_hwmon_init(struct fmctdc_dev *ft)
 {
-	char device_type[] = "Temperature - ";
 	struct device *dev = &ft->pdev->dev;
 
 	ft->hwmon_dev = devm_hwmon_device_register_with_info(dev,
@@ -77,8 +76,7 @@ int ft_hwmon_init(struct fmctdc_dev *ft)
 	if(!IS_ERR(ft->hwmon_dev)) {
 		ft->hwmon_temp_sensor_id = devm_kasprintf(ft->hwmon_dev,
 							  GFP_KERNEL,
-							  "%s%s",
-							  device_type,
+							  "Temperature [%s]",
 							  dev_name(&ft->slot->dev));
 		if(!ft->hwmon_temp_sensor_id) {
 			devm_hwmon_device_unregister(dev);
