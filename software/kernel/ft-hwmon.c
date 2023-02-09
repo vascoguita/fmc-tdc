@@ -25,6 +25,20 @@ static int ft_hwmon_temp_read(struct device *dev, enum hwmon_sensor_types type,
 	int value, ret;
 	struct fmctdc_dev *ft = dev_get_drvdata(dev);
 
+	switch(attr) {
+		case hwmon_temp_min:
+			*val = -25*1000;
+			return 0;
+
+		case hwmon_temp_max:
+			*val = 60*1000;
+			return 0;
+
+		case hwmon_temp_crit:
+			*val = 65*1000;
+			return 0;
+	}
+
 	ret = ft_temperature_get(ft, &value);
 
 	if(ret < 0) {
@@ -49,7 +63,8 @@ static int ft_hwmon_temp_sensor_id_read(struct device *dev,
 }
 
 static const struct hwmon_channel_info *ft_hwmon_info[] = {
-	HWMON_CHANNEL_INFO(temp, HWMON_T_INPUT | HWMON_T_LABEL),
+	HWMON_CHANNEL_INFO(temp, HWMON_T_INPUT | HWMON_T_LABEL | HWMON_T_MIN |
+			   HWMON_T_MAX | HWMON_T_CRIT),
 	NULL
 };
 
