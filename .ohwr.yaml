@@ -1,0 +1,86 @@
+---
+# SPDX-FileCopyrightText: 2023 CERN (home.cern)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+# The version of the .ohwr.yaml template.
+version: '1.0.0'
+
+project:
+
+  # The name of your project.
+  name: 'FMC Time to Digital Converter | FMC TDC 1ns 5cha'
+
+  # The description of your project. There are 2 options:
+  #   * Enter an inline Markdown description (like in the example below).
+  #   * Enter the URL of the Markdown file containing the description
+  #     (e.g. 'https://raw.githubusercontent.com/user/project/master/.ohwr/description.md').
+  description: |
+    The FMC TDC 1ns 5cha Time to Digital Converter mezzanine board houses 5 input channels. It can calculate time
+    differences between pulses arriving to the channels with a precision of ±700 ps.
+    
+    It can be carried by any of the carrier boards: [SPEC]({{< ref "/projects/spec" >}}) or
+    [SVEC]({{< ref "/projects/svec" >}}). It is implemented using a dedicated time-to-digital converter chip from
+    the European company [ACAM](http://www.acam.de/index.php?id=22&L=0).
+
+  # The website of your project.
+  # Use the web page of your git repository if your project doesn't have dedicated website
+  # (e.g. 'https://github.com/user/project').
+  website: 'https://ohwr.org/project/fmc-tdc'
+
+  # The licenses of your project. Use SPDX identifiers - https://spdx.org/licenses/.
+  licenses:
+    - 'CC-BY-SA-4.0'
+    - 'CERN-OHL-W-2.0'
+    - 'GPL-2.0-or-later'
+    - 'LGPL-2.1-or-later'
+
+  # (optional) Image of your project (e.g. a photo of the latest prototype).
+  image: 'https://ohwr.org/project/fmc-tdc/uploads/4b197628f86ba882512ac7639047bedc/EDA-02290-V2_Top.jpg'
+
+  # (optional) Link to the documentation of your project.
+  documentation: 'https://ohwr.org/project/fmc-tdc/wikis'
+
+  # (optional) Link to the issue/bug tracker of your project.
+  issues: 'https://ohwr.org/project/fmc-tdc/issues'
+
+  # (optional) Link to the latest release of your project.
+  latest_release: 'https://ohwr.org/project/fmc-tdc/tags/v8.0.1'
+
+  # (optional) Link to the forum where your community has conversations, asks questions and posts answers.
+  forum: 'https://forums.ohwr.org/c/fmc-tdc'
+
+  # (optional) Link to the news page of your project.
+  news: 'https://ohwr.org/project/fmc-tdc/wikis/home#project-status'
+
+  # (optional) Addtional links.
+  links:
+    - name: '📎 v8 Performance'
+      url: 'https://ohwr.org/project/fmc-tdc/wikis/uploads/83a32a976348f2c5484a470e68da0518/tdc_performance_report_v8.0.0.pdf'
+    - name: '📎 v7 Hardware, Gateware and Software long runs on SVEC'
+      url: 'https://www.ohwr.org/project/fmc-tdc/uploads/b08624193e2e48947a11708639d96921/LongRunsOnSVEC.pdf'
+    - name: '📎 v7 TDC Precision'
+      url: 'https://www.ohwr.org/project/fmc-tdc/uploads/a3b1bc0987d7cd2290d3394d73d835c8/TDCprecision.pdf'
+    - name: '📎 v7 TDC Performance'
+      url: 'https://www.ohwr.org/project/fmc-tdc/uploads/5bf6bf0a2d633382987f09a0915e20d8/TDCperformance.pdf'
+    - name: 'How to set up the spec and fmc tdc with epics'
+      url: 'https://ohwr.org/project/fmc-tdc/wikis/how-to-set-up-the-spec-and-fmc-tdc-with-epics'
+
+  # (optional) Additional images (maximum 5 images).
+  gallery:
+    - 'https://ohwr.org/project/fmc-tdc/uploads/ac158eb4e90965e0ccbda0966e3326cf/CarriersWithTDC2.jpg'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/d42ed47b587c4d9a8b6790159f9b5b1b/TDC_TopView.png'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/a4b80f56b4bcb1b3929e9f2d6fb9c924/tdc_front.JPG'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/ac2a01312fd125340fa251ef969ec7f0/tdc_front-crop.JPG'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/4b197628f86ba882512ac7639047bedc/EDA-02290-V2_Top.jpg'
+
+  # (optional) Categories to which your project belongs.
+  # (e.g. 'FMC Carriers').
+  categories:
+    - 'FMC Modules'
+
+  # (optional) Tags that characterize your project.
+  # (e.g. 'ethernet').
+  tags:
+    - 'TDC'
+    - 'FMC'
