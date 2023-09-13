@@ -35,8 +35,14 @@ project:
     - 'GPL-2.0-or-later'
     - 'LGPL-2.1-or-later'
 
-  # (optional) Image of your project (e.g. a photo of the latest prototype).
-  image: 'https://ohwr.org/project/fmc-tdc/uploads/4b197628f86ba882512ac7639047bedc/EDA-02290-V2_Top.jpg'
+  # (optional) Images of your project (e.g. a photo of the latest prototype).
+  images:
+    - 'https://ohwr.org/project/fmc-tdc/uploads/4b197628f86ba882512ac7639047bedc/EDA-02290-V2_Top.jpg'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/ac158eb4e90965e0ccbda0966e3326cf/CarriersWithTDC2.jpg'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/d42ed47b587c4d9a8b6790159f9b5b1b/TDC_TopView.png'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/a4b80f56b4bcb1b3929e9f2d6fb9c924/tdc_front.JPG'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/ac2a01312fd125340fa251ef969ec7f0/tdc_front-crop.JPG'
+    - 'https://ohwr.org/project/fmc-tdc/uploads/4b197628f86ba882512ac7639047bedc/EDA-02290-V2_Top.jpg'
 
   # (optional) Link to the documentation of your project.
   documentation: 'https://ohwr.org/project/fmc-tdc/wikis'
@@ -75,15 +81,7 @@ project:
       url: 'https://www.ohwr.org/project/fmc-tdc/uploads/5bf6bf0a2d633382987f09a0915e20d8/TDCperformance.pdf'
     - name: 'How to set up the spec and fmc tdc with epics'
       url: 'https://ohwr.org/project/fmc-tdc/wikis/how-to-set-up-the-spec-and-fmc-tdc-with-epics'
-
-  # (optional) Additional images (maximum 5 images).
-  gallery:
-    - 'https://ohwr.org/project/fmc-tdc/uploads/ac158eb4e90965e0ccbda0966e3326cf/CarriersWithTDC2.jpg'
-    - 'https://ohwr.org/project/fmc-tdc/uploads/d42ed47b587c4d9a8b6790159f9b5b1b/TDC_TopView.png'
-    - 'https://ohwr.org/project/fmc-tdc/uploads/a4b80f56b4bcb1b3929e9f2d6fb9c924/tdc_front.JPG'
-    - 'https://ohwr.org/project/fmc-tdc/uploads/ac2a01312fd125340fa251ef969ec7f0/tdc_front-crop.JPG'
-    - 'https://ohwr.org/project/fmc-tdc/uploads/4b197628f86ba882512ac7639047bedc/EDA-02290-V2_Top.jpg'
-
+  
   # (optional) Categories to which your project belongs.
   # (e.g. 'FMC Carriers').
   categories:
