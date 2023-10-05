@@ -16,7 +16,7 @@ project:
   #   * Enter the URL of the Markdown file containing the description
   #     (e.g. 'https://raw.githubusercontent.com/user/project/master/.ohwr/description.md').
   description: |
-    The FMC TDC 1ns 5cha Time to Digital Converter mezzanine board houses 5 input channels. It can calculate time
+    The **FMC TDC 1ns 5cha Time to Digital Converter** mezzanine board houses 5 input channels. It can calculate time
     differences between pulses arriving to the channels with a precision of ±700 ps.
     
     It can be carried by any of the carrier boards: [SPEC]({{< ref "/projects/spec" >}}) or
@@ -71,13 +71,13 @@ project:
 
   # (optional) Addtional links.
   links:
-    - name: '📎 v8 Performance'
+    - name: 'v8 Performance'
       url: 'https://ohwr.org/project/fmc-tdc/wikis/uploads/83a32a976348f2c5484a470e68da0518/tdc_performance_report_v8.0.0.pdf'
-    - name: '📎 v7 Hardware, Gateware and Software long runs on SVEC'
+    - name: 'v7 Hardware, Gateware and Software long runs on SVEC'
       url: 'https://www.ohwr.org/project/fmc-tdc/uploads/b08624193e2e48947a11708639d96921/LongRunsOnSVEC.pdf'
-    - name: '📎 v7 TDC Precision'
+    - name: 'v7 TDC Precision'
       url: 'https://www.ohwr.org/project/fmc-tdc/uploads/a3b1bc0987d7cd2290d3394d73d835c8/TDCprecision.pdf'
-    - name: '📎 v7 TDC Performance'
+    - name: 'v7 TDC Performance'
       url: 'https://www.ohwr.org/project/fmc-tdc/uploads/5bf6bf0a2d633382987f09a0915e20d8/TDCperformance.pdf'
     - name: 'How to set up the spec and fmc tdc with epics'
       url: 'https://ohwr.org/project/fmc-tdc/wikis/how-to-set-up-the-spec-and-fmc-tdc-with-epics'
