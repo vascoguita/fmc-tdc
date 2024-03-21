@@ -81,9 +81,3 @@ project:
       url: 'https://www.ohwr.org/project/fmc-tdc/uploads/5bf6bf0a2d633382987f09a0915e20d8/TDCperformance.pdf'
     - name: 'How to set up the spec and fmc tdc with epics'
       url: 'https://ohwr.org/project/fmc-tdc/wikis/how-to-set-up-the-spec-and-fmc-tdc-with-epics'
-  
-  # (optional) Categories to which your project belongs.
-  # (e.g. 'FMC Carriers').
-  categories:
-    - 'FMC Modules'
-
