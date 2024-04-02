@@ -15,13 +15,7 @@ project:
   #   * Enter an inline Markdown description (like in the example below).
   #   * Enter the URL of the Markdown file containing the description
   #     (e.g. 'https://raw.githubusercontent.com/user/project/master/.ohwr/description.md').
-  description: |
-    The **FMC TDC 1ns 5cha Time to Digital Converter** mezzanine board houses 5 input channels. It can calculate time
-    differences between pulses arriving to the channels with a precision of ±700 ps.
-    
-    It can be carried by any of the carrier boards: [SPEC]({{< ref "/projects/spec" >}}) or
-    [SVEC]({{< ref "/projects/svec" >}}). It is implemented using a dedicated time-to-digital converter chip from
-    the European company [ACAM](http://www.acam.de/index.php?id=22&L=0).
+  description: 'https://raw.githubusercontent.com/wiki/vascoguita/fmc-tdc/Home.md'
 
   # The website of your project.
   # Use the web page of your git repository if your project doesn't have dedicated website
