@@ -49,19 +49,9 @@ project:
 
   # (optional) Link to the forum where your community has conversations, asks questions and posts answers.
   forum: 'https://forums.ohwr.org/c/fmc-tdc'
-
+  
   # (optional) News feed of your project.
-  news:
-    - title: 'V8 Released'
-      date: 2022-07-12
-    - title: 'V8 of gateware and software being developed'
-      date: 2022-06-23
-    - title: 'KEK developed a SPEC/TDC device driver for EPICS'
-      date: 2022-06-23
-    - title: 'Performance tests will be made using the latest gateware'
-      date: 2021-12-14
-    - title: 'Cards used at CERN in accelerator system'
-      date: 2019-04-03
+  newsfeed: 'https://raw.githubusercontent.com/wiki/vascoguita/fmc-tdc/News.md'
 
   # (optional) Addtional links.
   links:
